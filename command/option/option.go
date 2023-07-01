@@ -4,15 +4,6 @@ type StartMode byte
 type FlipMode byte
 type SleepInterval byte
 
-type Option struct {
-	Name    string
-	Bytes   []byte
-	Start   StartMode
-	Padding byte
-	Flip    FlipMode
-	Sleep   SleepInterval
-}
-
 const (
 	Default StartMode = 0x00
 	Image   StartMode = 0x01
@@ -33,22 +24,45 @@ const (
 	Interval10 SleepInterval = 0x0a
 )
 
-func SetOptions(s StartMode, f FlipMode, si SleepInterval) Option {
-	return Option{
-		Name: "OPTIONS",
-		Bytes: []byte{
-			0x7d, 0xef, 0x69, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x2d,
-		},
-		Start:   s,
-		Padding: 0x00,
-		Flip:    f,
-		Sleep:   si,
-	}
+type Option struct {
+	name    string
+	bytes   []byte
+	start   StartMode
+	padding byte
+	flip    FlipMode
+	sleep   SleepInterval
 }
 
-func (o Option) GetBytes() []byte {
+func NewOption() *Option {
+	return &Option{}
+}
+
+func (o *Option) SetOptions(s StartMode, f FlipMode, si SleepInterval) {
+	o.name = "OPTIONS"
+	o.bytes = []byte{
+		0x7d, 0xef, 0x69, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x2d,
+	}
+	o.start = s
+	o.padding = 0x00
+	o.flip = f
+	o.sleep = si
+}
+
+func (o *Option) GetBytes() []byte {
 	tmp := make([]byte, 250)
-	cmd := append(o.Bytes, byte(o.Start), o.Padding, byte(o.Flip), byte(o.Sleep))
+	cmd := append(o.bytes, byte(o.start), o.padding, byte(o.flip), byte(o.sleep))
 	copy(tmp, cmd)
 	return tmp
+}
+
+func (o *Option) GetName() string {
+	return o.name
+}
+
+func (o *Option) GetSize() int {
+	return 0
+}
+
+func (o *Option) ValidateCommand([]byte, int) error {
+	return nil
 }

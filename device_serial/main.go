@@ -42,18 +42,19 @@ func NewSerial(device *usb.UsbDevice, l *slog.Logger) (*Serial, error) {
 	}, nil
 }
 
-func (s *Serial) Write(p []byte) (int, error) {
-	n, err := s.port.Write(p)
+func (s *Serial) Write(p command.Command) (int, error) {
+	n, err := s.port.Write(p.GetBytes())
 	if err != nil {
 		return 0, err
 	}
 	return n, nil
 }
 
-func (s *Serial) Read(p *[]byte, i int) (int, error) {
+func (s *Serial) Read(p command.Command) (int, error) {
 	var readed int
+	buff := make([]byte, p.GetSize())
 	for {
-		n, err := s.port.Read(*p)
+		n, err := s.port.Read(buff)
 		readed += n
 		s.log.Info(fmt.Sprintf("Readed %v bytes", readed))
 		if err != nil {
@@ -62,86 +63,13 @@ func (s *Serial) Read(p *[]byte, i int) (int, error) {
 		if n == 0 {
 			return 0, fmt.Errorf("no response")
 		}
-		if n == i {
+		if n == p.GetSize() {
 			break
 		}
+	}
+	err := p.ValidateCommand(buff, readed)
+	if err != nil {
+		return 0, err
 	}
 	return readed, nil
-}
-
-func (s *Serial) SendHello() error {
-	cmd := command.NewCommand()
-	var readed int
-	var writed int
-
-	writed, err := s.port.Write(cmd.Hello().GetBytes())
-	if err != nil {
-		return err
-	}
-
-	s.log.Info(fmt.Sprintf("Sent %v bytes", writed))
-
-	buff := make([]byte, 23)
-	for {
-		n, err := s.port.Read(buff)
-		readed += n
-		s.log.Info(fmt.Sprintf("Readed %v bytes", readed))
-		if err != nil {
-			return err
-		}
-		if n == 0 {
-			return fmt.Errorf("no response")
-		}
-		if n == 23 {
-			break
-		}
-	}
-	if !cmd.Hello().ValidateCommand(buff[:23], readed) {
-		return fmt.Errorf("no matching device")
-	}
-	s.log.Info("Matching Device!")
-	return nil
-}
-
-func (s *Serial) SendStopMedia() error {
-	var readed int
-	var writed int
-
-	cmd := command.NewCommand()
-
-	cmd.StartDisplayBitmap().GetBytes()
-
-	writed, err := s.port.Write(cmd.StopVideo().GetBytes())
-	if err != nil {
-		return err
-	}
-	s.log.Info(fmt.Sprintf("Sent %v bytes", writed))
-
-	writed, err = s.port.Write(cmd.StopMedia().GetBytes())
-	if err != nil {
-		return err
-	}
-	s.log.Info(fmt.Sprintf("Sent %v bytes", writed))
-
-	buff := make([]byte, 1024)
-	for {
-		n, err := s.port.Read(buff)
-		readed += n
-		s.log.Info(fmt.Sprintf("Readed %v bytes", readed))
-
-		if err != nil {
-			return err
-		}
-		if n == 0 {
-			return fmt.Errorf("no response")
-		}
-		if n == 1024 {
-			break
-		}
-	}
-	if !cmd.StopMedia().ValidateCommand(buff[:10], readed) {
-		return fmt.Errorf("no matching command")
-	}
-	s.log.Info("Matching Command!")
-	return nil
 }

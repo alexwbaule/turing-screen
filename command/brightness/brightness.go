@@ -13,7 +13,11 @@ type Brightness struct {
 	padding    byte
 }
 
-func (c Brightness) Getbytes() []byte {
+func NewBrightness() *Brightness {
+	return &Brightness{}
+}
+
+func (c *Brightness) GetBytes() []byte {
 	tmp := utils.BZero(250, c.padding)
 	cmd := append(c.bytes, c.brightness)
 	copy(tmp, cmd)
@@ -21,11 +25,11 @@ func (c Brightness) Getbytes() []byte {
 	return tmp
 }
 
-func (c Brightness) GetName() string {
+func (c *Brightness) GetName() string {
 	return c.name
 }
 
-func (c Brightness) SetBrightness(value int) Brightness {
+func (c *Brightness) SetBrightness(value int) Brightness {
 	return Brightness{
 		name: "SetBrightness",
 		bytes: []byte{
