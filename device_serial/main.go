@@ -1,6 +1,7 @@
 package device_serial
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/alexwbaule/turing-screen/command"
 	"github.com/alexwbaule/turing-screen/usb"
@@ -15,25 +16,30 @@ type Serial struct {
 	log    *slog.Logger
 }
 
-func NewSerial(device *usb.UsbDevice, l *slog.Logger) (*Serial, error) {
-	mode := &serial.Mode{
+func NewSerial(portName string, l *slog.Logger) (*Serial, error) {
+	device, err := usb.NewUsbDevice(portName, l)
+	if err != nil {
+		return nil, fmt.Errorf("error finding devices %s: %w", portName, err)
+	}
+	l.Info(fmt.Sprintf("Connecting Using: %s", device.Name))
+
+	config := &serial.Mode{
 		BaudRate: 115200,
-		Parity:   serial.NoParity,
 		DataBits: 8,
+		Parity:   serial.NoParity,
 		StopBits: serial.OneStopBit,
 		InitialStatusBits: &serial.ModemOutputBits{
 			RTS: true,
 			DTR: true,
 		},
 	}
-	l.Info(fmt.Sprintf("Connecting Using: %s", device.Name))
-	port, err := serial.Open(device.Name, mode)
+	port, err := serial.Open(device.Name, config)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error opening port %s: %w", device.Name, err)
 	}
 	err = port.SetReadTimeout(5 * time.Second)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error setting read timeout %s: %w", device.Name, err)
 	}
 	return &Serial{
 		device: device,
@@ -42,12 +48,27 @@ func NewSerial(device *usb.UsbDevice, l *slog.Logger) (*Serial, error) {
 	}, nil
 }
 
+func (s *Serial) ResetDevice() error {
+	return s.device.ResetDevice()
+}
+
 func (s *Serial) Write(p command.Command) (int, error) {
-	n, err := s.port.Write(p.GetBytes())
-	if err != nil {
-		return 0, err
+	var writen int
+	for _, b := range p.GetBytes() {
+		//if p.GetName() == "UPDATE_BITMAP" {
+		//s.log.Info(fmt.Sprintf("cmd: %s [%v]\n", p.GetName(), hex.EncodeToString(b)))
+		//}
+		n, err := s.port.Write(b)
+		writen += n
+		if err != nil {
+			s.log.Info(fmt.Sprintf("error: %d (%s)\n", writen, err))
+			return 0, err
+		}
 	}
-	return n, nil
+	if p.GetSize() > 0 {
+		return s.Read(p)
+	}
+	return writen, nil
 }
 
 func (s *Serial) Read(p command.Command) (int, error) {
@@ -57,6 +78,8 @@ func (s *Serial) Read(p command.Command) (int, error) {
 		n, err := s.port.Read(buff)
 		readed += n
 		s.log.Info(fmt.Sprintf("Readed %v bytes", readed))
+		s.log.Info(fmt.Sprintf("Readed %s", string(bytes.Trim(buff, "\x00"))))
+
 		if err != nil {
 			return 0, err
 		}

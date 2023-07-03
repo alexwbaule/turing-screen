@@ -3,9 +3,11 @@ package usb
 import (
 	"fmt"
 	"github.com/google/gousb"
+	"go.bug.st/serial"
 	"go.bug.st/serial/enumerator"
 	"golang.org/x/exp/slog"
 	"strconv"
+	"time"
 )
 
 type UsbDevice struct {
@@ -36,7 +38,7 @@ func NewUsbDevice(portn string, l *slog.Logger) (*UsbDevice, error) {
 			if err != nil {
 				return nil, fmt.Errorf("could not parse ProducId: %w", err)
 			}
-			if portn == "AUTO" && (port.SerialNumber == "20080411" || port.SerialNumber == "USB7INCH") {
+			if portn == "AUTO" && port.SerialNumber == "20080411" {
 				return &UsbDevice{
 					ProducId:     uint16(pid),
 					VendorId:     uint16(vid),
@@ -44,6 +46,12 @@ func NewUsbDevice(portn string, l *slog.Logger) (*UsbDevice, error) {
 					Name:         port.Name,
 					log:          l,
 				}, nil
+			} else if portn == "AUTO" && port.SerialNumber == "USB7INCH" {
+				l.Info("Device is Sleeping, let's wake ip up...(its lazy, 15 seconds to wake up!)")
+				wakeUpDevice(port.Name, l)
+				time.Sleep(15 * time.Second)
+				l.Info("Detecting again...")
+				return NewUsbDevice(portn, l)
 			} else if portn == port.Name {
 				return &UsbDevice{
 					ProducId:     uint16(pid),
@@ -58,7 +66,31 @@ func NewUsbDevice(portn string, l *slog.Logger) (*UsbDevice, error) {
 	return nil, fmt.Errorf("no matching ports has been found")
 }
 
-func (u UsbDevice) ResetDevice() {
+func wakeUpDevice(name string, l *slog.Logger) {
+	mode := &serial.Mode{
+		BaudRate: 115200,
+		Parity:   serial.NoParity,
+		DataBits: 8,
+		StopBits: serial.OneStopBit,
+		InitialStatusBits: &serial.ModemOutputBits{
+			RTS: true,
+			DTR: true,
+		},
+	}
+	l.Info(fmt.Sprintf("Waking up device on: %s", name))
+	port, err := serial.Open(name, mode)
+	if err != nil {
+		l.Error(fmt.Sprintf("Could not open a device: %s", err))
+	}
+	port.Close()
+}
+
+func (u UsbDevice) ResetDevice() (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = r.(error)
+		}
+	}()
 	// Initialize a new Context.
 	ctx := gousb.NewContext()
 	defer ctx.Close()
@@ -70,11 +102,12 @@ func (u UsbDevice) ResetDevice() {
 
 	if err != nil {
 		u.log.Error(fmt.Sprintf("Could not open a device: %s", err))
-		return
+		return err
 	}
 	err = dev.Reset()
 	if err != nil {
 		u.log.Error(fmt.Sprintf("Could not reset device: %s", err))
-		return
+		return err
 	}
+	return nil
 }

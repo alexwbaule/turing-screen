@@ -1,2 +1,11 @@
 device:
   port: AUTO
+  theme: DragonBall5inch
+  sensors:
+    network:
+      eth: "enp4s0"
+      wlo:
+  config:
+    brightness: 20
+  display:
+    reverse: false

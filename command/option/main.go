@@ -48,11 +48,11 @@ func (o *Option) SetOptions(s StartMode, f FlipMode, si SleepInterval) {
 	o.sleep = si
 }
 
-func (o *Option) GetBytes() []byte {
+func (o *Option) GetBytes() [][]byte {
 	tmp := make([]byte, 250)
 	cmd := append(o.bytes, byte(o.start), o.padding, byte(o.flip), byte(o.sleep))
 	copy(tmp, cmd)
-	return tmp
+	return [][]byte{tmp}
 }
 
 func (o *Option) GetName() string {
