@@ -65,8 +65,7 @@ func (m *Payload) ValidateCommand(s []byte, i int) error {
 	return fmt.Errorf("no matching item on: %s", m.readed.String())
 }
 
-func (m *Payload) SendPayload(imagePath string) *Payload {
-	img := image_process.NewImageProcess(image_process.LoadImage(imagePath))
+func (m *Payload) SendPayload(background image_process.ImageBackground) *Payload {
 	return &Payload{
 		name: "SEND_PAYLOAD",
 		bytes: [][]byte{
@@ -78,7 +77,7 @@ func (m *Payload) SendPayload(imagePath string) *Payload {
 			},
 		},
 		padding: []byte{0x2c, 0x00},
-		payload: img.GenerateBackgroundImage(),
+		payload: background.GenerateBackgroundImage(),
 		size:    1024,
 		readed:  imageSucess,
 	}

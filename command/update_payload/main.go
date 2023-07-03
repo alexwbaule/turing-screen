@@ -18,7 +18,6 @@ type UpdatePayload struct {
 	padding byte
 	size    int
 	count   int
-	move    int
 	readed  *regexp.Regexp
 }
 
@@ -30,7 +29,6 @@ func NewUpdatePayload() *UpdatePayload {
 		},
 		padding: 0x00,
 		count:   -1,
-		move:    0,
 	}
 }
 
@@ -76,14 +74,8 @@ func (m *UpdatePayload) ValidateCommand(s []byte, i int) error {
 	return nil
 }
 
-func (m *UpdatePayload) SendPayload(imagePath string) *UpdatePayload {
-	img := image_process.NewImageProcess(image_process.LoadImage(imagePath))
-	m.payload = img.GeneratePartialImage(m.move, 50)
+func (m *UpdatePayload) SendPayload(partial image_process.ImagePartial, x, y int) *UpdatePayload {
+	m.payload = partial.GeneratePartialImage(x, y)
 	m.count++
-	if m.move == 660 {
-		m.move = 0
-	} else {
-		m.move++
-	}
 	return m
 }
