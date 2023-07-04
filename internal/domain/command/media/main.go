@@ -3,7 +3,8 @@ package media
 import (
 	"bytes"
 	"fmt"
-	"github.com/alexwbaule/turing-screen/utils"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"regexp"
 )
 
@@ -18,10 +19,13 @@ type Media struct {
 	padding byte
 	size    int
 	readed  *regexp.Regexp
+	log     *logger.Logger
 }
 
-func NewMedia() *Media {
-	return &Media{}
+func NewMedia(log *logger.Logger) *Media {
+	return &Media{
+		log: log,
+	}
 }
 
 func (m *Media) GetBytes() [][]byte {
@@ -53,6 +57,7 @@ func (m *Media) StopVideo() *Media {
 			0x79, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
 		},
 		padding: 0x00,
+		log:     m.log,
 	}
 }
 func (m *Media) StopMedia() *Media {
@@ -64,6 +69,7 @@ func (m *Media) StopMedia() *Media {
 		padding: 0x00,
 		size:    1024,
 		readed:  mediaStop,
+		log:     m.log,
 	}
 }
 func (m *Media) QueryStatus() *Media {
@@ -75,6 +81,7 @@ func (m *Media) QueryStatus() *Media {
 		padding: 0x00,
 		size:    1024,
 		readed:  render,
+		log:     m.log,
 	}
 }
 func (m *Media) PostUpdateBitmap() *Media {
@@ -84,5 +91,6 @@ func (m *Media) PostUpdateBitmap() *Media {
 			0x86, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
 		},
 		padding: 0x00,
+		log:     m.log,
 	}
 }

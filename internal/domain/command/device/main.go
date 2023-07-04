@@ -3,7 +3,8 @@ package device
 import (
 	"bytes"
 	"fmt"
-	"github.com/alexwbaule/turing-screen/utils"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"regexp"
 )
 
@@ -17,10 +18,13 @@ type Device struct {
 	padding byte
 	size    int
 	readed  *regexp.Regexp
+	log     *logger.Logger
 }
 
-func NewDevice() *Device {
-	return &Device{}
+func NewDevice(log *logger.Logger) *Device {
+	return &Device{
+		log: log,
+	}
 }
 
 func (d *Device) GetBytes() [][]byte {
@@ -54,6 +58,7 @@ func (d *Device) Hello() *Device {
 		padding: 0x00,
 		size:    23,
 		readed:  deviceId,
+		log:     d.log,
 	}
 }
 
@@ -64,6 +69,7 @@ func (d *Device) Restart() *Device {
 			0x84, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
 		},
 		padding: 0x00,
+		log:     d.log,
 	}
 }
 func (d *Device) TurnOff() *Device {
@@ -73,6 +79,7 @@ func (d *Device) TurnOff() *Device {
 			0x83, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
 		},
 		padding: 0x00,
+		log:     d.log,
 	}
 }
 
@@ -83,5 +90,6 @@ func (d *Device) RestartScreen() *Device {
 			0x84, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
 		},
 		padding: 0x00,
+		log:     d.log,
 	}
 }

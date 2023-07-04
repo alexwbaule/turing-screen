@@ -3,8 +3,9 @@ package payload
 import (
 	"bytes"
 	"fmt"
-	"github.com/alexwbaule/turing-screen/image_process"
-	"github.com/alexwbaule/turing-screen/utils"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"regexp"
 )
 
@@ -21,10 +22,13 @@ type Payload struct {
 	padding []byte
 	size    int
 	readed  *regexp.Regexp
+	log     *logger.Logger
 }
 
-func NewPayload() *Payload {
-	return &Payload{}
+func NewPayload(log *logger.Logger) *Payload {
+	return &Payload{
+		log: log,
+	}
 }
 
 func (m *Payload) GetBytes() [][]byte {
@@ -65,7 +69,7 @@ func (m *Payload) ValidateCommand(s []byte, i int) error {
 	return fmt.Errorf("no matching item on: %s", m.readed.String())
 }
 
-func (m *Payload) SendPayload(background image_process.ImageBackground) *Payload {
+func (m *Payload) SendPayload(background device.ImageBackground) *Payload {
 	return &Payload{
 		name: "SEND_PAYLOAD",
 		bytes: [][]byte{
@@ -80,5 +84,6 @@ func (m *Payload) SendPayload(background image_process.ImageBackground) *Payload
 		payload: background.GenerateBackgroundImage(),
 		size:    1024,
 		readed:  imageSucess,
+		log:     m.log,
 	}
 }

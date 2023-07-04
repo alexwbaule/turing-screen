@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"os"
 )
 
@@ -34,16 +34,15 @@ func PadBegin(bb []byte, size int) []byte {
 	return tmp
 }
 
-func LoadImage(path string) image.Image {
+func LoadImage(path string) (image.Image, error) {
 	reader, err := os.Open(path)
 	if err != nil {
-		log.Fatalf("failed to open: %s", err)
+		return nil, fmt.Errorf("failed to open %s: %s", path, err)
 	}
 	defer reader.Close()
 	img, _, err := image.Decode(reader)
 	if err != nil {
-		log.Fatalf("failed to decode: %s", err)
+		return nil, fmt.Errorf("failed to decode %s: %s", path, err)
 	}
-	log.Printf("%d x %d", img.Bounds().Size().X, img.Bounds().Size().Y)
-	return img
+	return img, nil
 }

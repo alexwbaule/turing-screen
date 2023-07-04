@@ -1,6 +1,6 @@
 device:
   port: AUTO
-  theme: DragonBall5inch
+  theme: Landscape15Grid
   sensors:
     network:
       eth: "enp4s0"

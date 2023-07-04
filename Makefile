@@ -3,7 +3,7 @@ BUILD=$(shell git rev-parse --short HEAD 2>/dev/null || echo "develop")
 PLATFORMS := windows linux darwin
 GOOS = $(word 1, $@)
 BINARY := turing-screen
-LDFLAGS=-ldflags "-s -w -X=github.com/alexwbaule/turing-screen/logger.Version=$(VERSION) -X=github.com/alexwbaule/turing-screen/logger.Build=$(BUILD)"
+LDFLAGS=-ldflags "-s -w -X=github.com/alexwbaule/turing-screen/internal/application/logger.Version=$(VERSION) -X=github.com/alexwbaule/turing-screen/internal/application/logger.Build=$(BUILD)"
 
 
 build:

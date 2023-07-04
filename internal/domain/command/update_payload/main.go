@@ -1,10 +1,9 @@
 package update_payload
 
 import (
-	"encoding/hex"
-	"fmt"
-	"github.com/alexwbaule/turing-screen/image_process"
-	"github.com/alexwbaule/turing-screen/utils"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"math/big"
 	"regexp"
 )
@@ -19,9 +18,10 @@ type UpdatePayload struct {
 	size    int
 	count   int
 	readed  *regexp.Regexp
+	log     *logger.Logger
 }
 
-func NewUpdatePayload() *UpdatePayload {
+func NewUpdatePayload(log *logger.Logger) *UpdatePayload {
 	return &UpdatePayload{
 		name: "UPDATE_BITMAP",
 		bytes: []byte{
@@ -29,6 +29,7 @@ func NewUpdatePayload() *UpdatePayload {
 		},
 		padding: 0x00,
 		count:   -1,
+		log:     log,
 	}
 }
 
@@ -46,7 +47,9 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 	copy(updateBitMapCmd[7:], pPad)
 	copy(updateBitMapCmd[10:], pCount)
 
-	fmt.Printf("[%v]\n", hex.EncodeToString(updateBitMapCmd))
+	m.log.Infof("Count: %d", m.count)
+
+	//fmt.Printf("[%v]\n", hex.EncodeToString(updateBitMapCmd))
 
 	fullImage = append(fullImage, updateBitMapCmd)
 
@@ -74,7 +77,7 @@ func (m *UpdatePayload) ValidateCommand(s []byte, i int) error {
 	return nil
 }
 
-func (m *UpdatePayload) SendPayload(partial image_process.ImagePartial, x, y int) *UpdatePayload {
+func (m *UpdatePayload) SendPayload(partial device.ImagePartial, x, y int) *UpdatePayload {
 	m.payload = partial.GeneratePartialImage(x, y)
 	m.count++
 	return m

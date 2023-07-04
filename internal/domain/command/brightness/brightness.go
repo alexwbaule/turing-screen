@@ -1,7 +1,8 @@
 package brightness
 
 import (
-	"github.com/alexwbaule/turing-screen/utils"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
 )
 
 type Brightness struct {
@@ -9,10 +10,13 @@ type Brightness struct {
 	bytes      []byte
 	brightness byte
 	padding    byte
+	log        *logger.Logger
 }
 
-func NewBrightness() *Brightness {
-	return &Brightness{}
+func NewBrightness(log *logger.Logger) *Brightness {
+	return &Brightness{
+		log: log,
+	}
 }
 
 func (c *Brightness) GetBytes() [][]byte {
@@ -43,5 +47,6 @@ func (c *Brightness) SetBrightness(value int) *Brightness {
 		},
 		brightness: v,
 		padding:    0x00,
+		log:        c.log,
 	}
 }

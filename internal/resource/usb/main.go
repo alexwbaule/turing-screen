@@ -2,10 +2,10 @@ package usb
 
 import (
 	"fmt"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/google/gousb"
 	"go.bug.st/serial"
 	"go.bug.st/serial/enumerator"
-	"golang.org/x/exp/slog"
 	"strconv"
 	"time"
 )
@@ -15,10 +15,10 @@ type UsbDevice struct {
 	VendorId     uint16
 	SerialNumber string
 	Name         string
-	log          *slog.Logger
+	log          *logger.Logger
 }
 
-func NewUsbDevice(portn string, l *slog.Logger) (*UsbDevice, error) {
+func NewUsbDevice(portn string, l *logger.Logger) (*UsbDevice, error) {
 	ports, err := enumerator.GetDetailedPortsList()
 	if err != nil {
 		l.Error(err.Error())
@@ -66,7 +66,7 @@ func NewUsbDevice(portn string, l *slog.Logger) (*UsbDevice, error) {
 	return nil, fmt.Errorf("no matching ports has been found")
 }
 
-func wakeUpDevice(name string, l *slog.Logger) {
+func wakeUpDevice(name string, l *logger.Logger) {
 	mode := &serial.Mode{
 		BaudRate: 115200,
 		Parity:   serial.NoParity,
@@ -77,10 +77,10 @@ func wakeUpDevice(name string, l *slog.Logger) {
 			DTR: true,
 		},
 	}
-	l.Info(fmt.Sprintf("Waking up device on: %s", name))
+	l.Infof("Waking up device on: %s", name)
 	port, err := serial.Open(name, mode)
 	if err != nil {
-		l.Error(fmt.Sprintf("Could not open a device: %s", err))
+		l.Errorf("Could not open a device: %s", err)
 	}
 	port.Close()
 }
@@ -101,12 +101,12 @@ func (u UsbDevice) ResetDevice() (err error) {
 	defer dev.Close()
 
 	if err != nil {
-		u.log.Error(fmt.Sprintf("Could not open a device: %s", err))
+		u.log.Errorf("Could not open a device: %s", err)
 		return err
 	}
 	err = dev.Reset()
 	if err != nil {
-		u.log.Error(fmt.Sprintf("Could not reset device: %s", err))
+		u.log.Errorf("Could not reset device: %s", err)
 		return err
 	}
 	return nil

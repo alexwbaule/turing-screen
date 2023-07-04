@@ -1,27 +1,27 @@
-package device_serial
+package serial
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/alexwbaule/turing-screen/command"
-	"github.com/alexwbaule/turing-screen/usb"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/domain/command"
+	"github.com/alexwbaule/turing-screen/internal/resource/usb"
 	"go.bug.st/serial"
-	"golang.org/x/exp/slog"
 	"time"
 )
 
 type Serial struct {
 	device *usb.UsbDevice
 	port   serial.Port
-	log    *slog.Logger
+	log    *logger.Logger
 }
 
-func NewSerial(portName string, l *slog.Logger) (*Serial, error) {
+func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 	device, err := usb.NewUsbDevice(portName, l)
 	if err != nil {
 		return nil, fmt.Errorf("error finding devices %s: %w", portName, err)
 	}
-	l.Info(fmt.Sprintf("Connecting Using: %s", device.Name))
+	l.Infof("Connecting Using: %s", device.Name)
 
 	config := &serial.Mode{
 		BaudRate: 115200,
@@ -61,7 +61,7 @@ func (s *Serial) Write(p command.Command) (int, error) {
 		n, err := s.port.Write(b)
 		writen += n
 		if err != nil {
-			s.log.Info(fmt.Sprintf("error: %d (%s)\n", writen, err))
+			s.log.Infof("error: %d (%s)\n", writen, err)
 			return 0, err
 		}
 	}
@@ -77,8 +77,7 @@ func (s *Serial) Read(p command.Command) (int, error) {
 	for {
 		n, err := s.port.Read(buff)
 		readed += n
-		s.log.Info(fmt.Sprintf("Readed %v bytes", readed))
-		s.log.Info(fmt.Sprintf("Readed %s", string(bytes.Trim(buff, "\x00"))))
+		s.log.Infof("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
 
 		if err != nil {
 			return 0, err
