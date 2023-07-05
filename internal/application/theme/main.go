@@ -3,7 +3,10 @@ package theme
 import (
 	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/config"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity"
+	"golang.org/x/image/font"
+	"image/color"
 )
 
 type Theme struct {
@@ -53,28 +56,41 @@ func (t Theme) GetStaticTexts() map[string]entity.StaticTexts {
 		return images
 	}
 
-	for b, i := range t.theme["static_text"].(map[string]interface{}) {
-		fmt.Printf("%s [%#v]\n", b, i)
-		var bgtype entity.BackgroundType
-		var background string
+	for name, i := range t.theme["static_text"].(map[string]interface{}) {
+		fmt.Printf("%s [%#v]\n", name, i)
+		var bgColor color.Color
+		var fColor color.Color
+		var fface font.Face
 
-		if i.(map[string]interface{})["background_image"] != nil {
-			bgtype = entity.IMAGE
-			background = i.(map[string]interface{})["background_image"].(string)
-		} else if i.(map[string]interface{})["background_color"] != nil {
-			bgtype = entity.COLOR
-			background = i.(map[string]interface{})["background_color"].(string)
+		if i.(map[string]interface{})["font_color"] != nil {
+			bgcolor := i.(map[string]interface{})["font_color"].(string)
+			fColor = utils.ConvertToColor(bgcolor, color.White)
+		} else {
+			fColor = color.White
 		}
 
-		images[b] = entity.StaticTexts{
-			Text:           i.(map[string]interface{})["text"].(string),
-			Font:           fontPath + i.(map[string]interface{})["font"].(string),
-			FontSize:       i.(map[string]interface{})["font_size"].(int),
-			FontColor:      i.(map[string]interface{})["font_color"].(string),
-			X:              i.(map[string]interface{})["x"].(int),
-			Y:              i.(map[string]interface{})["y"].(int),
-			BackgroundType: bgtype,
-			Background:     background,
+		if i.(map[string]interface{})["background_color"] != nil {
+			bgcolor := i.(map[string]interface{})["background_color"].(string)
+			bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+		} else {
+			bgColor = color.Transparent
+		}
+
+		if i.(map[string]interface{})["font"] != nil {
+			fPath := fontPath + i.(map[string]interface{})["font"].(string)
+			fSize := float64(i.(map[string]interface{})["font_size"].(int))
+			fface = utils.LoadFontFace(fPath, fSize)
+		} else {
+			fface = utils.DefaultFont
+		}
+
+		images[name] = entity.StaticTexts{
+			Text:            i.(map[string]interface{})["text"].(string),
+			Font:            fface,
+			FontColor:       fColor,
+			X:               i.(map[string]interface{})["x"].(int),
+			Y:               i.(map[string]interface{})["y"].(int),
+			BackgroundColor: bgColor,
 		}
 	}
 	return images

@@ -5,6 +5,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/config"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/theme"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command/brightness"
 	cmddevice "github.com/alexwbaule/turing-screen/internal/domain/command/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/command/media"
@@ -14,6 +15,8 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
+	"image/color"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -105,14 +108,12 @@ func main() {
 
 	for {
 		V := entity.StaticTexts{
-			Text:           fmt.Sprintf("%d%%", 0),
-			Font:           "res/fonts/roboto/Roboto-Bold.ttf",
-			FontSize:       30,
-			FontColor:      "",
-			BackgroundType: entity.IMAGE,
-			Background:     "F",
-			X:              0,
-			Y:              0,
+			Text:            fmt.Sprintf("%d%%", rand.Intn(100)),
+			Font:            utils.DefaultFontFace(),
+			FontColor:       color.White,
+			BackgroundColor: color.Transparent,
+			X:               54,
+			Y:               70,
 		}
 
 		img := local.DrawText(fbg, V)
@@ -132,16 +133,18 @@ func main() {
 			log.Error(err.Error())
 			break
 		}
-		if imgId == 110 {
+		if imgId == 100 {
 			imgId = 0
 			continue
 		}
 		imgId++
 		time.Sleep(100 * time.Millisecond)
 	}
-	_, err = devSerial.Write(cmdDevice.TurnOff())
-	if err != nil {
-		devSerial.ResetDevice()
-		log.Error(err.Error())
-	}
+	/*
+		_, err = devSerial.Write(cmdDevice.TurnOff())
+		if err != nil {
+			devSerial.ResetDevice()
+			log.Error(err.Error())
+		}
+	*/
 }

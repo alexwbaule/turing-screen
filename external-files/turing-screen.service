@@ -1,0 +1,18 @@
+[Unit]
+Description=Turing Screen
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/turing-screen/
+ExecStart=/opt/turing-screen/bin/turing-screen
+Restart=always
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,15 +1,17 @@
 package entity
 
+import (
+	"golang.org/x/image/font"
+	"image/color"
+)
+
 type Orientation int
-type BackgroundType int
 
 const (
-	PORTRAIT          Orientation    = 0
-	REVERSE_PORTRAIT  Orientation    = 1
-	LANDSCAPE         Orientation    = 2
-	REVERSE_LANDSCAPE Orientation    = 3
-	COLOR             BackgroundType = 0
-	IMAGE             BackgroundType = 1
+	PORTRAIT          Orientation = 0
+	REVERSE_PORTRAIT  Orientation = 1
+	LANDSCAPE         Orientation = 2
+	REVERSE_LANDSCAPE Orientation = 3
 )
 
 func (o Orientation) String() string {
@@ -48,12 +50,10 @@ type StaticImages struct {
 	Y      int
 }
 type StaticTexts struct {
-	Text           string
-	Font           string
-	FontSize       int
-	FontColor      string
-	BackgroundType BackgroundType
-	Background     string
-	X              int
-	Y              int
+	Text            string
+	Font            font.Face
+	FontColor       color.Color
+	BackgroundColor color.Color
+	X               int
+	Y               int
 }
