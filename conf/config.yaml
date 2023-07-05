@@ -1,11 +1,10 @@
 device:
   port: AUTO
-  theme: Landscape15Grid
+  theme: DragonBall5inch
   sensors:
     network:
       eth: "enp4s0"
       wlo:
-  config:
-    brightness: 20
   display:
     reverse: false
+    brightness: 20

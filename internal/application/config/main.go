@@ -1,38 +1,45 @@
 package config
 
 import (
+	"fmt"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity"
 	"github.com/spf13/viper"
-	"strings"
 )
 
 type Config struct {
-	*viper.Viper
+	device *entity.Config
 }
 
 const defaultConfig = `conf/config.yaml`
 
-func NewConfig(file string) (*Config, error) {
-	v := viper.New()
+func NewDefaultConfig() (*Config, error) {
+	var config entity.Config
 
-	v.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
-	v.AutomaticEnv()
-	v.SetConfigType("yaml")
-	v.SetConfigFile(file)
-	f := v.ReadInConfig()
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(defaultConfig)
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Printf("Error: [%#v]\n", err)
+		return nil, err
+	}
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		fmt.Printf("Error: [%#v]\n", err)
+		return nil, err
+	}
 	return &Config{
-		v,
-	}, f
+		device: &config,
+	}, err
 }
 
-func NewDefaultConfig() (*Config, error) {
-	v := viper.New()
+func (c *Config) GetDevicePort() string {
+	return c.device.Port
+}
 
-	v.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
-	v.AutomaticEnv()
-	v.SetConfigType("yaml")
-	v.SetConfigFile(defaultConfig)
-	f := v.ReadInConfig()
-	return &Config{
-		v,
-	}, f
+func (c *Config) GetDeviceTheme() string {
+	return c.device.Theme
+}
+
+func (c *Config) GetDeviceDisplay() entity.Display {
+	return c.device.Display
 }

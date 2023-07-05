@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func BuildBackgroundImage(images map[string]entity.StaticImages) image.Image {
+func BuildBackgroundImage(images map[string]entity.StaticImage) image.Image {
 
 	background, err := utils.LoadImage(images["background"].Path)
 	if err != nil {
@@ -32,41 +32,30 @@ func BuildBackgroundImage(images map[string]entity.StaticImages) image.Image {
 		}
 		ctx.DrawImage(numb, img.X, img.Y)
 	}
-	file := "res/test/background.png"
-	fmt.Printf("Saving: %s\n", file)
-	err = ctx.SavePNG(file)
-	if err != nil {
-		return nil
-	}
-
 	return ctx.Image()
 }
 
-func BuildBackgroundTexts(background image.Image, images map[string]entity.StaticTexts) image.Image {
+func BuildBackgroundTexts(background image.Image, images map[string]entity.StaticText) image.Image {
 	ctx := gg.NewContextForImage(background)
 
 	for _, text := range images {
+		ctx.SetFontFace(text.Font)
 		if text.BackgroundColor != color.Transparent {
 			ctx.SetColor(text.BackgroundColor)
 			w, h := ctx.MeasureString(text.Text)
+			fmt.Printf("[%d] - [%s][%d x %d][%f x %f]\n", len(text.Text), text.Text, text.X, text.Y, w, h)
+
 			ctx.DrawRectangle(float64(text.X), float64(text.Y), w, h)
 			ctx.Fill()
 		}
-		ctx.SetFontFace(text.Font)
 		ctx.SetColor(text.FontColor)
 		ctx.DrawStringAnchored(text.Text, float64(text.X), float64(text.Y), 0.0, 1.0)
 		ctx.Fill()
 	}
-	file := "res/test/background-texts.png"
-	fmt.Printf("Saving: %s\n", file)
-	err := ctx.SavePNG(file)
-	if err != nil {
-		return nil
-	}
 	return ctx.Image()
 }
 
-func DrawText(background image.Image, text entity.StaticTexts) image.Image {
+func DrawText(background image.Image, text entity.StaticText) image.Image {
 	ctx := gg.NewContextForImage(background)
 
 	ctx.SetFontFace(text.Font)
@@ -108,7 +97,7 @@ func saveImage(img image.Image, file string) {
 
 /*
 
-func BuildBackgroundImage(images map[string]entity.StaticImages) image.Image {
+func BuildBackgroundImage(images map[string]entity.StaticImage) image.Image {
 
 	background, err := utils.LoadImage(images["background"].Path)
 	if err != nil {

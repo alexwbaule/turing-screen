@@ -3,6 +3,7 @@ package entity
 import (
 	"golang.org/x/image/font"
 	"image/color"
+	"strings"
 )
 
 type Orientation int
@@ -29,7 +30,7 @@ func (o Orientation) String() string {
 }
 
 func StringToOrientation(src string) Orientation {
-	switch src {
+	switch strings.ToUpper(src) {
 	case "PORTRAIT":
 		return PORTRAIT
 	case "REVERSE_PORTRAIT":
@@ -42,18 +43,62 @@ func StringToOrientation(src string) Orientation {
 	return LANDSCAPE
 }
 
-type StaticImages struct {
-	Height int
+type StaticImage struct {
 	Path   string
+	Height int
 	Width  int
 	X      int
 	Y      int
 }
-type StaticTexts struct {
+type StaticText struct {
 	Text            string
 	Font            font.Face
 	FontColor       color.Color
 	BackgroundColor color.Color
 	X               int
 	Y               int
+}
+
+type StatText struct {
+	Show            bool
+	ShowUnit        bool
+	X               int
+	Y               int
+	Font            font.Face
+	FontColor       color.Color
+	BackgroundColor color.Color
+}
+
+type StatProgressBar struct {
+	Show            bool
+	ShowUnit        bool
+	X               int
+	Y               int
+	Width           int
+	Height          int
+	MinValue        int
+	MaxValue        int
+	Color           color.Color
+	Outline         bool
+	BackgroundColor color.Color
+}
+
+type StatRadialBar struct {
+	Show            bool
+	ShowUnit        bool
+	X               int
+	Y               int
+	Radius          int
+	Width           int
+	MinValue        int
+	MaxValue        int
+	AngleStart      int
+	AngleEnd        int
+	AngleSteps      int
+	AngleStep       int
+	Color           color.Color
+	BackgroundColor color.Color
+	ShowText        bool
+	Font            font.Face
+	FontColor       color.Color
 }
