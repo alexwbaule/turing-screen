@@ -2,6 +2,7 @@ package theme
 
 import (
 	"fmt"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity"
 	"github.com/spf13/viper"
@@ -23,6 +24,7 @@ type Theme struct {
 	theme       map[string]interface{}
 	orientation entity.Orientation
 	path        string
+	log         *logger.Logger
 }
 
 const fontPath = "res/fonts/"
@@ -36,7 +38,7 @@ func newConfig(file string) (*viper.Viper, error) {
 	return v, f
 }
 
-func LoadTheme(themeFile string) (*Theme, error) {
+func LoadTheme(themeFile string, l *logger.Logger) (*Theme, error) {
 	tfile := fmt.Sprintf("res/themes/%s/theme.yaml", themeFile)
 
 	cfg, err := newConfig(tfile)
@@ -63,6 +65,7 @@ func LoadTheme(themeFile string) (*Theme, error) {
 		theme:       cfg.AllSettings(),
 		path:        fmt.Sprintf("res/themes/%s/", themeFile),
 		orientation: entity.StringToOrientation(cfg.GetString("display.orientation")),
+		log:         l,
 	}, nil
 }
 

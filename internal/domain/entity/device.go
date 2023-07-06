@@ -4,8 +4,9 @@ type Config struct {
 	Device
 }
 type Device struct {
-	Port  string `mapstructure:"port"`
-	Theme string `mapstructure:"theme"`
+	Port     string `mapstructure:"port"`
+	Theme    string `mapstructure:"theme"`
+	LogLevel string `mapstructure:"log"`
 	Sensors
 	Display
 }

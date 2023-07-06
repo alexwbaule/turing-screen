@@ -11,43 +11,31 @@ var (
 	Version = "development"
 	Build   = "0"
 )
-var loglevel *slog.LevelVar
+var loglevel = new(slog.LevelVar)
 
 type Logger struct {
 	*slog.Logger
 }
 
 func NewLogger() *Logger {
-
-	loglevel = new(slog.LevelVar)
-	opts := slog.HandlerOptions{
-		AddSource: false,
-		Level:     loglevel,
-	}
-
-	handler := slog.NewJSONHandler(os.Stdout, &opts)
-
-	Slog := slog.New(handler)
-	slog.With("version", Version, "build", Build)
+	Slog := slog.New(
+		slog.NewJSONHandler(os.Stdout,
+			&slog.HandlerOptions{
+				AddSource: false,
+				Level:     loglevel,
+			},
+		),
+	).With("version", Version, "build", Build)
 	slog.SetDefault(Slog)
-
-	return &Logger{Slog}
-}
-
-func (l *Logger) Errorf(format string, v ...any) {
-	l.Error(fmt.Sprintf(format, v...))
-}
-
-func (l *Logger) Infof(format string, v ...any) {
-	l.Info(fmt.Sprintf(format, v...))
+	return &Logger{
+		Slog,
+	}
 }
 
 func (l *Logger) SetLevel(level string) {
-
 	if level == "" {
 		return
 	}
-
 	switch strings.ToLower(level) {
 	case "debug":
 		loglevel.Set(slog.LevelDebug)
@@ -65,8 +53,19 @@ func (l *Logger) SetLevel(level string) {
 		l.Warnf("Invalid log level %s", level)
 		return
 	}
-
 	l.Infof("Log level changed to %s", strings.ToUpper(level))
+}
+
+func (l *Logger) Errorf(format string, v ...any) {
+	l.Error(fmt.Sprintf(format, v...))
+}
+
+func (l *Logger) Infof(format string, v ...any) {
+	l.Info(fmt.Sprintf(format, v...))
+}
+
+func (l *Logger) Debugf(format string, v ...any) {
+	l.Debug(fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Fatal(v ...any) {

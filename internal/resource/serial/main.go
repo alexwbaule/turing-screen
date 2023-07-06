@@ -58,20 +58,26 @@ func (s *Serial) ResetDevice() error {
 }
 
 func (s *Serial) Close() error {
+	err := s.port.ResetInputBuffer()
+	if err != nil {
+		return fmt.Errorf("serial reset input buffer error: %w", err)
+	}
+	err = s.port.ResetOutputBuffer()
+	if err != nil {
+		return fmt.Errorf("serial reset output buffer error: %w", err)
+	}
+	s.log.Info("Close serial port")
 	return s.port.Close()
 }
 
 func (s *Serial) Write(p command.Command) (int, error) {
 	var writen int
 	for _, b := range p.GetBytes() {
-		//if p.GetName() == "UPDATE_BITMAP" {
-		//s.log.Info(fmt.Sprintf("cmd: %s [%v]\n", p.GetName(), hex.EncodeToString(b)))
-		//}
 		n, err := s.port.Write(b)
 		writen += n
+		s.log.Debugf("Writen %d bytes", writen)
 		if err != nil {
-			s.log.Infof("error: %d (%s)\n", writen, err)
-			return 0, err
+			return 0, fmt.Errorf("write serial error: %w", err)
 		}
 	}
 	if p.GetSize() > 0 {
@@ -86,13 +92,13 @@ func (s *Serial) Read(p command.Command) (int, error) {
 	for {
 		n, err := s.port.Read(buff)
 		readed += n
-		s.log.Infof("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
+		s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
 
 		if err != nil {
-			return 0, err
+			return 0, fmt.Errorf("read serial error: %w", err)
 		}
 		if n == 0 {
-			return 0, fmt.Errorf("no response")
+			return 0, fmt.Errorf("read serial error: no response")
 		}
 		if n == p.GetSize() {
 			break

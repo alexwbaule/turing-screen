@@ -30,6 +30,9 @@ func (w *Worker) Run(worker int, jobs <-chan any) error {
 	var err error
 	for {
 		select {
+		case <-w.ctx.Done():
+			w.log.Infof("Stopping worker job...")
+			return context.Canceled
 		case item := <-jobs:
 			switch item.(type) {
 			case *brightness.Brightness:
@@ -55,9 +58,6 @@ func (w *Worker) Run(worker int, jobs <-chan any) error {
 				w.log.Errorf("worker error: %s", err.Error())
 				return err
 			}
-		case <-w.ctx.Done():
-			w.log.Infof("Stopping worker job...")
-			return context.Canceled
 		}
 	}
 }

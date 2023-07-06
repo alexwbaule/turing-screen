@@ -112,7 +112,7 @@ func DefaultFontFace() font.Face {
 		return basicfont.Face7x13
 	}
 	face := truetype.NewFace(f, &truetype.Options{
-		Size:    40,
+		Size:    20,
 		Hinting: font.HintingFull,
 	})
 	return face

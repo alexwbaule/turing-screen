@@ -30,6 +30,9 @@ func NewDefaultConfig() (*Config, error) {
 	}, err
 }
 
+func (c *Config) GetLogLevel() string {
+	return c.device.LogLevel
+}
 func (c *Config) GetDevicePort() string {
 	return c.device.Port
 }

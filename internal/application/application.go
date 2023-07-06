@@ -20,7 +20,6 @@ type Application struct {
 
 func NewApplication() *Application {
 	log := logger.NewLogger()
-
 	log.Info("Starting application")
 
 	cfg, err := config.NewDefaultConfig()
@@ -28,9 +27,11 @@ func NewApplication() *Application {
 		log.Errorf("error opening config (%s): %s", err)
 		os.Exit(-1)
 	}
+	log.SetLevel(cfg.GetLogLevel())
+
 	themeName := cfg.GetDeviceTheme()
 
-	themeConf, err := theme.LoadTheme(themeName)
+	themeConf, err := theme.LoadTheme(themeName, log)
 	if err != nil {
 		log.Errorf("error opening theme (%s): %s", themeName, err)
 		os.Exit(-1)

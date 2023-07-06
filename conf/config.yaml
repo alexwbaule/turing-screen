@@ -1,6 +1,7 @@
 device:
   port: AUTO
   theme: DragonBall5inch
+  log: info
   sensors:
     network:
       eth: "enp4s0"

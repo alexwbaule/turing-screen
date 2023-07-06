@@ -11,6 +11,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/domain/command/payload"
 	"github.com/alexwbaule/turing-screen/internal/domain/command/update_payload"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/fake"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
 	device2 "github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
@@ -18,7 +19,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"image/color"
 	"math/rand"
-	"os"
 )
 
 func main() {
@@ -30,19 +30,19 @@ func main() {
 	app.Run(func(ctx context.Context) error {
 		devSerial, err := serial.NewSerial(app.Config.GetDevicePort(), app.Log)
 		if err != nil {
-			app.Log.Error(err.Error())
-			os.Exit(-1)
+			app.Log.Fatal(err.Error())
 		}
 		worker := sender.NewWorker(ctx, devSerial, app.Log)
 
 		g, ctx := errgroup.WithContext(ctx)
 		g.Go(func() error {
-			return worker.Run(0, jobs)
+			_ = worker.Run(0, jobs)
+			return devSerial.Close()
 		})
 
 		g.Go(func() error {
 			<-ctx.Done()
-			return devSerial.Close()
+			return nil
 		})
 
 		staticImages := app.Theme.GetStaticImages()
@@ -67,8 +67,9 @@ func main() {
 		jobs <- cmdPayload.SendPayload(background)
 		jobs <- cmdMedia.QueryStatus()
 
-		os.Exit(0)
+		fk := fake.NewFakeStat(ctx, app.Log, jobs)
 
+		fk.Run()
 		g.Go(func() error {
 			for {
 				select {
@@ -85,28 +86,10 @@ func main() {
 						X:               54,
 						Y:               70,
 					}
-
 					img := builder.DrawText(fbg, V)
-
 					imgUpdt := device2.NewImageProcess(img)
-
-					_, err = devSerial.Write(cmdUpdate.SendPayload(imgUpdt, V.X, V.Y))
-					if err != nil {
-						//devSerial.ResetDevice()
-						app.Log.Error(err.Error())
-						close(jobs)
-						//break
-						return fmt.Errorf("stop")
-					}
-
-					_, err = devSerial.Write(cmdMedia.QueryStatus())
-					if err != nil {
-						//devSerial.ResetDevice()
-						app.Log.Error(err.Error())
-						close(jobs)
-						//break
-						return fmt.Errorf("stop")
-					}
+					jobs <- cmdUpdate.SendPayload(imgUpdt, V.X, V.Y)
+					jobs <- cmdMedia.QueryStatus()
 				}
 				//time.Sleep(100 * time.Millisecond)
 			}

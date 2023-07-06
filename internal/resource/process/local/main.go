@@ -41,6 +41,8 @@ func (b *Builder) BuildBackgroundImage(images map[string]entity.StaticImage) ima
 			b.log.Fatalf("error open file %s: %s", name, err)
 			os.Exit(-1)
 		}
+		b.log.Debugf("Build Background [%s] - [%d x %d][%f x %f]\n", name, img.X, img.Y, numb.Bounds().Dx(), numb.Bounds().Dy())
+
 		ctx.DrawImage(numb, img.X, img.Y)
 	}
 	b.saveImage(ctx.Image(), "res/test/background.png")
@@ -56,7 +58,7 @@ func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string
 		if text.BackgroundColor != color.Transparent {
 			ctx.SetColor(text.BackgroundColor)
 			w, h := ctx.MeasureString(text.Text)
-			b.log.Infof("[%d] - [%s][%d x %d][%f x %f]\n", len(text.Text), text.Text, text.X, text.Y, w, h)
+			b.log.Debugf("[%d] - [%s][%d x %d][%f x %f]\n", len(text.Text), text.Text, text.X, text.Y, w, h)
 			ctx.DrawRectangle(float64(text.X), float64(text.Y), w, h)
 			ctx.Fill()
 		}
@@ -79,7 +81,7 @@ func (b *Builder) DrawText(background image.Image, text entity.StaticText) image
 	w, h := ctx.MeasureString(text.Text)
 	w1, h1 := ctx.MeasureString(strings.Repeat("0", 4))
 
-	b.log.Infof("[%d] - [%s][%d x %d][%f x %f][%f x %f]\n", len(str), str, text.X, text.Y, w, h, w1, h1)
+	b.log.Debugf("[%d] - [%s][%d x %d][%f x %f][%f x %f]\n", len(str), str, text.X, text.Y, w, h, w1, h1)
 
 	//Alinhado a DIREITA
 	//ctx.DrawStringAnchored(str, float64(text.X)+w1, float64(text.Y)+h1, 1.0, 0.0)
