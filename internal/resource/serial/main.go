@@ -16,6 +16,11 @@ type Serial struct {
 	log    *logger.Logger
 }
 
+type SerialSender interface {
+	Write(p command.Command) (int, error)
+	Read(p command.Command) (int, error)
+}
+
 func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 	device, err := usb.NewUsbDevice(portName, l)
 	if err != nil {
@@ -50,6 +55,10 @@ func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 
 func (s *Serial) ResetDevice() error {
 	return s.device.ResetDevice()
+}
+
+func (s *Serial) Close() error {
+	return s.port.Close()
 }
 
 func (s *Serial) Write(p command.Command) (int, error) {

@@ -19,13 +19,11 @@ func NewDefaultConfig() (*Config, error) {
 	viper.SetConfigFile(defaultConfig)
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Printf("Error: [%#v]\n", err)
-		return nil, err
+		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		fmt.Printf("Error: [%#v]\n", err)
-		return nil, err
+		return nil, fmt.Errorf("error unmarshalling config file: %w", err)
 	}
 	return &Config{
 		device: &config,

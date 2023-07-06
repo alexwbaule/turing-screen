@@ -4,137 +4,113 @@ import (
 	"context"
 	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	"github.com/alexwbaule/turing-screen/internal/domain/command/brightness"
+	"github.com/alexwbaule/turing-screen/internal/domain/command/device"
+	"github.com/alexwbaule/turing-screen/internal/domain/command/media"
+	"github.com/alexwbaule/turing-screen/internal/domain/command/payload"
+	"github.com/alexwbaule/turing-screen/internal/domain/command/update_payload"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
+	device2 "github.com/alexwbaule/turing-screen/internal/resource/process/device"
+	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
+	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 	"golang.org/x/sync/errgroup"
+	"image/color"
+	"math/rand"
+	"os"
 )
 
 func main() {
 
 	app := application.NewApplication()
 
+	jobs := make(chan any)
+
 	app.Run(func(ctx context.Context) error {
-		fmt.Printf("OK\n")
+		devSerial, err := serial.NewSerial(app.Config.GetDevicePort(), app.Log)
+		if err != nil {
+			app.Log.Error(err.Error())
+			os.Exit(-1)
+		}
+		worker := sender.NewWorker(ctx, devSerial, app.Log)
+
 		g, ctx := errgroup.WithContext(ctx)
+		g.Go(func() error {
+			return worker.Run(0, jobs)
+		})
 
 		g.Go(func() error {
-			fmt.Printf("OK\n")
-			fmt.Printf("[%#v]\n", app.Theme.GetGPUStats())
-
-			return nil
+			<-ctx.Done()
+			return devSerial.Close()
 		})
-		return g.Wait()
 
-		/*
-			portName := cfg.GetString("device.port")
-			themeName := cfg.GetString("device.theme")
+		staticImages := app.Theme.GetStaticImages()
+		staticTexts := app.Theme.GetStaticTexts()
 
-			//g, ctx := errgroup.WithContext(ctx)
+		cmdDevice := device.NewDevice(app.Log)
+		cmdMedia := media.NewMedia(app.Log)
+		cmdBright := brightness.NewBrightness(app.Log)
+		cmdPayload := payload.NewPayload(app.Log)
+		cmdUpdate := update_payload.NewUpdatePayload(app.Log)
 
-			staticImages := themeConf.GetStaticImages()
-			staticTexts := themeConf.GetStaticTexts()
-			log.Infof("Orientation: %s", themeConf.GetOrientation())
+		builder := local.NewBuilder(app.Log)
 
-			themeConf.GetCPUStats()
-			themeConf.GetGPUStats()
-			themeConf.GetDiskStats()
-			themeConf.GetMemoryStats()
-			themeConf.GetNetworkStats()
+		bg := builder.BuildBackgroundImage(staticImages)
+		fbg := builder.BuildBackgroundTexts(bg, staticTexts)
+		background := device2.NewImageProcess(fbg)
 
-			devSerial, err := serial.NewSerial(portName, log)
-			if err != nil {
-				log.Error(err.Error())
-				os.Exit(-1)
-			}
+		jobs <- cmdDevice.Hello()
+		jobs <- cmdMedia.StopVideo()
+		jobs <- cmdMedia.StopMedia()
+		jobs <- cmdBright.SetBrightness(10)
+		jobs <- cmdPayload.SendPayload(background)
+		jobs <- cmdMedia.QueryStatus()
 
-			cmdDevice := cmddevice.NewDevice(log)
-			cmdMedia := media.NewMedia(log)
-			cmdBright := brightness.NewBrightness(log)
-			cmdPayload := payload.NewPayload(log)
-			cmdUpdate := update_payload.NewUpdatePayload(log)
+		os.Exit(0)
 
-			bg := local.BuildBackgroundImage(staticImages)
-
-			fbg := local.BuildBackgroundTexts(bg, staticTexts)
-			background := device.NewImageProcess(fbg)
-
-			//os.Exit(0)
-
-			_, err = devSerial.Write(cmdDevice.Hello())
-			if err != nil {
-				devSerial.ResetDevice()
-				log.Error(err.Error())
-			}
-			_, err = devSerial.Write(cmdMedia.StopVideo())
-			if err != nil {
-				devSerial.ResetDevice()
-				log.Error(err.Error())
-			}
-			_, err = devSerial.Write(cmdMedia.StopMedia())
-			if err != nil {
-				devSerial.ResetDevice()
-				log.Error(err.Error())
-			}
-
-			_, err = devSerial.Write(cmdBright.SetBrightness(10))
-			if err != nil {
-				devSerial.ResetDevice()
-				log.Error(err.Error())
-			}
-
-			_, err = devSerial.Write(cmdPayload.SendPayload(background))
-			if err != nil {
-				devSerial.ResetDevice()
-				log.Error(err.Error())
-			}
-
-			_, err = devSerial.Write(cmdMedia.QueryStatus())
-			if err != nil {
-				devSerial.ResetDevice()
-				log.Error(err.Error())
-			}
-
-			imgId := 0
-
+		g.Go(func() error {
 			for {
-				V := entity.StaticText{
-					Text:            fmt.Sprintf("%d%%", rand.Intn(100)),
-					Font:            utils.DefaultFontFace(),
-					FontColor:       color.White,
-					BackgroundColor: color.Transparent,
-					X:               54,
-					Y:               70,
-				}
+				select {
+				case <-ctx.Done():
+					app.Log.Errorf("Stopping For fake...")
+					close(jobs)
+					return context.Canceled
+				default:
+					V := entity.StaticText{
+						Text:            fmt.Sprintf("%d%%", rand.Intn(100)),
+						Font:            utils.DefaultFontFace(),
+						FontColor:       color.White,
+						BackgroundColor: color.Transparent,
+						X:               54,
+						Y:               70,
+					}
 
-				img := local.DrawText(fbg, V)
+					img := builder.DrawText(fbg, V)
 
-				imgUpdt := device.NewImageProcess(img)
+					imgUpdt := device2.NewImageProcess(img)
 
-				_, err = devSerial.Write(cmdUpdate.SendPayload(imgUpdt, V.X, V.Y))
-				if err != nil {
-					//devSerial.ResetDevice()
-					log.Error(err.Error())
-					//break
-				}
+					_, err = devSerial.Write(cmdUpdate.SendPayload(imgUpdt, V.X, V.Y))
+					if err != nil {
+						//devSerial.ResetDevice()
+						app.Log.Error(err.Error())
+						close(jobs)
+						//break
+						return fmt.Errorf("stop")
+					}
 
-				_, err = devSerial.Write(cmdMedia.QueryStatus())
-				if err != nil {
-					//devSerial.ResetDevice()
-					log.Error(err.Error())
-					break
+					_, err = devSerial.Write(cmdMedia.QueryStatus())
+					if err != nil {
+						//devSerial.ResetDevice()
+						app.Log.Error(err.Error())
+						close(jobs)
+						//break
+						return fmt.Errorf("stop")
+					}
 				}
-				if imgId == 100 {
-					imgId = 0
-					continue
-				}
-				imgId++
 				//time.Sleep(100 * time.Millisecond)
 			}
-			/*
-				_, err = devSerial.Write(cmdDevice.TurnOff())
-				if err != nil {
-					devSerial.ResetDevice()
-					log.Error(err.Error())
-				}
-		*/
-
+		})
+		return g.Wait()
 	})
 }

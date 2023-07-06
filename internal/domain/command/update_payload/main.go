@@ -49,7 +49,7 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 
 	m.log.Infof("Count: %d", m.count)
 
-	//fmt.Printf("[%v]\n", hex.EncodeToString(updateBitMapCmd))
+	//m.log.Infof("[%v]\n", hex.EncodeToString(updateBitMapCmd))
 
 	fullImage = append(fullImage, updateBitMapCmd)
 

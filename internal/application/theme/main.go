@@ -12,6 +12,13 @@ import (
 	"time"
 )
 
+const (
+	display       = "display"
+	static_images = "static_images"
+	static_texts  = "static_texts"
+	stats         = "stats"
+)
+
 type Theme struct {
 	theme       map[string]interface{}
 	orientation entity.Orientation
@@ -39,16 +46,16 @@ func LoadTheme(themeFile string) (*Theme, error) {
 
 	theme := cfg.AllSettings()
 
-	if theme["display"] == nil {
+	if theme[display] == nil {
 		return nil, fmt.Errorf("missing display configuration")
 	}
-	if theme["static_images"] == nil {
+	if theme[static_images] == nil {
 		return nil, fmt.Errorf("missing static_images configuration")
 	}
-	if theme["static_texts"] == nil {
+	if theme[static_texts] == nil {
 		return nil, fmt.Errorf("missing static_texts configuration")
 	}
-	if theme["stats"] == nil {
+	if theme[stats] == nil {
 		return nil, fmt.Errorf("missing stats configuration")
 	}
 
@@ -66,11 +73,11 @@ func (t Theme) GetOrientation() entity.Orientation {
 func (t Theme) GetStaticImages() map[string]entity.StaticImage {
 	images := make(map[string]entity.StaticImage)
 
-	if t.theme["static_images"] == nil {
+	if t.theme[static_images] == nil {
 		return images
 	}
 
-	for b, i := range t.theme["static_images"].(map[string]interface{}) {
+	for b, i := range t.theme[static_images].(map[string]interface{}) {
 		images[b] = entity.StaticImage{
 			Height: i.(map[string]interface{})["height"].(int),
 			Path:   t.path + i.(map[string]interface{})["path"].(string),
@@ -85,14 +92,16 @@ func (t Theme) GetStaticImages() map[string]entity.StaticImage {
 func (t Theme) GetStaticTexts() map[string]entity.StaticText {
 	images := make(map[string]entity.StaticText)
 
-	if t.theme["static_text"] == nil {
+	if t.theme[static_texts] == nil {
 		return images
 	}
 
-	for name, i := range t.theme["static_text"].(map[string]interface{}) {
+	for name, i := range t.theme[static_texts].(map[string]interface{}) {
 		var bgColor color.Color
 		var fColor color.Color
 		var fface font.Face
+
+		//fmt.Printf("%s -> %#v\n", name, i)
 
 		if i.(map[string]interface{})["font_color"] != nil {
 			bgcolor := i.(map[string]interface{})["font_color"].(string)
@@ -131,10 +140,10 @@ func (t Theme) GetStaticTexts() map[string]entity.StaticText {
 func (t Theme) GetCPUStats() map[string]entity.CPU {
 	cpu := make(map[string]entity.CPU)
 
-	if t.theme["stats"] == nil {
+	if t.theme[stats] == nil {
 		return cpu
 	}
-	stat := t.theme["stats"].(map[string]interface{})["cpu"]
+	stat := t.theme[stats].(map[string]interface{})["cpu"]
 
 	if stat == nil {
 		return cpu
@@ -144,7 +153,8 @@ func (t Theme) GetCPUStats() map[string]entity.CPU {
 		statTexts := make(map[string]entity.StatText)
 		StatProgressBars := make(map[string]entity.StatProgressBar)
 		StatRadialBars := make(map[string]entity.StatRadialBar)
-		fmt.Printf("[%s] - [%#v]\n", name, i)
+
+		//fmt.Printf("[%s] - [%#v]\n", name, i)
 
 		switch reflect.TypeOf(i).Kind() {
 		case reflect.Int:
@@ -168,10 +178,10 @@ func (t Theme) GetCPUStats() map[string]entity.CPU {
 func (t Theme) GetGPUStats() map[string]entity.GPU {
 	gpu := make(map[string]entity.GPU)
 
-	if t.theme["stats"] == nil {
+	if t.theme[stats] == nil {
 		return gpu
 	}
-	stat := t.theme["stats"].(map[string]interface{})["gpu"]
+	stat := t.theme[stats].(map[string]interface{})["gpu"]
 
 	if stat == nil {
 		return gpu
@@ -182,7 +192,7 @@ func (t Theme) GetGPUStats() map[string]entity.GPU {
 		StatProgressBars := make(map[string]entity.StatProgressBar)
 		StatRadialBars := make(map[string]entity.StatRadialBar)
 
-		fmt.Printf("[%s] - [%#v]\n", name, i)
+		//fmt.Printf("[%s] - [%#v]\n", name, i)
 
 		switch reflect.TypeOf(i).Kind() {
 		case reflect.Int:
@@ -207,10 +217,10 @@ func (t Theme) GetGPUStats() map[string]entity.GPU {
 func (t Theme) GetDiskStats() map[string]entity.Disk {
 	disk := make(map[string]entity.Disk)
 
-	if t.theme["stats"] == nil {
+	if t.theme[stats] == nil {
 		return disk
 	}
-	stat := t.theme["stats"].(map[string]interface{})["disk"]
+	stat := t.theme[stats].(map[string]interface{})["disk"]
 
 	if stat == nil {
 		return disk
@@ -221,7 +231,7 @@ func (t Theme) GetDiskStats() map[string]entity.Disk {
 		StatProgressBars := make(map[string]entity.StatProgressBar)
 		StatRadialBars := make(map[string]entity.StatRadialBar)
 
-		fmt.Printf("[%s] - [%#v]\n", name, i)
+		//fmt.Printf("[%s] - [%#v]\n", name, i)
 
 		switch reflect.TypeOf(i).Kind() {
 		case reflect.Int:
@@ -244,10 +254,10 @@ func (t Theme) GetDiskStats() map[string]entity.Disk {
 func (t Theme) GetMemoryStats() map[string]entity.Memory {
 	memory := make(map[string]entity.Memory)
 
-	if t.theme["stats"] == nil {
+	if t.theme[stats] == nil {
 		return memory
 	}
-	stat := t.theme["stats"].(map[string]interface{})["memory"]
+	stat := t.theme[stats].(map[string]interface{})["memory"]
 
 	if stat == nil {
 		return memory
@@ -258,7 +268,7 @@ func (t Theme) GetMemoryStats() map[string]entity.Memory {
 		StatProgressBars := make(map[string]entity.StatProgressBar)
 		StatRadialBars := make(map[string]entity.StatRadialBar)
 
-		fmt.Printf("[%s] - [%#v]\n", name, i)
+		//fmt.Printf("[%s] - [%#v]\n", name, i)
 
 		switch reflect.TypeOf(i).Kind() {
 		case reflect.Int:
@@ -281,10 +291,10 @@ func (t Theme) GetMemoryStats() map[string]entity.Memory {
 func (t Theme) GetNetworkStats() map[string]entity.Network {
 	network := make(map[string]entity.Network)
 
-	if t.theme["stats"] == nil {
+	if t.theme[stats] == nil {
 		return network
 	}
-	stat := t.theme["stats"].(map[string]interface{})["network"]
+	stat := t.theme[stats].(map[string]interface{})["network"]
 
 	if stat == nil {
 		return network
@@ -294,7 +304,8 @@ func (t Theme) GetNetworkStats() map[string]entity.Network {
 		statTexts := make(map[string]entity.StatText)
 		StatProgressBars := make(map[string]entity.StatProgressBar)
 		StatRadialBars := make(map[string]entity.StatRadialBar)
-		fmt.Printf("[%s] - [%#v]\n", name, i)
+
+		//fmt.Printf("[%s] - [%#v]\n", name, i)
 
 		switch reflect.TypeOf(i).Kind() {
 		case reflect.Int:
@@ -317,7 +328,7 @@ func (t Theme) GetNetworkStats() map[string]entity.Network {
 func (t Theme) GetDateTimeStats() map[string]entity.DateTime {
 	date_time := make(map[string]entity.DateTime)
 
-	if t.theme["stats"] == nil {
+	if t.theme[stats] == nil {
 		return date_time
 	}
 

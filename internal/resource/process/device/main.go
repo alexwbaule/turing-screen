@@ -50,7 +50,7 @@ func (i *ImageProcess) GeneratePartialImage(xi, yi int) []byte {
 		copy(positions, utils.PadBegin(big.NewInt(int64(position)).Bytes(), 3))
 		copy(positions[3:], utils.PadBegin(big.NewInt(int64(pwidth)).Bytes(), 2))
 
-		//fmt.Printf("[%d] + [%d] * 800 + %d [%d]\n", x0, h, y0, pwidth)
+		//b.log.Infof("[%d] + [%d] * 800 + %d [%d]\n", x0, h, y0, pwidth)
 
 		imageAs.Write(positions)
 		for w := bounds.Min.X; w < bounds.Max.X; w++ {

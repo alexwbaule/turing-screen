@@ -3,6 +3,7 @@ package local
 import (
 	"fmt"
 	"git.sr.ht/~sbinet/gg"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity"
 	"github.com/disintegration/gift"
@@ -12,11 +13,21 @@ import (
 	"strings"
 )
 
-func BuildBackgroundImage(images map[string]entity.StaticImage) image.Image {
+type Builder struct {
+	log *logger.Logger
+}
+
+func NewBuilder(l *logger.Logger) *Builder {
+	return &Builder{
+		log: l,
+	}
+}
+
+func (b *Builder) BuildBackgroundImage(images map[string]entity.StaticImage) image.Image {
 
 	background, err := utils.LoadImage(images["background"].Path)
 	if err != nil {
-		fmt.Printf("error open file: %s", err)
+		b.log.Fatalf("error open file: %s", err)
 		os.Exit(-1)
 	}
 	ctx := gg.NewContextForImage(background)
@@ -27,15 +38,17 @@ func BuildBackgroundImage(images map[string]entity.StaticImage) image.Image {
 		}
 		numb, err := utils.LoadImage(img.Path)
 		if err != nil {
-			fmt.Printf("error open file: %s", err)
+			b.log.Fatalf("error open file %s: %s", name, err)
 			os.Exit(-1)
 		}
 		ctx.DrawImage(numb, img.X, img.Y)
 	}
+	b.saveImage(ctx.Image(), "res/test/background.png")
+
 	return ctx.Image()
 }
 
-func BuildBackgroundTexts(background image.Image, images map[string]entity.StaticText) image.Image {
+func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string]entity.StaticText) image.Image {
 	ctx := gg.NewContextForImage(background)
 
 	for _, text := range images {
@@ -43,8 +56,7 @@ func BuildBackgroundTexts(background image.Image, images map[string]entity.Stati
 		if text.BackgroundColor != color.Transparent {
 			ctx.SetColor(text.BackgroundColor)
 			w, h := ctx.MeasureString(text.Text)
-			fmt.Printf("[%d] - [%s][%d x %d][%f x %f]\n", len(text.Text), text.Text, text.X, text.Y, w, h)
-
+			b.log.Infof("[%d] - [%s][%d x %d][%f x %f]\n", len(text.Text), text.Text, text.X, text.Y, w, h)
 			ctx.DrawRectangle(float64(text.X), float64(text.Y), w, h)
 			ctx.Fill()
 		}
@@ -52,10 +64,11 @@ func BuildBackgroundTexts(background image.Image, images map[string]entity.Stati
 		ctx.DrawStringAnchored(text.Text, float64(text.X), float64(text.Y), 0.0, 1.0)
 		ctx.Fill()
 	}
+	b.saveImage(ctx.Image(), "res/test/background-texts.png")
 	return ctx.Image()
 }
 
-func DrawText(background image.Image, text entity.StaticText) image.Image {
+func (b *Builder) DrawText(background image.Image, text entity.StaticText) image.Image {
 	ctx := gg.NewContextForImage(background)
 
 	ctx.SetFontFace(text.Font)
@@ -66,7 +79,7 @@ func DrawText(background image.Image, text entity.StaticText) image.Image {
 	w, h := ctx.MeasureString(text.Text)
 	w1, h1 := ctx.MeasureString(strings.Repeat("0", 4))
 
-	fmt.Printf("[%d] - [%s][%d x %d][%f x %f][%f x %f]\n", len(str), str, text.X, text.Y, w, h, w1, h1)
+	b.log.Infof("[%d] - [%s][%d x %d][%f x %f][%f x %f]\n", len(str), str, text.X, text.Y, w, h, w1, h1)
 
 	//Alinhado a DIREITA
 	//ctx.DrawStringAnchored(str, float64(text.X)+w1, float64(text.Y)+h1, 1.0, 0.0)
@@ -87,11 +100,11 @@ func DrawText(background image.Image, text entity.StaticText) image.Image {
 	return dst
 }
 
-func saveImage(img image.Image, file string) {
+func (b *Builder) saveImage(img image.Image, file string) {
 	ctx := gg.NewContextForImage(img)
 	err := ctx.SavePNG(file)
 	if err != nil {
-		fmt.Printf("error saving file: %s\n", err)
+		b.log.Infof("error saving file: %s\n", err)
 	}
 }
 

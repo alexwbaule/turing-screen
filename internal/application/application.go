@@ -9,13 +9,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 type Application struct {
-	Log     *logger.Logger
-	Context context.Context
-	Config  *config.Config
-	Theme   *theme.Theme
+	Log    *logger.Logger
+	Config *config.Config
+	Theme  *theme.Theme
 }
 
 func NewApplication() *Application {
@@ -36,15 +36,14 @@ func NewApplication() *Application {
 		os.Exit(-1)
 	}
 	return &Application{
-		Log:     log,
-		Context: context.Background(),
-		Config:  cfg,
-		Theme:   themeConf,
+		Log:    log,
+		Config: cfg,
+		Theme:  themeConf,
 	}
 }
 
 func (a *Application) Run(f func(ctx context.Context) error) {
-	ctx, cancel := signal.NotifyContext(a.Context, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	defer cancel()
 
 	wg, ctx := errgroup.WithContext(ctx)
@@ -55,14 +54,17 @@ func (a *Application) Run(f func(ctx context.Context) error) {
 
 	go func() {
 		<-ctx.Done()
-		a.Log.Info("Waiting application stop...")
+		a.Log.Info("Waiting application shutdown...")
+		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}()
 
-	if err := wg.Wait(); err != nil {
-		if err == context.Canceled {
-			a.Log.Info("Graceful stopped")
-		}
+	err := wg.Wait()
+
+	if err == context.Canceled || err == nil {
+		a.Log.Info("Graceful shutdown")
+		return
+	} else if err != nil {
 		a.Log.Fatalf("Graceful shutdown error: %s", err)
 	}
 	os.Exit(0)
