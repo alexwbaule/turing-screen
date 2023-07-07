@@ -1,4 +1,4 @@
-package gpustat
+package cpustat
 
 import (
 	"context"
@@ -6,12 +6,12 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/domain/entity"
 )
 
-type GpuStat struct {
+type CpuStat struct {
 	ctx context.Context
 	log *logger.Logger
 }
 
-func (g *GpuStat) Run(e map[string]entity.GPU) error {
+func (g *CpuStat) Run(e map[string]entity.CPU) error {
 	/*
 		ticker := time.NewTicker(e.Interval)
 		for {
@@ -27,6 +27,6 @@ func (g *GpuStat) Run(e map[string]entity.GPU) error {
 	return nil
 }
 
-func (g *GpuStat) getStats(e map[string]entity.GPU) error {
+func (g *CpuStat) getStats(e map[string]entity.CPU) error {
 	return nil
 }

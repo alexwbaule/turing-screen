@@ -7,13 +7,41 @@ import (
 )
 
 type Orientation int
+type Alignment int
 
 const (
 	PORTRAIT          Orientation = 0
 	REVERSE_PORTRAIT  Orientation = 1
 	LANDSCAPE         Orientation = 2
 	REVERSE_LANDSCAPE Orientation = 3
+	LEFT              Alignment   = 0
+	CENTER            Alignment   = 1
+	RIGHT             Alignment   = 2
 )
+
+func (a Alignment) String() string {
+	switch a {
+	case LEFT:
+		return "LEFT"
+	case CENTER:
+		return "CENTER"
+	case RIGHT:
+		return "RIGHT"
+	}
+	return "LEFT"
+}
+
+func StringToAlignment(src string) Alignment {
+	switch strings.ToUpper(src) {
+	case "LEFT":
+		return LEFT
+	case "CENTER":
+		return CENTER
+	case "RIGHT":
+		return RIGHT
+	}
+	return LEFT
+}
 
 func (o Orientation) String() string {
 	switch o {
@@ -64,6 +92,8 @@ type StatText struct {
 	ShowUnit        bool
 	X               int
 	Y               int
+	Align           Alignment
+	Padding         int
 	Font            font.Face
 	FontColor       color.Color
 	BackgroundColor color.Color

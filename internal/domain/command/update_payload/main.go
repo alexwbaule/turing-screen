@@ -1,11 +1,13 @@
 package update_payload
 
 import (
+	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"math/big"
 	"regexp"
+	"time"
 )
 
 const chunk = 249
@@ -19,6 +21,7 @@ type UpdatePayload struct {
 	count   int
 	readed  *regexp.Regexp
 	log     *logger.Logger
+	start   time.Time
 }
 
 func NewUpdatePayload(log *logger.Logger) *UpdatePayload {
@@ -30,6 +33,7 @@ func NewUpdatePayload(log *logger.Logger) *UpdatePayload {
 		padding: 0x00,
 		count:   -1,
 		log:     log,
+		start:   time.Now(),
 	}
 }
 
@@ -47,7 +51,7 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 	copy(updateBitMapCmd[7:], pPad)
 	copy(updateBitMapCmd[10:], pCount)
 
-	m.log.Infof("Count: %d", m.count)
+	m.log.Debugf("Count: %d", m.count)
 
 	//m.log.Infof("[%v]\n", hex.EncodeToString(updateBitMapCmd))
 
@@ -75,6 +79,12 @@ func (m *UpdatePayload) GetSize() int {
 
 func (m *UpdatePayload) ValidateCommand(s []byte, i int) error {
 	return nil
+}
+
+func (m *UpdatePayload) GetFPS() string {
+	t := time.Since(m.start)
+	v := float64(m.count) / t.Seconds()
+	return fmt.Sprintf("Count: %d Time: %s FPS: %.2f", m.count, t, v)
 }
 
 func (m *UpdatePayload) SendPayload(partial device.ImagePartial, x, y int) *UpdatePayload {

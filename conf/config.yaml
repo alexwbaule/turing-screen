@@ -1,7 +1,7 @@
 device:
   port: AUTO
-  theme: DragonBall5inch
-  log: info
+  theme: Landscape15Grid
+  log: debug
   sensors:
     network:
       eth: "enp4s0"

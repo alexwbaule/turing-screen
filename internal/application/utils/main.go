@@ -103,7 +103,7 @@ func LoadFontFace(path string, points float64) font.Face {
 }
 
 func DefaultFontFace() font.Face {
-	fontBytes, err := os.ReadFile("res/fonts/roboto-mono/RobotoMono-Regular.ttf")
+	fontBytes, err := os.ReadFile("res/fonts/jetbrains-mono/JetBrainsMono-Bold.ttf")
 	if err != nil {
 		return basicfont.Face7x13
 	}
@@ -112,7 +112,7 @@ func DefaultFontFace() font.Face {
 		return basicfont.Face7x13
 	}
 	face := truetype.NewFace(f, &truetype.Options{
-		Size:    20,
+		Size:    40,
 		Hinting: font.HintingFull,
 	})
 	return face

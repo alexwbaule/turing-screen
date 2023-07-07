@@ -80,8 +80,9 @@ func (t Theme) GetStaticImages() map[string]entity.StaticImage {
 		return images
 	}
 
-	for b, i := range t.theme[static_images].(map[string]interface{}) {
-		images[b] = entity.StaticImage{
+	for name, i := range t.theme[static_images].(map[string]interface{}) {
+		t.log.Debugf("%s -> %#v", name, i)
+		images[name] = entity.StaticImage{
 			Height: i.(map[string]interface{})["height"].(int),
 			Path:   t.path + i.(map[string]interface{})["path"].(string),
 			Width:  i.(map[string]interface{})["width"].(int),
@@ -103,9 +104,6 @@ func (t Theme) GetStaticTexts() map[string]entity.StaticText {
 		var bgColor color.Color
 		var fColor color.Color
 		var fface font.Face
-
-		//fmt.Printf("%s -> %#v\n", name, i)
-
 		if i.(map[string]interface{})["font_color"] != nil {
 			bgcolor := i.(map[string]interface{})["font_color"].(string)
 			fColor = utils.ConvertToColor(bgcolor, color.White)
@@ -140,8 +138,8 @@ func (t Theme) GetStaticTexts() map[string]entity.StaticText {
 	return images
 }
 
-func (t Theme) GetCPUStats() map[string]entity.CPU {
-	cpu := make(map[string]entity.CPU)
+func (t Theme) GetCPUStats() entity.CPU {
+	var cpu entity.CPU
 
 	if t.theme[stats] == nil {
 		return cpu
@@ -152,30 +150,68 @@ func (t Theme) GetCPUStats() map[string]entity.CPU {
 		return cpu
 	}
 	for name, i := range stat.(map[string]interface{}) {
-		var interval int
-		statTexts := make(map[string]entity.StatText)
-		StatProgressBars := make(map[string]entity.StatProgressBar)
-		StatRadialBars := make(map[string]entity.StatRadialBar)
+		var interval time.Duration
 
-		//fmt.Printf("[%s] - [%#v]\n", name, i)
+		t.log.Debugf("%s -> %+v", name, i)
 
 		switch reflect.TypeOf(i).Kind() {
 		case reflect.Int:
 			if i == nil {
-				interval = 1.0
+				interval = time.Second
 			} else {
-				interval = i.(int)
+				interval = time.Duration(i.(int)) * time.Second
 			}
+			cpu.Interval = &interval
 		case reflect.Map:
-			cpu[name] = entity.CPU{
-				Interval:         time.Duration(interval) * time.Second,
-				StatTexts:        statTexts,
-				StatProgressBars: StatProgressBars,
-				StatRadialBars:   StatRadialBars,
+			for subname, sub := range i.(map[string]interface{}) {
+				t.log.Debugf("%s -> %+v", subname, sub)
+				switch reflect.TypeOf(sub).Kind() {
+				case reflect.Int:
+					t.log.Debugf("%s: %d", subname, sub.(int))
+				case reflect.Map:
+					for subsubname, subsub := range sub.(map[string]interface{}) {
+						t.log.Debugf("%s -> %+v", subsubname, subsub)
+					}
+					if name == "percentage" {
+
+					} else if name == "frequency" {
+					} else if name == "temperature" {
+					} else if name == "load" {
+					}
+				}
+			}
+			if name == "percentage" {
+			} else if name == "frequency" {
+			} else if name == "temperature" {
+			} else if name == "load" {
 			}
 		}
+		/*
+			var interval int
+			statTexts := make(map[string]entity.StatText)
+			StatProgressBars := make(map[string]entity.StatProgressBar)
+			StatRadialBars := make(map[string]entity.StatRadialBar)
+
+			t.log.Debugf("%s -> %+v", name, i)
+
+			switch reflect.TypeOf(i).Kind() {
+			case reflect.Int:
+				if i == nil {
+					interval = 1.0
+				} else {
+					interval = i.(int)
+				}
+			case reflect.Map:
+				cpu[name] = entity.CPU{
+					Interval:         time.Duration(interval) * time.Second,
+					StatTexts:        statTexts,
+					StatProgressBars: StatProgressBars,
+					StatRadialBars:   StatRadialBars,
+				}
+			}
+		*/
 	}
-	return nil
+	return cpu
 }
 
 func (t Theme) GetGPUStats() map[string]entity.GPU {
@@ -190,29 +226,31 @@ func (t Theme) GetGPUStats() map[string]entity.GPU {
 		return gpu
 	}
 	for name, i := range stat.(map[string]interface{}) {
-		var interval int
-		statTexts := make(map[string]entity.StatText)
-		StatProgressBars := make(map[string]entity.StatProgressBar)
-		StatRadialBars := make(map[string]entity.StatRadialBar)
+		t.log.Debugf("%s -> %+v", name, i)
+		/*
+			var interval int
+			statTexts := make(map[string]entity.StatText)
+			StatProgressBars := make(map[string]entity.StatProgressBar)
+			StatRadialBars := make(map[string]entity.StatRadialBar)
 
-		//fmt.Printf("[%s] - [%#v]\n", name, i)
+			t.log.Debugf("%s -> %+v", name, i)
 
-		switch reflect.TypeOf(i).Kind() {
-		case reflect.Int:
-			if i == nil {
-				interval = 1.0
-			} else {
-				interval = i.(int)
+			switch reflect.TypeOf(i).Kind() {
+			case reflect.Int:
+				if i == nil {
+					interval = 1.0
+				} else {
+					interval = i.(int)
+				}
+			case reflect.Map:
+				gpu[name] = entity.GPU{
+					Interval:         time.Duration(interval) * time.Second,
+					StatTexts:        statTexts,
+					StatProgressBars: StatProgressBars,
+					StatRadialBars:   StatRadialBars,
+				}
 			}
-		case reflect.Map:
-			gpu[name] = entity.GPU{
-				Interval:         time.Duration(interval) * time.Second,
-				StatTexts:        statTexts,
-				StatProgressBars: StatProgressBars,
-				StatRadialBars:   StatRadialBars,
-			}
-		}
-
+		*/
 	}
 	return nil
 }
@@ -229,28 +267,31 @@ func (t Theme) GetDiskStats() map[string]entity.Disk {
 		return disk
 	}
 	for name, i := range stat.(map[string]interface{}) {
-		var interval int
-		statTexts := make(map[string]entity.StatText)
-		StatProgressBars := make(map[string]entity.StatProgressBar)
-		StatRadialBars := make(map[string]entity.StatRadialBar)
+		t.log.Debugf("%s -> %+v", name, i)
+		/*
+			var interval int
+			statTexts := make(map[string]entity.StatText)
+			StatProgressBars := make(map[string]entity.StatProgressBar)
+			StatRadialBars := make(map[string]entity.StatRadialBar)
 
-		//fmt.Printf("[%s] - [%#v]\n", name, i)
+			t.log.Debugf("%s -> %+v", name, i)
 
-		switch reflect.TypeOf(i).Kind() {
-		case reflect.Int:
-			if i == nil {
-				interval = 1.0
-			} else {
-				interval = i.(int)
+			switch reflect.TypeOf(i).Kind() {
+			case reflect.Int:
+				if i == nil {
+					interval = 1.0
+				} else {
+					interval = i.(int)
+				}
+			case reflect.Map:
+				disk[name] = entity.Disk{
+					Interval:         time.Duration(interval) * time.Second,
+					StatTexts:        statTexts,
+					StatProgressBars: StatProgressBars,
+					StatRadialBars:   StatRadialBars,
+				}
 			}
-		case reflect.Map:
-			disk[name] = entity.Disk{
-				Interval:         time.Duration(interval) * time.Second,
-				StatTexts:        statTexts,
-				StatProgressBars: StatProgressBars,
-				StatRadialBars:   StatRadialBars,
-			}
-		}
+		*/
 	}
 	return nil
 }
@@ -266,28 +307,31 @@ func (t Theme) GetMemoryStats() map[string]entity.Memory {
 		return memory
 	}
 	for name, i := range stat.(map[string]interface{}) {
-		var interval int
-		statTexts := make(map[string]entity.StatText)
-		StatProgressBars := make(map[string]entity.StatProgressBar)
-		StatRadialBars := make(map[string]entity.StatRadialBar)
+		t.log.Debugf("%s -> %+v", name, i)
+		/*
+			var interval int
+			statTexts := make(map[string]entity.StatText)
+			StatProgressBars := make(map[string]entity.StatProgressBar)
+			StatRadialBars := make(map[string]entity.StatRadialBar)
 
-		//fmt.Printf("[%s] - [%#v]\n", name, i)
+			t.log.Debugf("%s -> %+v", name, i)
 
-		switch reflect.TypeOf(i).Kind() {
-		case reflect.Int:
-			if i == nil {
-				interval = 1.0
-			} else {
-				interval = i.(int)
+			switch reflect.TypeOf(i).Kind() {
+			case reflect.Int:
+				if i == nil {
+					interval = 1.0
+				} else {
+					interval = i.(int)
+				}
+			case reflect.Map:
+				memory[name] = entity.Memory{
+					Interval:         time.Duration(interval) * time.Second,
+					StatTexts:        statTexts,
+					StatProgressBars: StatProgressBars,
+					StatRadialBars:   StatRadialBars,
+				}
 			}
-		case reflect.Map:
-			memory[name] = entity.Memory{
-				Interval:         time.Duration(interval) * time.Second,
-				StatTexts:        statTexts,
-				StatProgressBars: StatProgressBars,
-				StatRadialBars:   StatRadialBars,
-			}
-		}
+		*/
 	}
 	return nil
 }
@@ -303,28 +347,31 @@ func (t Theme) GetNetworkStats() map[string]entity.Network {
 		return network
 	}
 	for name, i := range stat.(map[string]interface{}) {
-		var interval int
-		statTexts := make(map[string]entity.StatText)
-		StatProgressBars := make(map[string]entity.StatProgressBar)
-		StatRadialBars := make(map[string]entity.StatRadialBar)
+		t.log.Debugf("%s -> %#v", name, i)
+		/*
+			var interval int
+			statTexts := make(map[string]entity.StatText)
+			StatProgressBars := make(map[string]entity.StatProgressBar)
+			StatRadialBars := make(map[string]entity.StatRadialBar)
 
-		//fmt.Printf("[%s] - [%#v]\n", name, i)
+			t.log.Debugf("%s -> %+v", name, i)
 
-		switch reflect.TypeOf(i).Kind() {
-		case reflect.Int:
-			if i == nil {
-				interval = 1.0
-			} else {
-				interval = i.(int)
+			switch reflect.TypeOf(i).Kind() {
+			case reflect.Int:
+				if i == nil {
+					interval = 1.0
+				} else {
+					interval = i.(int)
+				}
+			case reflect.Map:
+				network[name] = entity.Network{
+					Interval:         time.Duration(interval) * time.Second,
+					StatTexts:        statTexts,
+					StatProgressBars: StatProgressBars,
+					StatRadialBars:   StatRadialBars,
+				}
 			}
-		case reflect.Map:
-			network[name] = entity.Network{
-				Interval:         time.Duration(interval) * time.Second,
-				StatTexts:        statTexts,
-				StatProgressBars: StatProgressBars,
-				StatRadialBars:   StatRadialBars,
-			}
-		}
+		*/
 	}
 	return nil
 }
