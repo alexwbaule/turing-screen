@@ -26,7 +26,7 @@ func NewWorker(c context.Context, s serial.SerialSender, l *logger.Logger) *Work
 	}
 }
 
-func (w *Worker) Run(worker int, jobs <-chan any) error {
+func (w *Worker) Run(jobs <-chan any) error {
 	var err error
 	for {
 		select {

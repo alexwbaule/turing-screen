@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/alexwbaule/turing-screen/internal/application/config"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/theme"
 	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
@@ -15,7 +14,6 @@ import (
 type Application struct {
 	Log    *logger.Logger
 	Config *config.Config
-	Theme  *theme.Theme
 }
 
 func NewApplication() *Application {
@@ -29,17 +27,9 @@ func NewApplication() *Application {
 	}
 	log.SetLevel(cfg.GetLogLevel())
 
-	themeName := cfg.GetDeviceTheme()
-
-	themeConf, err := theme.LoadTheme(themeName, log)
-	if err != nil {
-		log.Errorf("error opening theme (%s): %s", themeName, err)
-		os.Exit(-1)
-	}
 	return &Application{
 		Log:    log,
 		Config: cfg,
-		Theme:  themeConf,
 	}
 }
 

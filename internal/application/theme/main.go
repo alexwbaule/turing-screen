@@ -4,383 +4,304 @@ import (
 	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
-	"github.com/alexwbaule/turing-screen/internal/domain/entity"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"golang.org/x/image/font"
 	"image/color"
 	"reflect"
-	"strings"
 	"time"
 )
 
-const (
-	display       = "display"
-	static_images = "static_images"
-	static_texts  = "static_texts"
-	stats         = "stats"
-)
-
 type Theme struct {
-	theme       map[string]interface{}
-	orientation entity.Orientation
-	path        string
-	log         *logger.Logger
+	theme    theme.Theme
+	path     string
+	fontPath string
+	log      *logger.Logger
 }
 
-const fontPath = "res/fonts/"
+func NewTheme(file string, l *logger.Logger) (*Theme, error) {
+	var config theme.Theme
 
-func newConfig(file string) (*viper.Viper, error) {
-	v := viper.New()
-	v.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
-	v.SetConfigType("yaml")
-	v.SetConfigFile(file)
-	f := v.ReadInConfig()
-	return v, f
-}
+	theme.DefaultImagePath = fmt.Sprintf("res/themes/%s/", file)
 
-func LoadTheme(themeFile string, l *logger.Logger) (*Theme, error) {
-	tfile := fmt.Sprintf("res/themes/%s/theme.yaml", themeFile)
+	tfile := fmt.Sprintf("res/themes/%s/theme.yaml", file)
 
-	cfg, err := newConfig(tfile)
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(tfile)
+	err := viper.ReadInConfig()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
-
-	theme := cfg.AllSettings()
-
-	if theme[display] == nil {
-		return nil, fmt.Errorf("missing display configuration")
-	}
-	if theme[static_images] == nil {
-		return nil, fmt.Errorf("missing static_images configuration")
-	}
-	if theme[static_texts] == nil {
-		return nil, fmt.Errorf("missing static_texts configuration")
-	}
-	if theme[stats] == nil {
-		return nil, fmt.Errorf("missing stats configuration")
+	err = viper.Unmarshal(&config, func(config *mapstructure.DecoderConfig) {
+		config.DecodeHook = mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+			Hook(fmt.Sprintf("res/themes/%s/", file), "res/fonts/"),
+		)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling config file: %w", err)
 	}
 
 	return &Theme{
-		theme:       cfg.AllSettings(),
-		path:        fmt.Sprintf("res/themes/%s/", themeFile),
-		orientation: entity.StringToOrientation(cfg.GetString("display.orientation")),
-		log:         l,
+		theme:    config,
+		path:     fmt.Sprintf("res/themes/%s/", file),
+		fontPath: "res/fonts/",
+		log:      l,
 	}, nil
 }
 
-func (t Theme) GetOrientation() entity.Orientation {
-	return t.orientation
-}
+func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{}) (interface{}, error) {
 
-func (t Theme) GetStaticImages() map[string]entity.StaticImage {
-	images := make(map[string]entity.StaticImage)
+		//fmt.Printf("[%+v] [%+v] [%+v]\n", f, t, data)
 
-	if t.theme[static_images] == nil {
-		return images
-	}
-
-	for name, i := range t.theme[static_images].(map[string]interface{}) {
-		t.log.Debugf("%s -> %#v", name, i)
-		images[name] = entity.StaticImage{
-			Height: i.(map[string]interface{})["height"].(int),
-			Path:   t.path + i.(map[string]interface{})["path"].(string),
-			Width:  i.(map[string]interface{})["width"].(int),
-			X:      i.(map[string]interface{})["x"].(int),
-			Y:      i.(map[string]interface{})["y"].(int),
-		}
-	}
-	return images
-}
-
-func (t Theme) GetStaticTexts() map[string]entity.StaticText {
-	images := make(map[string]entity.StaticText)
-
-	if t.theme[static_texts] == nil {
-		return images
-	}
-
-	for name, i := range t.theme[static_texts].(map[string]interface{}) {
-		var bgColor color.Color
-		var fColor color.Color
-		var fface font.Face
-		if i.(map[string]interface{})["font_color"] != nil {
-			bgcolor := i.(map[string]interface{})["font_color"].(string)
-			fColor = utils.ConvertToColor(bgcolor, color.White)
-		} else {
-			fColor = color.White
-		}
-
-		if i.(map[string]interface{})["background_color"] != nil {
-			bgcolor := i.(map[string]interface{})["background_color"].(string)
-			bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
-		} else {
-			bgColor = color.Transparent
-		}
-
-		if i.(map[string]interface{})["font"] != nil {
-			fPath := fontPath + i.(map[string]interface{})["font"].(string)
-			fSize := float64(i.(map[string]interface{})["font_size"].(int))
-			fface = utils.LoadFontFace(fPath, fSize)
-		} else {
-			fface = utils.DefaultFont
-		}
-
-		images[name] = entity.StaticText{
-			Text:            i.(map[string]interface{})["text"].(string),
-			Font:            fface,
-			FontColor:       fColor,
-			X:               i.(map[string]interface{})["x"].(int),
-			Y:               i.(map[string]interface{})["y"].(int),
-			BackgroundColor: bgColor,
-		}
-	}
-	return images
-}
-
-func (t Theme) GetCPUStats() entity.CPU {
-	var cpu entity.CPU
-
-	if t.theme[stats] == nil {
-		return cpu
-	}
-	stat := t.theme[stats].(map[string]interface{})["cpu"]
-
-	if stat == nil {
-		return cpu
-	}
-	for name, i := range stat.(map[string]interface{}) {
-		var interval time.Duration
-
-		t.log.Debugf("%s -> %+v", name, i)
-
-		switch reflect.TypeOf(i).Kind() {
-		case reflect.Int:
-			if i == nil {
-				interval = time.Second
+		if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.StaticImage{}) {
+			return theme.StaticImage{
+				Path:   imagePath + data.(map[string]interface{})["path"].(string),
+				Height: data.(map[string]interface{})["height"].(int),
+				Width:  data.(map[string]interface{})["width"].(int),
+				X:      data.(map[string]interface{})["x"].(int),
+				Y:      data.(map[string]interface{})["y"].(int),
+			}, nil
+		} else if f.Kind() == reflect.Int && t == reflect.TypeOf(time.Duration(1)) {
+			fmt.Printf("[%+v] [%+v] [%+v]\n", f, t, data)
+			if data != nil {
+				return time.Duration(data.(int)) * time.Second, nil
 			} else {
-				interval = time.Duration(i.(int)) * time.Second
+				return time.Duration(0), nil
 			}
-			cpu.Interval = &interval
-		case reflect.Map:
-			for subname, sub := range i.(map[string]interface{}) {
-				t.log.Debugf("%s -> %+v", subname, sub)
-				switch reflect.TypeOf(sub).Kind() {
-				case reflect.Int:
-					t.log.Debugf("%s: %d", subname, sub.(int))
-				case reflect.Map:
-					for subsubname, subsub := range sub.(map[string]interface{}) {
-						t.log.Debugf("%s -> %+v", subsubname, subsub)
-					}
-					if name == "percentage" {
 
-					} else if name == "frequency" {
-					} else if name == "temperature" {
-					} else if name == "load" {
-					}
-				}
+		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.StaticText{}) {
+			var bgColor color.Color
+			var fColor color.Color
+			var fface font.Face
+			if data.(map[string]interface{})["font_color"] != nil {
+				bgcolor := data.(map[string]interface{})["font_color"].(string)
+				fColor = utils.ConvertToColor(bgcolor, color.White)
+			} else {
+				fColor = color.White
 			}
-			if name == "percentage" {
-			} else if name == "frequency" {
-			} else if name == "temperature" {
-			} else if name == "load" {
+
+			if data.(map[string]interface{})["background_color"] != nil {
+				bgcolor := data.(map[string]interface{})["background_color"].(string)
+				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+			} else {
+				bgColor = color.Transparent
 			}
+
+			if data.(map[string]interface{})["font"] != nil {
+				fPath := fontPath + data.(map[string]interface{})["font"].(string)
+				fSize := float64(data.(map[string]interface{})["font_size"].(int))
+				fface = utils.LoadFontFace(fPath, fSize)
+			} else {
+				fface = utils.DefaultFont
+			}
+
+			return theme.StaticText{
+				Text:            data.(map[string]interface{})["text"].(string),
+				Font:            fface,
+				FontColor:       fColor,
+				X:               data.(map[string]interface{})["x"].(int),
+				Y:               data.(map[string]interface{})["y"].(int),
+				BackgroundColor: bgColor,
+			}, nil
+		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Display{}) {
+			return theme.Display{
+				Size:        data.(map[string]interface{})["size"].(string),
+				Orientation: theme.StringToOrientation(data.(map[string]interface{})["orientation"].(string)),
+			}, nil
+		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Text{}) {
+			var bgColor color.Color
+			var fColor color.Color
+			var fface font.Face
+			var show bool
+			var showUnit bool
+			var bgImage string
+			if data.(map[string]interface{})["font_color"] != nil {
+				bgcolor := data.(map[string]interface{})["font_color"].(string)
+				fColor = utils.ConvertToColor(bgcolor, color.White)
+			} else {
+				fColor = color.White
+			}
+			if data.(map[string]interface{})["background_image"] != nil {
+				bgImage = imagePath + data.(map[string]interface{})["background_image"].(string)
+			} else {
+				bgImage = ""
+			}
+
+			if data.(map[string]interface{})["font"] != nil {
+				fPath := fontPath + data.(map[string]interface{})["font"].(string)
+				fSize := float64(data.(map[string]interface{})["font_size"].(int))
+				fface = utils.LoadFontFace(fPath, fSize)
+			} else {
+				fface = utils.DefaultFont
+			}
+
+			if data.(map[string]interface{})["background_color"] != nil {
+				bgcolor := data.(map[string]interface{})["background_color"].(string)
+				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+			} else {
+				bgColor = color.Transparent
+			}
+
+			if data.(map[string]interface{})["show_unit"] != nil {
+				showUnit = data.(map[string]interface{})["show_unit"].(bool)
+			} else {
+				showUnit = false
+			}
+			if data.(map[string]interface{})["show"] != nil {
+				show = data.(map[string]interface{})["show"].(bool)
+			} else {
+				show = false
+			}
+			return theme.Text{
+				Show:            show,
+				ShowUnit:        showUnit,
+				BackgroundImage: bgImage,
+				Font:            fface,
+				FontColor:       fColor,
+				Align:           theme.LEFT,
+				Padding:         4,
+				X:               data.(map[string]interface{})["x"].(int),
+				Y:               data.(map[string]interface{})["y"].(int),
+				BackgroundColor: bgColor,
+			}, nil
+		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Graph{}) {
+			var bgColor color.Color
+			var show bool
+			var bgImage string
+
+			if data.(map[string]interface{})["show"] != nil {
+				show = data.(map[string]interface{})["show"].(bool)
+			} else {
+				show = false
+			}
+			if data.(map[string]interface{})["bar_color"] != nil {
+				bgcolor := data.(map[string]interface{})["bar_color"].(string)
+				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+			} else {
+				bgColor = color.Transparent
+			}
+			if data.(map[string]interface{})["background_image"] != nil {
+				bgImage = imagePath + data.(map[string]interface{})["background_image"].(string)
+			} else {
+				bgImage = ""
+			}
+			return theme.Graph{
+				Show:            show,
+				X:               data.(map[string]interface{})["x"].(int),
+				Y:               data.(map[string]interface{})["y"].(int),
+				Width:           data.(map[string]interface{})["width"].(int),
+				Height:          data.(map[string]interface{})["height"].(int),
+				MinValue:        data.(map[string]interface{})["min_value"].(int),
+				MaxValue:        data.(map[string]interface{})["max_value"].(int),
+				BarColor:        bgColor,
+				BarOutline:      data.(map[string]interface{})["bar_outline"].(bool),
+				BackgroundImage: bgImage,
+			}, nil
+		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Radial{}) {
+			var bgColor color.Color
+			var fColor color.Color
+			var fface font.Face
+			var show bool
+			var showText bool
+			var showUnit bool
+			var bgImage string
+
+			if data.(map[string]interface{})["bar_color"] != nil {
+				bgcolor := data.(map[string]interface{})["bar_color"].(string)
+				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+			} else {
+				bgColor = color.Transparent
+			}
+
+			if data.(map[string]interface{})["background_image"] != nil {
+				bgImage = imagePath + data.(map[string]interface{})["background_image"].(string)
+			} else {
+				bgImage = ""
+			}
+
+			if data.(map[string]interface{})["background_color"] != nil {
+				bgcolor := data.(map[string]interface{})["background_color"].(string)
+				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+			} else {
+				bgColor = color.Transparent
+			}
+
+			if data.(map[string]interface{})["font_color"] != nil {
+				bgcolor := data.(map[string]interface{})["font_color"].(string)
+				fColor = utils.ConvertToColor(bgcolor, color.Transparent)
+			} else {
+				fColor = color.Transparent
+			}
+
+			if data.(map[string]interface{})["show_unit"] != nil {
+				showUnit = data.(map[string]interface{})["show_unit"].(bool)
+			} else {
+				showUnit = false
+			}
+			if data.(map[string]interface{})["show"] != nil {
+				show = data.(map[string]interface{})["show"].(bool)
+			} else {
+				show = false
+			}
+			if data.(map[string]interface{})["show_text"] != nil {
+				showText = data.(map[string]interface{})["show_text"].(bool)
+			} else {
+				showText = false
+			}
+
+			if data.(map[string]interface{})["font"] != nil {
+				fPath := fontPath + data.(map[string]interface{})["font"].(string)
+				fSize := float64(data.(map[string]interface{})["font_size"].(int))
+				fface = utils.LoadFontFace(fPath, fSize)
+			} else {
+				fface = utils.DefaultFont
+			}
+
+			return theme.Radial{
+				Show:            show,
+				X:               data.(map[string]interface{})["x"].(int),
+				Y:               data.(map[string]interface{})["y"].(int),
+				Radius:          data.(map[string]interface{})["radius"].(int),
+				Width:           data.(map[string]interface{})["width"].(int),
+				MinValue:        data.(map[string]interface{})["min_value"].(int),
+				MaxValue:        data.(map[string]interface{})["max_value"].(int),
+				AngleStart:      data.(map[string]interface{})["angle_start"].(int),
+				AngleEnd:        data.(map[string]interface{})["angle_end"].(int),
+				AngleSteps:      data.(map[string]interface{})["angle_steps"].(int),
+				AngleStep:       data.(map[string]interface{})["angle_step"].(int),
+				Clockwise:       data.(map[string]interface{})["clockwise"].(bool),
+				BarColor:        bgColor,
+				ShowText:        showText,
+				ShowUnit:        showUnit,
+				Font:            fface,
+				FontColor:       fColor,
+				BackgroundColor: bgColor,
+				BackgroundImage: bgImage,
+			}, nil
 		}
-		/*
-			var interval int
-			statTexts := make(map[string]entity.StatText)
-			StatProgressBars := make(map[string]entity.StatProgressBar)
-			StatRadialBars := make(map[string]entity.StatRadialBar)
-
-			t.log.Debugf("%s -> %+v", name, i)
-
-			switch reflect.TypeOf(i).Kind() {
-			case reflect.Int:
-				if i == nil {
-					interval = 1.0
-				} else {
-					interval = i.(int)
-				}
-			case reflect.Map:
-				cpu[name] = entity.CPU{
-					Interval:         time.Duration(interval) * time.Second,
-					StatTexts:        statTexts,
-					StatProgressBars: StatProgressBars,
-					StatRadialBars:   StatRadialBars,
-				}
-			}
-		*/
+		return data, nil
 	}
-	return cpu
 }
 
-func (t Theme) GetGPUStats() map[string]entity.GPU {
-	gpu := make(map[string]entity.GPU)
-
-	if t.theme[stats] == nil {
-		return gpu
-	}
-	stat := t.theme[stats].(map[string]interface{})["gpu"]
-
-	if stat == nil {
-		return gpu
-	}
-	for name, i := range stat.(map[string]interface{}) {
-		t.log.Debugf("%s -> %+v", name, i)
-		/*
-			var interval int
-			statTexts := make(map[string]entity.StatText)
-			StatProgressBars := make(map[string]entity.StatProgressBar)
-			StatRadialBars := make(map[string]entity.StatRadialBar)
-
-			t.log.Debugf("%s -> %+v", name, i)
-
-			switch reflect.TypeOf(i).Kind() {
-			case reflect.Int:
-				if i == nil {
-					interval = 1.0
-				} else {
-					interval = i.(int)
-				}
-			case reflect.Map:
-				gpu[name] = entity.GPU{
-					Interval:         time.Duration(interval) * time.Second,
-					StatTexts:        statTexts,
-					StatProgressBars: StatProgressBars,
-					StatRadialBars:   StatRadialBars,
-				}
-			}
-		*/
-	}
-	return nil
+func (t *Theme) GetStaticImages() map[string]theme.StaticImage {
+	return t.theme.StaticImages
 }
 
-func (t Theme) GetDiskStats() map[string]entity.Disk {
-	disk := make(map[string]entity.Disk)
-
-	if t.theme[stats] == nil {
-		return disk
-	}
-	stat := t.theme[stats].(map[string]interface{})["disk"]
-
-	if stat == nil {
-		return disk
-	}
-	for name, i := range stat.(map[string]interface{}) {
-		t.log.Debugf("%s -> %+v", name, i)
-		/*
-			var interval int
-			statTexts := make(map[string]entity.StatText)
-			StatProgressBars := make(map[string]entity.StatProgressBar)
-			StatRadialBars := make(map[string]entity.StatRadialBar)
-
-			t.log.Debugf("%s -> %+v", name, i)
-
-			switch reflect.TypeOf(i).Kind() {
-			case reflect.Int:
-				if i == nil {
-					interval = 1.0
-				} else {
-					interval = i.(int)
-				}
-			case reflect.Map:
-				disk[name] = entity.Disk{
-					Interval:         time.Duration(interval) * time.Second,
-					StatTexts:        statTexts,
-					StatProgressBars: StatProgressBars,
-					StatRadialBars:   StatRadialBars,
-				}
-			}
-		*/
-	}
-	return nil
+func (t *Theme) GetStaticTexts() map[string]theme.StaticText {
+	return t.theme.StaticTexts
 }
-func (t Theme) GetMemoryStats() map[string]entity.Memory {
-	memory := make(map[string]entity.Memory)
 
-	if t.theme[stats] == nil {
-		return memory
-	}
-	stat := t.theme[stats].(map[string]interface{})["memory"]
-
-	if stat == nil {
-		return memory
-	}
-	for name, i := range stat.(map[string]interface{}) {
-		t.log.Debugf("%s -> %+v", name, i)
-		/*
-			var interval int
-			statTexts := make(map[string]entity.StatText)
-			StatProgressBars := make(map[string]entity.StatProgressBar)
-			StatRadialBars := make(map[string]entity.StatRadialBar)
-
-			t.log.Debugf("%s -> %+v", name, i)
-
-			switch reflect.TypeOf(i).Kind() {
-			case reflect.Int:
-				if i == nil {
-					interval = 1.0
-				} else {
-					interval = i.(int)
-				}
-			case reflect.Map:
-				memory[name] = entity.Memory{
-					Interval:         time.Duration(interval) * time.Second,
-					StatTexts:        statTexts,
-					StatProgressBars: StatProgressBars,
-					StatRadialBars:   StatRadialBars,
-				}
-			}
-		*/
-	}
-	return nil
+func (t *Theme) GetStats() *theme.Stats {
+	return t.theme.Stats
 }
-func (t Theme) GetNetworkStats() map[string]entity.Network {
-	network := make(map[string]entity.Network)
 
-	if t.theme[stats] == nil {
-		return network
-	}
-	stat := t.theme[stats].(map[string]interface{})["network"]
-
-	if stat == nil {
-		return network
-	}
-	for name, i := range stat.(map[string]interface{}) {
-		t.log.Debugf("%s -> %#v", name, i)
-		/*
-			var interval int
-			statTexts := make(map[string]entity.StatText)
-			StatProgressBars := make(map[string]entity.StatProgressBar)
-			StatRadialBars := make(map[string]entity.StatRadialBar)
-
-			t.log.Debugf("%s -> %+v", name, i)
-
-			switch reflect.TypeOf(i).Kind() {
-			case reflect.Int:
-				if i == nil {
-					interval = 1.0
-				} else {
-					interval = i.(int)
-				}
-			case reflect.Map:
-				network[name] = entity.Network{
-					Interval:         time.Duration(interval) * time.Second,
-					StatTexts:        statTexts,
-					StatProgressBars: StatProgressBars,
-					StatRadialBars:   StatRadialBars,
-				}
-			}
-		*/
-	}
-	return nil
-}
-func (t Theme) GetDateTimeStats() map[string]entity.DateTime {
-	date_time := make(map[string]entity.DateTime)
-
-	if t.theme[stats] == nil {
-		return date_time
-	}
-
-	return nil
+func (t *Theme) GetThemePath() string {
+	return t.path
 }

@@ -2,18 +2,18 @@ package config
 
 import (
 	"fmt"
-	"github.com/alexwbaule/turing-screen/internal/domain/entity"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	device *entity.Config
+	device *device.Config
 }
 
 const defaultConfig = `conf/config.yaml`
 
 func NewDefaultConfig() (*Config, error) {
-	var config entity.Config
+	var config device.Config
 
 	viper.SetConfigType("yaml")
 	viper.SetConfigFile(defaultConfig)
@@ -36,11 +36,9 @@ func (c *Config) GetLogLevel() string {
 func (c *Config) GetDevicePort() string {
 	return c.device.Port
 }
-
-func (c *Config) GetDeviceTheme() string {
+func (c *Config) GetThemeName() string {
 	return c.device.Theme
 }
-
-func (c *Config) GetDeviceDisplay() entity.Display {
+func (c *Config) GetDeviceDisplay() device.Display {
 	return c.device.Display
 }

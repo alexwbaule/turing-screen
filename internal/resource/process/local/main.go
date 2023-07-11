@@ -5,7 +5,7 @@ import (
 	"git.sr.ht/~sbinet/gg"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
-	"github.com/alexwbaule/turing-screen/internal/domain/entity"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/disintegration/gift"
 	"image"
 	"image/color"
@@ -25,8 +25,7 @@ func NewBuilder(l *logger.Logger) *Builder {
 
 const tolerance = float64(5)
 
-func (b *Builder) BuildBackgroundImage(images map[string]entity.StaticImage) image.Image {
-
+func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) image.Image {
 	background, err := utils.LoadImage(images["background"].Path)
 	if err != nil {
 		b.log.Fatalf("error open file: %s", err)
@@ -50,10 +49,11 @@ func (b *Builder) BuildBackgroundImage(images map[string]entity.StaticImage) ima
 	return ctx.Image()
 }
 
-func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string]entity.StaticText) image.Image {
+func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string]theme.StaticText) image.Image {
 	ctx := gg.NewContextForImage(background)
 
 	for _, text := range images {
+
 		ctx.SetFontFace(text.Font)
 		w, h := ctx.MeasureString(text.Text)
 
@@ -74,14 +74,14 @@ func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string
 	return ctx.Image()
 }
 
-func (b *Builder) DrawText(background image.Image, text string, stat entity.StatText) image.Image {
+func (b *Builder) DrawText(background image.Image, text string, stat theme.Text) image.Image {
 	ctx := gg.NewContextForImage(background)
 
 	ctx.SetFontFace(stat.Font)
 	ctx.SetColor(stat.FontColor)
 	ctx.ClearPath()
 
-	measure := fmt.Sprintf("%s", strings.Repeat("0", stat.Padding))
+	measure := fmt.Sprintf("%s", strings.Repeat("0", len(text)))
 	maxw, maxh := ctx.MeasureString(measure)
 
 	w, h := ctx.MeasureString(text)
@@ -91,14 +91,14 @@ func (b *Builder) DrawText(background image.Image, text string, stat entity.Stat
 	center := center_total - center_image
 
 	b.log.Debugf("FontHeight: %.2f", ctx.FontHeight())
-	b.log.Debugf("[%s] len:%d X:%d Y:%d Size (%.2f x %.2f)", text, len(text), stat.X, stat.Y, w, h)
+	b.log.Debugf("[%s] len:%d X:%d Y:%d Size (%.2f x %.2f) (%.2f x %.2f)", text, len(text), stat.X, stat.Y, w, h, maxw, maxh)
 
-	if stat.Align == entity.CENTER {
-		ctx.DrawStringAnchored(text, float64(stat.X)+center, float64(stat.Y), 0.0, 1.0)
-	} else if stat.Align == entity.LEFT {
-		ctx.DrawStringAnchored(text, float64(stat.X), float64(stat.Y), 0.0, 1.0)
-	} else if stat.Align == entity.RIGHT {
-		ctx.DrawStringAnchored(text, float64(stat.X)+maxw, float64(stat.Y), 1.0, 1.0)
+	if stat.Align == theme.CENTER {
+		ctx.DrawStringAnchored(text, float64(stat.X)+center, float64(stat.Y)-(tolerance/2), 0.0, 1.0)
+	} else if stat.Align == theme.LEFT {
+		ctx.DrawStringAnchored(text, float64(stat.X), float64(stat.Y)-(tolerance/2), 0.0, 1.0)
+	} else if stat.Align == theme.RIGHT {
+		ctx.DrawStringAnchored(text, float64(stat.X)+maxw, float64(stat.Y)-(tolerance/2), 1.0, 1.0)
 	}
 	ctx.Fill()
 	ii := ctx.Image()
@@ -110,6 +110,7 @@ func (b *Builder) DrawText(background image.Image, text string, stat entity.Stat
 	)
 	dst := image.NewRGBA(image.Rect(0, 0, int(maxw), int(maxh)))
 	g.Draw(dst, ii)
+	b.saveImage(dst, fmt.Sprintf("res/test/image-%s-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", text, len(text), stat.X, stat.Y, w, h, maxw, maxh))
 	return dst
 }
 

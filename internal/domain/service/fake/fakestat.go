@@ -3,8 +3,7 @@ package fake
 import (
 	"context"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/domain/entity"
-	"time"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 )
 
 type FakeStat struct {
@@ -21,30 +20,10 @@ func NewFakeStat(ctx context.Context, l *logger.Logger, j chan<- any) *FakeStat 
 	}
 }
 
-func (g *FakeStat) Run(e entity.GPU) error {
-	ticker := time.NewTicker(e.Interval)
-	for {
-		select {
-		case <-ticker.C:
-		case <-g.ctx.Done():
-			g.log.Infof("Stopping GpuStat job...")
-			return context.Canceled
-		}
-		return g.getStats(e)
-	}
+func (g *FakeStat) Run(e theme.GPU) error {
+	return g.getStats(e)
 }
 
-func (g *FakeStat) getStats(e entity.GPU) error {
-	if e.StatProgressBars != nil {
-
-	}
-	if e.StatRadialBars != nil {
-
-	}
-	if e.StatTexts != nil {
-
-	}
-	close(g.jobs)
-
+func (g *FakeStat) getStats(e theme.GPU) error {
 	return nil
 }

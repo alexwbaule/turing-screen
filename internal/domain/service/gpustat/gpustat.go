@@ -3,7 +3,7 @@ package gpustat
 import (
 	"context"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/domain/entity"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 )
 
 type GpuStat struct {
@@ -11,7 +11,7 @@ type GpuStat struct {
 	log *logger.Logger
 }
 
-func (g *GpuStat) Run(e map[string]entity.GPU) error {
+func (g *GpuStat) Run(e map[string]theme.GPU) error {
 	/*
 		ticker := time.NewTicker(e.Interval)
 		for {
@@ -27,6 +27,6 @@ func (g *GpuStat) Run(e map[string]entity.GPU) error {
 	return nil
 }
 
-func (g *GpuStat) getStats(e map[string]entity.GPU) error {
+func (g *GpuStat) getStats(e map[string]theme.GPU) error {
 	return nil
 }

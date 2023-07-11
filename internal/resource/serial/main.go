@@ -1,7 +1,6 @@
 package serial
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
@@ -75,7 +74,7 @@ func (s *Serial) Write(p command.Command) (int, error) {
 	for _, b := range p.GetBytes() {
 		n, err := s.port.Write(b)
 		writen += n
-		s.log.Debugf("Writen %d bytes", writen)
+		//s.log.Debugf("Writen %d bytes", writen)
 		if err != nil {
 			return 0, fmt.Errorf("write serial error: %w", err)
 		}
@@ -92,7 +91,7 @@ func (s *Serial) Read(p command.Command) (int, error) {
 	for {
 		n, err := s.port.Read(buff)
 		readed += n
-		s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
+		//s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
 
 		if err != nil {
 			return 0, fmt.Errorf("read serial error: %w", err)

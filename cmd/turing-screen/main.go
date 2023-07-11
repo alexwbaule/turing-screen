@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application"
+	"github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command/brightness"
 	"github.com/alexwbaule/turing-screen/internal/domain/command/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/command/media"
 	"github.com/alexwbaule/turing-screen/internal/domain/command/payload"
 	"github.com/alexwbaule/turing-screen/internal/domain/command/update_payload"
-	"github.com/alexwbaule/turing-screen/internal/domain/entity"
+	theme2 "github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
 	device2 "github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
@@ -19,7 +20,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"image/color"
 	"math/rand"
-	"os"
 	"time"
 )
 
@@ -34,9 +34,13 @@ func main() {
 		if err != nil {
 			app.Log.Fatal(err.Error())
 		}
+
+		statsTheme, err := theme.NewTheme(app.Config.GetThemeName(), app.Log)
+		if err != nil {
+			return err
+		}
+
 		worker := sender.NewWorker(ctx, devSerial, app.Log)
-		staticImages := app.Theme.GetStaticImages()
-		staticTexts := app.Theme.GetStaticTexts()
 
 		cmdDevice := device.NewDevice(app.Log)
 		cmdMedia := media.NewMedia(app.Log)
@@ -47,8 +51,9 @@ func main() {
 		builder := local.NewBuilder(app.Log)
 
 		g, ctx := errgroup.WithContext(ctx)
+
 		g.Go(func() error {
-			_ = worker.Run(0, jobs)
+			_ = worker.Run(jobs)
 			return devSerial.Close()
 		})
 
@@ -58,10 +63,8 @@ func main() {
 			return nil
 		})
 
-		app.Theme.GetCPUStats()
-
-		bg := builder.BuildBackgroundImage(staticImages)
-		fbg := builder.BuildBackgroundTexts(bg, staticTexts)
+		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())
+		fbg := builder.BuildBackgroundTexts(bg, statsTheme.GetStaticTexts())
 		background := device2.NewImageProcess(fbg)
 
 		jobs <- cmdDevice.Hello()
@@ -71,7 +74,8 @@ func main() {
 		jobs <- cmdPayload.SendPayload(background)
 		jobs <- cmdMedia.QueryStatus()
 
-		os.Exit(0)
+		stats := statsTheme.GetStats()
+
 		g.Go(func() error {
 			for {
 				select {
@@ -81,37 +85,25 @@ func main() {
 					return context.Canceled
 				default:
 
-					V := entity.StatText{
-						Font:            utils.DefaultFontFace(),
-						Align:           entity.CENTER,
-						FontColor:       color.White,
-						BackgroundColor: color.Transparent,
-						Padding:         4,
-						X:               40,
-						Y:               66,
+					if stats.CPU.Temperature.Text != nil {
+						V := stats.CPU.Temperature.Text
+						img := builder.DrawText(fbg, fmt.Sprintf("%3d°C", rand.Intn(200)), *V)
+						imgUpdt := device2.NewImageProcess(img)
+						jobs <- cmdUpdate.SendPayload(imgUpdt, V.X, V.Y)
+						jobs <- cmdMedia.QueryStatus()
 					}
-					img := builder.DrawText(fbg, fmt.Sprintf("%d%%", rand.Intn(9)), V)
-					imgUpdt := device2.NewImageProcess(img)
-					jobs <- cmdUpdate.SendPayload(imgUpdt, V.X, V.Y)
-					jobs <- cmdMedia.QueryStatus()
 
-					V2 := entity.StatText{
-						Font:            utils.DefaultFontFace(),
-						Align:           entity.RIGHT,
-						FontColor:       colornames.Hotpink,
-						BackgroundColor: color.Transparent,
-						Padding:         4,
-						X:               510,
-						Y:               66,
+					if stats.GPU.TEMPERATURE.Text != nil {
+
+						V2 := stats.GPU.TEMPERATURE.Text
+						img2 := builder.DrawText(fbg, fmt.Sprintf("%d%%", rand.Intn(9)), *V2)
+						imgUpdt2 := device2.NewImageProcess(img2)
+						jobs <- cmdUpdate.SendPayload(imgUpdt2, V2.X, V2.Y)
+						jobs <- cmdMedia.QueryStatus()
 					}
-					img2 := builder.DrawText(fbg, fmt.Sprintf("%d%%", rand.Intn(9)), V2)
-					imgUpdt2 := device2.NewImageProcess(img2)
-					jobs <- cmdUpdate.SendPayload(imgUpdt2, V2.X, V2.Y)
-					jobs <- cmdMedia.QueryStatus()
-
-					V3 := entity.StatText{
+					V3 := theme2.Text{
 						Font:            utils.DefaultFontFace(),
-						Align:           entity.LEFT,
+						Align:           theme2.LEFT,
 						FontColor:       colornames.Yellow,
 						BackgroundColor: color.Transparent,
 						Padding:         4,
@@ -124,7 +116,7 @@ func main() {
 					jobs <- cmdMedia.QueryStatus()
 
 				}
-				time.Sleep(1000 * time.Millisecond)
+				time.Sleep(500 * time.Millisecond)
 			}
 		})
 		return g.Wait()
