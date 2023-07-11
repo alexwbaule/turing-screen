@@ -1,4 +1,4 @@
-package update_payload
+package command
 
 import (
 	"fmt"
@@ -9,8 +9,6 @@ import (
 	"regexp"
 	"time"
 )
-
-const chunk = 249
 
 type UpdatePayload struct {
 	bytes   []byte

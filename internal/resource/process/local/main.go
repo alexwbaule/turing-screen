@@ -9,6 +9,7 @@ import (
 	"github.com/disintegration/gift"
 	"image"
 	"image/color"
+	"math"
 	"os"
 	"strings"
 )
@@ -24,25 +25,18 @@ func NewBuilder(l *logger.Logger) *Builder {
 }
 
 const tolerance = float64(5)
+const border = float64(2)
 
 func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) image.Image {
-	background, err := utils.LoadImage(images["background"].Path)
-	if err != nil {
-		b.log.Fatalf("error open file: %s", err)
-		os.Exit(-1)
-	}
-	ctx := gg.NewContextForImage(background)
+	ctx := gg.NewContextForImage(image.NewRGBA(image.Rect(0, 0, 800, 480)))
 
 	for name, img := range images {
-		if name == "background" {
-			continue
-		}
 		numb, err := utils.LoadImage(img.Path)
 		if err != nil {
 			b.log.Fatalf("error open file %s: %s", name, err)
 			os.Exit(-1)
 		}
-		b.log.Debugf("Build Background [%s] X:%d Y:%d Size (%dx%d)\n", name, img.X, img.Y, numb.Bounds().Dx(), numb.Bounds().Dy())
+		b.log.Debugf("Build Background Images [%s] X:%d Y:%d Size (%dx%d)\n", name, img.X, img.Y, numb.Bounds().Dx(), numb.Bounds().Dy())
 
 		ctx.DrawImage(numb, img.X, img.Y)
 	}
@@ -64,7 +58,7 @@ func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string
 			ctx.DrawRectangle(x, y, x1, y1)
 			ctx.Fill()
 		}
-		b.log.Debugf("[%s] len:%d X:%d Y:%d Size (%.2f x %.2f)", text.Text, len(text.Text), text.X, text.Y, w, h)
+		b.log.Debugf("Build Background Texts [%s] len:%d X:%d Y:%d Size (%.2f x %.2f)", text.Text, len(text.Text), text.X, text.Y, w, h)
 
 		ctx.SetColor(text.FontColor)
 		ctx.DrawStringAnchored(text.Text, float64(text.X)-(tolerance/2), float64(text.Y)-(tolerance/2), 0.0, 1.0)
@@ -77,11 +71,21 @@ func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string
 func (b *Builder) DrawText(background image.Image, text string, stat theme.Text) image.Image {
 	ctx := gg.NewContextForImage(background)
 
+	for i, i2 := range text {
+		fmt.Printf("[%d] of [%d][%c]\n", utils.CountStr(text), i, i2)
+	}
+	err := ctx.LoadFontFace("res/fonts/jetbrains-mono/JetBrainsMono-ExtraBold.ttf", 58.0)
+	if err != nil {
+		b.log.Debugf("ERROR LOADING FONT: %s", err)
+	}
+	ctx.FontHeight()
+	b.log.Debugf("Drawing Text [%s] len:%d Font:%.2f X:%d Y:%d", text, utils.CountStr(text), ctx.FontHeight(), stat.X, stat.Y)
+
 	ctx.SetFontFace(stat.Font)
 	ctx.SetColor(stat.FontColor)
 	ctx.ClearPath()
 
-	measure := fmt.Sprintf("%s", strings.Repeat("0", len(text)))
+	measure := fmt.Sprintf("%s", strings.Repeat("0", utils.CountStr(text)))
 	maxw, maxh := ctx.MeasureString(measure)
 
 	w, h := ctx.MeasureString(text)
@@ -90,27 +94,61 @@ func (b *Builder) DrawText(background image.Image, text string, stat theme.Text)
 	center_image := (float64(stat.X) + w) / 2
 	center := center_total - center_image
 
-	b.log.Debugf("FontHeight: %.2f", ctx.FontHeight())
-	b.log.Debugf("[%s] len:%d X:%d Y:%d Size (%.2f x %.2f) (%.2f x %.2f)", text, len(text), stat.X, stat.Y, w, h, maxw, maxh)
+	b.log.Debugf("Drawing Text [%s] len:%d Font:%.2f X:%d Y:%d Size (%.2f x %.2f) (%.2f x %.2f)", text, utils.CountStr(text), ctx.FontHeight(), stat.X, stat.Y, w, h, maxw, maxh)
+
+	ctx.DrawString(text, float64(stat.X), float64(stat.Y))
 
 	if stat.Align == theme.CENTER {
-		ctx.DrawStringAnchored(text, float64(stat.X)+center, float64(stat.Y)-(tolerance/2), 0.0, 1.0)
+		ctx.DrawStringAnchored(text, float64(stat.X)+center, float64(stat.Y), 0.0, 1.0)
 	} else if stat.Align == theme.LEFT {
-		ctx.DrawStringAnchored(text, float64(stat.X), float64(stat.Y)-(tolerance/2), 0.0, 1.0)
+		ctx.DrawStringAnchored(text, float64(stat.X), float64(stat.Y), 0.0, 1.0)
 	} else if stat.Align == theme.RIGHT {
-		ctx.DrawStringAnchored(text, float64(stat.X)+maxw, float64(stat.Y)-(tolerance/2), 1.0, 1.0)
+		ctx.DrawStringAnchored(text, float64(stat.X)+maxw, float64(stat.Y), 1.0, 1.0)
 	}
 	ctx.Fill()
 	ii := ctx.Image()
 
-	crp := image.Rect(stat.X, stat.Y, stat.X+int(maxw), stat.Y+int(maxh))
+	crp := image.Rect(stat.X, stat.Y, stat.X+int(maxw), stat.Y+int(h))
 
 	g := gift.New(
 		gift.Crop(crp),
 	)
-	dst := image.NewRGBA(image.Rect(0, 0, int(maxw), int(maxh)))
+	dst := image.NewRGBA(image.Rect(0, 0, int(maxw), int(h)))
 	g.Draw(dst, ii)
 	b.saveImage(dst, fmt.Sprintf("res/test/image-%s-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", text, len(text), stat.X, stat.Y, w, h, maxw, maxh))
+	return dst
+}
+
+func (b *Builder) DrawProgressBar(background image.Image, value int, stat theme.Graph) image.Image {
+	ctx := gg.NewContextForImage(background)
+
+	barFilledWidth := math.Round(float64(value) / float64(stat.MaxValue-stat.MinValue) * float64(stat.Width))
+
+	x, y, x1, y1 := float64(stat.X), float64(stat.Y), float64(stat.Width), float64(stat.Height)
+
+	if stat.BarOutline {
+		x, y, x1, y1 := float64(stat.X)-border, float64(stat.Y)-border, float64(stat.Width)+border, float64(stat.Height)+border
+		b.log.Debugf("Drawing ProgressBar Size Outline (%.2f x %.2f) (%.2f x %.2f)", x, y, x1, y1)
+		ctx.SetColor(stat.BarColor)
+		ctx.DrawRectangle(x, y, x1, y1)
+		ctx.Fill()
+	}
+	ctx.SetColor(stat.BarColor)
+	ctx.DrawRectangle(x, y, barFilledWidth, y1)
+	ctx.Fill()
+
+	b.log.Debugf("Drawing ProgressBar Filled: %.2f  (%.2f x %.2f) (%.2f x %.2f)", barFilledWidth, x, y, x1, y1)
+
+	ii := ctx.Image()
+
+	crp := image.Rect(stat.X, stat.Y, stat.X+stat.Width, stat.Y+stat.Height)
+
+	g := gift.New(
+		gift.Crop(crp),
+	)
+	dst := image.NewRGBA(image.Rect(0, 0, stat.Width, stat.Height))
+	g.Draw(dst, ii)
+	b.saveImage(dst, fmt.Sprintf("res/test/image-pb-%d-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Height))
 	return dst
 }
 

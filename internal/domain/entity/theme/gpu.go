@@ -3,10 +3,10 @@ package theme
 import "time"
 
 type GPU struct {
-	INTERVAL    time.Duration   `mapstructure:"INTERVAL"`
-	PERCENTAGE  *Mesurement     `mapstructure:"PERCENTAGE"`
-	MEMORY      *Mesurement     `mapstructure:"MEMORY"`
-	TEMPERATURE *GpuTemperature `mapstructure:"TEMPERATURE"`
+	Interval    time.Duration   `mapstructure:"INTERVAL"`
+	Percentage  *Mesurement     `mapstructure:"PERCENTAGE"`
+	Memory      *Mesurement     `mapstructure:"MEMORY"`
+	Temperature *GpuTemperature `mapstructure:"TEMPERATURE"`
 }
 
 type GpuTemperature struct {

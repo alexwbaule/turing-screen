@@ -9,10 +9,10 @@ type Network struct {
 }
 
 type NetworkMesurement struct {
-	UPLOAD     *Upload     `mapstructure:"UPLOAD"`
-	DOWNLOAD   *Download   `mapstructure:"DOWNLOAD"`
-	UPLOADED   *Uploaded   `mapstructure:"UPLOADED"`
-	DOWNLOADED *Downloaded `mapstructure:"DOWNLOADED"`
+	Upload     *Upload     `mapstructure:"UPLOAD"`
+	Download   *Download   `mapstructure:"DOWNLOAD"`
+	Uploaded   *Uploaded   `mapstructure:"UPLOADED"`
+	Downloaded *Downloaded `mapstructure:"DOWNLOADED"`
 }
 
 type Upload struct {

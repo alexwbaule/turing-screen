@@ -7,5 +7,7 @@ device:
       eth: "enp4s0"
       wlo:
   display:
+    width: 800
+    height: 480
     reverse: false
     brightness: 20

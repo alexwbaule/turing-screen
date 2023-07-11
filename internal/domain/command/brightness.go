@@ -1,4 +1,4 @@
-package brightness
+package command
 
 import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"

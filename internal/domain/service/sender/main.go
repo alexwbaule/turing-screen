@@ -3,12 +3,7 @@ package sender
 import (
 	"context"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/domain/command/brightness"
-	"github.com/alexwbaule/turing-screen/internal/domain/command/device"
-	"github.com/alexwbaule/turing-screen/internal/domain/command/media"
-	"github.com/alexwbaule/turing-screen/internal/domain/command/option"
-	"github.com/alexwbaule/turing-screen/internal/domain/command/payload"
-	"github.com/alexwbaule/turing-screen/internal/domain/command/update_payload"
+	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 )
 
@@ -35,23 +30,23 @@ func (w *Worker) Run(jobs <-chan any) error {
 			return context.Canceled
 		case item := <-jobs:
 			switch item.(type) {
-			case *brightness.Brightness:
-				cmd := item.(*brightness.Brightness)
+			case *command.Brightness:
+				cmd := item.(*command.Brightness)
 				_, err = w.sender.Write(cmd)
-			case *device.Device:
-				cmd := item.(*device.Device)
+			case *command.Device:
+				cmd := item.(*command.Device)
 				_, err = w.sender.Write(cmd)
-			case *media.Media:
-				cmd := item.(*media.Media)
+			case *command.Media:
+				cmd := item.(*command.Media)
 				_, err = w.sender.Write(cmd)
-			case *option.Option:
-				cmd := item.(*option.Option)
+			case *command.Option:
+				cmd := item.(*command.Option)
 				_, err = w.sender.Write(cmd)
-			case *payload.Payload:
-				cmd := item.(*payload.Payload)
+			case *command.Payload:
+				cmd := item.(*command.Payload)
 				_, err = w.sender.Write(cmd)
-			case *update_payload.UpdatePayload:
-				cmd := item.(*update_payload.UpdatePayload)
+			case *command.UpdatePayload:
+				cmd := item.(*command.UpdatePayload)
 				_, err = w.sender.Write(cmd)
 			}
 			if err != nil {

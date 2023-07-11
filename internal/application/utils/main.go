@@ -17,6 +17,10 @@ import (
 
 var DefaultFont = DefaultFontFace()
 
+func CountStr(s string) int {
+	return len([]rune(s))
+}
+
 func IsInteger(val float64) bool {
 	return val == float64(int(val))
 }
@@ -97,6 +101,7 @@ func LoadFontFace(path string, points float64) font.Face {
 	}
 	face := truetype.NewFace(f, &truetype.Options{
 		Size:    points,
+		DPI:     72,
 		Hinting: font.HintingFull,
 	})
 	return face
@@ -112,7 +117,8 @@ func DefaultFontFace() font.Face {
 		return basicfont.Face7x13
 	}
 	face := truetype.NewFace(f, &truetype.Options{
-		Size:    40,
+		Size:    23,
+		DPI:     72,
 		Hinting: font.HintingFull,
 	})
 	return face

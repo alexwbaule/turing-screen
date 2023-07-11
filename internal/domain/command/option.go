@@ -1,4 +1,4 @@
-package option
+package command
 
 type StartMode byte
 type FlipMode byte

@@ -1,4 +1,4 @@
-package device
+package command
 
 import (
 	"bytes"

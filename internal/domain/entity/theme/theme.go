@@ -132,8 +132,8 @@ type Text struct {
 	FontColor       color.Color
 	BackgroundColor color.Color
 	BackgroundImage string `mapstructure:"BACKGROUND_IMAGE"`
-	Padding         int
 	Align           Alignment
+	Size            int
 }
 
 type Graph struct {

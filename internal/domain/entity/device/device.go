@@ -23,4 +23,6 @@ type Sensors struct {
 type Display struct {
 	Reverse    bool `mapstructure:"reverse"`
 	Brightness int  `mapstructure:"brightness"`
+	Width      int  `mapstructure:"width"`
+	Height     int  `mapstructure:"height"`
 }

@@ -3,9 +3,9 @@ package theme
 import "time"
 
 type Memory struct {
-	INTERVAL time.Duration `mapstructure:"INTERVAL"`
-	SWAP     *Swap         `mapstructure:"SWAP"`
-	VIRTUAL  *Virtual      `mapstructure:"VIRTUAL"`
+	Interval time.Duration `mapstructure:"INTERVAL"`
+	Swap     *Swap         `mapstructure:"SWAP"`
+	Virtual  *Virtual      `mapstructure:"VIRTUAL"`
 }
 
 type Swap struct {

@@ -69,7 +69,6 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 				Y:      data.(map[string]interface{})["y"].(int),
 			}, nil
 		} else if f.Kind() == reflect.Int && t == reflect.TypeOf(time.Duration(1)) {
-			fmt.Printf("[%+v] [%+v] [%+v]\n", f, t, data)
 			if data != nil {
 				return time.Duration(data.(int)) * time.Second, nil
 			} else {
@@ -122,6 +121,8 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 			var show bool
 			var showUnit bool
 			var bgImage string
+			var align theme.Alignment
+
 			if data.(map[string]interface{})["font_color"] != nil {
 				bgcolor := data.(map[string]interface{})["font_color"].(string)
 				fColor = utils.ConvertToColor(bgcolor, color.White)
@@ -159,14 +160,20 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 			} else {
 				show = false
 			}
+
+			if data.(map[string]interface{})["align"] != nil {
+				v := data.(map[string]interface{})["align"].(string)
+				align = theme.StringToAlignment(v)
+			} else {
+				align = theme.LEFT
+			}
 			return theme.Text{
 				Show:            show,
 				ShowUnit:        showUnit,
 				BackgroundImage: bgImage,
 				Font:            fface,
 				FontColor:       fColor,
-				Align:           theme.LEFT,
-				Padding:         4,
+				Align:           align,
 				X:               data.(map[string]interface{})["x"].(int),
 				Y:               data.(map[string]interface{})["y"].(int),
 				BackgroundColor: bgColor,

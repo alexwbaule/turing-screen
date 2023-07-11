@@ -1,5 +1,7 @@
 package command
 
+const chunk = 249
+
 type Command interface {
 	GetBytes() [][]byte
 	GetName() string

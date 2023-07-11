@@ -21,7 +21,7 @@ type LoadFifteen struct {
 }
 type Load struct {
 	Interval *int         `mapstructure:"INTERVAL"`
-	ONE      *LoadOne     `mapstructure:"ONE"`
-	FIVE     *LoadFive    `mapstructure:"FIVE"`
-	FIFTEEN  *LoadFifteen `mapstructure:"FIFTEEN"`
+	One      *LoadOne     `mapstructure:"ONE"`
+	Five     *LoadFive    `mapstructure:"FIVE"`
+	Fifteen  *LoadFifteen `mapstructure:"FIFTEEN"`
 }

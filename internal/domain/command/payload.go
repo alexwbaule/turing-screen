@@ -1,4 +1,4 @@
-package payload
+package command
 
 import (
 	"bytes"
@@ -12,8 +12,6 @@ import (
 var (
 	imageSucess = regexp.MustCompile("^full_png_sucess$")
 )
-
-const chunk = 249
 
 type Payload struct {
 	bytes   [][]byte
