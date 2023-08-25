@@ -29,7 +29,7 @@ func NewUpdatePayload(log *logger.Logger) *UpdatePayload {
 			0xcc, 0xef, 0x69, 0x00, 0x00,
 		},
 		padding: 0x00,
-		count:   -1,
+		count:   0,
 		log:     log,
 		start:   time.Now(),
 	}
@@ -64,6 +64,7 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 		copy(tmp, m.payload[i:end])
 		fullImage = append(fullImage, tmp)
 	}
+	m.count++
 	return fullImage
 }
 
@@ -87,6 +88,5 @@ func (m *UpdatePayload) GetFPS() string {
 
 func (m *UpdatePayload) SendPayload(partial device.ImagePartial, x, y int) *UpdatePayload {
 	m.payload = partial.GeneratePartialImage(x, y)
-	m.count++
 	return m
 }

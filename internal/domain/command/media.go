@@ -2,7 +2,7 @@ package command
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"regexp"
@@ -11,6 +11,7 @@ import (
 var (
 	mediaStop = regexp.MustCompile(`^media_stop$`)
 	render    = regexp.MustCompile(`^needReSend:0\|renderCnt:0$`)
+	ErrMatch  = errors.New("no matching item")
 )
 
 type Media struct {
@@ -47,7 +48,7 @@ func (m *Media) ValidateCommand(s []byte, i int) error {
 	if i == m.size && m.readed.MatchString(v) {
 		return nil
 	}
-	return fmt.Errorf("no matching item on: %s", m.readed.String())
+	return ErrMatch
 }
 
 func (m *Media) StopVideo() *Media {

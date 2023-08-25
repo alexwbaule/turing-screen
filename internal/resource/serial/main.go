@@ -1,6 +1,7 @@
 package serial
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
@@ -52,6 +53,33 @@ func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 	}, nil
 }
 
+func (s *Serial) ReopenPort() error {
+	time.Sleep(time.Second * 5)
+	v, err := NewSerial(s.device.Name, s.log)
+	if err != nil {
+		return err
+	}
+	s.port = v.port
+	s.device = v.device
+	return nil
+}
+
+func (s *Serial) RestartDevice() error {
+	err := s.Close()
+	if err != nil {
+		return err
+	}
+	err = s.ResetDevice()
+	if err != nil {
+		return err
+	}
+	err = s.ReopenPort()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Serial) ResetDevice() error {
 	return s.device.ResetDevice()
 }
@@ -71,14 +99,17 @@ func (s *Serial) Close() error {
 
 func (s *Serial) Write(p command.Command) (int, error) {
 	var writen int
+	s.log.Debugf("Running Command %s", p.GetName())
 	for _, b := range p.GetBytes() {
 		n, err := s.port.Write(b)
 		writen += n
-		//s.log.Debugf("Writen %d bytes", writen)
+		//s.log.Debugf("Write %d bytes", n)
+
 		if err != nil {
 			return 0, fmt.Errorf("write serial error: %w", err)
 		}
 	}
+	s.log.Debugf("Writen %d bytes", writen)
 	if p.GetSize() > 0 {
 		return s.Read(p)
 	}
@@ -91,7 +122,7 @@ func (s *Serial) Read(p command.Command) (int, error) {
 	for {
 		n, err := s.port.Read(buff)
 		readed += n
-		//s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
+		//s.log.Debugf("Reading %d bytes [%s]", n, string(bytes.Trim(buff, "\x00")))
 
 		if err != nil {
 			return 0, fmt.Errorf("read serial error: %w", err)
@@ -103,6 +134,8 @@ func (s *Serial) Read(p command.Command) (int, error) {
 			break
 		}
 	}
+	s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
+
 	err := p.ValidateCommand(buff, readed)
 	if err != nil {
 		return 0, err

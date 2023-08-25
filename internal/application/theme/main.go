@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"golang.org/x/image/font"
+	"image"
 	"image/color"
 	"reflect"
 	"time"
@@ -27,6 +28,7 @@ func NewTheme(file string, l *logger.Logger) (*Theme, error) {
 
 	tfile := fmt.Sprintf("res/themes/%s/theme.yaml", file)
 
+	l.Infof("Loading theme from: %s", tfile)
 	viper.SetConfigType("yaml")
 	viper.SetConfigFile(tfile)
 	err := viper.ReadInConfig()
@@ -58,16 +60,75 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 		t reflect.Type,
 		data interface{}) (interface{}, error) {
 
-		//fmt.Printf("[%+v] [%+v] [%+v]\n", f, t, data)
+		if f.Kind() == reflect.Map && t == reflect.TypeOf(map[string]theme.StaticImage{}) {
+			toret := map[string]theme.StaticImage{}
+			v := data.(map[string]interface{})
+			fmt.Printf("V: [%#v]\n", v)
+			var c int = 0
 
-		if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.StaticImage{}) {
-			return theme.StaticImage{
-				Path:   imagePath + data.(map[string]interface{})["path"].(string),
-				Height: data.(map[string]interface{})["height"].(int),
-				Width:  data.(map[string]interface{})["width"].(int),
-				X:      data.(map[string]interface{})["x"].(int),
-				Y:      data.(map[string]interface{})["y"].(int),
-			}, nil
+			for s, i := range v {
+				fmt.Printf("Key: [%s]\n", s)
+				fmt.Printf("Value: [%#v]\n", i)
+				key := fmt.Sprintf("%d-%s", c, s)
+				toret[key] = theme.StaticImage{
+					Path:   imagePath + i.(map[string]interface{})["path"].(string),
+					Height: i.(map[string]interface{})["height"].(int),
+					Width:  i.(map[string]interface{})["width"].(int),
+					X:      i.(map[string]interface{})["x"].(int),
+					Y:      i.(map[string]interface{})["y"].(int),
+				}
+				c++
+			}
+			return toret, nil
+		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(map[string]theme.StaticText{}) {
+			var c int = 0
+
+			toret := map[string]theme.StaticText{}
+
+			v := data.(map[string]interface{})
+			fmt.Printf("V: [%#v]\n", v)
+
+			for s, i := range v {
+				fmt.Printf("Key: [%s]\n", s)
+				fmt.Printf("Value: [%#v]\n", i)
+
+				var bgColor color.Color
+				var fColor color.Color
+				var fface font.Face
+				if i.(map[string]interface{})["font_color"] != nil {
+					bgcolor := i.(map[string]interface{})["font_color"].(string)
+					fColor = utils.ConvertToColor(bgcolor, color.White)
+				} else {
+					fColor = color.White
+				}
+
+				if i.(map[string]interface{})["background_color"] != nil {
+					bgcolor := i.(map[string]interface{})["background_color"].(string)
+					bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+				} else {
+					bgColor = color.Transparent
+				}
+
+				if i.(map[string]interface{})["font"] != nil {
+					fPath := fontPath + i.(map[string]interface{})["font"].(string)
+					fSize := float64(i.(map[string]interface{})["font_size"].(int))
+					fface = utils.LoadFontFace(fPath, fSize)
+				} else {
+					fface = utils.DefaultFont
+				}
+
+				key := fmt.Sprintf("%d-%s", c, s)
+				toret[key] = theme.StaticText{
+					Text:            i.(map[string]interface{})["text"].(string),
+					Font:            fface,
+					FontColor:       fColor,
+					X:               i.(map[string]interface{})["x"].(int),
+					Y:               i.(map[string]interface{})["y"].(int),
+					BackgroundColor: bgColor,
+				}
+				c++
+			}
+			return toret, nil
 		} else if f.Kind() == reflect.Int && t == reflect.TypeOf(time.Duration(1)) {
 			if data != nil {
 				return time.Duration(data.(int)) * time.Second, nil
@@ -75,40 +136,6 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 				return time.Duration(0), nil
 			}
 
-		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.StaticText{}) {
-			var bgColor color.Color
-			var fColor color.Color
-			var fface font.Face
-			if data.(map[string]interface{})["font_color"] != nil {
-				bgcolor := data.(map[string]interface{})["font_color"].(string)
-				fColor = utils.ConvertToColor(bgcolor, color.White)
-			} else {
-				fColor = color.White
-			}
-
-			if data.(map[string]interface{})["background_color"] != nil {
-				bgcolor := data.(map[string]interface{})["background_color"].(string)
-				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
-			} else {
-				bgColor = color.Transparent
-			}
-
-			if data.(map[string]interface{})["font"] != nil {
-				fPath := fontPath + data.(map[string]interface{})["font"].(string)
-				fSize := float64(data.(map[string]interface{})["font_size"].(int))
-				fface = utils.LoadFontFace(fPath, fSize)
-			} else {
-				fface = utils.DefaultFont
-			}
-
-			return theme.StaticText{
-				Text:            data.(map[string]interface{})["text"].(string),
-				Font:            fface,
-				FontColor:       fColor,
-				X:               data.(map[string]interface{})["x"].(int),
-				Y:               data.(map[string]interface{})["y"].(int),
-				BackgroundColor: bgColor,
-			}, nil
 		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Display{}) {
 			return theme.Display{
 				Size:        data.(map[string]interface{})["size"].(string),
@@ -120,8 +147,12 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 			var fface font.Face
 			var show bool
 			var showUnit bool
-			var bgImage string
+			var bgImagePath string
+			var bgImage image.Image
 			var align theme.Alignment
+			var format theme.Format
+
+			var err error
 
 			if data.(map[string]interface{})["font_color"] != nil {
 				bgcolor := data.(map[string]interface{})["font_color"].(string)
@@ -130,9 +161,14 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 				fColor = color.White
 			}
 			if data.(map[string]interface{})["background_image"] != nil {
-				bgImage = imagePath + data.(map[string]interface{})["background_image"].(string)
+				bgImagePath = imagePath + data.(map[string]interface{})["background_image"].(string)
+				bgImage, err = utils.LoadImage(bgImagePath)
+				if err != nil {
+					return nil, err
+				}
 			} else {
-				bgImage = ""
+				bgImagePath = ""
+				bgImage = nil
 			}
 
 			if data.(map[string]interface{})["font"] != nil {
@@ -155,6 +191,14 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 			} else {
 				showUnit = false
 			}
+
+			if data.(map[string]interface{})["format"] != nil {
+				v := data.(map[string]interface{})["format"].(string)
+				format = theme.StringToFormat(v)
+			} else {
+				format = theme.SHORT
+			}
+
 			if data.(map[string]interface{})["show"] != nil {
 				show = data.(map[string]interface{})["show"].(bool)
 			} else {
@@ -168,20 +212,24 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 				align = theme.LEFT
 			}
 			return theme.Text{
-				Show:            show,
-				ShowUnit:        showUnit,
-				BackgroundImage: bgImage,
-				Font:            fface,
-				FontColor:       fColor,
-				Align:           align,
-				X:               data.(map[string]interface{})["x"].(int),
-				Y:               data.(map[string]interface{})["y"].(int),
-				BackgroundColor: bgColor,
+				Show:                show,
+				ShowUnit:            showUnit,
+				Format:              format,
+				BackgroundImage:     bgImage,
+				BackgroundImagePath: bgImagePath,
+				Font:                fface,
+				FontColor:           fColor,
+				Align:               align,
+				X:                   data.(map[string]interface{})["x"].(int),
+				Y:                   data.(map[string]interface{})["y"].(int),
+				BackgroundColor:     bgColor,
 			}, nil
 		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Graph{}) {
 			var bgColor color.Color
 			var show bool
-			var bgImage string
+			var bgImagePath string
+			var bgImage image.Image
+			var err error
 
 			if data.(map[string]interface{})["show"] != nil {
 				show = data.(map[string]interface{})["show"].(bool)
@@ -195,21 +243,27 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 				bgColor = color.Transparent
 			}
 			if data.(map[string]interface{})["background_image"] != nil {
-				bgImage = imagePath + data.(map[string]interface{})["background_image"].(string)
+				bgImagePath = imagePath + data.(map[string]interface{})["background_image"].(string)
+				bgImage, err = utils.LoadImage(bgImagePath)
+				if err != nil {
+					return nil, err
+				}
 			} else {
-				bgImage = ""
+				bgImagePath = ""
+				bgImage = nil
 			}
 			return theme.Graph{
-				Show:            show,
-				X:               data.(map[string]interface{})["x"].(int),
-				Y:               data.(map[string]interface{})["y"].(int),
-				Width:           data.(map[string]interface{})["width"].(int),
-				Height:          data.(map[string]interface{})["height"].(int),
-				MinValue:        data.(map[string]interface{})["min_value"].(int),
-				MaxValue:        data.(map[string]interface{})["max_value"].(int),
-				BarColor:        bgColor,
-				BarOutline:      data.(map[string]interface{})["bar_outline"].(bool),
-				BackgroundImage: bgImage,
+				Show:                show,
+				X:                   data.(map[string]interface{})["x"].(int),
+				Y:                   data.(map[string]interface{})["y"].(int),
+				Width:               data.(map[string]interface{})["width"].(int),
+				Height:              data.(map[string]interface{})["height"].(int),
+				MinValue:            data.(map[string]interface{})["min_value"].(int),
+				MaxValue:            data.(map[string]interface{})["max_value"].(int),
+				BarColor:            bgColor,
+				BarOutline:          data.(map[string]interface{})["bar_outline"].(bool),
+				BackgroundImage:     bgImage,
+				BackgroundImagePath: bgImagePath,
 			}, nil
 		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Radial{}) {
 			var bgColor color.Color
@@ -218,7 +272,9 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 			var show bool
 			var showText bool
 			var showUnit bool
-			var bgImage string
+			var bgImagePath string
+			var bgImage image.Image
+			var err error
 
 			if data.(map[string]interface{})["bar_color"] != nil {
 				bgcolor := data.(map[string]interface{})["bar_color"].(string)
@@ -228,9 +284,14 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 			}
 
 			if data.(map[string]interface{})["background_image"] != nil {
-				bgImage = imagePath + data.(map[string]interface{})["background_image"].(string)
+				bgImagePath = imagePath + data.(map[string]interface{})["background_image"].(string)
+				bgImage, err = utils.LoadImage(bgImagePath)
+				if err != nil {
+					return nil, err
+				}
 			} else {
-				bgImage = ""
+				bgImagePath = ""
+				bgImage = nil
 			}
 
 			if data.(map[string]interface{})["background_color"] != nil {
@@ -272,25 +333,26 @@ func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
 			}
 
 			return theme.Radial{
-				Show:            show,
-				X:               data.(map[string]interface{})["x"].(int),
-				Y:               data.(map[string]interface{})["y"].(int),
-				Radius:          data.(map[string]interface{})["radius"].(int),
-				Width:           data.(map[string]interface{})["width"].(int),
-				MinValue:        data.(map[string]interface{})["min_value"].(int),
-				MaxValue:        data.(map[string]interface{})["max_value"].(int),
-				AngleStart:      data.(map[string]interface{})["angle_start"].(int),
-				AngleEnd:        data.(map[string]interface{})["angle_end"].(int),
-				AngleSteps:      data.(map[string]interface{})["angle_steps"].(int),
-				AngleStep:       data.(map[string]interface{})["angle_step"].(int),
-				Clockwise:       data.(map[string]interface{})["clockwise"].(bool),
-				BarColor:        bgColor,
-				ShowText:        showText,
-				ShowUnit:        showUnit,
-				Font:            fface,
-				FontColor:       fColor,
-				BackgroundColor: bgColor,
-				BackgroundImage: bgImage,
+				Show:                show,
+				X:                   data.(map[string]interface{})["x"].(int),
+				Y:                   data.(map[string]interface{})["y"].(int),
+				Radius:              data.(map[string]interface{})["radius"].(int),
+				Width:               data.(map[string]interface{})["width"].(int),
+				MinValue:            data.(map[string]interface{})["min_value"].(int),
+				MaxValue:            data.(map[string]interface{})["max_value"].(int),
+				AngleStart:          data.(map[string]interface{})["angle_start"].(int),
+				AngleEnd:            data.(map[string]interface{})["angle_end"].(int),
+				AngleSteps:          data.(map[string]interface{})["angle_steps"].(int),
+				AngleStep:           data.(map[string]interface{})["angle_step"].(int),
+				Clockwise:           data.(map[string]interface{})["clockwise"].(bool),
+				BarColor:            bgColor,
+				ShowText:            showText,
+				ShowUnit:            showUnit,
+				Font:                fface,
+				FontColor:           fColor,
+				BackgroundColor:     bgColor,
+				BackgroundImage:     bgImage,
+				BackgroundImagePath: bgImagePath,
 			}, nil
 		}
 		return data, nil

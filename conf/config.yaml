@@ -1,6 +1,6 @@
 device:
   port: AUTO
-  theme: DragonBall5inch
+  theme: Landscape15Grid
   log: debug
   sensors:
     network:

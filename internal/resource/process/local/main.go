@@ -2,11 +2,13 @@ package local
 
 import (
 	"fmt"
-	"git.sr.ht/~sbinet/gg"
+	"github.com/alexwbaule/gg"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/disintegration/gift"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 	"image"
 	"image/color"
 	"math"
@@ -24,19 +26,22 @@ func NewBuilder(l *logger.Logger) *Builder {
 	}
 }
 
-const tolerance = float64(5)
+const tolerance = float64(2)
 const border = float64(2)
 
 func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) image.Image {
 	ctx := gg.NewContextForImage(image.NewRGBA(image.Rect(0, 0, 800, 480)))
 
-	for name, img := range images {
+	keys := maps.Keys(images)
+	slices.Sort(keys)
+	for _, name := range keys {
+		img := images[name]
 		numb, err := utils.LoadImage(img.Path)
 		if err != nil {
 			b.log.Fatalf("error open file %s: %s", name, err)
 			os.Exit(-1)
 		}
-		b.log.Debugf("Build Background Images [%s] X:%d Y:%d Size (%dx%d)\n", name, img.X, img.Y, numb.Bounds().Dx(), numb.Bounds().Dy())
+		b.log.Debugf("Build Background Images [%s] X:%d Y:%d Size (%dx%d)", name, img.X, img.Y, numb.Bounds().Dx(), numb.Bounds().Dy())
 
 		ctx.DrawImage(numb, img.X, img.Y)
 	}
@@ -46,8 +51,10 @@ func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) imag
 func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string]theme.StaticText) image.Image {
 	ctx := gg.NewContextForImage(background)
 
-	for _, text := range images {
-
+	keys := maps.Keys(images)
+	slices.Sort(keys)
+	for _, name := range keys {
+		text := images[name]
 		ctx.SetFontFace(text.Font)
 		w, h := ctx.MeasureString(text.Text)
 
@@ -68,24 +75,14 @@ func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string
 	return ctx.Image()
 }
 
-func (b *Builder) DrawText(background image.Image, text string, stat theme.Text) image.Image {
-	ctx := gg.NewContextForImage(background)
-
-	for i, i2 := range text {
-		fmt.Printf("[%d] of [%d][%c]\n", utils.CountStr(text), i, i2)
-	}
-	err := ctx.LoadFontFace("res/fonts/jetbrains-mono/JetBrainsMono-ExtraBold.ttf", 58.0)
-	if err != nil {
-		b.log.Debugf("ERROR LOADING FONT: %s", err)
-	}
-	ctx.FontHeight()
-	b.log.Debugf("Drawing Text [%s] len:%d Font:%.2f X:%d Y:%d", text, utils.CountStr(text), ctx.FontHeight(), stat.X, stat.Y)
+func (b *Builder) DrawText(text string, stat *theme.Text) image.Image {
+	ctx := gg.NewContextForImage(stat.BackgroundImage)
 
 	ctx.SetFontFace(stat.Font)
 	ctx.SetColor(stat.FontColor)
 	ctx.ClearPath()
 
-	measure := fmt.Sprintf("%s", strings.Repeat("0", utils.CountStr(text)))
+	measure := fmt.Sprintf("%s", strings.Repeat("8", utils.CountStr(text)))
 	maxw, maxh := ctx.MeasureString(measure)
 
 	w, h := ctx.MeasureString(text)
@@ -96,26 +93,29 @@ func (b *Builder) DrawText(background image.Image, text string, stat theme.Text)
 
 	b.log.Debugf("Drawing Text [%s] len:%d Font:%.2f X:%d Y:%d Size (%.2f x %.2f) (%.2f x %.2f)", text, utils.CountStr(text), ctx.FontHeight(), stat.X, stat.Y, w, h, maxw, maxh)
 
-	ctx.DrawString(text, float64(stat.X), float64(stat.Y))
-
 	if stat.Align == theme.CENTER {
 		ctx.DrawStringAnchored(text, float64(stat.X)+center, float64(stat.Y), 0.0, 1.0)
 	} else if stat.Align == theme.LEFT {
-		ctx.DrawStringAnchored(text, float64(stat.X), float64(stat.Y), 0.0, 1.0)
+		ctx.DrawStringAnchored(text, float64(stat.X)-1, float64(stat.Y), 0.0, 1.0)
 	} else if stat.Align == theme.RIGHT {
 		ctx.DrawStringAnchored(text, float64(stat.X)+maxw, float64(stat.Y), 1.0, 1.0)
 	}
 	ctx.Fill()
 	ii := ctx.Image()
 
-	crp := image.Rect(stat.X, stat.Y, stat.X+int(maxw), stat.Y+int(h))
+	x1, y1 := int(math.Round(maxw)), int(math.Round(maxh))
+
+	b.log.Debugf("Drawing Text [%s] %dx%d", text, x1, y1)
+
+	crp := image.Rect(stat.X, stat.Y, stat.X+x1, stat.Y+y1)
 
 	g := gift.New(
 		gift.Crop(crp),
 	)
-	dst := image.NewRGBA(image.Rect(0, 0, int(maxw), int(h)))
+	dst := image.NewRGBA(image.Rect(0, 0, x1, y1))
 	g.Draw(dst, ii)
-	b.saveImage(dst, fmt.Sprintf("res/test/image-%s-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", text, len(text), stat.X, stat.Y, w, h, maxw, maxh))
+	b.saveImage(ii, fmt.Sprintf("res/test/image-ii-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", len(text), stat.X, stat.Y, w, h, maxw, maxh))
+	b.saveImage(dst, fmt.Sprintf("res/test/image-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", len(text), stat.X, stat.Y, w, h, maxw, maxh))
 	return dst
 }
 

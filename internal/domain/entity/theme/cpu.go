@@ -20,8 +20,8 @@ type LoadFifteen struct {
 	Text *Text `mapstructure:"TEXT"`
 }
 type Load struct {
-	Interval *int         `mapstructure:"INTERVAL"`
-	One      *LoadOne     `mapstructure:"ONE"`
-	Five     *LoadFive    `mapstructure:"FIVE"`
-	Fifteen  *LoadFifteen `mapstructure:"FIFTEEN"`
+	Interval time.Duration `mapstructure:"INTERVAL"`
+	One      *LoadOne      `mapstructure:"ONE"`
+	Five     *LoadFive     `mapstructure:"FIVE"`
+	Fifteen  *LoadFifteen  `mapstructure:"FIFTEEN"`
 }

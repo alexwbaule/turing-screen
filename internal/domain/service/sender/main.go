@@ -2,10 +2,13 @@ package sender
 
 import (
 	"context"
+	"errors"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 )
+
+const attempts = 3
 
 type Worker struct {
 	sender serial.SerialSender
@@ -21,8 +24,9 @@ func NewWorker(c context.Context, s serial.SerialSender, l *logger.Logger) *Work
 	}
 }
 
-func (w *Worker) Run(jobs <-chan any) error {
+func (w *Worker) Run(jobs <-chan any, fn func() error) error {
 	var err error
+	var try = 0
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -50,8 +54,17 @@ func (w *Worker) Run(jobs <-chan any) error {
 				_, err = w.sender.Write(cmd)
 			}
 			if err != nil {
-				w.log.Errorf("worker error: %s", err.Error())
-				return err
+				if errors.Is(err, command.ErrMatch) {
+					w.log.Errorf("worker error: %s", err.Error())
+					continue
+				}
+				if try == attempts {
+					w.log.Errorf("worker error: %s", err.Error())
+					return err
+				}
+				w.log.Errorf("retry [%d] worker on error: %s", try, err.Error())
+				try++
+				return fn()
 			}
 		}
 	}
