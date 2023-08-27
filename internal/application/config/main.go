@@ -42,3 +42,6 @@ func (c *Config) GetThemeName() string {
 func (c *Config) GetDeviceDisplay() device.Display {
 	return c.device.Display
 }
+func (c *Config) GetNetworkConfig() device.Net {
+	return c.device.Sensors.Net
+}

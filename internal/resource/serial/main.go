@@ -103,14 +103,20 @@ func (s *Serial) Write(p command.Command) (int, error) {
 	for _, b := range p.GetBytes() {
 		n, err := s.port.Write(b)
 		writen += n
-		//s.log.Debugf("Write %d bytes", n)
-
 		if err != nil {
 			return 0, fmt.Errorf("write serial error: %w", err)
 		}
 	}
 	s.log.Debugf("Writen %d bytes", writen)
-	if p.GetSize() > 0 {
+	v := p.ValidateWrite()
+	if v.Bytes != nil {
+		n, err := s.port.Write(v.Bytes)
+		writen += n
+		if err != nil {
+			return 0, fmt.Errorf("write serial error: %w", err)
+		}
+	}
+	if v.Size > 0 {
 		return s.Read(p)
 	}
 	return writen, nil
@@ -118,19 +124,20 @@ func (s *Serial) Write(p command.Command) (int, error) {
 
 func (s *Serial) Read(p command.Command) (int, error) {
 	var readed int
-	buff := make([]byte, p.GetSize())
+
+	v := p.ValidateWrite()
+
+	buff := make([]byte, v.Size)
 	for {
 		n, err := s.port.Read(buff)
 		readed += n
-		//s.log.Debugf("Reading %d bytes [%s]", n, string(bytes.Trim(buff, "\x00")))
-
 		if err != nil {
 			return 0, fmt.Errorf("read serial error: %w", err)
 		}
 		if n == 0 {
 			return 0, fmt.Errorf("read serial error: no response")
 		}
-		if n == p.GetSize() {
+		if n == v.Size {
 			break
 		}
 	}

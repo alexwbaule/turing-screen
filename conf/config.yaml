@@ -1,11 +1,11 @@
 device:
   port: AUTO
-  theme: Landscape15Grid
+  theme: DragonBall5inch
   log: debug
   sensors:
     network:
       eth: "enp4s0"
-      wlo:
+      wlo: "wlp3s0"
   display:
     width: 800
     height: 480

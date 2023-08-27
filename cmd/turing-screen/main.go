@@ -17,7 +17,7 @@ func main() {
 
 	app := application.NewApplication()
 
-	jobs := make(chan any)
+	jobs := make(chan command.Command)
 
 	app.Run(func(ctx context.Context) error {
 
@@ -60,12 +60,6 @@ func main() {
 			return err
 		})
 
-		g.Go(func() error {
-			<-ctx.Done()
-			app.Log.Info(cmdUpdate.GetFPS())
-			return nil
-		})
-
 		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())
 		fbg := builder.BuildBackgroundTexts(bg, statsTheme.GetStaticTexts())
 		background := device2.NewImageProcess(fbg)
@@ -75,92 +69,60 @@ func main() {
 		jobs <- cmdMedia.StopMedia()
 		jobs <- cmdBright.SetBrightness(app.Config.GetDeviceDisplay().Brightness)
 		jobs <- cmdPayload.SendPayload(background)
-		jobs <- cmdMedia.QueryStatus()
 
 		stats := statsTheme.GetStats()
 
-		cpu := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate, cmdMedia)
-		mem := sensors.NewMemStat(app.Log, jobs, builder, cmdUpdate, cmdMedia)
-		dt := sensors.NewDateTimeStat(app.Log, jobs, builder, cmdUpdate, cmdMedia)
+		cpu := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate)
+		mem := sensors.NewMemStat(app.Log, jobs, builder, cmdUpdate)
+		dt := sensors.NewDateTimeStat(app.Log, jobs, builder, cmdUpdate)
+		net := sensors.NewDNetStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetNetworkConfig())
+		dsk := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate)
+		gpu := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate)
 
-		g.Go(func() error {
-			return cpu.RunPercentage(ctx, stats.CPU.Percentage)
-		})
-
-		g.Go(func() error {
-			return cpu.RunFrequency(ctx, stats.CPU.Frequency)
-		})
-
-		g.Go(func() error {
-			return mem.RunMem(ctx, stats.Memory)
-		})
-
-		g.Go(func() error {
-			return dt.RunDateTime(ctx, stats.Date)
-		})
-
-		/*
+		if stats.CPU.Percentage != nil {
 			g.Go(func() error {
-				for {
-					select {
-					case <-ctx.Done():
-						app.Log.Errorf("Stopping For fake...")
-						close(jobs)
-						return context.Canceled
-					default:
-						if sensors.CPU.Temperature.Text != nil {
-							V := sensors.CPU.Temperature.Text
-							img := builder.DrawText(fmt.Sprintf("%3d°C", rand.Intn(200)), *V)
-							imgUpdt := device2.NewImageProcess(img)
-							jobs <- cmdUpdate.SendPayload(imgUpdt, V.X, V.Y)
-							jobs <- cmdMedia.QueryStatus()
-						}
-
-						if sensors.CPU.Percentage.Graph != nil {
-							V := sensors.CPU.Percentage.Graph
-							img := builder.DrawProgressBar(fbg, rand.Intn(100), *V)
-							imgUpdt := device2.NewImageProcess(img)
-							jobs <- cmdUpdate.SendPayload(imgUpdt, V.X, V.Y)
-							jobs <- cmdMedia.QueryStatus()
-						}
-
-						if sensors.GPU.Temperature.Text != nil {
-							V2 := sensors.GPU.Temperature.Text
-							img2 := builder.DrawText(fmt.Sprintf("%3d%%", rand.Intn(150)), *V2)
-							imgUpdt2 := device2.NewImageProcess(img2)
-							jobs <- cmdUpdate.SendPayload(imgUpdt2, V2.X, V2.Y)
-							jobs <- cmdMedia.QueryStatus()
-						}
-
-						if sensors.GPU.Percentage.Graph != nil {
-							V3 := sensors.GPU.Percentage.Graph
-							img3 := builder.DrawProgressBar(fbg, rand.Intn(100), *V3)
-							imgUpdt3 := device2.NewImageProcess(img3)
-							jobs <- cmdUpdate.SendPayload(imgUpdt3, V3.X, V3.Y)
-							jobs <- cmdMedia.QueryStatus()
-						}
-
-						if sensors.Memory.Virtual.PercentText != nil {
-							V3 := sensors.Memory.Virtual.PercentText
-							img3 := builder.DrawText(fmt.Sprintf("%dMB", rand.Intn(9)), *V3)
-							imgUpdt3 := device2.NewImageProcess(img3)
-							jobs <- cmdUpdate.SendPayload(imgUpdt3, V3.X, V3.Y)
-							jobs <- cmdMedia.QueryStatus()
-						}
-
-						if sensors.Memory.Virtual.Graph != nil {
-							V3 := sensors.Memory.Virtual.Graph
-							img3 := builder.DrawProgressBar(fbg, rand.Intn(100), *V3)
-							imgUpdt3 := device2.NewImageProcess(img3)
-							jobs <- cmdUpdate.SendPayload(imgUpdt3, V3.X, V3.Y)
-							jobs <- cmdMedia.QueryStatus()
-						}
-
-					}
-					time.Sleep(500 * time.Millisecond)
-				}
+				return cpu.RunPercentage(ctx, stats.CPU.Percentage)
 			})
-		*/
+		}
+
+		if stats.CPU.Frequency != nil {
+			g.Go(func() error {
+				return cpu.RunFrequency(ctx, stats.CPU.Frequency)
+			})
+		}
+		if stats.CPU.Temperature != nil {
+			g.Go(func() error {
+				return cpu.RunTemperature(ctx, stats.CPU.Temperature)
+			})
+		}
+		if stats.Memory != nil {
+			g.Go(func() error {
+				return mem.RunMemStat(ctx, stats.Memory)
+			})
+		}
+		if stats.Date != nil {
+			g.Go(func() error {
+				return dt.RunDateTime(ctx, stats.Date)
+			})
+		}
+
+		if stats.Net != nil {
+			g.Go(func() error {
+				return net.RunNetStat(ctx, stats.Net)
+			})
+		}
+
+		if stats.Disk != nil {
+			g.Go(func() error {
+				return dsk.RunDiskStat(ctx, stats.Disk)
+			})
+		}
+		if stats.GPU != nil {
+			g.Go(func() error {
+				return gpu.RunGpuStat(ctx, stats.GPU)
+			})
+		}
+
 		return g.Wait()
 	})
 }

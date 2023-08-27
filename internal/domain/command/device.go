@@ -33,12 +33,19 @@ func (d *Device) GetBytes() [][]byte {
 	return [][]byte{tmp}
 }
 
+func (d *Device) SetCount(count int64) {
+	_ = count
+}
+
 func (d *Device) GetName() string {
 	return d.name
 }
 
-func (d *Device) GetSize() int {
-	return d.size
+func (d *Device) ValidateWrite() WriteValidation {
+	return WriteValidation{
+		Size:  d.size,
+		Bytes: nil,
+	}
 }
 
 func (d *Device) ValidateCommand(s []byte, i int) error {

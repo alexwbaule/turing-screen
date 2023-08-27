@@ -1,13 +1,16 @@
 package command
 
 import (
-	"fmt"
+	"bytes"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"math/big"
 	"regexp"
-	"time"
+)
+
+var (
+	render = regexp.MustCompile(`^needReSend:0\|renderCnt:0$`)
 )
 
 type UpdatePayload struct {
@@ -16,22 +19,15 @@ type UpdatePayload struct {
 	name    string
 	padding byte
 	size    int
-	count   int
+	count   int64
 	readed  *regexp.Regexp
 	log     *logger.Logger
-	start   time.Time
 }
 
 func NewUpdatePayload(log *logger.Logger) *UpdatePayload {
+	log.Infof("NewUpdatePayload: %d", 0)
 	return &UpdatePayload{
-		name: "UPDATE_BITMAP",
-		bytes: []byte{
-			0xcc, 0xef, 0x69, 0x00, 0x00,
-		},
-		padding: 0x00,
-		count:   0,
-		log:     log,
-		start:   time.Now(),
+		log: log,
 	}
 }
 
@@ -41,7 +37,7 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 
 	size := len(m.payload)
 	pSize := utils.PadBegin(big.NewInt(int64(size)).Bytes(), 2)
-	pCount := utils.PadBegin(big.NewInt(int64(m.count)).Bytes(), 4)
+	pCount := utils.PadBegin(big.NewInt(m.count).Bytes(), 4)
 	pPad := make([]byte, 3)
 
 	copy(updateBitMapCmd, m.bytes)
@@ -51,10 +47,7 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 
 	m.log.Debugf("Count: %d", m.count)
 
-	//m.log.Infof("[%v]\n", hex.EncodeToString(updateBitMapCmd))
-
 	fullImage = append(fullImage, updateBitMapCmd)
-
 	for i := 0; i < size; i += chunk {
 		end := i + chunk
 		if end > size {
@@ -64,29 +57,48 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 		copy(tmp, m.payload[i:end])
 		fullImage = append(fullImage, tmp)
 	}
-	m.count++
 	return fullImage
+}
+
+func (m *UpdatePayload) SetCount(count int64) {
+	m.count = count
 }
 
 func (m *UpdatePayload) GetName() string {
 	return m.name
 }
 
-func (m *UpdatePayload) GetSize() int {
-	return m.size
+func (m *UpdatePayload) ValidateWrite() WriteValidation {
+	return WriteValidation{
+		Size:  m.size,
+		Bytes: m.QueryStatus(),
+	}
+}
+func (m *UpdatePayload) QueryStatus() []byte {
+	tmp := utils.BZero(250, 0x00)
+	copy(tmp, []byte{0xcf, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01})
+	return tmp
 }
 
 func (m *UpdatePayload) ValidateCommand(s []byte, i int) error {
-	return nil
-}
-
-func (m *UpdatePayload) GetFPS() string {
-	t := time.Since(m.start)
-	v := float64(m.count) / t.Seconds()
-	return fmt.Sprintf("Count: %d Time: %s FPS: %.2f", m.count, t, v)
+	v := string(bytes.Trim(s, "\x00"))
+	if i == m.size && m.readed.MatchString(v) {
+		return nil
+	}
+	return ErrMatch
 }
 
 func (m *UpdatePayload) SendPayload(partial device.ImagePartial, x, y int) *UpdatePayload {
-	m.payload = partial.GeneratePartialImage(x, y)
-	return m
+
+	return &UpdatePayload{
+		name: "UPDATE_BITMAP",
+		bytes: []byte{
+			0xcc, 0xef, 0x69, 0x00, 0x00,
+		},
+		padding: 0x00,
+		size:    1024,
+		readed:  render,
+		payload: partial.GeneratePartialImage(x, y),
+		log:     m.log,
+	}
 }

@@ -19,8 +19,10 @@ require (
 require (
 	github.com/campoy/embedmd v1.0.0 // indirect
 	github.com/creack/goselect v0.1.2 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/golang/glog v1.1.2 // indirect
 	github.com/goodsign/monday v1.0.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect

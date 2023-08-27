@@ -15,7 +15,13 @@ type Brightness struct {
 
 func NewBrightness(log *logger.Logger) *Brightness {
 	return &Brightness{
-		log: log,
+		name: "SetBrightness",
+		bytes: []byte{
+			0x7b, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+		},
+		brightness: 0x00,
+		padding:    0x00,
+		log:        log,
 	}
 }
 
@@ -26,12 +32,19 @@ func (c *Brightness) GetBytes() [][]byte {
 	return [][]byte{tmp}
 }
 
+func (c *Brightness) SetCount(count int64) {
+	_ = count
+}
+
 func (c *Brightness) GetName() string {
 	return c.name
 }
 
-func (c *Brightness) GetSize() int {
-	return 0
+func (c *Brightness) ValidateWrite() WriteValidation {
+	return WriteValidation{
+		Size:  0,
+		Bytes: nil,
+	}
 }
 
 func (c *Brightness) ValidateCommand([]byte, int) error {
@@ -40,13 +53,6 @@ func (c *Brightness) ValidateCommand([]byte, int) error {
 
 func (c *Brightness) SetBrightness(value int) *Brightness {
 	v := byte((float64(value) / 100.0) * 255)
-	return &Brightness{
-		name: "SetBrightness",
-		bytes: []byte{
-			0x7b, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
-		},
-		brightness: v,
-		padding:    0x00,
-		log:        c.log,
-	}
+	c.brightness = v
+	return c
 }

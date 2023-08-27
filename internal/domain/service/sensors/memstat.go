@@ -14,23 +14,21 @@ import (
 
 type MemStat struct {
 	log     *logger.Logger
-	jobs    chan<- any
+	jobs    chan<- command.Command
 	builder *local.Builder
 	p       *command.UpdatePayload
-	u       *command.Media
 }
 
-func NewMemStat(l *logger.Logger, j chan<- any, b *local.Builder, p *command.UpdatePayload, u *command.Media) *MemStat {
+func NewMemStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *MemStat {
 	return &MemStat{
 		log:     l,
 		jobs:    j,
 		builder: b,
 		p:       p,
-		u:       u,
 	}
 }
 
-func (g *MemStat) RunMem(ctx context.Context, e *theme.Memory) error {
+func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 	g.log.Infof("Ticker: %s", e.Interval)
 	ticker := time.NewTicker(e.Interval)
 
@@ -60,6 +58,7 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 		if err != nil {
 			return err
 		}
+
 		if e.Virtual.Free != nil && e.Virtual.Free.Show {
 			text := e.Virtual.Free
 
@@ -71,7 +70,6 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 			img := g.builder.DrawText(value, text)
 			imgUpdt := device.NewImageProcess(img)
 			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			g.jobs <- g.u.QueryStatus()
 		}
 		if e.Virtual.Used != nil && e.Virtual.Used.Show {
 			text := e.Virtual.Used
@@ -84,7 +82,6 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 			img := g.builder.DrawText(value, text)
 			imgUpdt := device.NewImageProcess(img)
 			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			g.jobs <- g.u.QueryStatus()
 		}
 		if e.Virtual.PercentText != nil && e.Virtual.PercentText.Show {
 			text := e.Virtual.PercentText
@@ -97,9 +94,14 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 			img := g.builder.DrawText(value, text)
 			imgUpdt := device.NewImageProcess(img)
 			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			g.jobs <- g.u.QueryStatus()
 		}
+		if e.Virtual.Graph != nil && e.Virtual.Graph.Show {
+			text := e.Virtual.Graph
 
+			img := g.builder.DrawProgressBar(virtualMem.UsedPercent, text)
+			imgUpdt := device.NewImageProcess(img)
+			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+		}
 	}
 	if e.Swap != nil {
 

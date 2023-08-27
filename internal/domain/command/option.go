@@ -55,12 +55,19 @@ func (o *Option) GetBytes() [][]byte {
 	return [][]byte{tmp}
 }
 
+func (o *Option) SetCount(count int64) {
+	_ = count
+}
+
 func (o *Option) GetName() string {
 	return o.name
 }
 
-func (o *Option) GetSize() int {
-	return 0
+func (o *Option) ValidateWrite() WriteValidation {
+	return WriteValidation{
+		Size:  0,
+		Bytes: nil,
+	}
 }
 
 func (o *Option) ValidateCommand([]byte, int) error {

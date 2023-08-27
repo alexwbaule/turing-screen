@@ -114,15 +114,15 @@ func (b *Builder) DrawText(text string, stat *theme.Text) image.Image {
 	)
 	dst := image.NewRGBA(image.Rect(0, 0, x1, y1))
 	g.Draw(dst, ii)
-	b.saveImage(ii, fmt.Sprintf("res/test/image-ii-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", len(text), stat.X, stat.Y, w, h, maxw, maxh))
-	b.saveImage(dst, fmt.Sprintf("res/test/image-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", len(text), stat.X, stat.Y, w, h, maxw, maxh))
+	//b.saveImage(ii, fmt.Sprintf("res/test/image-ii-%s-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", strings.Replace(strconv.Quote(text), "/", "-", -1), len(text), stat.X, stat.Y, w, h, maxw, maxh))
+	//b.saveImage(dst, fmt.Sprintf("res/test/image-%s-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", strings.Replace(strconv.Quote(text), "/", "-", -1), len(text), stat.X, stat.Y, w, h, maxw, maxh))
 	return dst
 }
 
-func (b *Builder) DrawProgressBar(background image.Image, value int, stat theme.Graph) image.Image {
-	ctx := gg.NewContextForImage(background)
+func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image {
+	ctx := gg.NewContextForImage(stat.BackgroundImage)
 
-	barFilledWidth := math.Round(float64(value) / float64(stat.MaxValue-stat.MinValue) * float64(stat.Width))
+	barFilledWidth := math.Round(value / float64(stat.MaxValue-stat.MinValue) * float64(stat.Width))
 
 	x, y, x1, y1 := float64(stat.X), float64(stat.Y), float64(stat.Width), float64(stat.Height)
 
@@ -148,7 +148,7 @@ func (b *Builder) DrawProgressBar(background image.Image, value int, stat theme.
 	)
 	dst := image.NewRGBA(image.Rect(0, 0, stat.Width, stat.Height))
 	g.Draw(dst, ii)
-	b.saveImage(dst, fmt.Sprintf("res/test/image-pb-%d-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Height))
+	//b.saveImage(dst, fmt.Sprintf("res/test/image-pb-%.0f-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Height))
 	return dst
 }
 

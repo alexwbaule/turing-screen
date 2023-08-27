@@ -10,7 +10,6 @@ import (
 
 var (
 	mediaStop = regexp.MustCompile(`^media_stop$`)
-	render    = regexp.MustCompile(`^needReSend:0\|renderCnt:0$`)
 	ErrMatch  = errors.New("no matching item")
 )
 
@@ -23,8 +22,8 @@ type Media struct {
 	log     *logger.Logger
 }
 
-func NewMedia(log *logger.Logger) *Media {
-	return &Media{
+func NewMedia(log *logger.Logger) Media {
+	return Media{
 		log: log,
 	}
 }
@@ -35,12 +34,19 @@ func (m *Media) GetBytes() [][]byte {
 	return [][]byte{tmp}
 }
 
+func (m *Media) SetCount(count int64) {
+	_ = count
+}
+
 func (m *Media) GetName() string {
 	return m.name
 }
 
-func (m *Media) GetSize() int {
-	return m.size
+func (m *Media) ValidateWrite() WriteValidation {
+	return WriteValidation{
+		Size:  m.size,
+		Bytes: nil,
+	}
 }
 
 func (m *Media) ValidateCommand(s []byte, i int) error {
@@ -70,18 +76,6 @@ func (m *Media) StopMedia() *Media {
 		padding: 0x00,
 		size:    1024,
 		readed:  mediaStop,
-		log:     m.log,
-	}
-}
-func (m *Media) QueryStatus() *Media {
-	return &Media{
-		name: "QUERY_STATUS",
-		bytes: []byte{
-			0xcf, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
-		},
-		padding: 0x00,
-		size:    1024,
-		readed:  render,
 		log:     m.log,
 	}
 }

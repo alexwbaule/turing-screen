@@ -51,12 +51,24 @@ func (m *Payload) GetBytes() [][]byte {
 	return fullImage
 }
 
+func (m *Payload) SetCount(count int64) {
+	_ = count
+}
+
 func (m *Payload) GetName() string {
 	return m.name
 }
 
-func (m *Payload) GetSize() int {
-	return m.size
+func (m *Payload) ValidateWrite() WriteValidation {
+	return WriteValidation{
+		Size:  m.size,
+		Bytes: m.QueryStatus(),
+	}
+}
+func (m *Payload) QueryStatus() []byte {
+	tmp := utils.BZero(250, 0x00)
+	copy(tmp, []byte{0xcf, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01})
+	return tmp
 }
 
 func (m *Payload) ValidateCommand(s []byte, i int) error {

@@ -12,19 +12,17 @@ import (
 
 type DateTimeStat struct {
 	log     *logger.Logger
-	jobs    chan<- any
+	jobs    chan<- command.Command
 	builder *local.Builder
 	p       *command.UpdatePayload
-	u       *command.Media
 }
 
-func NewDateTimeStat(l *logger.Logger, j chan<- any, b *local.Builder, p *command.UpdatePayload, u *command.Media) *DateTimeStat {
+func NewDateTimeStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *DateTimeStat {
 	return &DateTimeStat{
 		log:     l,
 		jobs:    j,
 		builder: b,
 		p:       p,
-		u:       u,
 	}
 }
 
@@ -65,7 +63,6 @@ func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error
 			img := g.builder.DrawText(value, text)
 			imgUpdt := device.NewImageProcess(img)
 			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			g.jobs <- g.u.QueryStatus()
 		}
 		if e.Hour != nil {
 			text := e.Hour.Text
@@ -73,7 +70,6 @@ func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error
 			img := g.builder.DrawText(value, text)
 			imgUpdt := device.NewImageProcess(img)
 			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			g.jobs <- g.u.QueryStatus()
 		}
 	}
 	return nil

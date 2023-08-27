@@ -14,6 +14,13 @@ import (
 	"time"
 )
 
+const (
+	THEMEPATH = "res/themes/%s/"
+	FONTPATH  = "res/fonts/"
+)
+
+type Duration time.Duration
+
 type Theme struct {
 	theme    theme.Theme
 	path     string
@@ -29,6 +36,7 @@ func NewTheme(file string, l *logger.Logger) (*Theme, error) {
 	tfile := fmt.Sprintf("res/themes/%s/theme.yaml", file)
 
 	l.Infof("Loading theme from: %s", tfile)
+
 	viper.SetConfigType("yaml")
 	viper.SetConfigFile(tfile)
 	err := viper.ReadInConfig()
@@ -39,12 +47,23 @@ func NewTheme(file string, l *logger.Logger) (*Theme, error) {
 		config.DecodeHook = mapstructure.ComposeDecodeHookFunc(
 			mapstructure.StringToTimeDurationHookFunc(),
 			mapstructure.StringToSliceHookFunc(","),
-			Hook(fmt.Sprintf("res/themes/%s/", file), "res/fonts/"),
+			Hook(file),
 		)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling config file: %w", err)
 	}
+
+	fmt.Printf("Display:[%#v]\n", config.Display)
+	fmt.Printf("StaticTexts:[%#v]\n", config.StaticTexts)
+	fmt.Printf("StaticImages:[%#v]\n", config.StaticImages)
+	fmt.Printf("CPU:[%#v]\n", config.Stats.CPU)
+	fmt.Printf("GPU:[%#v]\n", config.Stats.GPU)
+	fmt.Printf("MEMORY:[%#v]\n", config.Stats.Memory)
+	fmt.Printf("DISK:[%#v]\n", config.Stats.Disk)
+	fmt.Printf("DATE:[%#v]\n", config.Stats.Date)
+	fmt.Printf("NET:[%#v]\n", config.Stats.Net.Wired)
+	fmt.Printf("NET:[%#v]\n", config.Stats.Net.Wifi)
 
 	return &Theme{
 		theme:    config,
@@ -54,309 +73,327 @@ func NewTheme(file string, l *logger.Logger) (*Theme, error) {
 	}, nil
 }
 
-func Hook(imagePath, fontPath string) mapstructure.DecodeHookFunc {
+func Hook(file string) mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
 		data interface{}) (interface{}, error) {
 
-		if f.Kind() == reflect.Map && t == reflect.TypeOf(map[string]theme.StaticImage{}) {
-			toret := map[string]theme.StaticImage{}
-			v := data.(map[string]interface{})
-			fmt.Printf("V: [%#v]\n", v)
-			var c int = 0
-
-			for s, i := range v {
-				fmt.Printf("Key: [%s]\n", s)
-				fmt.Printf("Value: [%#v]\n", i)
-				key := fmt.Sprintf("%d-%s", c, s)
-				toret[key] = theme.StaticImage{
-					Path:   imagePath + i.(map[string]interface{})["path"].(string),
-					Height: i.(map[string]interface{})["height"].(int),
-					Width:  i.(map[string]interface{})["width"].(int),
-					X:      i.(map[string]interface{})["x"].(int),
-					Y:      i.(map[string]interface{})["y"].(int),
-				}
-				c++
-			}
-			return toret, nil
-		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(map[string]theme.StaticText{}) {
-			var c int = 0
-
-			toret := map[string]theme.StaticText{}
-
-			v := data.(map[string]interface{})
-			fmt.Printf("V: [%#v]\n", v)
-
-			for s, i := range v {
-				fmt.Printf("Key: [%s]\n", s)
-				fmt.Printf("Value: [%#v]\n", i)
-
-				var bgColor color.Color
-				var fColor color.Color
-				var fface font.Face
-				if i.(map[string]interface{})["font_color"] != nil {
-					bgcolor := i.(map[string]interface{})["font_color"].(string)
-					fColor = utils.ConvertToColor(bgcolor, color.White)
-				} else {
-					fColor = color.White
-				}
-
-				if i.(map[string]interface{})["background_color"] != nil {
-					bgcolor := i.(map[string]interface{})["background_color"].(string)
-					bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
-				} else {
-					bgColor = color.Transparent
-				}
-
-				if i.(map[string]interface{})["font"] != nil {
-					fPath := fontPath + i.(map[string]interface{})["font"].(string)
-					fSize := float64(i.(map[string]interface{})["font_size"].(int))
-					fface = utils.LoadFontFace(fPath, fSize)
-				} else {
-					fface = utils.DefaultFont
-				}
-
-				key := fmt.Sprintf("%d-%s", c, s)
-				toret[key] = theme.StaticText{
-					Text:            i.(map[string]interface{})["text"].(string),
-					Font:            fface,
-					FontColor:       fColor,
-					X:               i.(map[string]interface{})["x"].(int),
-					Y:               i.(map[string]interface{})["y"].(int),
-					BackgroundColor: bgColor,
-				}
-				c++
-			}
-			return toret, nil
-		} else if f.Kind() == reflect.Int && t == reflect.TypeOf(time.Duration(1)) {
-			if data != nil {
-				return time.Duration(data.(int)) * time.Second, nil
-			} else {
-				return time.Duration(0), nil
-			}
-
-		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Display{}) {
-			return theme.Display{
-				Size:        data.(map[string]interface{})["size"].(string),
-				Orientation: theme.StringToOrientation(data.(map[string]interface{})["orientation"].(string)),
-			}, nil
-		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Text{}) {
-			var bgColor color.Color
-			var fColor color.Color
-			var fface font.Face
-			var show bool
-			var showUnit bool
-			var bgImagePath string
-			var bgImage image.Image
-			var align theme.Alignment
-			var format theme.Format
-
-			var err error
-
-			if data.(map[string]interface{})["font_color"] != nil {
-				bgcolor := data.(map[string]interface{})["font_color"].(string)
-				fColor = utils.ConvertToColor(bgcolor, color.White)
-			} else {
-				fColor = color.White
-			}
-			if data.(map[string]interface{})["background_image"] != nil {
-				bgImagePath = imagePath + data.(map[string]interface{})["background_image"].(string)
-				bgImage, err = utils.LoadImage(bgImagePath)
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				bgImagePath = ""
-				bgImage = nil
-			}
-
-			if data.(map[string]interface{})["font"] != nil {
-				fPath := fontPath + data.(map[string]interface{})["font"].(string)
-				fSize := float64(data.(map[string]interface{})["font_size"].(int))
-				fface = utils.LoadFontFace(fPath, fSize)
-			} else {
-				fface = utils.DefaultFont
-			}
-
-			if data.(map[string]interface{})["background_color"] != nil {
-				bgcolor := data.(map[string]interface{})["background_color"].(string)
-				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
-			} else {
-				bgColor = color.Transparent
-			}
-
-			if data.(map[string]interface{})["show_unit"] != nil {
-				showUnit = data.(map[string]interface{})["show_unit"].(bool)
-			} else {
-				showUnit = false
-			}
-
-			if data.(map[string]interface{})["format"] != nil {
-				v := data.(map[string]interface{})["format"].(string)
-				format = theme.StringToFormat(v)
-			} else {
-				format = theme.SHORT
-			}
-
-			if data.(map[string]interface{})["show"] != nil {
-				show = data.(map[string]interface{})["show"].(bool)
-			} else {
-				show = false
-			}
-
-			if data.(map[string]interface{})["align"] != nil {
-				v := data.(map[string]interface{})["align"].(string)
-				align = theme.StringToAlignment(v)
-			} else {
-				align = theme.LEFT
-			}
-			return theme.Text{
-				Show:                show,
-				ShowUnit:            showUnit,
-				Format:              format,
-				BackgroundImage:     bgImage,
-				BackgroundImagePath: bgImagePath,
-				Font:                fface,
-				FontColor:           fColor,
-				Align:               align,
-				X:                   data.(map[string]interface{})["x"].(int),
-				Y:                   data.(map[string]interface{})["y"].(int),
-				BackgroundColor:     bgColor,
-			}, nil
-		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Graph{}) {
-			var bgColor color.Color
-			var show bool
-			var bgImagePath string
-			var bgImage image.Image
-			var err error
-
-			if data.(map[string]interface{})["show"] != nil {
-				show = data.(map[string]interface{})["show"].(bool)
-			} else {
-				show = false
-			}
-			if data.(map[string]interface{})["bar_color"] != nil {
-				bgcolor := data.(map[string]interface{})["bar_color"].(string)
-				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
-			} else {
-				bgColor = color.Transparent
-			}
-			if data.(map[string]interface{})["background_image"] != nil {
-				bgImagePath = imagePath + data.(map[string]interface{})["background_image"].(string)
-				bgImage, err = utils.LoadImage(bgImagePath)
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				bgImagePath = ""
-				bgImage = nil
-			}
-			return theme.Graph{
-				Show:                show,
-				X:                   data.(map[string]interface{})["x"].(int),
-				Y:                   data.(map[string]interface{})["y"].(int),
-				Width:               data.(map[string]interface{})["width"].(int),
-				Height:              data.(map[string]interface{})["height"].(int),
-				MinValue:            data.(map[string]interface{})["min_value"].(int),
-				MaxValue:            data.(map[string]interface{})["max_value"].(int),
-				BarColor:            bgColor,
-				BarOutline:          data.(map[string]interface{})["bar_outline"].(bool),
-				BackgroundImage:     bgImage,
-				BackgroundImagePath: bgImagePath,
-			}, nil
-		} else if f.Kind() == reflect.Map && t == reflect.TypeOf(theme.Radial{}) {
-			var bgColor color.Color
-			var fColor color.Color
-			var fface font.Face
-			var show bool
-			var showText bool
-			var showUnit bool
-			var bgImagePath string
-			var bgImage image.Image
-			var err error
-
-			if data.(map[string]interface{})["bar_color"] != nil {
-				bgcolor := data.(map[string]interface{})["bar_color"].(string)
-				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
-			} else {
-				bgColor = color.Transparent
-			}
-
-			if data.(map[string]interface{})["background_image"] != nil {
-				bgImagePath = imagePath + data.(map[string]interface{})["background_image"].(string)
-				bgImage, err = utils.LoadImage(bgImagePath)
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				bgImagePath = ""
-				bgImage = nil
-			}
-
-			if data.(map[string]interface{})["background_color"] != nil {
-				bgcolor := data.(map[string]interface{})["background_color"].(string)
-				bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
-			} else {
-				bgColor = color.Transparent
-			}
-
-			if data.(map[string]interface{})["font_color"] != nil {
-				bgcolor := data.(map[string]interface{})["font_color"].(string)
-				fColor = utils.ConvertToColor(bgcolor, color.Transparent)
-			} else {
-				fColor = color.Transparent
-			}
-
-			if data.(map[string]interface{})["show_unit"] != nil {
-				showUnit = data.(map[string]interface{})["show_unit"].(bool)
-			} else {
-				showUnit = false
-			}
-			if data.(map[string]interface{})["show"] != nil {
-				show = data.(map[string]interface{})["show"].(bool)
-			} else {
-				show = false
-			}
-			if data.(map[string]interface{})["show_text"] != nil {
-				showText = data.(map[string]interface{})["show_text"].(bool)
-			} else {
-				showText = false
-			}
-
-			if data.(map[string]interface{})["font"] != nil {
-				fPath := fontPath + data.(map[string]interface{})["font"].(string)
-				fSize := float64(data.(map[string]interface{})["font_size"].(int))
-				fface = utils.LoadFontFace(fPath, fSize)
-			} else {
-				fface = utils.DefaultFont
-			}
-
-			return theme.Radial{
-				Show:                show,
-				X:                   data.(map[string]interface{})["x"].(int),
-				Y:                   data.(map[string]interface{})["y"].(int),
-				Radius:              data.(map[string]interface{})["radius"].(int),
-				Width:               data.(map[string]interface{})["width"].(int),
-				MinValue:            data.(map[string]interface{})["min_value"].(int),
-				MaxValue:            data.(map[string]interface{})["max_value"].(int),
-				AngleStart:          data.(map[string]interface{})["angle_start"].(int),
-				AngleEnd:            data.(map[string]interface{})["angle_end"].(int),
-				AngleSteps:          data.(map[string]interface{})["angle_steps"].(int),
-				AngleStep:           data.(map[string]interface{})["angle_step"].(int),
-				Clockwise:           data.(map[string]interface{})["clockwise"].(bool),
-				BarColor:            bgColor,
-				ShowText:            showText,
-				ShowUnit:            showUnit,
-				Font:                fface,
-				FontColor:           fColor,
-				BackgroundColor:     bgColor,
-				BackgroundImage:     bgImage,
-				BackgroundImagePath: bgImagePath,
-			}, nil
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(&theme.Text{}) || t == reflect.TypeOf(&theme.Text{})) {
+			return translateText(file, data.(map[string]interface{}))
+		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.StaticText{}) || t == reflect.TypeOf(&theme.StaticText{})) {
+			return translateStaticText(data.(map[string]interface{}))
+		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Display{}) || t == reflect.TypeOf(&theme.Display{})) {
+			return translateDisplay(data.(map[string]interface{}))
+		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.StaticImage{}) || t == reflect.TypeOf(&theme.StaticImage{})) {
+			return translateStaticImage(file, data.(map[string]interface{}))
+		}
+		if t == reflect.TypeOf(time.Duration(1)) {
+			return translateDuration(data.(interface{}))
+		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Graph{}) || t == reflect.TypeOf(&theme.Graph{})) {
+			return translateGraph(file, data.(map[string]interface{}))
+		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Radial{}) || t == reflect.TypeOf(&theme.Radial{})) {
+			return translateRadial(file, data.(map[string]interface{}))
 		}
 		return data, nil
 	}
+}
+func translateDuration(data interface{}) (interface{}, error) {
+	var v time.Duration
+
+	if data != nil {
+		v = time.Duration(data.(int)) * time.Second
+	} else {
+		v = time.Duration(0)
+	}
+	return v, nil
+}
+
+func translateGraph(file string, data map[string]interface{}) (interface{}, error) {
+	var bgColor color.Color
+	var show bool
+	var bgImagePath string
+	var bgImage image.Image
+	var err error
+	imagePath := fmt.Sprintf(THEMEPATH, file)
+
+	if data["show"] != nil {
+		show = data["show"].(bool)
+	} else {
+		show = false
+	}
+	if data["bar_color"] != nil {
+		bgcolor := data["bar_color"].(string)
+		bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+	} else {
+		bgColor = color.Transparent
+	}
+	if data["background_image"] != nil {
+		bgImagePath = imagePath + data["background_image"].(string)
+		bgImage, err = utils.LoadImage(bgImagePath)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		bgImagePath = ""
+		bgImage = nil
+	}
+	v := theme.Graph{
+		Show:                show,
+		X:                   data["x"].(int),
+		Y:                   data["y"].(int),
+		Width:               data["width"].(int),
+		Height:              data["height"].(int),
+		MinValue:            data["min_value"].(int),
+		MaxValue:            data["max_value"].(int),
+		BarColor:            bgColor,
+		BarOutline:          data["bar_outline"].(bool),
+		BackgroundImage:     bgImage,
+		BackgroundImagePath: bgImagePath,
+	}
+	return v, nil
+}
+func translateRadial(file string, data map[string]interface{}) (interface{}, error) {
+	var bgColor color.Color
+	var fColor color.Color
+	var fface font.Face
+	var show bool
+	var showText bool
+	var showUnit bool
+	var bgImagePath string
+	var bgImage image.Image
+	var err error
+	imagePath := fmt.Sprintf(THEMEPATH, file)
+
+	if data["bar_color"] != nil {
+		bgcolor := data["bar_color"].(string)
+		bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+	} else {
+		bgColor = color.Transparent
+	}
+
+	if data["background_image"] != nil {
+		bgImagePath = imagePath + data["background_image"].(string)
+		bgImage, err = utils.LoadImage(bgImagePath)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		bgImagePath = ""
+		bgImage = nil
+	}
+
+	if data["background_color"] != nil {
+		bgcolor := data["background_color"].(string)
+		bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+	} else {
+		bgColor = color.Transparent
+	}
+
+	if data["font_color"] != nil {
+		bgcolor := data["font_color"].(string)
+		fColor = utils.ConvertToColor(bgcolor, color.Transparent)
+	} else {
+		fColor = color.Transparent
+	}
+
+	if data["show_unit"] != nil {
+		showUnit = data["show_unit"].(bool)
+	} else {
+		showUnit = false
+	}
+	if data["show"] != nil {
+		show = data["show"].(bool)
+	} else {
+		show = false
+	}
+	if data["show_text"] != nil {
+		showText = data["show_text"].(bool)
+	} else {
+		showText = false
+	}
+
+	if data["font"] != nil {
+		fPath := FONTPATH + data["font"].(string)
+		fSize := float64(data["font_size"].(int))
+		fface = utils.LoadFontFace(fPath, fSize)
+	} else {
+		fface = utils.DefaultFont
+	}
+
+	v := theme.Radial{
+		Show:                show,
+		X:                   data["x"].(int),
+		Y:                   data["y"].(int),
+		Radius:              data["radius"].(int),
+		Width:               data["width"].(int),
+		MinValue:            data["min_value"].(int),
+		MaxValue:            data["max_value"].(int),
+		AngleStart:          data["angle_start"].(int),
+		AngleEnd:            data["angle_end"].(int),
+		AngleSteps:          data["angle_steps"].(int),
+		AngleStep:           data["angle_step"].(int),
+		Clockwise:           data["clockwise"].(bool),
+		BarColor:            bgColor,
+		ShowText:            showText,
+		ShowUnit:            showUnit,
+		Font:                fface,
+		FontColor:           fColor,
+		BackgroundColor:     bgColor,
+		BackgroundImage:     bgImage,
+		BackgroundImagePath: bgImagePath,
+	}
+	return v, nil
+}
+
+func translateDisplay(data map[string]interface{}) (interface{}, error) {
+	v := theme.Display{
+		Size:        data["size"].(string),
+		Orientation: theme.StringToOrientation(data["orientation"].(string)),
+	}
+	return v, nil
+}
+
+func translateStaticImage(file string, data map[string]interface{}) (interface{}, error) {
+	imagePath := fmt.Sprintf(THEMEPATH, file)
+	v := theme.StaticImage{
+		Path:   imagePath + data["path"].(string),
+		Height: data["height"].(int),
+		Width:  data["width"].(int),
+		X:      data["x"].(int),
+		Y:      data["y"].(int),
+	}
+	return v, nil
+}
+
+func translateStaticText(data map[string]interface{}) (interface{}, error) {
+	var bgColor color.Color
+	var fColor color.Color
+	var fface font.Face
+
+	if data["font_color"] != nil {
+		bgcolor := data["font_color"].(string)
+		fColor = utils.ConvertToColor(bgcolor, color.White)
+	} else {
+		fColor = color.White
+	}
+
+	if data["background_color"] != nil {
+		bgcolor := data["background_color"].(string)
+		bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+	} else {
+		bgColor = color.Transparent
+	}
+
+	if data["font"] != nil {
+		fPath := FONTPATH + data["font"].(string)
+		fSize := float64(data["font_size"].(int))
+		fface = utils.LoadFontFace(fPath, fSize)
+	} else {
+		fface = utils.DefaultFont
+	}
+
+	v := theme.StaticText{
+		Text:            data["text"].(string),
+		Font:            fface,
+		FontColor:       fColor,
+		X:               data["x"].(int),
+		Y:               data["y"].(int),
+		BackgroundColor: bgColor,
+	}
+	return v, nil
+}
+
+func translateText(file string, data map[string]interface{}) (interface{}, error) {
+	imagePath := fmt.Sprintf(THEMEPATH, file)
+	var bgColor color.Color
+	var fColor color.Color
+	var fface font.Face
+	var show bool
+	var showUnit bool
+	var bgImagePath string
+	var bgImage image.Image
+	var align theme.Alignment
+	var format theme.Format
+
+	var err error
+
+	if data["font_color"] != nil {
+		bgcolor := data["font_color"].(string)
+		fColor = utils.ConvertToColor(bgcolor, color.White)
+	} else {
+		fColor = color.White
+	}
+	if data["background_image"] != nil {
+		bgImagePath = imagePath + data["background_image"].(string)
+		bgImage, err = utils.LoadImage(bgImagePath)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		bgImagePath = ""
+		bgImage = nil
+	}
+
+	if data["font"] != nil {
+		fPath := FONTPATH + data["font"].(string)
+		fSize := float64(data["font_size"].(int))
+		fface = utils.LoadFontFace(fPath, fSize)
+	} else {
+		fface = utils.DefaultFont
+	}
+
+	if data["background_color"] != nil {
+		bgcolor := data["background_color"].(string)
+		bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+	} else {
+		bgColor = color.Transparent
+	}
+
+	if data["show_unit"] != nil {
+		showUnit = data["show_unit"].(bool)
+	} else {
+		showUnit = false
+	}
+
+	if data["format"] != nil {
+		v := data["format"].(string)
+		format = theme.StringToFormat(v)
+	} else {
+		format = theme.SHORT
+	}
+
+	if data["show"] != nil {
+		show = data["show"].(bool)
+	} else {
+		show = false
+	}
+
+	if data["align"] != nil {
+		v := data["align"].(string)
+		align = theme.StringToAlignment(v)
+	} else {
+		align = theme.LEFT
+	}
+	v := theme.Text{
+		Show:                show,
+		ShowUnit:            showUnit,
+		Format:              format,
+		BackgroundImage:     bgImage,
+		BackgroundImagePath: bgImagePath,
+		Font:                fface,
+		FontColor:           fColor,
+		Align:               align,
+		X:                   data["x"].(int),
+		Y:                   data["y"].(int),
+		BackgroundColor:     bgColor,
+	}
+	return v, nil
 }
 
 func (t *Theme) GetStaticImages() map[string]theme.StaticImage {
