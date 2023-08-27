@@ -80,7 +80,6 @@ func GetCardFamilyName(cardName string) (string, error) {
 	if rc < 0 {
 		return "", fmt.Errorf("Fail to get FamilyID %s: %d", cardName, rc)
 	}
-	fmt.Printf("Info: [%#v]\n", info.gpu_counter_freq)
 	fmt.Printf("Info: [%d]Mhz\n", uint32(info.gpu_counter_freq))
 	fmt.Printf("Info: [%d]Mhz\n", uint64(info.max_engine_clk))
 	fmt.Printf("Info: [%d]Mhz\n", uint64(info.max_memory_clk))

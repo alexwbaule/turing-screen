@@ -157,40 +157,40 @@ func IBytes(s uint64) string {
 
 func humanateBytes(s uint64, base float64, sizes []string) string {
 	if s < 10 {
-		return fmt.Sprintf("%6d%s", s, sizes[0])
+		return fmt.Sprintf("%5d%s", s, sizes[0])
 	}
 	e := math.Floor(logn(float64(s), base))
 	suffix := sizes[int(e)]
 	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
-	f := "%6.f%s"
+	f := "%5.f%s"
 	if CountStr(suffix) == 2 {
-		f = "%5.f%s"
+		f = "%4.f%s"
 		if val < 10 {
-			f = "%4.1f%s"
+			f = "%3.1f%s"
 		}
 	}
 	if val < 10 {
-		f = "%5.1f%s"
+		f = "%4.1f%s"
 	}
 	return fmt.Sprintf(f, val, suffix)
 }
 
 func humanateFloatBytes(s float64, base float64, sizes []string) string {
 	if s < 10 {
-		return fmt.Sprintf("%6d%s", s, sizes[0])
+		return fmt.Sprintf("%5d%s", s, sizes[0])
 	}
 	e := math.Floor(logn(s, base))
 	suffix := sizes[int(e)]
 	val := math.Floor(s/math.Pow(base, e)*10+0.5) / 10
-	f := "%6.f%s"
+	f := "%5.f%s"
 	if CountStr(suffix) == 2 {
-		f = "%5.f%s"
+		f = "%4.f%s"
 		if val < 10 {
-			f = "%4.1f%s"
+			f = "%3.1f%s"
 		}
 	}
 	if val < 10 {
-		f = "%5.1f%s"
+		f = "%4.1f%s"
 	}
 	return fmt.Sprintf(f, val, suffix)
 }
