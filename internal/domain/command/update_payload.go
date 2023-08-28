@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	tdevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
+
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"math/big"
 	"regexp"
@@ -14,20 +17,24 @@ var (
 )
 
 type UpdatePayload struct {
-	bytes   []byte
-	payload []byte
-	name    string
-	padding byte
-	size    int
-	count   int64
-	readed  *regexp.Regexp
-	log     *logger.Logger
+	bytes       []byte
+	payload     []byte
+	name        string
+	padding     byte
+	size        int
+	count       int64
+	readed      *regexp.Regexp
+	log         *logger.Logger
+	orientation theme.Orientation
+	device      *tdevice.Display
 }
 
-func NewUpdatePayload(log *logger.Logger) *UpdatePayload {
+func NewUpdatePayload(log *logger.Logger, o theme.Orientation, t *tdevice.Display) *UpdatePayload {
 	log.Infof("NewUpdatePayload: %d", 0)
 	return &UpdatePayload{
-		log: log,
+		log:         log,
+		orientation: o,
+		device:      t,
 	}
 }
 
@@ -98,7 +105,7 @@ func (m *UpdatePayload) SendPayload(partial device.ImagePartial, x, y int) *Upda
 		padding: 0x00,
 		size:    1024,
 		readed:  render,
-		payload: partial.GeneratePartialImage(x, y),
+		payload: partial.GeneratePartialImage(m.orientation, m.device, x, y),
 		log:     m.log,
 	}
 }

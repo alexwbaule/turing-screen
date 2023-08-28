@@ -39,8 +39,8 @@ func (c *Config) GetDevicePort() string {
 func (c *Config) GetThemeName() string {
 	return c.device.Theme
 }
-func (c *Config) GetDeviceDisplay() device.Display {
-	return c.device.Display
+func (c *Config) GetDeviceDisplay() *device.Display {
+	return &c.device.Display
 }
 func (c *Config) GetNetworkConfig() device.Net {
 	return c.device.Sensors.Net

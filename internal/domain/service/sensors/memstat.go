@@ -29,7 +29,6 @@ func NewMemStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p 
 }
 
 func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
-	g.log.Infof("Ticker: %s", e.Interval)
 	ticker := time.NewTicker(e.Interval)
 
 	err := g.getMemStat(ctx, e)
@@ -52,59 +51,68 @@ func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 }
 
 func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
+	g.log.Debugf("Memory: [%#v]", e)
 
-	if e.Virtual != nil {
-		virtualMem, err := mem.VirtualMemoryWithContext(ctx)
-		if err != nil {
-			return err
-		}
-
-		if e.Virtual.Free != nil && e.Virtual.Free.Show {
-			text := e.Virtual.Free
-
-			value := fmt.Sprintf("%5d", virtualMem.Available/1000000)
-			if text.ShowUnit {
-				value += "M"
+	select {
+	case <-ctx.Done():
+		g.log.Infof("Stopping getMemStat job...")
+		return context.Canceled
+	default:
+		if e.Virtual != nil {
+			virtualMem, err := mem.VirtualMemoryWithContext(ctx)
+			if err != nil {
+				return err
 			}
 
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-		}
-		if e.Virtual.Used != nil && e.Virtual.Used.Show {
-			text := e.Virtual.Used
+			if e.Virtual.Free != nil && e.Virtual.Free.Show {
+				text := e.Virtual.Free
+				g.log.Debugf("Text: [%#v]", text)
 
-			value := fmt.Sprintf("%5d", virtualMem.Used/1000000)
-			if text.ShowUnit {
-				value += "M"
+				value := fmt.Sprintf("%5d", virtualMem.Available/1000000)
+				if text.ShowUnit {
+					value += "M"
+				}
+
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
 			}
+			if e.Virtual.Used != nil && e.Virtual.Used.Show {
+				text := e.Virtual.Used
+				g.log.Debugf("Text: [%#v]", text)
 
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-		}
-		if e.Virtual.PercentText != nil && e.Virtual.PercentText.Show {
-			text := e.Virtual.PercentText
+				value := fmt.Sprintf("%5d", virtualMem.Used/1000000)
+				if text.ShowUnit {
+					value += "M"
+				}
 
-			value := fmt.Sprintf("%3.0f", virtualMem.UsedPercent)
-			if text.ShowUnit {
-				value += "%"
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
 			}
+			if e.Virtual.PercentText != nil && e.Virtual.PercentText.Show {
+				text := e.Virtual.PercentText
+				g.log.Debugf("Text: [%#v]", text)
 
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+				value := fmt.Sprintf("%3.0f", virtualMem.UsedPercent)
+				if text.ShowUnit {
+					value += "%"
+				}
+
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
+			if e.Virtual.Graph != nil && e.Virtual.Graph.Show {
+				text := e.Virtual.Graph
+				img := g.builder.DrawProgressBar(virtualMem.UsedPercent, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
 		}
-		if e.Virtual.Graph != nil && e.Virtual.Graph.Show {
-			text := e.Virtual.Graph
+		if e.Swap != nil {
 
-			img := g.builder.DrawProgressBar(virtualMem.UsedPercent, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
 		}
-	}
-	if e.Swap != nil {
-
 	}
 
 	return nil

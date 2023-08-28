@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
+
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"regexp"
 )
@@ -14,18 +16,20 @@ var (
 )
 
 type Payload struct {
-	bytes   [][]byte
-	payload []byte
-	name    string
-	padding []byte
-	size    int
-	readed  *regexp.Regexp
-	log     *logger.Logger
+	bytes       [][]byte
+	payload     []byte
+	name        string
+	padding     []byte
+	size        int
+	readed      *regexp.Regexp
+	log         *logger.Logger
+	orientation theme.Orientation
 }
 
-func NewPayload(log *logger.Logger) *Payload {
+func NewPayload(log *logger.Logger, o theme.Orientation) *Payload {
 	return &Payload{
-		log: log,
+		log:         log,
+		orientation: o,
 	}
 }
 
@@ -91,7 +95,7 @@ func (m *Payload) SendPayload(background device.ImageBackground) *Payload {
 			},
 		},
 		padding: []byte{0x2c, 0x00},
-		payload: background.GenerateBackgroundImage(),
+		payload: background.GenerateBackgroundImage(m.orientation),
 		size:    1024,
 		readed:  imageSucess,
 		log:     m.log,

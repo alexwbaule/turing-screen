@@ -117,13 +117,19 @@ func (o Orientation) String() string {
 	return "LANDSCAPE"
 }
 
-func StringToOrientation(src string) Orientation {
+func StringToOrientation(src string, reverse bool) Orientation {
 	switch strings.ToUpper(src) {
 	case "PORTRAIT":
+		if reverse {
+			return REVERSE_PORTRAIT
+		}
 		return PORTRAIT
 	case "REVERSE_PORTRAIT":
 		return REVERSE_PORTRAIT
 	case "LANDSCAPE":
+		if reverse {
+			return REVERSE_LANDSCAPE
+		}
 		return LANDSCAPE
 	case "REVERSE_LANDSCAPE":
 		return REVERSE_LANDSCAPE

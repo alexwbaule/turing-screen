@@ -28,7 +28,7 @@ func main() {
 			app.Log.Fatal(err.Error())
 		}
 
-		statsTheme, err := theme.NewTheme(app.Config.GetThemeName(), app.Log)
+		statsTheme, err := theme.NewTheme(app.Config, app.Log)
 		if err != nil {
 			return err
 		}
@@ -38,10 +38,10 @@ func main() {
 		cmdDevice := command.NewDevice(app.Log)
 		cmdMedia := command.NewMedia(app.Log)
 		cmdBright := command.NewBrightness(app.Log)
-		cmdPayload := command.NewPayload(app.Log)
-		cmdUpdate := command.NewUpdatePayload(app.Log)
+		cmdPayload := command.NewPayload(app.Log, statsTheme.GetDisplay().Orientation)
+		cmdUpdate := command.NewUpdatePayload(app.Log, statsTheme.GetDisplay().Orientation, app.Config.GetDeviceDisplay())
 
-		builder := local.NewBuilder(app.Log)
+		builder := local.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
 
 		g, ctx := errgroup.WithContext(ctx)
 

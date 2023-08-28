@@ -1,6 +1,6 @@
 device:
   port: AUTO
-  theme: Landscape15Grid
+  theme: 5inchTheme2
   log: debug
   sensors:
     network:
@@ -11,3 +11,25 @@ device:
     height: 480
     reverse: false
     brightness: 20
+
+#3.5inchTheme2
+#5inchTheme2
+#5inchTheme2Radial
+#bash-dark-green
+#bash-dark-green-gpu
+#BigClock
+#CyanTheme
+#Cyberpunk
+#Cyberpunk-net
+#DragonBall5inch
+#Landscape15Grid
+#Landscape6Grid
+#LandscapeEarth
+#LandscapeMagicBlue
+#NZXT_B
+#NZXT_BLUR
+#NZXT_C
+#NZXT_color
+#NZXT_dynamic
+#PurpleTheme
+#Terminal

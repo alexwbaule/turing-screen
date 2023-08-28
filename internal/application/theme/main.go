@@ -2,6 +2,7 @@ package theme
 
 import (
 	"fmt"
+	"github.com/alexwbaule/turing-screen/internal/application/config"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
@@ -28,8 +29,10 @@ type Theme struct {
 	log      *logger.Logger
 }
 
-func NewTheme(file string, l *logger.Logger) (*Theme, error) {
-	var config theme.Theme
+func NewTheme(cfg *config.Config, l *logger.Logger) (*Theme, error) {
+	var cconfig theme.Theme
+	file := cfg.GetThemeName()
+	reverse := cfg.GetDeviceDisplay().Reverse
 
 	theme.DefaultImagePath = fmt.Sprintf("res/themes/%s/", file)
 
@@ -43,37 +46,41 @@ func NewTheme(file string, l *logger.Logger) (*Theme, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
-	err = viper.Unmarshal(&config, func(config *mapstructure.DecoderConfig) {
+	err = viper.Unmarshal(&cconfig, func(config *mapstructure.DecoderConfig) {
 		config.DecodeHook = mapstructure.ComposeDecodeHookFunc(
 			mapstructure.StringToTimeDurationHookFunc(),
 			mapstructure.StringToSliceHookFunc(","),
-			Hook(file),
+			Hook(file, reverse),
 		)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling config file: %w", err)
 	}
-
-	fmt.Printf("Display:[%#v]\n", config.Display)
-	fmt.Printf("StaticTexts:[%#v]\n", config.StaticTexts)
-	fmt.Printf("StaticImages:[%#v]\n", config.StaticImages)
-	fmt.Printf("CPU:[%#v]\n", config.Stats.CPU)
-	fmt.Printf("GPU:[%#v]\n", config.Stats.GPU)
-	fmt.Printf("MEMORY:[%#v]\n", config.Stats.Memory)
-	fmt.Printf("DISK:[%#v]\n", config.Stats.Disk)
-	fmt.Printf("DATE:[%#v]\n", config.Stats.Date)
-	fmt.Printf("NET:[%#v]\n", config.Stats.Net.Wired)
-	fmt.Printf("NET:[%#v]\n", config.Stats.Net.Wifi)
+	/*
+		fmt.Printf("Display:[%#v]\n", config.Display)
+		fmt.Printf("StaticTexts:[%#v]\n", config.StaticTexts)
+		fmt.Printf("StaticImages:[%#v]\n", config.StaticImages)
+		fmt.Printf("CPU:[%#v]\n", config.Stats.CPU)
+		fmt.Printf("GPU:[%#v]\n", config.Stats.GPU)
+		fmt.Printf("MEMORY:[%#v]\n", config.Stats.Memory)
+		fmt.Printf("DISK:[%#v]\n", config.Stats.Disk)
+		fmt.Printf("DATE:[%#v]\n", config.Stats.Date)
+		fmt.Printf("NET:[%#v]\n", config.Stats.Net.Wired)
+		fmt.Printf("NET:[%#v]\n", config.Stats.Net.Wifi)
+	*/
+	if cconfig.Display.Size != "5\"" {
+		l.Fatalf("this theme is not for this device [%s -> %s]", cconfig.Display.Size, cconfig.Display.Orientation)
+	}
 
 	return &Theme{
-		theme:    config,
+		theme:    cconfig,
 		path:     fmt.Sprintf("res/themes/%s/", file),
 		fontPath: "res/fonts/",
 		log:      l,
 	}, nil
 }
 
-func Hook(file string) mapstructure.DecodeHookFunc {
+func Hook(file string, reverse bool) mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
@@ -86,7 +93,7 @@ func Hook(file string) mapstructure.DecodeHookFunc {
 			return translateStaticText(data.(map[string]interface{}))
 		}
 		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Display{}) || t == reflect.TypeOf(&theme.Display{})) {
-			return translateDisplay(data.(map[string]interface{}))
+			return translateDisplay(data.(map[string]interface{}), reverse)
 		}
 		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.StaticImage{}) || t == reflect.TypeOf(&theme.StaticImage{})) {
 			return translateStaticImage(file, data.(map[string]interface{}))
@@ -251,10 +258,17 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 	return v, nil
 }
 
-func translateDisplay(data map[string]interface{}) (interface{}, error) {
+func translateDisplay(data map[string]interface{}, reverse bool) (interface{}, error) {
+	size := "empty"
+	if data["size"] != nil {
+		size = data["size"].(string)
+	}
+	if data["orientation"] == nil {
+		return nil, fmt.Errorf("missing orientation on theme")
+	}
 	v := theme.Display{
-		Size:        data["size"].(string),
-		Orientation: theme.StringToOrientation(data["orientation"].(string)),
+		Size:        size,
+		Orientation: theme.StringToOrientation(data["orientation"].(string), reverse),
 	}
 	return v, nil
 }
@@ -407,7 +421,10 @@ func (t *Theme) GetStaticTexts() map[string]theme.StaticText {
 func (t *Theme) GetStats() *theme.Stats {
 	return t.theme.Stats
 }
+func (t *Theme) GetDisplay() *theme.Display {
+	return t.theme.Display
+}
 
-func (t *Theme) GetThemePath() string {
+func (t *Theme) GetPath() string {
 	return t.path
 }

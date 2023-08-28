@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 	"image"
@@ -61,12 +62,12 @@ func LoadImage(path string) (image.Image, error) {
 }
 
 func ConvertToColor(s string, dft color.Color) color.Color {
-
 	rgba := strings.SplitN(s, ", ", 4)
 
 	if len(rgba) == 3 {
 		rgba = append(rgba, "255")
 	}
+
 	r, err := strconv.Atoi(rgba[0])
 	if err != nil {
 		return dft
@@ -89,6 +90,13 @@ func ConvertToColor(s string, dft color.Color) color.Color {
 		B: uint8(b),
 		A: uint8(a),
 	}
+}
+
+func CreateImage(width int, height int, background color.Color) *image.RGBA {
+	rect := image.Rect(0, 0, width, height)
+	img := image.NewRGBA(rect)
+	draw.Draw(img, img.Bounds(), &image.Uniform{C: background}, image.Point{}, draw.Src)
+	return img
 }
 
 func LoadFontFace(path string, points float64) font.Face {
@@ -125,6 +133,11 @@ func DefaultFontFace() font.Face {
 	return face
 }
 
+func Hertz(s float64) string {
+	sizes := []string{"MHz", "GHz", "THz", "PHz", "EHz"}
+	return humanateHertz(s, 1000, sizes)
+}
+
 func Bitsf(s float64) string {
 	sizes := []string{"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb"}
 	return humanateFloatBytes(s, 1000, sizes)
@@ -153,6 +166,26 @@ func Bytes(s uint64) string {
 func IBytes(s uint64) string {
 	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
 	return humanateBytes(s, 1024, sizes)
+}
+
+func humanateHertz(s float64, base float64, sizes []string) string {
+	if s < 10 {
+		return fmt.Sprintf("%5d%s", s, sizes[0])
+	}
+	e := math.Floor(logn(s, base))
+	suffix := sizes[int(e)]
+	val := math.Floor(s/math.Pow(base, e)*10) / 10
+	f := "%5.2f%s"
+	if CountStr(suffix) == 3 {
+		f = "%4.2f%s"
+		if val < 10 {
+			f = "%3.2f%s"
+		}
+	}
+	if val < 10 {
+		f = "%4.2f%s"
+	}
+	return fmt.Sprintf(f, val, suffix)
 }
 
 func humanateBytes(s uint64, base float64, sizes []string) string {

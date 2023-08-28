@@ -27,7 +27,6 @@ func NewDateTimeStat(l *logger.Logger, j chan<- command.Command, b *local.Builde
 }
 
 func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error {
-	g.log.Infof("Ticker: %s", e.Interval)
 	ticker := time.NewTicker(e.Interval)
 
 	err := g.getDateTime(ctx, e)
@@ -50,13 +49,14 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 }
 
 func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error {
-	now := time.Now()
+	g.log.Debugf("DateTime: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
 		g.log.Infof("Stopping getDateTime job...")
 		return context.Canceled
 	default:
+		now := time.Now()
 		if e.Day != nil {
 			text := e.Day.Text
 			value := now.Format(text.Format.String(theme.DATE))

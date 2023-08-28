@@ -5,6 +5,7 @@ import (
 	"github.com/alexwbaule/gg"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/disintegration/gift"
 	"golang.org/x/exp/maps"
@@ -17,12 +18,16 @@ import (
 )
 
 type Builder struct {
-	log *logger.Logger
+	log    *logger.Logger
+	device *device.Display
+	theme  *theme.Display
 }
 
-func NewBuilder(l *logger.Logger) *Builder {
+func NewBuilder(l *logger.Logger, v *device.Display, d *theme.Display) *Builder {
 	return &Builder{
-		log: l,
+		log:    l,
+		device: v,
+		theme:  d,
 	}
 }
 
@@ -30,7 +35,14 @@ const tolerance = float64(2)
 const border = float64(2)
 
 func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) image.Image {
-	ctx := gg.NewContextForImage(image.NewRGBA(image.Rect(0, 0, 800, 480)))
+	var numb image.Image
+
+	if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
+		numb = image.NewRGBA(image.Rect(0, 0, b.device.Height, b.device.Width))
+	} else {
+		numb = image.NewRGBA(image.Rect(0, 0, b.device.Width, b.device.Height))
+	}
+	ctx := gg.NewContextForImage(numb)
 
 	keys := maps.Keys(images)
 	slices.Sort(keys)
@@ -45,7 +57,9 @@ func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) imag
 
 		ctx.DrawImage(numb, img.X, img.Y)
 	}
-	return ctx.Image()
+	img := ctx.Image()
+
+	return img
 }
 
 func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string]theme.StaticText) image.Image {
@@ -69,14 +83,27 @@ func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string
 
 		ctx.SetColor(text.FontColor)
 		ctx.DrawStringAnchored(text.Text, float64(text.X)-(tolerance/2), float64(text.Y)-(tolerance/2), 0.0, 1.0)
-
-		ctx.Fill()
 	}
-	return ctx.Image()
+	numb := ctx.Image()
+
+	////b.saveImage(numb, fmt.Sprintf("res/test/image-texts.png"))
+	return numb
 }
 
 func (b *Builder) DrawText(text string, stat *theme.Text) image.Image {
-	ctx := gg.NewContextForImage(stat.BackgroundImage)
+	var numb image.Image
+
+	if stat.BackgroundImage == nil {
+		if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
+			numb = utils.CreateImage(b.device.Height, b.device.Width, stat.BackgroundColor)
+		} else {
+			numb = utils.CreateImage(b.device.Width, b.device.Height, stat.BackgroundColor)
+		}
+	} else {
+		numb = stat.BackgroundImage
+	}
+
+	ctx := gg.NewContextForImage(numb)
 
 	ctx.SetFontFace(stat.Font)
 	ctx.SetColor(stat.FontColor)
@@ -86,6 +113,7 @@ func (b *Builder) DrawText(text string, stat *theme.Text) image.Image {
 	maxw, maxh := ctx.MeasureString(measure)
 
 	w, h := ctx.MeasureString(text)
+	x1, y1 := int(math.Round(maxw)), int(math.Round(maxh))
 
 	center_total := (float64(stat.X) + maxw) / 2
 	center_image := (float64(stat.X) + w) / 2
@@ -100,11 +128,8 @@ func (b *Builder) DrawText(text string, stat *theme.Text) image.Image {
 	} else if stat.Align == theme.RIGHT {
 		ctx.DrawStringAnchored(text, float64(stat.X)+maxw, float64(stat.Y), 1.0, 1.0)
 	}
-	ctx.Fill()
+
 	ii := ctx.Image()
-
-	x1, y1 := int(math.Round(maxw)), int(math.Round(maxh))
-
 	b.log.Debugf("Drawing Text [%s] %dx%d", text, x1, y1)
 
 	crp := image.Rect(stat.X, stat.Y, stat.X+x1, stat.Y+y1)
@@ -114,29 +139,40 @@ func (b *Builder) DrawText(text string, stat *theme.Text) image.Image {
 	)
 	dst := image.NewRGBA(image.Rect(0, 0, x1, y1))
 	g.Draw(dst, ii)
-	//b.saveImage(ii, fmt.Sprintf("res/test/image-ii-%s-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", strings.Replace(strconv.Quote(text), "/", "-", -1), len(text), stat.X, stat.Y, w, h, maxw, maxh))
+
+	//b.saveImage(ii, fmt.Sprintf("res/test/image-twisted-%s-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", strings.Replace(strconv.Quote(text), "/", "-", -1), len(text), stat.X, stat.Y, w, h, maxw, maxh))
 	//b.saveImage(dst, fmt.Sprintf("res/test/image-%s-%d-%d-%d-%.2fx%.2f-%.2fx%.2f.png", strings.Replace(strconv.Quote(text), "/", "-", -1), len(text), stat.X, stat.Y, w, h, maxw, maxh))
 	return dst
 }
 
 func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image {
-	ctx := gg.NewContextForImage(stat.BackgroundImage)
+	var numb image.Image
 
+	if stat.BackgroundImage == nil {
+		if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
+			numb = utils.CreateImage(b.device.Height, b.device.Width, color.Transparent)
+		} else {
+			numb = utils.CreateImage(b.device.Width, b.device.Height, color.Transparent)
+		}
+	} else {
+		numb = stat.BackgroundImage
+	}
+
+	ctx := gg.NewContextForImage(numb)
 	barFilledWidth := math.Round(value / float64(stat.MaxValue-stat.MinValue) * float64(stat.Width))
 
 	x, y, x1, y1 := float64(stat.X), float64(stat.Y), float64(stat.Width), float64(stat.Height)
 
-	if stat.BarOutline {
-		x, y, x1, y1 := float64(stat.X)-border, float64(stat.Y)-border, float64(stat.Width)+border, float64(stat.Height)+border
-		b.log.Debugf("Drawing ProgressBar Size Outline (%.2f x %.2f) (%.2f x %.2f)", x, y, x1, y1)
-		ctx.SetColor(stat.BarColor)
-		ctx.DrawRectangle(x, y, x1, y1)
-		ctx.Fill()
-	}
 	ctx.SetColor(stat.BarColor)
 	ctx.DrawRectangle(x, y, barFilledWidth, y1)
 	ctx.Fill()
-
+	if stat.BarOutline {
+		b.log.Debugf("Drawing ProgressBar Size Outline (%.2f x %.2f) (%.2f x %.2f)", x, y, x1, y1)
+		ctx.SetColor(stat.BarColor)
+		//ctx.SetLineWidth(1)
+		ctx.DrawRectangle(x, y, x1, y1)
+		ctx.Stroke()
+	}
 	b.log.Debugf("Drawing ProgressBar Filled: %.2f  (%.2f x %.2f) (%.2f x %.2f)", barFilledWidth, x, y, x1, y1)
 
 	ii := ctx.Image()
@@ -148,6 +184,7 @@ func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image 
 	)
 	dst := image.NewRGBA(image.Rect(0, 0, stat.Width, stat.Height))
 	g.Draw(dst, ii)
+	//b.saveImage(ii, fmt.Sprintf("res/test/image-pb-full-%.0f-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Height))
 	//b.saveImage(dst, fmt.Sprintf("res/test/image-pb-%.0f-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Height))
 	return dst
 }

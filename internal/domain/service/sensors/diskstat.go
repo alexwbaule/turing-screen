@@ -30,7 +30,6 @@ func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p
 }
 
 func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
-	g.log.Infof("Ticker: %s", e.Interval)
 	ticker := time.NewTicker(e.Interval)
 
 	err := g.getDiskStat(ctx, e)
@@ -53,58 +52,64 @@ func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
 }
 
 func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
-	disks, err := disk.UsageWithContext(ctx, "/")
-	if err != nil {
-		return err
-	}
-	g.log.Infof("Disks: [%#v]", disks)
+	g.log.Debugf("Disk: [%#v]", e)
 
-	if e.Free != nil {
-		if e.Free.Text != nil && e.Free.Text.Show {
-			text := e.Free.Text
-			value := fmt.Sprintf("%s", utils.Bytes(disks.Free))
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+	select {
+	case <-ctx.Done():
+		g.log.Infof("Stopping getGpuStat job...")
+		return context.Canceled
+	default:
+		disks, err := disk.UsageWithContext(ctx, "/")
+		if err != nil {
+			return err
 		}
-		if e.Free.Percent != nil && e.Free.Percent.Show {
-			text := e.Free.Percent
-			value := fmt.Sprintf("%3.f%%", 100-disks.UsedPercent)
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+		if e.Free != nil {
+			if e.Free.Text != nil && e.Free.Text.Show {
+				text := e.Free.Text
+				value := fmt.Sprintf("%s", utils.Bytes(disks.Free))
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
+			if e.Free.Percent != nil && e.Free.Percent.Show {
+				text := e.Free.Percent
+				value := fmt.Sprintf("%3.f%%", 100-disks.UsedPercent)
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
 		}
-	}
-	if e.Used != nil {
-		if e.Used.Text != nil && e.Used.Text.Show {
-			text := e.Used.Text
-			value := fmt.Sprintf("%s", utils.Bytes(disks.Used))
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+		if e.Used != nil {
+			if e.Used.Text != nil && e.Used.Text.Show {
+				text := e.Used.Text
+				value := fmt.Sprintf("%s", utils.Bytes(disks.Used))
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
+			if e.Used.Percent != nil && e.Used.Percent.Show {
+				text := e.Used.Percent
+				value := fmt.Sprintf("%3.f%%", disks.UsedPercent)
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
 		}
-		if e.Used.Percent != nil && e.Used.Percent.Show {
-			text := e.Used.Percent
-			value := fmt.Sprintf("%3.f%%", disks.UsedPercent)
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-		}
-	}
-	if e.Total != nil {
-		if e.Total.Text != nil && e.Total.Text.Show {
-			text := e.Total.Text
-			value := fmt.Sprintf("%s", utils.Bytes(disks.Used))
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-		}
-		if e.Total.Percent != nil && e.Total.Percent.Show {
-			text := e.Total.Percent
-			value := fmt.Sprintf("%3d%%", 100)
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+		if e.Total != nil {
+			if e.Total.Text != nil && e.Total.Text.Show {
+				text := e.Total.Text
+				value := fmt.Sprintf("%s", utils.Bytes(disks.Used))
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
+			if e.Total.Percent != nil && e.Total.Percent.Show {
+				text := e.Total.Percent
+				value := fmt.Sprintf("%3d%%", 100)
+				img := g.builder.DrawText(value, text)
+				imgUpdt := device.NewImageProcess(img)
+				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
 		}
 	}
 	return nil
