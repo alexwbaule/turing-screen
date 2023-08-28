@@ -223,7 +223,7 @@ type Radial struct {
 	AngleStart          int  `mapstructure:"ANGLE_START"`
 	AngleEnd            int  `mapstructure:"ANGLE_END"`
 	AngleSteps          int  `mapstructure:"ANGLE_STEPS"`
-	AngleStep           int  `mapstructure:"ANGLE_SEP"`
+	AngleSep            int  `mapstructure:"ANGLE_SEP"`
 	Clockwise           bool `mapstructure:"CLOCKWISE"`
 	BarColor            color.Color
 	ShowText            bool `mapstructure:"SHOW_TEXT"`

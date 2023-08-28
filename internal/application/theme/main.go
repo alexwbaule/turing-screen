@@ -244,7 +244,7 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		AngleStart:          data["angle_start"].(int),
 		AngleEnd:            data["angle_end"].(int),
 		AngleSteps:          data["angle_steps"].(int),
-		AngleStep:           data["angle_step"].(int),
+		AngleSep:            data["angle_sep"].(int),
 		Clockwise:           data["clockwise"].(bool),
 		BarColor:            bgColor,
 		ShowText:            showText,

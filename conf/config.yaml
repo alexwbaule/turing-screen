@@ -1,6 +1,6 @@
 device:
   port: AUTO
-  theme: 5inchTheme2
+  theme: PurpleTheme
   log: debug
   sensors:
     network:
