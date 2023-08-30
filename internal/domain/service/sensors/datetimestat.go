@@ -38,7 +38,7 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			g.log.Infof("Stopping RunDateTime job...")
+			//g.log.Infof("Stopping RunDateTime job...")
 			return context.Canceled
 		}
 		err := g.getDateTime(ctx, e)
@@ -49,11 +49,11 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 }
 
 func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error {
-	g.log.Debugf("DateTime: [%#v]", e)
+	//g.log.Debugf("DateTime: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
-		g.log.Infof("Stopping getDateTime job...")
+		//g.log.Infof("Stopping getDateTime job...")
 		return context.Canceled
 	default:
 		now := time.Now()

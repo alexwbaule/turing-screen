@@ -10,6 +10,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/host"
 	"time"
 )
 
@@ -41,7 +42,7 @@ func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			g.log.Infof("Stopping RunMem job...")
+			//g.log.Infof("Stopping RunMem job...")
 			return context.Canceled
 		}
 		err := g.getDiskStat(ctx, e)
@@ -52,11 +53,11 @@ func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
 }
 
 func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
-	g.log.Debugf("Disk: [%#v]", e)
+	//g.log.Debugf("Disk: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
-		g.log.Infof("Stopping getGpuStat job...")
+		//g.log.Infof("Stopping getGpuStat job...")
 		return context.Canceled
 	default:
 		disks, err := disk.UsageWithContext(ctx, "/")
@@ -109,6 +110,33 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 				img := g.builder.DrawText(value, text)
 				imgUpdt := device.NewImageProcess(img)
 				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			}
+		}
+		if e.Temperature != nil {
+			if e.Temperature.Text != nil && e.Temperature.Text.Show {
+				text := e.Temperature.Text
+
+				stats, err := host.SensorsTemperaturesWithContext(ctx)
+				if err != nil {
+					return err
+				}
+				var value string
+				var has = false
+
+				for _, stat := range stats {
+					if stat.SensorKey == "nvme_composite" {
+						value = fmt.Sprintf("%3.0f", stat.Temperature)
+						if text.ShowUnit {
+							value += "°C"
+						}
+						has = true
+					}
+				}
+				if has {
+					img := g.builder.DrawText(value, text)
+					imgUpdt := device.NewImageProcess(img)
+					g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+				}
 			}
 		}
 	}

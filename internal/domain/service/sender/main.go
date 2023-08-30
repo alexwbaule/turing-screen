@@ -2,7 +2,6 @@ package sender
 
 import (
 	"context"
-	"errors"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
@@ -34,26 +33,29 @@ func (w *Worker) Run(jobs <-chan command.Command, fnConnError func() error) erro
 				w.log.Infof("Stopping worker job...")
 				return context.Canceled
 			case item := <-jobs:
+				w.log.Infof("worker job: %d", len(jobs))
+
 				item.SetCount(num)
 
 				switch item.(type) {
 				case *command.UpdatePayload:
 					num++
 				}
-				write, err := w.sender.Write(item)
-				w.log.Debugf("WorkerRun writed: %d", write)
+				_, err := w.sender.Write(item)
+				//w.log.Debugf("WorkerRun writed: %d", write)
 				if err != nil {
-					if errors.Is(err, command.ErrMatch) {
-						w.log.Errorf("worker error: %s", err.Error())
-						continue
-					}
 					if try == attempts {
 						w.log.Errorf("worker error: %s", err.Error())
 						return err
 					}
 					w.log.Errorf("retry [%d] worker on error: %s", try, err.Error())
+					err := fnConnError()
+					if err != nil {
+						return err
+					}
 					try++
-					return fnConnError()
+					num = 0
+					continue
 				}
 			}
 		}

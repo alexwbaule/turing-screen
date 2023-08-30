@@ -13,6 +13,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+func init_device(jobs chan<- command.Command, cmddev *command.Device, cmdmed *command.Media) {
+	jobs <- cmddev.Hello()
+	jobs <- cmdmed.StopVideo()
+	jobs <- cmdmed.StopMedia()
+}
+
 func main() {
 
 	app := application.NewApplication()
@@ -46,27 +52,23 @@ func main() {
 		g, ctx := errgroup.WithContext(ctx)
 
 		g.Go(func() error {
+			//TODO: refazer isso, para tratar erro corretamente.
 			err = worker.Run(jobs, func() error {
 				err := devSerial.RestartDevice()
+				app.Log.Infof("Device Restart: %+v", err)
 				if err != nil {
 					return err
 				}
+				init_device(jobs, cmdDevice, cmdMedia)
 				return nil
 			})
-			err := devSerial.Close()
-			if err != nil {
-				return err
-			}
-			return err
+			return devSerial.Close()
 		})
-
+		init_device(jobs, cmdDevice, cmdMedia)
 		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())
 		fbg := builder.BuildBackgroundTexts(bg, statsTheme.GetStaticTexts())
 		background := device2.NewImageProcess(fbg)
 
-		jobs <- cmdDevice.Hello()
-		jobs <- cmdMedia.StopVideo()
-		jobs <- cmdMedia.StopMedia()
 		jobs <- cmdBright.SetBrightness(app.Config.GetDeviceDisplay().Brightness)
 		jobs <- cmdPayload.SendPayload(background)
 

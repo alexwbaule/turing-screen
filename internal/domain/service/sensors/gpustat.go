@@ -41,7 +41,7 @@ func (g *GpuStat) RunGpuStat(ctx context.Context, e *theme.GPU) error {
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			g.log.Infof("Stopping RunMem job...")
+			//g.log.Infof("Stopping RunMem job...")
 			return context.Canceled
 		}
 		err := g.getGpuStat(ctx, e)
@@ -52,11 +52,11 @@ func (g *GpuStat) RunGpuStat(ctx context.Context, e *theme.GPU) error {
 }
 
 func (g *GpuStat) getGpuStat(ctx context.Context, e *theme.GPU) error {
-	g.log.Debugf("GPU: [%#v]", e)
+	//g.log.Debugf("GPU: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
-		g.log.Infof("Stopping getGpuStat job...")
+		//g.log.Infof("Stopping getGpuStat job...")
 		return context.Canceled
 	default:
 		var sensorMeasurements map[string]uint64

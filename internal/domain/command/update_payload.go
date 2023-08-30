@@ -52,7 +52,7 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 	copy(updateBitMapCmd[7:], pPad)
 	copy(updateBitMapCmd[10:], pCount)
 
-	m.log.Debugf("Count: %d", m.count)
+	//m.log.Debugf("Count: %d", m.count)
 
 	fullImage = append(fullImage, updateBitMapCmd)
 	for i := 0; i < size; i += chunk {

@@ -22,8 +22,8 @@ type Media struct {
 	log     *logger.Logger
 }
 
-func NewMedia(log *logger.Logger) Media {
-	return Media{
+func NewMedia(log *logger.Logger) *Media {
+	return &Media{
 		log: log,
 	}
 }

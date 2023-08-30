@@ -40,7 +40,7 @@ func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			g.log.Infof("Stopping RunMem job...")
+			//g.log.Infof("Stopping RunMem job...")
 			return context.Canceled
 		}
 		err := g.getMemStat(ctx, e)
@@ -51,11 +51,11 @@ func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 }
 
 func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
-	g.log.Debugf("Memory: [%#v]", e)
+	//g.log.Debugf("Memory: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
-		g.log.Infof("Stopping getMemStat job...")
+		//g.log.Infof("Stopping getMemStat job...")
 		return context.Canceled
 	default:
 		if e.Virtual != nil {
@@ -66,7 +66,7 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 
 			if e.Virtual.Free != nil && e.Virtual.Free.Show {
 				text := e.Virtual.Free
-				g.log.Debugf("Text: [%#v]", text)
+				//g.log.Debugf("Text: [%#v]", text)
 
 				value := fmt.Sprintf("%5d", virtualMem.Available/1000000)
 				if text.ShowUnit {
@@ -79,7 +79,7 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 			}
 			if e.Virtual.Used != nil && e.Virtual.Used.Show {
 				text := e.Virtual.Used
-				g.log.Debugf("Text: [%#v]", text)
+				//g.log.Debugf("Text: [%#v]", text)
 
 				value := fmt.Sprintf("%5d", virtualMem.Used/1000000)
 				if text.ShowUnit {
@@ -92,7 +92,7 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 			}
 			if e.Virtual.PercentText != nil && e.Virtual.PercentText.Show {
 				text := e.Virtual.PercentText
-				g.log.Debugf("Text: [%#v]", text)
+				//g.log.Debugf("Text: [%#v]", text)
 
 				value := fmt.Sprintf("%3.0f", virtualMem.UsedPercent)
 				if text.ShowUnit {

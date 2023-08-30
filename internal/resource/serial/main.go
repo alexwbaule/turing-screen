@@ -99,7 +99,7 @@ func (s *Serial) Close() error {
 
 func (s *Serial) Write(p command.Command) (int, error) {
 	var writen int
-	s.log.Debugf("Running Command %s", p.GetName())
+	//s.log.Debugf("Running Command %s", p.GetName())
 	for _, b := range p.GetBytes() {
 		n, err := s.port.Write(b)
 		writen += n
@@ -107,7 +107,7 @@ func (s *Serial) Write(p command.Command) (int, error) {
 			return 0, fmt.Errorf("write serial error: %w", err)
 		}
 	}
-	s.log.Debugf("Writen %d bytes", writen)
+	//s.log.Debugf("Writen %d bytes", writen)
 	v := p.ValidateWrite()
 	if v.Bytes != nil {
 		n, err := s.port.Write(v.Bytes)
@@ -141,10 +141,11 @@ func (s *Serial) Read(p command.Command) (int, error) {
 			break
 		}
 	}
-	s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
+	//s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
 
 	err := p.ValidateCommand(buff, readed)
 	if err != nil {
+		s.log.Debugf("Error on validate, readed [%s] = %s", string(bytes.Trim(buff, "\x00")), err.Error())
 		return 0, err
 	}
 	return readed, nil

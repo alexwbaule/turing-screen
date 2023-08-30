@@ -67,7 +67,6 @@ func ConvertToColor(s string, dft color.Color) color.Color {
 	if len(rgba) == 3 {
 		rgba = append(rgba, "255")
 	}
-
 	r, err := strconv.Atoi(rgba[0])
 	if err != nil {
 		return dft
@@ -90,6 +89,14 @@ func ConvertToColor(s string, dft color.Color) color.Color {
 		B: uint8(b),
 		A: uint8(a),
 	}
+}
+
+func Radians(degrees int) float64 {
+	return float64(degrees) * (math.Pi / 180.0)
+}
+
+func Degrees(radian float64) int {
+	return int(radian * (180.0 / math.Pi))
 }
 
 func CreateImage(width int, height int, background color.Color) *image.RGBA {

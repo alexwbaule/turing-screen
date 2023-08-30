@@ -44,7 +44,7 @@ func (g *CpuStat) RunPercentage(ctx context.Context, e *theme.Mesurement) error 
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			g.log.Infof("Stopping RunPercentage job...")
+			//g.log.Infof("Stopping RunPercentage job...")
 			return context.Canceled
 		}
 		err := g.getPercentageStat(ctx, e)
@@ -55,11 +55,11 @@ func (g *CpuStat) RunPercentage(ctx context.Context, e *theme.Mesurement) error 
 }
 
 func (g *CpuStat) getPercentageStat(ctx context.Context, e *theme.Mesurement) error {
-	g.log.Debugf("CPUPercentage: [%#v]", e)
+	//g.log.Debugf("CPUPercentage: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
-		g.log.Infof("Stopping getPercentageStat job...")
+		//g.log.Infof("Stopping getPercentageStat job...")
 		return context.Canceled
 	default:
 		percent, err := cpu.PercentWithContext(ctx, e.Interval, false)
@@ -83,10 +83,25 @@ func (g *CpuStat) getPercentageStat(ctx context.Context, e *theme.Mesurement) er
 				imgUpdt := device.NewImageProcess(img)
 				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
 			}
+			if e.Radial != nil && e.Radial.Show {
+
+				text := e.Radial
+
+				//g.log.Debugf("Text CPU Graph: %f [%#v]", prct, text)
+
+				for i := 0; i < 361; i++ {
+					text.AngleStart = 0
+					text.AngleEnd = i
+					img := g.builder.DrawRadialProgressBar(prct, text)
+					imgUpdt := device.NewImageProcess(img)
+					g.jobs <- g.p.SendPayload(imgUpdt, text.X-text.Radius, text.Y-text.Radius)
+					time.Sleep(2000)
+				}
+			}
 			if e.Graph != nil && e.Graph.Show {
 				text := e.Graph
 
-				g.log.Debugf("Text CPU Graph: %f [%#v]", prct, text)
+				//g.log.Debugf("Text CPU Graph: %f [%#v]", prct, text)
 
 				img := g.builder.DrawProgressBar(prct, text)
 				imgUpdt := device.NewImageProcess(img)
@@ -109,7 +124,7 @@ func (g *CpuStat) RunFrequency(ctx context.Context, e *theme.Mesurement) error {
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			g.log.Infof("Stopping GpuStat job...")
+			//g.log.Infof("Stopping GpuStat job...")
 			return context.Canceled
 		}
 		err := g.getFrequencyStat(ctx, e)
@@ -120,11 +135,11 @@ func (g *CpuStat) RunFrequency(ctx context.Context, e *theme.Mesurement) error {
 }
 
 func (g *CpuStat) getFrequencyStat(ctx context.Context, e *theme.Mesurement) error {
-	g.log.Debugf("CPUFrequency: [%#v]", e)
+	//g.log.Debugf("CPUFrequency: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
-		g.log.Infof("Stopping getPercentageStat job...")
+		//g.log.Infof("Stopping getPercentageStat job...")
 		return context.Canceled
 	default:
 		if e.Text != nil && e.Text.Show {
@@ -136,12 +151,12 @@ func (g *CpuStat) getFrequencyStat(ctx context.Context, e *theme.Mesurement) err
 			}
 
 			s := len(info)
-			g.log.Debugf("Mhz LEN: [%d]\n", s)
+			//g.log.Debugf("Mhz LEN: [%d]\n", s)
 
 			var vcpu float64 = 0
 			for _, stat := range info {
-				g.log.Debugf("Mhz %s\n", utils.Hertz(stat.Mhz))
-				vcpu += stat.Mhz
+				//g.log.Debugf("Mhz %s\n", utils.Hertz(stat.Mhz.Current))
+				vcpu += stat.Mhz.Current
 			}
 			speed := vcpu / float64(s)
 
@@ -167,7 +182,7 @@ func (g *CpuStat) RunTemperature(ctx context.Context, e *theme.Mesurement) error
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			g.log.Infof("Stopping GpuStat job...")
+			//g.log.Infof("Stopping GpuStat job...")
 			return context.Canceled
 		}
 		err := g.getTemperatureStat(ctx, e)
@@ -178,11 +193,11 @@ func (g *CpuStat) RunTemperature(ctx context.Context, e *theme.Mesurement) error
 }
 
 func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) error {
-	g.log.Debugf("CPUTemperature: [%#v]", e)
+	//g.log.Debugf("CPUTemperature: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
-		g.log.Infof("Stopping getPercentageStat job...")
+		//g.log.Infof("Stopping getPercentageStat job...")
 		return context.Canceled
 	default:
 		var value string
@@ -197,8 +212,8 @@ func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) e
 			}
 			for _, stat := range stats {
 				if stat.SensorKey == "zenpower_tdie" {
-					g.log.Infof("Temperature: %s = %.2f", stat.SensorKey, stat.Temperature)
-					g.log.Infof("Temperature: %.2f = %.2f", stat.High, stat.Critical)
+					//g.log.Infof("Temperature: %s = %.2f", stat.SensorKey, stat.Temperature)
+					//g.log.Infof("Temperature: %.2f = %.2f", stat.High, stat.Critical)
 					value = fmt.Sprintf("%3.0f", stat.Temperature)
 					if text.ShowUnit {
 						value += "°C"
@@ -228,7 +243,7 @@ func (g *CpuStat) RunLoad(ctx context.Context, e *theme.Load) error {
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			g.log.Infof("Stopping GpuStat job...")
+			//g.log.Infof("Stopping GpuStat job...")
 			return context.Canceled
 		}
 		err := g.getLoadStat(ctx, e)
@@ -239,11 +254,11 @@ func (g *CpuStat) RunLoad(ctx context.Context, e *theme.Load) error {
 }
 
 func (g *CpuStat) getLoadStat(ctx context.Context, e *theme.Load) error {
-	g.log.Debugf("CPULoad: [%#v]", e)
+	//g.log.Debugf("CPULoad: [%#v]", e)
 
 	select {
 	case <-ctx.Done():
-		g.log.Infof("Stopping getPercentageStat job...")
+		//g.log.Infof("Stopping getPercentageStat job...")
 		return context.Canceled
 	default:
 		lload, err := load.AvgWithContext(ctx)

@@ -98,6 +98,9 @@ func Hook(file string, reverse bool) mapstructure.DecodeHookFunc {
 		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.StaticImage{}) || t == reflect.TypeOf(&theme.StaticImage{})) {
 			return translateStaticImage(file, data.(map[string]interface{}))
 		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.DinamicImage{}) || t == reflect.TypeOf(&theme.DinamicImage{})) {
+			return translateStaticImage(file, data.(map[string]interface{}))
+		}
 		if t == reflect.TypeOf(time.Duration(1)) {
 			return translateDuration(data.(interface{}))
 		}
@@ -167,6 +170,7 @@ func translateGraph(file string, data map[string]interface{}) (interface{}, erro
 }
 func translateRadial(file string, data map[string]interface{}) (interface{}, error) {
 	var bgColor color.Color
+	var barColor color.Color
 	var fColor color.Color
 	var fface font.Face
 	var show bool
@@ -179,9 +183,9 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 
 	if data["bar_color"] != nil {
 		bgcolor := data["bar_color"].(string)
-		bgColor = utils.ConvertToColor(bgcolor, color.Transparent)
+		barColor = utils.ConvertToColor(bgcolor, color.Transparent)
 	} else {
-		bgColor = color.Transparent
+		barColor = color.Transparent
 	}
 
 	if data["background_image"] != nil {
@@ -246,7 +250,7 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		AngleSteps:          data["angle_steps"].(int),
 		AngleSep:            data["angle_sep"].(int),
 		Clockwise:           data["clockwise"].(bool),
-		BarColor:            bgColor,
+		BarColor:            barColor,
 		ShowText:            showText,
 		ShowUnit:            showUnit,
 		Font:                fface,
