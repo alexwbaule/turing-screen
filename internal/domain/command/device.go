@@ -89,14 +89,3 @@ func (d *Device) TurnOff() *Device {
 		log:     d.log,
 	}
 }
-
-func (d *Device) RestartScreen() *Device {
-	return &Device{
-		name: "RESTARTSCREEN",
-		bytes: []byte{
-			0x84, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
-		},
-		padding: 0x00,
-		log:     d.log,
-	}
-}

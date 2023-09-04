@@ -4,26 +4,36 @@ import (
 	"context"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
+	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 )
 
 const attempts = 3
 
 type Worker struct {
-	sender serial.SerialSender
-	log    *logger.Logger
-	ctx    context.Context
+	sender  serial.SerialSender
+	log     *logger.Logger
+	ctx     context.Context
+	bg      device.ImageBackground
+	device  *command.Device
+	media   *command.Media
+	payload *command.Payload
 }
 
-func NewWorker(c context.Context, s serial.SerialSender, l *logger.Logger) *Worker {
+func NewWorker(c context.Context, s serial.SerialSender, background device.ImageBackground,
+	d *command.Device, m *command.Media, p *command.Payload, l *logger.Logger) *Worker {
 	return &Worker{
-		ctx:    c,
-		sender: s,
-		log:    l,
+		ctx:     c,
+		sender:  s,
+		bg:      background,
+		log:     l,
+		device:  d,
+		media:   m,
+		payload: p,
 	}
 }
 
-func (w *Worker) Run(jobs <-chan command.Command, fnConnError func() error) error {
+func (w *Worker) Run(jobs <-chan command.Command) error {
 	var try = 0
 	var num int64 = 0
 
@@ -45,10 +55,11 @@ func (w *Worker) Run(jobs <-chan command.Command, fnConnError func() error) erro
 			if err != nil {
 				if try == attempts {
 					w.log.Errorf("worker error: %s", err.Error())
+					_ = w.OffChannel(w.device.TurnOff())
 					return err
 				}
 				w.log.Errorf("retry [%d] worker error: %s", try+1, err.Error())
-				err := fnConnError()
+				err := w.backoff()
 				if err != nil {
 					return err
 				}
@@ -57,4 +68,40 @@ func (w *Worker) Run(jobs <-chan command.Command, fnConnError func() error) erro
 			}
 		}
 	}
+}
+
+func (w *Worker) backoff() error {
+	err := w.OffChannel(w.media.StopVideo())
+	if err != nil {
+		return err
+	}
+	err = w.OffChannel(w.media.StopMedia())
+	if err != nil {
+		return err
+	}
+	err = w.OffChannel(w.device.Hello())
+	if err != nil {
+		return err
+	}
+	err = w.OffChannel(w.media.StopVideo())
+	if err != nil {
+		return err
+	}
+	err = w.OffChannel(w.media.StopMedia())
+	if err != nil {
+		return err
+	}
+	err = w.OffChannel(w.payload.SendPayload(w.bg))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w *Worker) OffChannel(cmd command.Command) error {
+	write, err := w.sender.Write(cmd)
+	if err != nil {
+		w.log.Errorf("can't send command to device, bytes [%d] -> %s", write, err)
+	}
+	return err
 }

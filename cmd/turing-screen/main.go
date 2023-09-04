@@ -18,7 +18,8 @@ func main() {
 
 	// Need a buffered, to be a 'non-blocking' channel
 	// to not freezes on retry connect attempts.
-	jobs := make(chan command.Command, 1500)
+	jobs := make(chan command.Command)
+
 	defer close(jobs)
 
 	app.Run(func(ctx context.Context) error {
@@ -33,69 +34,37 @@ func main() {
 		if err != nil {
 			return err
 		}
-
-		worker := sender.NewWorker(ctx, devSerial, app.Log)
-		cmdDevice := command.NewDevice(app.Log)
-		cmdMedia := command.NewMedia(app.Log)
-		cmdBright := command.NewBrightness(app.Log)
-		cmdPayload := command.NewPayload(app.Log, statsTheme.GetDisplay().Orientation)
-		cmdUpdate := command.NewUpdatePayload(app.Log, statsTheme.GetDisplay().Orientation, app.Config.GetDeviceDisplay())
 		builder := local.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
-
-		g, ctx := errgroup.WithContext(ctx)
-		g.Go(func() error {
-			app.Log.Info("Starting Worker")
-			return worker.Run(jobs, func() error {
-				err := devSerial.RestartDevice()
-				if err != nil {
-					return err
-				}
-				go func() {
-					jobs <- cmdDevice.Hello()
-					app.Log.Info("Start Hello Again")
-					jobs <- cmdMedia.StopVideo()
-					app.Log.Info("Start StopVideo Again")
-					jobs <- cmdMedia.StopMedia()
-					app.Log.Info("Start StopMedia Again")
-				}()
-				return nil
-			})
-		})
-
-		g.Go(func() error {
-			<-ctx.Done()
-			app.Log.Info("Shutdown device")
-			write, err := devSerial.Write(cmdDevice.TurnOff())
-			if err != nil {
-				app.Log.Errorf("Can't send TurnOff Device, bytes [%d] -> %s", write, err)
-			}
-			err = devSerial.Close()
-			if err != nil {
-				app.Log.Errorf("Can't close serial port", err)
-			}
-			return nil
-		})
 
 		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())
 		fbg := builder.BuildBackgroundTexts(bg, statsTheme.GetStaticTexts())
 		background := device2.NewImageProcess(fbg)
 
+		cmdDevice := command.NewDevice(app.Log)
+		cmdMedia := command.NewMedia(app.Log)
+		cmdBright := command.NewBrightness(app.Log)
+		cmdPayload := command.NewPayload(app.Log, statsTheme.GetDisplay().Orientation)
+		cmdUpdate := command.NewUpdatePayload(app.Log, statsTheme.GetDisplay().Orientation, app.Config.GetDeviceDisplay())
+		worker := sender.NewWorker(ctx, devSerial, background, cmdDevice, cmdMedia, cmdPayload, app.Log)
+
+		g, ctx := errgroup.WithContext(ctx)
+		g.Go(func() error {
+			app.Log.Info("Starting Worker")
+			return worker.Run(jobs)
+		})
+
+		g.Go(func() error {
+			<-ctx.Done()
+			app.Log.Info("Shutdown device")
+			return devSerial.Close()
+		})
+
 		app.Log.Info("Start App")
-
 		jobs <- cmdDevice.Hello()
-		app.Log.Info("Start Hello")
-
 		jobs <- cmdMedia.StopVideo()
-		app.Log.Info("Start StopVideo")
-
 		jobs <- cmdMedia.StopMedia()
-		app.Log.Info("Start StopMedia")
-
 		jobs <- cmdBright.SetBrightness(app.Config.GetDeviceDisplay().Brightness)
-		app.Log.Info("Start SetBrightness")
-
 		jobs <- cmdPayload.SendPayload(background)
-		app.Log.Info("Start SendPayload")
 
 		stats := statsTheme.GetStats()
 

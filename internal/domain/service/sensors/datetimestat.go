@@ -60,7 +60,7 @@ func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error
 			g.jobs <- g.p.SendPayload(img, x, y)
 		}
 		if e.Hour != nil {
-			img, x, y := BuildTextDt(g.builder, now, theme.TIME, e.Day.Text)
+			img, x, y := BuildTextDt(g.builder, now, theme.TIME, e.Hour.Text)
 			g.jobs <- g.p.SendPayload(img, x, y)
 		}
 	}

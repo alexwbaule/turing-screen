@@ -19,6 +19,7 @@ type Serial struct {
 type SerialSender interface {
 	Write(p command.Command) (int, error)
 	Read(p command.Command) (int, error)
+	RestartConnection() error
 }
 
 func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
@@ -65,9 +66,21 @@ func (s *Serial) ReopenPort() error {
 	s.device = v.device
 	return nil
 }
+func (s *Serial) RestartConnection() error {
+	s.log.Info("Restarting serial port connection")
+	err := s.Close()
+	if err != nil {
+		return err
+	}
+	err = s.ReopenPort()
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func (s *Serial) RestartDevice() error {
-	s.log.Info("Restarting serial port connection")
+	s.log.Info("Restarting device")
 	err := s.Close()
 	if err != nil {
 		return err
