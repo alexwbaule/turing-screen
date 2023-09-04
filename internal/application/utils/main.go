@@ -19,6 +19,16 @@ import (
 
 var DefaultFont = DefaultFontFace()
 
+type Formatter interface {
+	Hertz(s float64) string
+	Bitsf(s float64) string
+	Bytesf(s float64) string
+	IBytesf(s float64) string
+	Bits(s uint64) string
+	Bytes(s uint64) string
+	IBytes(s uint64) string
+}
+
 func CountStr(s string) int {
 	return len([]rune(s))
 }

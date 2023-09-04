@@ -26,37 +26,34 @@ func NewWorker(c context.Context, s serial.SerialSender, l *logger.Logger) *Work
 func (w *Worker) Run(jobs <-chan command.Command, fnConnError func() error) error {
 	var try = 0
 	var num int64 = 0
+
 	for {
-		for {
-			select {
-			case <-w.ctx.Done():
-				w.log.Infof("Stopping worker job...")
-				return context.Canceled
-			case item := <-jobs:
-				w.log.Infof("worker job: %d", len(jobs))
+		select {
+		case <-w.ctx.Done():
+			w.log.Infof("Stopping worker")
+			return w.ctx.Err()
+		case item := <-jobs:
+			w.log.Debugf("queue size: %d - update payload num: %d", len(jobs), num)
 
-				item.SetCount(num)
+			item.SetCount(num)
 
-				switch item.(type) {
-				case *command.UpdatePayload:
-					num++
+			switch item.(type) {
+			case *command.UpdatePayload:
+				num++
+			}
+			_, err := w.sender.Write(item)
+			if err != nil {
+				if try == attempts {
+					w.log.Errorf("worker error: %s", err.Error())
+					return err
 				}
-				_, err := w.sender.Write(item)
-				//w.log.Debugf("WorkerRun writed: %d", write)
+				w.log.Errorf("retry [%d] worker error: %s", try+1, err.Error())
+				err := fnConnError()
 				if err != nil {
-					if try == attempts {
-						w.log.Errorf("worker error: %s", err.Error())
-						return err
-					}
-					w.log.Errorf("retry [%d] worker on error: %s", try, err.Error())
-					err := fnConnError()
-					if err != nil {
-						return err
-					}
-					try++
-					num = 0
-					continue
+					return err
 				}
+				try++
+				num = 0
 			}
 		}
 	}

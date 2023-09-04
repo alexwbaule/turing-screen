@@ -2,12 +2,10 @@ package sensors
 
 import (
 	"context"
-	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
@@ -23,7 +21,7 @@ type DiskStat struct {
 
 func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *DiskStat {
 	return &DiskStat{
-		log:     l,
+		log:     l.With("runner", "disk_stats"),
 		jobs:    j,
 		builder: b,
 		p:       p,
@@ -32,6 +30,7 @@ func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p
 
 func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
 	ticker := time.NewTicker(e.Interval)
+	defer ticker.Stop()
 
 	err := g.getDiskStat(ctx, e)
 	if err != nil {
@@ -42,8 +41,8 @@ func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			//g.log.Infof("Stopping RunMem job...")
-			return context.Canceled
+			g.log.Info("Stopping RunDiskStat")
+			return ctx.Err()
 		}
 		err := g.getDiskStat(ctx, e)
 		if err != nil {
@@ -53,90 +52,99 @@ func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
 }
 
 func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
-	//g.log.Debugf("Disk: [%#v]", e)
-
 	select {
 	case <-ctx.Done():
-		//g.log.Infof("Stopping getGpuStat job...")
-		return context.Canceled
+		g.log.Info("Stopping getDiskStat")
+		return ctx.Err()
 	default:
 		disks, err := disk.UsageWithContext(ctx, "/")
 		if err != nil {
 			return err
 		}
 		if e.Free != nil {
-			if e.Free.Text != nil && e.Free.Text.Show {
-				text := e.Free.Text
-				value := fmt.Sprintf("%s", utils.Bytes(disks.Free))
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			}
 			if e.Free.Percent != nil && e.Free.Percent.Show {
-				text := e.Free.Percent
-				value := fmt.Sprintf("%3.f%%", 100-disks.UsedPercent)
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+				img, x, y := BuildText(g.builder, 100-disks.UsedPercent, "%3.f", "%", e.Free.Percent)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Free.Text != nil && e.Free.Text.Show {
+				img, x, y := BuildTextUint(g.builder, disks.Free, utils.Bytes, e.Free.Text)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Free.Radial != nil && e.Free.Radial.Show {
+				img, x, y := BuildRadial(g.builder, 100-disks.UsedPercent, e.Free.Radial)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Free.Graph != nil && e.Free.Graph.Show {
+				img, x, y := BuildGraph(g.builder, 100-disks.UsedPercent, e.Free.Graph)
+				g.jobs <- g.p.SendPayload(img, x, y)
 			}
 		}
 		if e.Used != nil {
-			if e.Used.Text != nil && e.Used.Text.Show {
-				text := e.Used.Text
-				value := fmt.Sprintf("%s", utils.Bytes(disks.Used))
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			}
 			if e.Used.Percent != nil && e.Used.Percent.Show {
-				text := e.Used.Percent
-				value := fmt.Sprintf("%3.f%%", disks.UsedPercent)
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+				img, x, y := BuildText(g.builder, disks.UsedPercent, "%3.f", "%", e.Used.Percent)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Used.Text != nil && e.Used.Text.Show {
+				img, x, y := BuildTextUint(g.builder, disks.Used, utils.Bytes, e.Used.Text)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Used.Radial != nil && e.Used.Radial.Show {
+				img, x, y := BuildRadial(g.builder, disks.UsedPercent, e.Used.Radial)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Used.Graph != nil && e.Used.Graph.Show {
+				img, x, y := BuildGraph(g.builder, disks.UsedPercent, e.Used.Graph)
+				g.jobs <- g.p.SendPayload(img, x, y)
 			}
 		}
 		if e.Total != nil {
-			if e.Total.Text != nil && e.Total.Text.Show {
-				text := e.Total.Text
-				value := fmt.Sprintf("%s", utils.Bytes(disks.Used))
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			}
 			if e.Total.Percent != nil && e.Total.Percent.Show {
-				text := e.Total.Percent
-				value := fmt.Sprintf("%3d%%", 100)
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+				img, x, y := BuildText(g.builder, 100, "%3.f", "%", e.Total.Percent)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Total.Text != nil && e.Total.Text.Show {
+				img, x, y := BuildTextUint(g.builder, disks.Total, utils.Bytes, e.Total.Text)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Total.Radial != nil && e.Total.Radial.Show {
+				img, x, y := BuildRadial(g.builder, 100, e.Total.Radial)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Total.Graph != nil && e.Total.Graph.Show {
+				img, x, y := BuildGraph(g.builder, 100, e.Total.Graph)
+				g.jobs <- g.p.SendPayload(img, x, y)
 			}
 		}
 		if e.Temperature != nil {
+			var temperature float64 = 0
+			var percent float64 = 0
+
+			stats, err := host.SensorsTemperaturesWithContext(ctx)
+			if err != nil {
+				return err
+			}
+			for _, stat := range stats {
+				if stat.SensorKey == "nvme_composite" {
+					temperature = stat.Temperature
+					percent = (stat.Temperature / stat.Critical) * 100
+				}
+			}
+
+			if e.Temperature.Percent != nil && e.Temperature.Percent.Show {
+				img, x, y := BuildText(g.builder, percent, "%3.0f", "%", e.Temperature.Percent)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
 			if e.Temperature.Text != nil && e.Temperature.Text.Show {
-				text := e.Temperature.Text
-
-				stats, err := host.SensorsTemperaturesWithContext(ctx)
-				if err != nil {
-					return err
-				}
-				var value string
-				var has = false
-
-				for _, stat := range stats {
-					if stat.SensorKey == "nvme_composite" {
-						value = fmt.Sprintf("%3.0f", stat.Temperature)
-						if text.ShowUnit {
-							value += "°C"
-						}
-						has = true
-					}
-				}
-				if has {
-					img := g.builder.DrawText(value, text)
-					imgUpdt := device.NewImageProcess(img)
-					g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-				}
+				img, x, y := BuildText(g.builder, temperature, "%3.0f", "%", e.Temperature.Text)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Temperature.Radial != nil && e.Temperature.Radial.Show {
+				img, x, y := BuildRadial(g.builder, temperature, e.Temperature.Radial)
+				g.jobs <- g.p.SendPayload(img, x, y)
+			}
+			if e.Temperature.Graph != nil && e.Temperature.Graph.Show {
+				img, x, y := BuildGraph(g.builder, temperature, e.Temperature.Graph)
+				g.jobs <- g.p.SendPayload(img, x, y)
 			}
 		}
 	}

@@ -54,6 +54,8 @@ func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 }
 
 func (s *Serial) ReopenPort() error {
+	s.log.Infof("Reopening serial port connection on %s", time.Second*10)
+
 	time.Sleep(time.Second * 5)
 	v, err := NewSerial(s.device.Name, s.log)
 	if err != nil {
@@ -65,6 +67,7 @@ func (s *Serial) ReopenPort() error {
 }
 
 func (s *Serial) RestartDevice() error {
+	s.log.Info("Restarting serial port connection")
 	err := s.Close()
 	if err != nil {
 		return err
@@ -85,6 +88,7 @@ func (s *Serial) ResetDevice() error {
 }
 
 func (s *Serial) Close() error {
+	s.log.Info("Closing serial port")
 	err := s.port.ResetInputBuffer()
 	if err != nil {
 		return fmt.Errorf("serial reset input buffer error: %w", err)
@@ -93,7 +97,7 @@ func (s *Serial) Close() error {
 	if err != nil {
 		return fmt.Errorf("serial reset output buffer error: %w", err)
 	}
-	s.log.Info("Close serial port")
+	s.log.Info("Closed serial port")
 	return s.port.Close()
 }
 

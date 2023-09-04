@@ -21,7 +21,7 @@ type MemStat struct {
 
 func NewMemStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *MemStat {
 	return &MemStat{
-		log:     l,
+		log:     l.With("runner", "mem_stats"),
 		jobs:    j,
 		builder: b,
 		p:       p,
@@ -30,6 +30,7 @@ func NewMemStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p 
 
 func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 	ticker := time.NewTicker(e.Interval)
+	defer ticker.Stop()
 
 	err := g.getMemStat(ctx, e)
 	if err != nil {
@@ -40,8 +41,8 @@ func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			//g.log.Infof("Stopping RunMem job...")
-			return context.Canceled
+			g.log.Info("Stopping RunMem")
+			return ctx.Err()
 		}
 		err := g.getMemStat(ctx, e)
 		if err != nil {
@@ -51,12 +52,10 @@ func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 }
 
 func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
-	//g.log.Debugf("Memory: [%#v]", e)
-
 	select {
 	case <-ctx.Done():
-		//g.log.Infof("Stopping getMemStat job...")
-		return context.Canceled
+		g.log.Info("Stopping getMemStat")
+		return ctx.Err()
 	default:
 		if e.Virtual != nil {
 			virtualMem, err := mem.VirtualMemoryWithContext(ctx)
@@ -114,6 +113,5 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 
 		}
 	}
-
 	return nil
 }

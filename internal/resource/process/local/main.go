@@ -192,10 +192,6 @@ func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image 
 func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image.Image {
 	var numb image.Image
 
-	//stat.BarColor
-	//stat.BackgroundColor
-	//stat.FontColor
-
 	if stat.BackgroundImage == nil {
 		if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
 			numb = utils.CreateImage(b.device.Height, b.device.Width, stat.BackgroundColor)
@@ -206,70 +202,72 @@ func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image
 		numb = stat.BackgroundImage
 	}
 	ctx := gg.NewContextForImage(numb)
-	ctx.SetColor(stat.BarColor)
-
-	if math.Mod(float64(stat.AngleStart), 631) == math.Mod(float64(stat.AngleEnd), 361) {
-		if stat.Clockwise {
-			stat.AngleStart += 1
-		} else {
-			stat.AngleEnd += 1
-		}
-	}
-
-	diameter := 2 * stat.Radius
-	x, y, _, _ := float64(stat.X), float64(stat.Y), float64(stat.X-stat.Radius), float64(stat.Y+stat.Radius)
-	//percent := (value - float64(stat.MinValue)) / float64(stat.MaxValue-stat.MinValue)
 	/*
-		const S = 128
-
-		for i := 0; i < 360; i += 15 {
-			ctx.Push()
-			ctx.RotateAbout(gg.Radians(float64(i)), S/2, S/2)
-			ctx.DrawEllipse(S/2, S/2, S*7/16, S/8)
-			ctx.Fill()
-			ctx.Pop()
+		if math.Mod(float64(stat.AngleStart), 631) == math.Mod(float64(stat.AngleEnd), 361) {
+			if stat.Clockwise {
+				stat.AngleStart += 1
+			} else {
+				stat.AngleEnd += 1
+			}
 		}
 	*/
+	diameter := 2 * stat.Radius
+	x, y, _, _ := float64(stat.X), float64(stat.Y), float64(stat.X-stat.Radius), float64(stat.Y+stat.Radius)
 
-	pct := (value - float64(stat.MinValue)) / float64(stat.MaxValue-stat.MinValue)
-	crazy := stat.AngleEnd - stat.AngleStart
+	amin := utils.Radians(stat.AngleStart)
+	amax := utils.Radians(180 + stat.AngleStart + stat.AngleEnd)
 
-	v := float64(crazy) * pct
+	total := (value * float64(180+stat.AngleStart+stat.AngleEnd)) / 100
 
-	b.log.Infof("Percent: %f [%f]", pct, v)
+	cur := utils.Radians(int(total) + stat.AngleStart)
 
-	a := utils.Radians(stat.AngleStart)
-	c := utils.Radians(stat.AngleEnd)
+	if cur > amax {
+		cur = amax
+	}
 
-	fmt.Printf("A: %f, C:%f\n", a, c)
+	b.log.Debugf("A: %f, C: %f %f", amin, amax, cur)
 
-	ctx.DrawCircle(float64(stat.X-stat.Radius), float64(stat.Y-stat.Radius), 5)
-	ctx.DrawCircle(float64(stat.X+stat.Radius), float64(stat.Y+stat.Radius), 5)
-	ctx.DrawCircle(float64(stat.X+stat.Radius), float64(stat.Y-stat.Radius), 5)
-	ctx.DrawCircle(float64(stat.X-stat.Radius), float64(stat.Y+stat.Radius), 5)
-	ctx.Fill()
-
-	ctx.ClearPath()
-
-	ctx.SetColor(stat.BarColor)
+	/*
+		ctx.DrawCircle(float64(stat.X-stat.Radius), float64(stat.Y-stat.Radius), 5)
+		ctx.DrawCircle(float64(stat.X+stat.Radius), float64(stat.Y+stat.Radius), 5)
+		ctx.DrawCircle(float64(stat.X+stat.Radius), float64(stat.Y-stat.Radius), 5)
+		ctx.DrawCircle(float64(stat.X-stat.Radius), float64(stat.Y+stat.Radius), 5)
+		ctx.Fill()
+		ctx.ClearPath()
+		ctx.SetColor(stat.BarColor)
+	*/
 
 	//ctx.SetDash(10)
 	//ctx.SetDashOffset(1)
 
+	if stat.ShowText {
+		ctx.SetFontFace(stat.Font)
+		ctx.SetColor(stat.FontColor)
+		ctx.ClearPath()
+
+		measure := fmt.Sprintf("%3.f", value)
+		if stat.ShowUnit {
+			measure = fmt.Sprintf("%3.f%%", value)
+		}
+
+		w, _ := ctx.MeasureString(measure)
+
+		center_total := (float64(stat.X-stat.Radius) + w) / 2
+		center_image := (float64(stat.X-stat.Radius) + w) / 2
+		center := center_total - center_image
+
+		ctx.DrawStringAnchored(measure, float64(stat.X)+center, float64(stat.Y), 0.5, 0.5)
+	}
+	ctx.SetColor(stat.BarColor)
+
 	ctx.SetLineCapSquare()
 
-	ctx.DrawArc(x, y, float64(stat.Radius-(stat.Width/2)), a, c)
-	ctx.Rotate(90)
-
+	ctx.DrawArc(x, y, float64(stat.Radius-(stat.Width/2)), amin, cur)
 	ctx.NewSubPath()
 	ctx.ClosePath()
 
-	//ctx.DrawCircle(x, y, float64(stat.Radius))
-
 	ctx.SetLineWidth(float64(stat.Width))
 	ctx.Stroke()
-
-	//ctx.Fill()
 
 	ii := ctx.Image()
 
@@ -281,7 +279,7 @@ func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image
 	dst := image.NewRGBA(image.Rect(0, 0, diameter, diameter))
 	g.Draw(dst, ii)
 	//b.saveImage(ii, fmt.Sprintf("res/test/image-radial-full-%.0f-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Radius))
-	//zb.saveImage(dst, fmt.Sprintf("res/test/image-radial-%.0f-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Radius))
+	//b.saveImage(dst, fmt.Sprintf("res/test/image-radial-%.0f-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Radius))
 	return dst
 }
 

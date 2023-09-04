@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"github.com/alexwbaule/turing-screen/internal/application/config"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"golang.org/x/sync/errgroup"
@@ -9,6 +10,12 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+)
+
+const (
+	exitOk          = 0
+	exitWatchDog    = 1
+	timeoutShutdown = 10 * time.Second
 )
 
 type Application struct {
@@ -46,17 +53,16 @@ func (a *Application) Run(f func(ctx context.Context) error) {
 	go func() {
 		<-ctx.Done()
 		a.Log.Info("Waiting application shutdown...")
-		time.Sleep(5 * time.Second)
-		os.Exit(1)
+		time.Sleep(timeoutShutdown)
+		os.Exit(exitWatchDog)
 	}()
 
-	err := wg.Wait()
-
-	if err == context.Canceled || err == nil {
-		a.Log.Info("Graceful shutdown")
-		return
-	} else if err != nil {
+	if err := wg.Wait(); err != nil {
+		if errors.Is(err, context.Canceled) {
+			a.Log.Info("Graceful shutdown")
+			return
+		}
 		a.Log.Fatalf("Graceful shutdown error: %s", err)
 	}
-	os.Exit(0)
+	os.Exit(exitOk)
 }

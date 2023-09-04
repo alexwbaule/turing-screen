@@ -5,7 +5,6 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"time"
 )
@@ -19,7 +18,7 @@ type DateTimeStat struct {
 
 func NewDateTimeStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *DateTimeStat {
 	return &DateTimeStat{
-		log:     l,
+		log:     l.With("runner", "datetime_stats"),
 		jobs:    j,
 		builder: b,
 		p:       p,
@@ -28,6 +27,7 @@ func NewDateTimeStat(l *logger.Logger, j chan<- command.Command, b *local.Builde
 
 func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error {
 	ticker := time.NewTicker(e.Interval)
+	defer ticker.Stop()
 
 	err := g.getDateTime(ctx, e)
 	if err != nil {
@@ -38,8 +38,8 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			//g.log.Infof("Stopping RunDateTime job...")
-			return context.Canceled
+			g.log.Info("Stopping RunDateTime")
+			return ctx.Err()
 		}
 		err := g.getDateTime(ctx, e)
 		if err != nil {
@@ -49,27 +49,19 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 }
 
 func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error {
-	//g.log.Debugf("DateTime: [%#v]", e)
-
 	select {
 	case <-ctx.Done():
-		//g.log.Infof("Stopping getDateTime job...")
-		return context.Canceled
+		g.log.Info("Stopping getDateTime")
+		return ctx.Err()
 	default:
 		now := time.Now()
 		if e.Day != nil {
-			text := e.Day.Text
-			value := now.Format(text.Format.String(theme.DATE))
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			img, x, y := BuildTextDt(g.builder, now, theme.DATE, e.Day.Text)
+			g.jobs <- g.p.SendPayload(img, x, y)
 		}
 		if e.Hour != nil {
-			text := e.Hour.Text
-			value := now.Format(text.Format.String(theme.TIME))
-			img := g.builder.DrawText(value, text)
-			imgUpdt := device.NewImageProcess(img)
-			g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+			img, x, y := BuildTextDt(g.builder, now, theme.TIME, e.Day.Text)
+			g.jobs <- g.p.SendPayload(img, x, y)
 		}
 	}
 	return nil

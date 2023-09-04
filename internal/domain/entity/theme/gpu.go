@@ -7,4 +7,5 @@ type GPU struct {
 	Percentage  *Mesurement   `mapstructure:"PERCENTAGE"`
 	Memory      *Mesurement   `mapstructure:"MEMORY"`
 	Temperature *Mesurement   `mapstructure:"TEMPERATURE"`
+	Power       *Mesurement   `mapstructure:"POWER"`
 }

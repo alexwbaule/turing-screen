@@ -134,5 +134,21 @@ func openAMDGPU(cardName string) (C.amdgpu_device_handle, error) {
 		return nil, fmt.Errorf("fail to initialize %s: %d", devPath, err)
 	}
 	return devHandle, nil
+}
 
+func GetCardInfo(cardName string) (uint32, error) {
+	devHandle, err := openAMDGPU(cardName)
+	if err != nil {
+		return 0, err
+	}
+	defer C.amdgpu_device_deinitialize(devHandle)
+
+	var info C.struct_amdgpu_gpu_info
+	rc := C.amdgpu_query_gpu_info(devHandle, &info)
+
+	if rc < 0 {
+		return 0, fmt.Errorf("fail to get query amdgpu_query_gpu_info %s: %d", cardName, rc)
+	}
+
+	return uint32(info.family_id), nil
 }

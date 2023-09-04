@@ -31,7 +31,7 @@ type lastValues struct {
 
 func NewDNetStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload, m edevice.Net) *NetStat {
 	return &NetStat{
-		log:     l,
+		log:     l.With("runner", "net_stats"),
 		jobs:    j,
 		builder: b,
 		p:       p,
@@ -49,6 +49,7 @@ func NewDNetStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p
 
 func (g *NetStat) RunNetStat(ctx context.Context, e *theme.Network) error {
 	ticker := time.NewTicker(e.Interval)
+	defer ticker.Stop()
 
 	err := g.getNetStat(ctx, e)
 	if err != nil {
@@ -59,8 +60,8 @@ func (g *NetStat) RunNetStat(ctx context.Context, e *theme.Network) error {
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
-			//g.log.Infof("Stopping RunNetStat job...")
-			return context.Canceled
+			g.log.Info("Stopping RunNetStat")
+			return ctx.Err()
 		}
 		err := g.getNetStat(ctx, e)
 		if err != nil {
@@ -70,11 +71,10 @@ func (g *NetStat) RunNetStat(ctx context.Context, e *theme.Network) error {
 }
 
 func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
-	//g.log.Debugf("Network: [%#v]", e)
 	select {
 	case <-ctx.Done():
-		//g.log.Infof("Stopping getNetStat job...")
-		return context.Canceled
+		g.log.Info("Stopping getNetStat")
+		return ctx.Err()
 	default:
 		netIos, err := net.IOCountersWithContext(ctx, true)
 		if err != nil {
