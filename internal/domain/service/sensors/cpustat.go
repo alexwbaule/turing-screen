@@ -40,10 +40,10 @@ func (g *CpuStat) RunPercentage(ctx context.Context, e *theme.Mesurement) error 
 
 	for {
 		select {
-		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("Stopping RunPercentage")
 			return ctx.Err()
+		case <-ticker.C:
 		}
 		err := g.getPercentageStat(ctx, e)
 		if err != nil {
@@ -54,38 +54,44 @@ func (g *CpuStat) RunPercentage(ctx context.Context, e *theme.Mesurement) error 
 
 func (g *CpuStat) getPercentageStat(ctx context.Context, e *theme.Mesurement) error {
 	var value float64 = 0
+	var payloads []*command.UpdatePayload
 
-	select {
-	case <-ctx.Done():
-		g.log.Info("Stopping getPercentageStat")
-		return ctx.Err()
-	default:
-		percent, err := cpu.PercentWithContext(ctx, e.Interval, false)
-		if err != nil {
-			return err
+	percent, err := cpu.PercentWithContext(ctx, e.Interval, false)
+	if err != nil {
+		return err
+	}
+
+	if len(percent) == 1 {
+		value = percent[0]
+
+		if e.Percent != nil && e.Percent.Show {
+			img, x, y := BuildText(g.builder, value, "%3.0f", "%", e.Percent)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
-
-		if len(percent) == 1 {
-			value = percent[0]
-
-			if e.Percent != nil && e.Percent.Show {
-				img, x, y := BuildText(g.builder, value, "%3.0f", "%", e.Percent)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Text != nil && e.Text.Show {
-				img, x, y := BuildText(g.builder, value, "%3.0f", "%", e.Text)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Radial != nil && e.Radial.Show {
-				img, x, y := BuildRadial(g.builder, value, e.Radial)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Graph != nil && e.Graph.Show {
-				img, x, y := BuildGraph(g.builder, value, e.Graph)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
+		if e.Text != nil && e.Text.Show {
+			img, x, y := BuildText(g.builder, value, "%3.0f", "%", e.Text)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Radial != nil && e.Radial.Show {
+			img, x, y := BuildRadial(g.builder, value, e.Radial)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Graph != nil && e.Graph.Show {
+			img, x, y := BuildGraph(g.builder, value, e.Graph)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 	}
+
+	for _, payload := range payloads {
+		select {
+		case <-ctx.Done():
+			g.log.Info("Stopping getPercentageStat")
+			return ctx.Err()
+		default:
+			g.jobs <- payload
+		}
+	}
+
 	return nil
 }
 
@@ -100,11 +106,12 @@ func (g *CpuStat) RunFrequency(ctx context.Context, e *theme.Mesurement) error {
 
 	for {
 		select {
-		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("Stopping Frequency")
 			return ctx.Err()
+		case <-ticker.C:
 		}
+
 		err := g.getFrequencyStat(ctx, e)
 		if err != nil {
 			return err
@@ -113,40 +120,47 @@ func (g *CpuStat) RunFrequency(ctx context.Context, e *theme.Mesurement) error {
 }
 
 func (g *CpuStat) getFrequencyStat(ctx context.Context, e *theme.Mesurement) error {
-	select {
-	case <-ctx.Done():
-		g.log.Info("Stopping getPercentageStat")
-		return ctx.Err()
-	default:
-		info, err := cpu.InfoWithContext(ctx)
-		if err != nil {
-			return err
-		}
-		s := len(info)
+	var payloads []*command.UpdatePayload
 
-		var vcpu float64 = 0
-		for _, stat := range info {
-			vcpu += stat.Mhz.Current
-		}
-		speed := vcpu / float64(s)
+	info, err := cpu.InfoWithContext(ctx)
+	if err != nil {
+		return err
+	}
+	s := len(info)
 
-		if e.Percent != nil && e.Percent.Show {
-			img, x, y := BuildText(g.builder, speed, "%3.0f", "%", e.Percent)
-			g.jobs <- g.p.SendPayload(img, x, y)
-		}
-		if e.Text != nil && e.Text.Show {
-			img, x, y := BuildTextFloat(g.builder, speed, utils.Hertz, e.Text)
-			g.jobs <- g.p.SendPayload(img, x, y)
-		}
-		if e.Radial != nil && e.Radial.Show {
-			img, x, y := BuildRadial(g.builder, speed, e.Radial)
-			g.jobs <- g.p.SendPayload(img, x, y)
-		}
-		if e.Graph != nil && e.Graph.Show {
-			img, x, y := BuildGraph(g.builder, speed, e.Graph)
-			g.jobs <- g.p.SendPayload(img, x, y)
+	var vcpu float64 = 0
+	for _, stat := range info {
+		vcpu += stat.Mhz.Current
+	}
+	speed := vcpu / float64(s)
+
+	if e.Percent != nil && e.Percent.Show {
+		img, x, y := BuildText(g.builder, speed, "%3.0f", "%", e.Percent)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Text != nil && e.Text.Show {
+		img, x, y := BuildTextFloat(g.builder, speed, utils.Hertz, e.Text)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Radial != nil && e.Radial.Show {
+		img, x, y := BuildRadial(g.builder, speed, e.Radial)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Graph != nil && e.Graph.Show {
+		img, x, y := BuildGraph(g.builder, speed, e.Graph)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+
+	for _, payload := range payloads {
+		select {
+		case <-ctx.Done():
+			g.log.Info("Stopping getFrequencyStat")
+			return ctx.Err()
+		default:
+			g.jobs <- payload
 		}
 	}
+
 	return nil
 }
 
@@ -161,10 +175,10 @@ func (g *CpuStat) RunTemperature(ctx context.Context, e *theme.Mesurement) error
 
 	for {
 		select {
-		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("Stopping GpuStat")
 			return ctx.Err()
+		case <-ticker.C:
 		}
 		err := g.getTemperatureStat(ctx, e)
 		if err != nil {
@@ -174,40 +188,46 @@ func (g *CpuStat) RunTemperature(ctx context.Context, e *theme.Mesurement) error
 }
 
 func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) error {
-	select {
-	case <-ctx.Done():
-		g.log.Info("Stopping getPercentageStat")
-		return ctx.Err()
-	default:
-		var temperature float64 = 0
-		var percent float64 = 0
+	var payloads []*command.UpdatePayload
 
-		stats, err := host.SensorsTemperaturesWithContext(ctx)
-		if err != nil {
-			return err
-		}
-		for _, stat := range stats {
-			if stat.SensorKey == "zenpower_tdie" {
-				temperature = stat.Temperature
-				percent = (stat.Temperature / stat.Critical) * 100
-			}
-		}
+	var temperature float64 = 0
+	var percent float64 = 0
 
-		if e.Percent != nil && e.Percent.Show {
-			img, x, y := BuildText(g.builder, percent, "%3.0f", "%", e.Percent)
-			g.jobs <- g.p.SendPayload(img, x, y)
+	stats, err := host.SensorsTemperaturesWithContext(ctx)
+	if err != nil {
+		return err
+	}
+	for _, stat := range stats {
+		if stat.SensorKey == "zenpower_tdie" {
+			temperature = stat.Temperature
+			percent = (stat.Temperature / stat.Critical) * 100
 		}
-		if e.Text != nil && e.Text.Show {
-			img, x, y := BuildText(g.builder, temperature, "%3.0f", "%", e.Text)
-			g.jobs <- g.p.SendPayload(img, x, y)
-		}
-		if e.Radial != nil && e.Radial.Show {
-			img, x, y := BuildRadial(g.builder, temperature, e.Radial)
-			g.jobs <- g.p.SendPayload(img, x, y)
-		}
-		if e.Graph != nil && e.Graph.Show {
-			img, x, y := BuildGraph(g.builder, temperature, e.Graph)
-			g.jobs <- g.p.SendPayload(img, x, y)
+	}
+
+	if e.Percent != nil && e.Percent.Show {
+		img, x, y := BuildText(g.builder, percent, "%3.0f", "%", e.Percent)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Text != nil && e.Text.Show {
+		img, x, y := BuildText(g.builder, temperature, "%3.0f", "%", e.Text)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Radial != nil && e.Radial.Show {
+		img, x, y := BuildRadial(g.builder, temperature, e.Radial)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Graph != nil && e.Graph.Show {
+		img, x, y := BuildGraph(g.builder, temperature, e.Graph)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+
+	for _, payload := range payloads {
+		select {
+		case <-ctx.Done():
+			g.log.Info("Stopping getTemperatureStat")
+			return ctx.Err()
+		default:
+			g.jobs <- payload
 		}
 	}
 	return nil
@@ -224,10 +244,10 @@ func (g *CpuStat) RunLoad(ctx context.Context, e *theme.Load) error {
 
 	for {
 		select {
-		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("Stopping GpuStat")
 			return ctx.Err()
+		case <-ticker.C:
 		}
 		err := g.getLoadStat(ctx, e)
 		if err != nil {
@@ -237,27 +257,33 @@ func (g *CpuStat) RunLoad(ctx context.Context, e *theme.Load) error {
 }
 
 func (g *CpuStat) getLoadStat(ctx context.Context, e *theme.Load) error {
-	select {
-	case <-ctx.Done():
-		g.log.Info("Stopping getPercentageStat")
-		return ctx.Err()
-	default:
-		lload, err := load.AvgWithContext(ctx)
-		if err != nil {
-			return err
-		}
+	var payloads []*command.UpdatePayload
 
-		if e.One.Text != nil && e.One.Text.Show {
-			img, x, y := BuildText(g.builder, lload.Load1, "%3.0f", "%", e.One.Text)
-			g.jobs <- g.p.SendPayload(img, x, y)
-		}
-		if e.Five.Text != nil && e.Five.Text.Show {
-			img, x, y := BuildText(g.builder, lload.Load5, "%3.0f", "%", e.Five.Text)
-			g.jobs <- g.p.SendPayload(img, x, y)
-		}
-		if e.Fifteen.Text != nil && e.Fifteen.Text.Show {
-			img, x, y := BuildText(g.builder, lload.Load15, "%3.0f", "%", e.Fifteen.Text)
-			g.jobs <- g.p.SendPayload(img, x, y)
+	lload, err := load.AvgWithContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	if e.One.Text != nil && e.One.Text.Show {
+		img, x, y := BuildText(g.builder, lload.Load1, "%3.0f", "%", e.One.Text)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Five.Text != nil && e.Five.Text.Show {
+		img, x, y := BuildText(g.builder, lload.Load5, "%3.0f", "%", e.Five.Text)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Fifteen.Text != nil && e.Fifteen.Text.Show {
+		img, x, y := BuildText(g.builder, lload.Load15, "%3.0f", "%", e.Fifteen.Text)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+
+	for _, payload := range payloads {
+		select {
+		case <-ctx.Done():
+			g.log.Info("Stopping getTemperatureStat")
+			return ctx.Err()
+		default:
+			g.jobs <- payload
 		}
 	}
 	return nil

@@ -17,7 +17,7 @@ func BuildGraph(builder *local.Builder, mesurement float64, graph *theme.Graph) 
 	return device.NewImageProcess(img), graph.X, graph.Y
 }
 
-func BuildText(builder *local.Builder, mesurement float64, format string, unit string, text *theme.Text) (*device.ImageProcess, int, int) {
+func BuildText(builder *local.Builder, mesurement any, format string, unit string, text *theme.Text) (*device.ImageProcess, int, int) {
 	str := fmt.Sprintf(format, mesurement)
 	if text.ShowUnit {
 		str += unit

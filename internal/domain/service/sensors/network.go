@@ -2,13 +2,11 @@ package sensors
 
 import (
 	"context"
-	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	edevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/shirou/gopsutil/v3/net"
 	"time"
@@ -58,10 +56,11 @@ func (g *NetStat) RunNetStat(ctx context.Context, e *theme.Network) error {
 
 	for {
 		select {
-		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("Stopping RunNetStat")
 			return ctx.Err()
+		case <-ticker.C:
+
 		}
 		err := g.getNetStat(ctx, e)
 		if err != nil {
@@ -71,135 +70,93 @@ func (g *NetStat) RunNetStat(ctx context.Context, e *theme.Network) error {
 }
 
 func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
-	select {
-	case <-ctx.Done():
-		g.log.Info("Stopping getNetStat")
-		return ctx.Err()
-	default:
-		netIos, err := net.IOCountersWithContext(ctx, true)
-		if err != nil {
-			return err
+	var payloads []*command.UpdatePayload
+
+	netIos, err := net.IOCountersWithContext(ctx, true)
+	if err != nil {
+		return err
+	}
+
+	for _, netIo := range netIos {
+		if e.Wired != nil {
+			if netIo.Name == g.names.Wired {
+				btr := netIo.BytesRecv
+				bts := netIo.BytesSent
+				recvtx := btr - g.wired.recv
+				senttx := bts - g.wired.sent
+
+				if e.Wired.Download != nil && e.Wired.Download.Text.Show {
+					v := (recvtx / uint64(e.Interval.Seconds())) * 8
+					if recvtx == 0 {
+						v = recvtx
+					}
+					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wired.Download.Text)
+					payloads = append(payloads, g.p.SendPayload(img, x, y))
+				}
+				if e.Wired.Downloaded != nil && e.Wired.Downloaded.Text.Show {
+					img, x, y := BuildTextUint(g.builder, btr, utils.IBytes, e.Wired.Downloaded.Text)
+					payloads = append(payloads, g.p.SendPayload(img, x, y))
+				}
+				if e.Wired.Upload != nil && e.Wired.Upload.Text.Show {
+					v := (senttx / uint64(e.Interval.Seconds())) * 8
+					if senttx == 0 {
+						v = recvtx
+					}
+					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wired.Upload.Text)
+					payloads = append(payloads, g.p.SendPayload(img, x, y))
+				}
+				if e.Wired.Uploaded != nil && e.Wired.Uploaded.Text.Show {
+					img, x, y := BuildTextUint(g.builder, bts, utils.IBytes, e.Wired.Uploaded.Text)
+					payloads = append(payloads, g.p.SendPayload(img, x, y))
+				}
+				g.wired.recv = btr
+				g.wired.sent = bts
+			}
 		}
+		if e.Wifi != nil {
+			if netIo.Name == g.names.Wifi {
+				btr := netIo.BytesRecv
+				bts := netIo.BytesSent
+				recvtx := btr - g.wifi.recv
+				senttx := bts - g.wifi.sent
 
-		for _, netIo := range netIos {
-			if e.Wired != nil {
-				if netIo.Name == g.names.Wired {
-					btr := netIo.BytesRecv
-					bts := netIo.BytesSent
-					recvtx := btr - g.wired.recv
-					senttx := bts - g.wired.sent
-
-					if e.Wired.Download != nil && e.Wired.Download.Text.Show {
-						text := e.Wired.Download.Text
-						//g.log.Debugf("Text: [%#v]", text)
-
-						v := (recvtx / uint64(e.Interval.Seconds())) * 8
-						if recvtx == 0 {
-							v = recvtx
-						}
-						value := fmt.Sprintf("%s/s", utils.Bits(v))
-						//g.log.Infof("NetIo Wired Download: %s", value)
-						img := g.builder.DrawText(value, text)
-						imgUpdt := device.NewImageProcess(img)
-						g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
+				if e.Wifi.Download != nil && e.Wifi.Download.Text.Show {
+					v := (recvtx / uint64(e.Interval.Seconds())) * 8
+					if recvtx == 0 {
+						v = recvtx
 					}
-					if e.Wired.Downloaded != nil && e.Wired.Downloaded.Text.Show {
-						text := e.Wired.Downloaded.Text
-						//g.log.Debugf("Text: [%#v]", text)
-
-						value := fmt.Sprintf("%s", utils.IBytes(btr))
-						//g.log.Infof("NetIo Wired Downloaded: %s", value)
-						img := g.builder.DrawText(value, text)
-						imgUpdt := device.NewImageProcess(img)
-						g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-					}
-					if e.Wired.Upload != nil && e.Wired.Upload.Text.Show {
-						text := e.Wired.Upload.Text
-						//g.log.Debugf("Text: [%#v]", text)
-
-						v := (senttx / uint64(e.Interval.Seconds())) * 8
-						if senttx == 0 {
-							v = recvtx
-						}
-						value := fmt.Sprintf("%s/s", utils.Bits(v))
-						//g.log.Infof("NetIo Wired Upload: %s", value)
-						img := g.builder.DrawText(value, text)
-						imgUpdt := device.NewImageProcess(img)
-						g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-					}
-					if e.Wired.Uploaded != nil && e.Wired.Uploaded.Text.Show {
-						text := e.Wired.Uploaded.Text
-						//g.log.Debugf("Text: [%#v]", text)
-
-						value := fmt.Sprintf("%s", utils.IBytes(bts))
-						//g.log.Infof("NetIo Wired Uploaded: %s", value)
-						img := g.builder.DrawText(value, text)
-						imgUpdt := device.NewImageProcess(img)
-						g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-					}
-					g.wired.recv = btr
-					g.wired.sent = bts
+					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wifi.Download.Text)
+					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
-			}
-			if e.Wifi != nil {
-				if netIo.Name == g.names.Wifi {
-					btr := netIo.BytesRecv
-					bts := netIo.BytesSent
-					recvtx := btr - g.wifi.recv
-					senttx := bts - g.wifi.sent
-
-					if e.Wifi.Download != nil && e.Wifi.Download.Text.Show {
-						text := e.Wifi.Download.Text
-						//g.log.Debugf("Text: [%#v]", text)
-
-						v := (recvtx / uint64(e.Interval.Seconds())) * 8
-						if recvtx == 0 {
-							v = recvtx
-						}
-						value := fmt.Sprintf("%s/s", utils.Bits(v))
-						//g.log.Infof("NetIo Wifi Download: %s", value)
-						img := g.builder.DrawText(value, text)
-						imgUpdt := device.NewImageProcess(img)
-						g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-					}
-					if e.Wifi.Downloaded != nil && e.Wifi.Downloaded.Text.Show {
-						text := e.Wifi.Downloaded.Text
-						//g.log.Debugf("Text: [%#v]", text)
-
-						value := fmt.Sprintf("%s", utils.IBytes(btr))
-						//g.log.Infof("NetIo Wifi Downloaded: %s", value)
-						img := g.builder.DrawText(value, text)
-						imgUpdt := device.NewImageProcess(img)
-						g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-					}
-					if e.Wifi.Upload != nil && e.Wifi.Upload.Text.Show {
-						text := e.Wifi.Upload.Text
-						//g.log.Debugf("Text: [%#v]", text)
-
-						v := (senttx / uint64(e.Interval.Seconds())) * 8
-						if senttx == 0 {
-							v = recvtx
-						}
-						value := fmt.Sprintf("%s/s", utils.Bits(v))
-						//g.log.Infof("NetIo Wifi Upload: %s", value)
-						img := g.builder.DrawText(value, text)
-						imgUpdt := device.NewImageProcess(img)
-						g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-					}
-					if e.Wifi.Uploaded != nil && e.Wifi.Uploaded.Text.Show {
-						text := e.Wifi.Uploaded.Text
-						//g.log.Debugf("Text: [%#v]", text)
-
-						value := fmt.Sprintf("%s", utils.IBytes(bts))
-						//g.log.Infof("NetIo Wifi Uploaded: %s", value)
-						img := g.builder.DrawText(value, text)
-						imgUpdt := device.NewImageProcess(img)
-						g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-					}
-					g.wifi.recv = btr
-					g.wifi.sent = bts
+				if e.Wifi.Downloaded != nil && e.Wifi.Downloaded.Text.Show {
+					img, x, y := BuildTextUint(g.builder, btr, utils.IBytes, e.Wifi.Downloaded.Text)
+					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
+				if e.Wifi.Upload != nil && e.Wifi.Upload.Text.Show {
+					v := (senttx / uint64(e.Interval.Seconds())) * 8
+					if senttx == 0 {
+						v = recvtx
+					}
+					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wifi.Upload.Text)
+					payloads = append(payloads, g.p.SendPayload(img, x, y))
+				}
+				if e.Wifi.Uploaded != nil && e.Wifi.Uploaded.Text.Show {
+					img, x, y := BuildTextUint(g.builder, bts, utils.IBytes, e.Wifi.Uploaded.Text)
+					payloads = append(payloads, g.p.SendPayload(img, x, y))
+				}
+				g.wifi.recv = btr
+				g.wifi.sent = bts
 			}
+		}
+	}
+
+	for _, payload := range payloads {
+		select {
+		case <-ctx.Done():
+			g.log.Info("Stopping getNetStat")
+			return ctx.Err()
+		default:
+			g.jobs <- payload
 		}
 	}
 	return nil

@@ -51,15 +51,15 @@ func (w *Worker) Run(jobs <-chan command.Command) error {
 			case *command.UpdatePayload:
 				num++
 			}
-			_, err := w.sender.Write(item)
+			err := w.OffChannel(item)
 			if err != nil {
 				if try == attempts {
-					w.log.Errorf("worker error: %s", err.Error())
+					w.log.Errorf("max attempts reached: %s", err.Error())
 					_ = w.OffChannel(w.device.TurnOff())
 					return err
 				}
 				w.log.Errorf("retry [%d] worker error: %s", try+1, err.Error())
-				err := w.backoff()
+				err = w.backoff()
 				if err != nil {
 					return err
 				}
@@ -101,7 +101,7 @@ func (w *Worker) backoff() error {
 func (w *Worker) OffChannel(cmd command.Command) error {
 	write, err := w.sender.Write(cmd)
 	if err != nil {
-		w.log.Errorf("can't send command to device, bytes [%d] -> %s", write, err)
+		w.log.Errorf("can't send command [%s] to device, bytes [%d] -> %s", cmd.GetName(), write, err)
 	}
 	return err
 }

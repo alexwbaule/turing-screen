@@ -11,6 +11,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 	"golang.org/x/sync/errgroup"
+	"time"
 )
 
 func main() {
@@ -48,6 +49,7 @@ func main() {
 		worker := sender.NewWorker(ctx, devSerial, background, cmdDevice, cmdMedia, cmdPayload, app.Log)
 
 		g, ctx := errgroup.WithContext(ctx)
+
 		g.Go(func() error {
 			app.Log.Info("Starting Worker")
 			return worker.Run(jobs)
@@ -56,7 +58,21 @@ func main() {
 		g.Go(func() error {
 			<-ctx.Done()
 			app.Log.Info("Shutdown device")
-			return devSerial.Close()
+			count := 0
+			for {
+				select {
+				case _ = <-jobs:
+				default:
+					time.Sleep(200 * time.Millisecond)
+					count++
+				}
+				if count == 8 {
+					app.Log.Info("Shutdown clean queue")
+					break
+				}
+			}
+			_ = devSerial.Close()
+			return ctx.Err()
 		})
 
 		app.Log.Info("Start App")

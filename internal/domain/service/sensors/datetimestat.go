@@ -36,10 +36,11 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 
 	for {
 		select {
-		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("Stopping RunDateTime")
 			return ctx.Err()
+		case <-ticker.C:
+
 		}
 		err := g.getDateTime(ctx, e)
 		if err != nil {
@@ -49,19 +50,25 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 }
 
 func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error {
-	select {
-	case <-ctx.Done():
-		g.log.Info("Stopping getDateTime")
-		return ctx.Err()
-	default:
-		now := time.Now()
-		if e.Day != nil {
-			img, x, y := BuildTextDt(g.builder, now, theme.DATE, e.Day.Text)
-			g.jobs <- g.p.SendPayload(img, x, y)
-		}
-		if e.Hour != nil {
-			img, x, y := BuildTextDt(g.builder, now, theme.TIME, e.Hour.Text)
-			g.jobs <- g.p.SendPayload(img, x, y)
+	var payloads []*command.UpdatePayload
+
+	now := time.Now()
+	if e.Day != nil {
+		img, x, y := BuildTextDt(g.builder, now, theme.DATE, e.Day.Text)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+	if e.Hour != nil {
+		img, x, y := BuildTextDt(g.builder, now, theme.TIME, e.Hour.Text)
+		payloads = append(payloads, g.p.SendPayload(img, x, y))
+	}
+
+	for _, payload := range payloads {
+		select {
+		case <-ctx.Done():
+			g.log.Info("Stopping getDateTime")
+			return ctx.Err()
+		default:
+			g.jobs <- payload
 		}
 	}
 	return nil

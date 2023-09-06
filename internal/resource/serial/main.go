@@ -101,7 +101,7 @@ func (s *Serial) ResetDevice() error {
 }
 
 func (s *Serial) Close() error {
-	s.log.Info("Closing serial port")
+	s.log.Info("Closing serial port..")
 	err := s.port.ResetInputBuffer()
 	if err != nil {
 		return fmt.Errorf("serial reset input buffer error: %w", err)
@@ -110,7 +110,7 @@ func (s *Serial) Close() error {
 	if err != nil {
 		return fmt.Errorf("serial reset output buffer error: %w", err)
 	}
-	s.log.Info("Closed serial port")
+	s.log.Info("Done!")
 	return s.port.Close()
 }
 
@@ -157,6 +157,7 @@ func (s *Serial) Read(p command.Command) (int, error) {
 		if n == v.Size {
 			break
 		}
+		time.Sleep(time.Millisecond)
 	}
 	//s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
 

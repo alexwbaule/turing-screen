@@ -38,10 +38,11 @@ func (g *GpuStat) RunGpuStat(ctx context.Context, e *theme.GPU) error {
 
 	for {
 		select {
-		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("Stopping RunGpuStat")
 			return ctx.Err()
+		case <-ticker.C:
+
 		}
 		err := g.getGpuStat(ctx, e)
 		if err != nil {
@@ -51,121 +52,127 @@ func (g *GpuStat) RunGpuStat(ctx context.Context, e *theme.GPU) error {
 }
 
 func (g *GpuStat) getGpuStat(ctx context.Context, e *theme.GPU) error {
-	select {
-	case <-ctx.Done():
-		g.log.Info("Stopping getGpuStat")
-		return ctx.Err()
-	default:
-		var sensorMeasurements map[string]uint64
-		var err error
+	var payloads []*command.UpdatePayload
 
-		var gpuAvgPower uint64 = 0
-		var gpuTemp uint64 = 0
-		var gpuLoad uint64 = 0
-		var vranUsage uint64 = 0
-		var vramSize uint64 = 0
+	var sensorMeasurements map[string]uint64
+	var err error
 
-		cards := amdgpu.GetAMDGPUs()
+	var gpuAvgPower uint64 = 0
+	var gpuTemp uint64 = 0
+	var gpuLoad uint64 = 0
+	var vranUsage uint64 = 0
+	var vramSize uint64 = 0
 
-		if len(cards) > 0 {
-			sensorMeasurements, err = amdgpu.GetCardSensor(cards[0])
-			if err != nil {
-				return err
-			}
-		}
+	cards := amdgpu.GetAMDGPUs()
 
-		if measurement, exists := sensorMeasurements["GPU_AVG_POWER"]; exists {
-			gpuAvgPower = measurement
+	if len(cards) > 0 {
+		sensorMeasurements, err = amdgpu.GetCardSensor(cards[0])
+		if err != nil {
+			return err
 		}
-		if measurement, exists := sensorMeasurements["GPU_TEMP"]; exists {
-			gpuTemp = measurement
-		}
-		if measurement, exists := sensorMeasurements["GPU_LOAD"]; exists {
-			gpuLoad = measurement
-		}
-		if measurement, exists := sensorMeasurements["VRAM_USAGE"]; exists {
-			vranUsage = measurement
-		}
-		if measurement, exists := sensorMeasurements["VRAM_SIZE"]; exists {
-			vramSize = measurement
-		}
+	}
 
-		if e.Memory != nil {
-			perc := float64(0)
-			if vramSize > 0 && vranUsage > 0 {
-				perc = float64(vranUsage/vramSize) * 100
-			}
-			if e.Memory.Percent != nil && e.Memory.Percent.Show {
-				img, x, y := BuildText(g.builder, perc, "%3.f", "%", e.Memory.Percent)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Memory.Text != nil && e.Memory.Text.Show {
-				img, x, y := BuildTextUint(g.builder, vranUsage, utils.Bytes, e.Memory.Text)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Memory.Radial != nil && e.Memory.Radial.Show {
-				img, x, y := BuildRadial(g.builder, perc, e.Memory.Radial)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Memory.Graph != nil && e.Memory.Graph.Show {
-				img, x, y := BuildGraph(g.builder, perc, e.Memory.Graph)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-		}
-		if e.Temperature != nil {
-			if e.Temperature.Percent != nil && e.Temperature.Percent.Show {
-				img, x, y := BuildText(g.builder, float64(gpuTemp), "%3.f", "%", e.Temperature.Percent)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Temperature.Text != nil && e.Temperature.Text.Show {
-				img, x, y := BuildText(g.builder, float64(gpuTemp), "%3.f", "°C", e.Temperature.Text)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Temperature.Radial != nil && e.Temperature.Radial.Show {
-				img, x, y := BuildRadial(g.builder, float64(gpuTemp), e.Temperature.Radial)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Temperature.Graph != nil && e.Temperature.Graph.Show {
-				img, x, y := BuildGraph(g.builder, float64(gpuTemp), e.Temperature.Graph)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-		}
+	if measurement, exists := sensorMeasurements["GPU_AVG_POWER"]; exists {
+		gpuAvgPower = measurement
+	}
+	if measurement, exists := sensorMeasurements["GPU_TEMP"]; exists {
+		gpuTemp = measurement
+	}
+	if measurement, exists := sensorMeasurements["GPU_LOAD"]; exists {
+		gpuLoad = measurement
+	}
+	if measurement, exists := sensorMeasurements["VRAM_USAGE"]; exists {
+		vranUsage = measurement
+	}
+	if measurement, exists := sensorMeasurements["VRAM_SIZE"]; exists {
+		vramSize = measurement
+	}
 
-		if e.Percentage != nil {
-			if e.Percentage.Percent != nil && e.Percentage.Percent.Show {
-				img, x, y := BuildText(g.builder, float64(gpuLoad), "%3.f", "%", e.Percentage.Percent)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Percentage.Text != nil && e.Percentage.Text.Show {
-				img, x, y := BuildText(g.builder, float64(gpuLoad), "%3.f", "%", e.Percentage.Text)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Percentage.Radial != nil && e.Percentage.Radial.Show {
-				img, x, y := BuildRadial(g.builder, float64(gpuLoad), e.Percentage.Radial)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Percentage.Graph != nil && e.Percentage.Graph.Show {
-				img, x, y := BuildGraph(g.builder, float64(gpuLoad), e.Percentage.Graph)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
+	if e.Memory != nil {
+		perc := float64(0)
+		if vramSize > 0 && vranUsage > 0 {
+			perc = float64(vranUsage/vramSize) * 100
 		}
-		if e.Power != nil {
-			if e.Power.Percent != nil && e.Power.Percent.Show {
-				img, x, y := BuildText(g.builder, float64(gpuAvgPower), "%3.f", "%", e.Power.Percent)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Power.Text != nil && e.Power.Text.Show {
-				img, x, y := BuildText(g.builder, float64(gpuAvgPower), "%3.f", "W", e.Power.Text)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Power.Radial != nil && e.Power.Radial.Show {
-				img, x, y := BuildRadial(g.builder, float64(gpuAvgPower), e.Power.Radial)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
-			if e.Power.Graph != nil && e.Power.Graph.Show {
-				img, x, y := BuildGraph(g.builder, float64(gpuAvgPower), e.Power.Graph)
-				g.jobs <- g.p.SendPayload(img, x, y)
-			}
+		if e.Memory.Percent != nil && e.Memory.Percent.Show {
+			img, x, y := BuildText(g.builder, perc, "%3.f", "%", e.Memory.Percent)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Memory.Text != nil && e.Memory.Text.Show {
+			img, x, y := BuildTextUint(g.builder, vranUsage, utils.Bytes, e.Memory.Text)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Memory.Radial != nil && e.Memory.Radial.Show {
+			img, x, y := BuildRadial(g.builder, perc, e.Memory.Radial)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Memory.Graph != nil && e.Memory.Graph.Show {
+			img, x, y := BuildGraph(g.builder, perc, e.Memory.Graph)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+	}
+	if e.Temperature != nil {
+		if e.Temperature.Percent != nil && e.Temperature.Percent.Show {
+			img, x, y := BuildText(g.builder, float64(gpuTemp), "%3.f", "%", e.Temperature.Percent)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Temperature.Text != nil && e.Temperature.Text.Show {
+			img, x, y := BuildText(g.builder, float64(gpuTemp), "%3.f", "°C", e.Temperature.Text)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Temperature.Radial != nil && e.Temperature.Radial.Show {
+			img, x, y := BuildRadial(g.builder, float64(gpuTemp), e.Temperature.Radial)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Temperature.Graph != nil && e.Temperature.Graph.Show {
+			img, x, y := BuildGraph(g.builder, float64(gpuTemp), e.Temperature.Graph)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+	}
+
+	if e.Percentage != nil {
+		if e.Percentage.Percent != nil && e.Percentage.Percent.Show {
+			img, x, y := BuildText(g.builder, float64(gpuLoad), "%3.f", "%", e.Percentage.Percent)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Percentage.Text != nil && e.Percentage.Text.Show {
+			img, x, y := BuildText(g.builder, float64(gpuLoad), "%3.f", "%", e.Percentage.Text)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Percentage.Radial != nil && e.Percentage.Radial.Show {
+			img, x, y := BuildRadial(g.builder, float64(gpuLoad), e.Percentage.Radial)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Percentage.Graph != nil && e.Percentage.Graph.Show {
+			img, x, y := BuildGraph(g.builder, float64(gpuLoad), e.Percentage.Graph)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+	}
+	if e.Power != nil {
+		if e.Power.Percent != nil && e.Power.Percent.Show {
+			img, x, y := BuildText(g.builder, float64(gpuAvgPower), "%3.f", "%", e.Power.Percent)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Power.Text != nil && e.Power.Text.Show {
+			img, x, y := BuildText(g.builder, float64(gpuAvgPower), "%3.f", "W", e.Power.Text)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Power.Radial != nil && e.Power.Radial.Show {
+			img, x, y := BuildRadial(g.builder, float64(gpuAvgPower), e.Power.Radial)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Power.Graph != nil && e.Power.Graph.Show {
+			img, x, y := BuildGraph(g.builder, float64(gpuAvgPower), e.Power.Graph)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+	}
+
+	for _, payload := range payloads {
+		select {
+		case <-ctx.Done():
+			g.log.Info("Stopping getGpuStat")
+			return ctx.Err()
+		default:
+			g.jobs <- payload
 		}
 	}
 	return nil

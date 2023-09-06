@@ -170,6 +170,11 @@ func IBytesf(s float64) string {
 	return humanateFloatBytes(s, 1024, sizes)
 }
 
+func BitsShort(s uint64) string {
+	sizes := []string{"b", "k", "M", "G", "T", "P", "E"}
+	return humanateBytes(s, 1000, sizes)
+}
+
 func Bits(s uint64) string {
 	sizes := []string{"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb"}
 	return humanateBytes(s, 1000, sizes)

@@ -2,11 +2,10 @@ package sensors
 
 import (
 	"context"
-	"fmt"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/shirou/gopsutil/v3/mem"
 	"time"
@@ -39,10 +38,10 @@ func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 
 	for {
 		select {
-		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("Stopping RunMem")
 			return ctx.Err()
+		case <-ticker.C:
 		}
 		err := g.getMemStat(ctx, e)
 		if err != nil {
@@ -52,65 +51,62 @@ func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 }
 
 func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
-	select {
-	case <-ctx.Done():
-		g.log.Info("Stopping getMemStat")
-		return ctx.Err()
-	default:
-		if e.Virtual != nil {
-			virtualMem, err := mem.VirtualMemoryWithContext(ctx)
-			if err != nil {
-				return err
-			}
+	var payloads []*command.UpdatePayload
 
-			if e.Virtual.Free != nil && e.Virtual.Free.Show {
-				text := e.Virtual.Free
-				//g.log.Debugf("Text: [%#v]", text)
-
-				value := fmt.Sprintf("%5d", virtualMem.Available/1000000)
-				if text.ShowUnit {
-					value += "M"
-				}
-
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			}
-			if e.Virtual.Used != nil && e.Virtual.Used.Show {
-				text := e.Virtual.Used
-				//g.log.Debugf("Text: [%#v]", text)
-
-				value := fmt.Sprintf("%5d", virtualMem.Used/1000000)
-				if text.ShowUnit {
-					value += "M"
-				}
-
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			}
-			if e.Virtual.PercentText != nil && e.Virtual.PercentText.Show {
-				text := e.Virtual.PercentText
-				//g.log.Debugf("Text: [%#v]", text)
-
-				value := fmt.Sprintf("%3.0f", virtualMem.UsedPercent)
-				if text.ShowUnit {
-					value += "%"
-				}
-
-				img := g.builder.DrawText(value, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			}
-			if e.Virtual.Graph != nil && e.Virtual.Graph.Show {
-				text := e.Virtual.Graph
-				img := g.builder.DrawProgressBar(virtualMem.UsedPercent, text)
-				imgUpdt := device.NewImageProcess(img)
-				g.jobs <- g.p.SendPayload(imgUpdt, text.X, text.Y)
-			}
+	if e.Virtual != nil {
+		virtualMem, err := mem.VirtualMemoryWithContext(ctx)
+		if err != nil {
+			return err
 		}
-		if e.Swap != nil {
 
+		if e.Virtual.Free != nil && e.Virtual.Free.Show {
+			img, x, y := BuildTextUint(g.builder, virtualMem.Available, utils.BitsShort, e.Virtual.Free)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Virtual.Used != nil && e.Virtual.Used.Show {
+			img, x, y := BuildTextUint(g.builder, virtualMem.Used, utils.BitsShort, e.Virtual.Used)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Virtual.PercentText != nil && e.Virtual.PercentText.Show {
+			img, x, y := BuildText(g.builder, virtualMem.UsedPercent, "%3.0f", "%", e.Virtual.PercentText)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Virtual.Graph != nil && e.Virtual.Graph.Show {
+			img, x, y := BuildGraph(g.builder, virtualMem.UsedPercent, e.Virtual.Graph)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+	}
+	if e.Swap != nil {
+		swapMem, err := mem.SwapMemoryWithContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		if e.Swap.Free != nil && e.Swap.Free.Show {
+			img, x, y := BuildTextUint(g.builder, swapMem.Free, utils.BitsShort, e.Swap.Free)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Swap.Used != nil && e.Swap.Used.Show {
+			img, x, y := BuildTextUint(g.builder, swapMem.Used, utils.BitsShort, e.Swap.Used)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Swap.PercentText != nil && e.Swap.PercentText.Show {
+			img, x, y := BuildText(g.builder, swapMem.UsedPercent, "%3.0f", "%", e.Swap.PercentText)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+		if e.Swap.Graph != nil && e.Swap.Graph.Show {
+			img, x, y := BuildGraph(g.builder, swapMem.UsedPercent, e.Swap.Graph)
+			payloads = append(payloads, g.p.SendPayload(img, x, y))
+		}
+	}
+
+	for _, payload := range payloads {
+		select {
+		case <-ctx.Done():
+			g.log.Info("Stopping getMemStat")
+			return ctx.Err()
+		default:
+			g.jobs <- payload
 		}
 	}
 	return nil

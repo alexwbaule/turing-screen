@@ -1,6 +1,6 @@
 device:
   port: AUTO
-  theme: 5inchTheme2Radial
+  theme: 5inchTheme2
   log: debug
   sensors:
     network:
