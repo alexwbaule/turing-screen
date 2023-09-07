@@ -133,7 +133,7 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Temperature.Text != nil && e.Temperature.Text.Show {
-			img, x, y := BuildText(g.builder, temperature, "%3.0f", "%", e.Temperature.Text)
+			img, x, y := BuildText(g.builder, temperature, "%3.0f", "°C", e.Temperature.Text)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Temperature.Radial != nil && e.Temperature.Radial.Show {

@@ -134,6 +134,7 @@ func (s *Serial) Write(p command.Command) (int, error) {
 		}
 	}
 	if v.Size > 0 {
+		time.Sleep(200 * time.Millisecond)
 		return s.Read(p)
 	}
 	return writen, nil
@@ -157,7 +158,6 @@ func (s *Serial) Read(p command.Command) (int, error) {
 		if n == v.Size {
 			break
 		}
-		time.Sleep(time.Millisecond)
 	}
 	//s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
 

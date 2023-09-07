@@ -205,11 +205,11 @@ func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) e
 	}
 
 	if e.Percent != nil && e.Percent.Show {
-		img, x, y := BuildText(g.builder, percent, "%3.0f", "%", e.Percent)
+		img, x, y := BuildText(g.builder, percent, "%3.0f", "°C", e.Percent)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 	if e.Text != nil && e.Text.Show {
-		img, x, y := BuildText(g.builder, temperature, "%3.0f", "%", e.Text)
+		img, x, y := BuildText(g.builder, temperature, "%3.0f", "°C", e.Text)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 	if e.Radial != nil && e.Radial.Show {
