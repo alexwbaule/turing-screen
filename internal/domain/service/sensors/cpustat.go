@@ -41,7 +41,7 @@ func (g *CpuStat) RunPercentage(ctx context.Context, e *theme.Mesurement) error 
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping RunPercentage")
+			g.log.Info("stopping RunPercentage")
 			return ctx.Err()
 		case <-ticker.C:
 		}
@@ -85,7 +85,7 @@ func (g *CpuStat) getPercentageStat(ctx context.Context, e *theme.Mesurement) er
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getPercentageStat")
+			g.log.Info("stopping getPercentageStat")
 			return ctx.Err()
 		default:
 			g.jobs <- payload
@@ -107,7 +107,7 @@ func (g *CpuStat) RunFrequency(ctx context.Context, e *theme.Mesurement) error {
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping Frequency")
+			g.log.Info("stopping Frequency")
 			return ctx.Err()
 		case <-ticker.C:
 		}
@@ -154,7 +154,7 @@ func (g *CpuStat) getFrequencyStat(ctx context.Context, e *theme.Mesurement) err
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getFrequencyStat")
+			g.log.Info("stopping getFrequencyStat")
 			return ctx.Err()
 		default:
 			g.jobs <- payload
@@ -176,7 +176,7 @@ func (g *CpuStat) RunTemperature(ctx context.Context, e *theme.Mesurement) error
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping GpuStat")
+			g.log.Info("stopping GpuStat")
 			return ctx.Err()
 		case <-ticker.C:
 		}
@@ -224,7 +224,7 @@ func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) e
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getTemperatureStat")
+			g.log.Info("stopping getTemperatureStat")
 			return ctx.Err()
 		default:
 			g.jobs <- payload
@@ -245,7 +245,7 @@ func (g *CpuStat) RunLoad(ctx context.Context, e *theme.Load) error {
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping GpuStat")
+			g.log.Info("stopping GpuStat")
 			return ctx.Err()
 		case <-ticker.C:
 		}
@@ -280,7 +280,7 @@ func (g *CpuStat) getLoadStat(ctx context.Context, e *theme.Load) error {
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getTemperatureStat")
+			g.log.Info("stopping getTemperatureStat")
 			return ctx.Err()
 		default:
 			g.jobs <- payload

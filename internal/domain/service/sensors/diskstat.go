@@ -40,7 +40,7 @@ func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping RunDiskStat")
+			g.log.Info("stopping RunDiskStat")
 			return ctx.Err()
 		case <-ticker.C:
 
@@ -149,7 +149,7 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getDiskStat")
+			g.log.Info("stopping getDiskStat")
 			return ctx.Err()
 		default:
 			g.jobs <- payload

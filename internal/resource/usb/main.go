@@ -25,7 +25,7 @@ func NewUsbDevice(portn string, l *logger.Logger) (*UsbDevice, error) {
 		return nil, err
 	}
 	if len(ports) == 0 {
-		l.Error("No ports has been found")
+		l.Error("no ports has been found")
 		return nil, err
 	}
 	for _, port := range ports {
@@ -47,10 +47,10 @@ func NewUsbDevice(portn string, l *logger.Logger) (*UsbDevice, error) {
 					log:          l,
 				}, nil
 			} else if portn == "AUTO" && port.SerialNumber == "USB7INCH" {
-				l.Info("Device is Sleeping, let's wake ip up...(its lazy, 15 seconds to wake up!)")
+				l.Info("device is sleeping, let's wake ip up...(its lazy, 15 seconds to wake up!)")
 				wakeUpDevice(port.Name, l)
 				time.Sleep(15 * time.Second)
-				l.Info("Detecting again...")
+				l.Info("detecting again...")
 				return NewUsbDevice(portn, l)
 			} else if portn == port.Name {
 				return &UsbDevice{
@@ -77,10 +77,10 @@ func wakeUpDevice(name string, l *logger.Logger) {
 			DTR: true,
 		},
 	}
-	l.Infof("Waking up device on: %s", name)
+	l.Infof("waking up device on: %s", name)
 	port, err := serial.Open(name, mode)
 	if err != nil {
-		l.Errorf("Could not open a device: %s", err)
+		l.Errorf("could not open a device: %s", err)
 	}
 	port.Close()
 }
@@ -95,18 +95,18 @@ func (u UsbDevice) ResetDevice() (err error) {
 	ctx := gousb.NewContext()
 	defer ctx.Close()
 
-	u.log.Info("Reseting the device....")
+	u.log.Info("reseting the device....")
 
 	dev, err := ctx.OpenDeviceWithVIDPID(gousb.ID(u.VendorId), gousb.ID(u.ProducId))
 	defer dev.Close()
 
 	if err != nil {
-		u.log.Errorf("Could not open a device: %s", err)
+		u.log.Errorf("could not open a device: %s", err)
 		return err
 	}
 	err = dev.Reset()
 	if err != nil {
-		u.log.Errorf("Could not reset device: %s", err)
+		u.log.Errorf("could not reset device: %s", err)
 		return err
 	}
 	return nil

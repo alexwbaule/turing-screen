@@ -50,10 +50,10 @@ func (l *Logger) SetLevel(level string) {
 		loglevel.Set(slog.LevelError)
 
 	default:
-		l.Warnf("Invalid log level %s", level)
+		l.Warnf("invalid log level %s", level)
 		return
 	}
-	l.Infof("Log level changed to %s", strings.ToUpper(level))
+	l.Infof("log level changed to %s", strings.ToUpper(level))
 }
 
 func (l *Logger) Errorf(format string, v ...any) {

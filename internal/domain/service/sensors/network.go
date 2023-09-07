@@ -57,7 +57,7 @@ func (g *NetStat) RunNetStat(ctx context.Context, e *theme.Network) error {
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping RunNetStat")
+			g.log.Info("stopping RunNetStat")
 			return ctx.Err()
 		case <-ticker.C:
 
@@ -153,7 +153,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getNetStat")
+			g.log.Info("stopping getNetStat")
 			return ctx.Err()
 		default:
 			g.jobs <- payload

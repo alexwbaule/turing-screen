@@ -40,7 +40,7 @@ func (w *Worker) Run(jobs <-chan command.Command) error {
 	for {
 		select {
 		case <-w.ctx.Done():
-			w.log.Infof("Stopping worker")
+			w.log.Infof("stopping worker with %d updates.", num)
 			return w.ctx.Err()
 		case item := <-jobs:
 			w.log.Debugf("queue size: %d - update payload num: %d", len(jobs), num)
@@ -54,13 +54,13 @@ func (w *Worker) Run(jobs <-chan command.Command) error {
 			err := w.OffChannel(item)
 			if err != nil {
 				if try == attempts {
-					w.log.Errorf("max attempts reached: %s", err.Error())
-					_ = w.OffChannel(w.device.TurnOff())
+					w.log.Errorf("update %d, max attempts reached: %s", num, err.Error())
 					return err
 				}
-				w.log.Errorf("retry [%d] worker error: %s", try+1, err.Error())
+				w.log.Errorf("update %d, retry [%d] worker error: %s", num, try+1, err.Error())
 				err = w.backoff()
 				if err != nil {
+					_ = w.sender.RestartDevice()
 					return err
 				}
 				try++

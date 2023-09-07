@@ -39,7 +39,7 @@ func (g *MemStat) RunMemStat(ctx context.Context, e *theme.Memory) error {
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping RunMem")
+			g.log.Info("stopping RunMem")
 			return ctx.Err()
 		case <-ticker.C:
 		}
@@ -103,7 +103,7 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getMemStat")
+			g.log.Info("stopping getMemStat")
 			return ctx.Err()
 		default:
 			g.jobs <- payload

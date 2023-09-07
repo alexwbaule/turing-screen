@@ -24,7 +24,7 @@ func main() {
 	defer close(jobs)
 
 	app.Run(func(ctx context.Context) error {
-		app.Log.Infof("Device: %#v", app.Config.GetDeviceDisplay())
+		app.Log.Infof("device display: %#v", app.Config.GetDeviceDisplay())
 
 		devSerial, err := serial.NewSerial(app.Config.GetDevicePort(), app.Log)
 		if err != nil {
@@ -51,13 +51,15 @@ func main() {
 		g, ctx := errgroup.WithContext(ctx)
 
 		g.Go(func() error {
-			app.Log.Info("Starting Worker")
+			app.Log.Info("starting reader worker")
 			return worker.Run(jobs)
 		})
 
 		g.Go(func() error {
 			<-ctx.Done()
-			app.Log.Info("Shutdown device")
+			app.Log.Info("shutdown device")
+			_ = worker.OffChannel(cmdDevice.TurnOff())
+
 			count := 0
 			for {
 				select {
@@ -67,7 +69,7 @@ func main() {
 					count++
 				}
 				if count == 8 {
-					app.Log.Info("Shutdown clean queue")
+					app.Log.Info("empty messages in queue")
 					break
 				}
 			}
@@ -75,7 +77,7 @@ func main() {
 			return ctx.Err()
 		})
 
-		app.Log.Info("Start App")
+		app.Log.Info("starting app")
 		jobs <- cmdDevice.Hello()
 		jobs <- cmdMedia.StopVideo()
 		jobs <- cmdMedia.StopMedia()
@@ -93,49 +95,49 @@ func main() {
 
 		if stats.CPU.Percentage != nil {
 			g.Go(func() error {
-				app.Log.Info("Starting Worker CPU Percentage")
+				app.Log.Info("starting worker CPU Percentage")
 				return cpu.RunPercentage(ctx, stats.CPU.Percentage)
 			})
 		}
 		if stats.CPU.Frequency != nil {
 			g.Go(func() error {
-				app.Log.Info("Starting Worker CPU Frequency")
+				app.Log.Info("starting worker CPU Frequency")
 				return cpu.RunFrequency(ctx, stats.CPU.Frequency)
 			})
 		}
 		if stats.CPU.Temperature != nil {
 			g.Go(func() error {
-				app.Log.Info("Starting Worker CPU Temperature")
+				app.Log.Info("starting worker CPU Temperature")
 				return cpu.RunTemperature(ctx, stats.CPU.Temperature)
 			})
 		}
 		if stats.Memory != nil {
 			g.Go(func() error {
-				app.Log.Info("Starting Worker Memory")
+				app.Log.Info("starting worker Memory")
 				return mem.RunMemStat(ctx, stats.Memory)
 			})
 		}
 		if stats.Date != nil {
 			g.Go(func() error {
-				app.Log.Info("Starting Worker Date")
+				app.Log.Info("starting worker Date")
 				return dt.RunDateTime(ctx, stats.Date)
 			})
 		}
 		if stats.Net != nil {
 			g.Go(func() error {
-				app.Log.Info("Starting Worker Net")
+				app.Log.Info("starting worker Net")
 				return net.RunNetStat(ctx, stats.Net)
 			})
 		}
 		if stats.Disk != nil {
 			g.Go(func() error {
-				app.Log.Info("Starting Worker Disk")
+				app.Log.Info("starting worker Disk")
 				return dsk.RunDiskStat(ctx, stats.Disk)
 			})
 		}
 		if stats.GPU != nil {
 			g.Go(func() error {
-				app.Log.Info("Starting Worker GPU")
+				app.Log.Info("starting worker GPU")
 				return gpu.RunGpuStat(ctx, stats.GPU)
 			})
 		}

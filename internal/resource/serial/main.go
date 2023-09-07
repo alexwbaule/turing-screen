@@ -20,6 +20,7 @@ type SerialSender interface {
 	Write(p command.Command) (int, error)
 	Read(p command.Command) (int, error)
 	RestartConnection() error
+	RestartDevice() error
 }
 
 func NewSerial(portName string, l *logger.Logger) (*Serial, error) {

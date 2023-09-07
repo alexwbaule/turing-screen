@@ -37,7 +37,7 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping RunDateTime")
+			g.log.Info("stopping RunDateTime")
 			return ctx.Err()
 		case <-ticker.C:
 
@@ -65,7 +65,7 @@ func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getDateTime")
+			g.log.Info("stopping getDateTime")
 			return ctx.Err()
 		default:
 			g.jobs <- payload

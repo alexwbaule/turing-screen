@@ -25,7 +25,7 @@ type Application struct {
 
 func NewApplication() *Application {
 	log := logger.NewLogger()
-	log.Info("Starting application")
+	log.Info("starting application")
 
 	cfg, err := config.NewDefaultConfig()
 	if err != nil {
@@ -52,17 +52,17 @@ func (a *Application) Run(f func(ctx context.Context) error) {
 
 	go func() {
 		<-ctx.Done()
-		a.Log.Info("Waiting application shutdown...")
+		a.Log.Info("waiting application shutdown...")
 		time.Sleep(timeoutShutdown)
 		os.Exit(exitWatchDog)
 	}()
 
 	if err := wg.Wait(); err != nil {
 		if errors.Is(err, context.Canceled) {
-			a.Log.Info("Graceful shutdown")
+			a.Log.Info("graceful shutdown")
 			return
 		}
-		a.Log.Fatalf("Graceful shutdown error: %s", err)
+		a.Log.Fatalf("graceful shutdown error: %s", err)
 	}
 	os.Exit(exitOk)
 }

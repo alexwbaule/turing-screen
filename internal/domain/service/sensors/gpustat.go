@@ -39,7 +39,7 @@ func (g *GpuStat) RunGpuStat(ctx context.Context, e *theme.GPU) error {
 	for {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping RunGpuStat")
+			g.log.Info("stopping RunGpuStat")
 			return ctx.Err()
 		case <-ticker.C:
 
@@ -169,7 +169,7 @@ func (g *GpuStat) getGpuStat(ctx context.Context, e *theme.GPU) error {
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
-			g.log.Info("Stopping getGpuStat")
+			g.log.Info("stopping getGpuStat")
 			return ctx.Err()
 		default:
 			g.jobs <- payload
