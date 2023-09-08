@@ -11,7 +11,6 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 	"golang.org/x/sync/errgroup"
-	"time"
 )
 
 func main() {
@@ -61,10 +60,10 @@ func main() {
 			_ = worker.OffChannel(cmdDevice.TurnOff())
 			app.Log.Infof("cleaning queue with %d entries", len(jobs))
 
-			for _ = range jobs {
-				time.Sleep(200 * time.Millisecond)
-			}
-			app.Log.Info("empty messages in queue")
+			//for _ = range jobs {
+			//	time.Sleep(200 * time.Millisecond)
+			//}
+			//app.Log.Info("empty messages in queue")
 			_ = devSerial.Close()
 			return ctx.Err()
 		})

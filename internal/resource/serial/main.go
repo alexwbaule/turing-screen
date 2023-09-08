@@ -128,6 +128,7 @@ func (s *Serial) Write(p command.Command) (int, error) {
 	//s.log.Debugf("Writen %d bytes", writen)
 	v := p.ValidateWrite()
 	if v.Bytes != nil {
+		time.Sleep(100 * time.Millisecond)
 		n, err := s.port.Write(v.Bytes)
 		writen += n
 		if err != nil {
@@ -135,7 +136,7 @@ func (s *Serial) Write(p command.Command) (int, error) {
 		}
 	}
 	if v.Size > 0 {
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		return s.Read(p)
 	}
 	return writen, nil
