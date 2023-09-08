@@ -36,11 +36,10 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 
 	for {
 		select {
+		case <-ticker.C:
 		case <-ctx.Done():
 			g.log.Info("stopping RunDateTime")
 			return ctx.Err()
-		case <-ticker.C:
-
 		}
 		err := g.getDateTime(ctx, e)
 		if err != nil {
@@ -51,14 +50,14 @@ func (g *DateTimeStat) RunDateTime(ctx context.Context, e *theme.DateTime) error
 
 func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error {
 	var payloads []*command.UpdatePayload
+	t := time.Now()
 
-	now := time.Now()
 	if e.Day != nil {
-		img, x, y := BuildTextDt(g.builder, now, theme.DATE, e.Day.Text)
+		img, x, y := BuildTextDt(g.builder, t, theme.DATE, e.Day.Text)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 	if e.Hour != nil {
-		img, x, y := BuildTextDt(g.builder, now, theme.TIME, e.Hour.Text)
+		img, x, y := BuildTextDt(g.builder, t, theme.TIME, e.Hour.Text)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 

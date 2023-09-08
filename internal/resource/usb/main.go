@@ -47,9 +47,9 @@ func NewUsbDevice(portn string, l *logger.Logger) (*UsbDevice, error) {
 					log:          l,
 				}, nil
 			} else if portn == "AUTO" && port.SerialNumber == "USB7INCH" {
-				l.Info("device is sleeping, let's wake ip up...(its lazy, 15 seconds to wake up!)")
+				l.Info("device is sleeping, let's wake ip up...(its lazy, 20 seconds to wake up!)")
 				wakeUpDevice(port.Name, l)
-				time.Sleep(15 * time.Second)
+				time.Sleep(20 * time.Second)
 				l.Info("detecting again...")
 				return NewUsbDevice(portn, l)
 			} else if portn == port.Name {

@@ -19,7 +19,7 @@ func main() {
 
 	// Need a buffered, to be a 'non-blocking' channel
 	// to not freezes on retry connect attempts.
-	jobs := make(chan command.Command)
+	jobs := make(chan command.Command, 2000)
 
 	defer close(jobs)
 
@@ -59,20 +59,12 @@ func main() {
 			<-ctx.Done()
 			app.Log.Info("shutdown device")
 			_ = worker.OffChannel(cmdDevice.TurnOff())
+			app.Log.Infof("cleaning queue with %d entries", len(jobs))
 
-			count := 0
-			for {
-				select {
-				case _ = <-jobs:
-				default:
-					time.Sleep(200 * time.Millisecond)
-					count++
-				}
-				if count == 8 {
-					app.Log.Info("empty messages in queue")
-					break
-				}
+			for _ = range jobs {
+				time.Sleep(200 * time.Millisecond)
 			}
+			app.Log.Info("empty messages in queue")
 			_ = devSerial.Close()
 			return ctx.Err()
 		})
