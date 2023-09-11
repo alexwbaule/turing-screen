@@ -6,13 +6,13 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/usb"
-	"go.bug.st/serial"
+	"github.com/tarm/serial"
 	"time"
 )
 
 type Serial struct {
 	device *usb.UsbDevice
-	port   serial.Port
+	port   *serial.Port
 	log    *logger.Logger
 }
 
@@ -20,7 +20,7 @@ type SerialSender interface {
 	Write(p command.Command) (int, error)
 	Read(p command.Command) (int, error)
 	RestartConnection() error
-	RestartDevice() error
+	ResetDevice() error
 }
 
 func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
@@ -30,24 +30,18 @@ func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 	}
 	l.Infof("Connecting Using: %s", device.Name)
 
-	config := &serial.Mode{
-		BaudRate: 115200,
-		DataBits: 8,
-		Parity:   serial.NoParity,
-		StopBits: serial.OneStopBit,
-		InitialStatusBits: &serial.ModemOutputBits{
-			RTS: true,
-			DTR: true,
-		},
+	config := &serial.Config{
+		Baud:        115200,
+		Name:        device.Name,
+		Parity:      serial.ParityNone,
+		StopBits:    serial.Stop1,
+		ReadTimeout: 5 * time.Second,
 	}
-	port, err := serial.Open(device.Name, config)
+	port, err := serial.OpenPort(config)
 	if err != nil {
 		return nil, fmt.Errorf("error opening port %s: %w", device.Name, err)
 	}
-	err = port.SetReadTimeout(5 * time.Second)
-	if err != nil {
-		return nil, fmt.Errorf("error setting read timeout %s: %w", device.Name, err)
-	}
+
 	return &Serial{
 		device: device,
 		port:   port,
@@ -80,13 +74,13 @@ func (s *Serial) RestartConnection() error {
 	return nil
 }
 
-func (s *Serial) RestartDevice() error {
+func (s *Serial) ResetDevice() error {
 	s.log.Info("Restarting device")
 	err := s.Close()
 	if err != nil {
 		return err
 	}
-	err = s.ResetDevice()
+	err = s.device.ResetDevice()
 	if err != nil {
 		return err
 	}
@@ -97,19 +91,11 @@ func (s *Serial) RestartDevice() error {
 	return nil
 }
 
-func (s *Serial) ResetDevice() error {
-	return s.device.ResetDevice()
-}
-
 func (s *Serial) Close() error {
 	s.log.Info("Closing serial port..")
-	err := s.port.ResetInputBuffer()
+	err := s.port.Flush()
 	if err != nil {
 		return fmt.Errorf("serial reset input buffer error: %w", err)
-	}
-	err = s.port.ResetOutputBuffer()
-	if err != nil {
-		return fmt.Errorf("serial reset output buffer error: %w", err)
 	}
 	s.log.Info("Done!")
 	return s.port.Close()
@@ -128,7 +114,7 @@ func (s *Serial) Write(p command.Command) (int, error) {
 	//s.log.Debugf("Writen %d bytes", writen)
 	v := p.ValidateWrite()
 	if v.Bytes != nil {
-		time.Sleep(100 * time.Millisecond)
+		//time.Sleep(100 * time.Millisecond)
 		n, err := s.port.Write(v.Bytes)
 		writen += n
 		if err != nil {
@@ -136,7 +122,7 @@ func (s *Serial) Write(p command.Command) (int, error) {
 		}
 	}
 	if v.Size > 0 {
-		time.Sleep(100 * time.Millisecond)
+		//time.Sleep(100 * time.Millisecond)
 		return s.Read(p)
 	}
 	return writen, nil

@@ -6,6 +6,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
+	"time"
 )
 
 const attempts = 3
@@ -60,7 +61,7 @@ func (w *Worker) Run(jobs <-chan command.Command) error {
 				w.log.Errorf("update %d, retry [%d] worker error: %s", num, try+1, err.Error())
 				err = w.backoff()
 				if err != nil {
-					_ = w.sender.RestartDevice()
+					_ = w.sender.ResetDevice()
 					return err
 				}
 				try++
@@ -99,7 +100,10 @@ func (w *Worker) backoff() error {
 }
 
 func (w *Worker) OffChannel(cmd command.Command) error {
+	now := time.Now()
 	write, err := w.sender.Write(cmd)
+	w.log.Debugf("time to write %s", time.Since(now))
+
 	if err != nil {
 		w.log.Errorf("can't send command [%s] to device, bytes [%d] -> %s", cmd.GetName(), write, err)
 	}

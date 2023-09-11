@@ -59,11 +59,18 @@ func main() {
 			app.Log.Info("shutdown device")
 			_ = worker.OffChannel(cmdDevice.TurnOff())
 			app.Log.Infof("cleaning queue with %d entries", len(jobs))
+			count := 0
+			for {
+				select {
+				case <-jobs:
 
-			//for _ = range jobs {
-			//	time.Sleep(200 * time.Millisecond)
-			//}
-			//app.Log.Info("empty messages in queue")
+				}
+				if count == 20 || len(jobs) == 0 {
+					break
+				}
+				count++
+			}
+			app.Log.Info("empty messages in queue")
 			_ = devSerial.Close()
 			return ctx.Err()
 		})
