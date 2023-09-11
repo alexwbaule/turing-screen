@@ -7,6 +7,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/usb"
 	"github.com/tarm/serial"
+	"io"
 	"time"
 )
 
@@ -137,7 +138,7 @@ func (s *Serial) Read(p command.Command) (int, error) {
 	for {
 		n, err := s.port.Read(buff)
 		readed += n
-		if err != nil {
+		if err != nil && err != io.EOF {
 			return 0, fmt.Errorf("read serial error: %w", err)
 		}
 		if n == 0 {
