@@ -11,6 +11,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 	"golang.org/x/sync/errgroup"
+	"time"
 )
 
 func main() {
@@ -65,9 +66,10 @@ func main() {
 				case <-jobs:
 
 				}
-				if count == 20 || len(jobs) == 0 {
+				if count == 50 || len(jobs) == 0 {
 					break
 				}
+				time.Sleep(10 * time.Millisecond)
 				count++
 			}
 			app.Log.Info("empty messages in queue")

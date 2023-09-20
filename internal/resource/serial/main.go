@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const attempts = 3
+
 type Serial struct {
 	device *usb.UsbDevice
 	port   *serial.Port
@@ -81,10 +83,13 @@ func (s *Serial) ResetDevice() error {
 	if err != nil {
 		return err
 	}
-	err = s.device.ResetDevice()
-	if err != nil {
-		return err
-	}
+	/*
+		// TESTING IF IS REALLY NECESSARY DO THIS.
+			err = s.device.ResetDevice()
+			if err != nil {
+				return err
+			}
+	*/
 	err = s.ReopenPort()
 	if err != nil {
 		return err
@@ -104,26 +109,28 @@ func (s *Serial) Close() error {
 
 func (s *Serial) Write(p command.Command) (int, error) {
 	var writen int
-	//s.log.Debugf("Running Command %s", p.GetName())
 	for _, b := range p.GetBytes() {
 		n, err := s.port.Write(b)
 		writen += n
+		if n == 0 {
+			err = s.writeBackoff(b)
+		}
 		if err != nil {
 			return 0, fmt.Errorf("write serial error: %w", err)
 		}
 	}
-	//s.log.Debugf("Writen %d bytes", writen)
 	v := p.ValidateWrite()
 	if v.Bytes != nil {
-		//time.Sleep(100 * time.Millisecond)
 		n, err := s.port.Write(v.Bytes)
 		writen += n
+		if n == 0 {
+			err = s.writeBackoff(v.Bytes)
+		}
 		if err != nil {
 			return 0, fmt.Errorf("write serial error: %w", err)
 		}
 	}
 	if v.Size > 0 {
-		//time.Sleep(100 * time.Millisecond)
 		return s.Read(p)
 	}
 	return writen, nil
@@ -131,29 +138,57 @@ func (s *Serial) Write(p command.Command) (int, error) {
 
 func (s *Serial) Read(p command.Command) (int, error) {
 	var readed int
+	var trying = 0
 
 	v := p.ValidateWrite()
 
 	buff := make([]byte, v.Size)
+	err := s.port.Flush()
+	if err != nil {
+		return 0, err
+	}
 	for {
 		n, err := s.port.Read(buff)
 		readed += n
+		trying++
+
 		if err != nil && err != io.EOF {
 			return 0, fmt.Errorf("read serial error: %w", err)
 		}
-		if n == 0 {
+		if n == 0 && trying <= attempts {
+			s.log.Warnf("Readed zero, trying again [%d]", trying)
+			continue
+		}
+		if readed == 0 {
 			return 0, fmt.Errorf("read serial error: no response")
 		}
 		if n == v.Size {
 			break
 		}
+		if readed > 0 && err == io.EOF {
+			break
+		}
 	}
-	//s.log.Debugf("Readed %d bytes [%s]", readed, string(bytes.Trim(buff, "\x00")))
-
-	err := p.ValidateCommand(buff, readed)
+	err = p.ValidateCommand(buff, readed)
 	if err != nil {
 		s.log.Debugf("Error on validate, readed [%s] = %s", string(bytes.Trim(buff, "\x00")), err.Error())
 		return 0, err
 	}
 	return readed, nil
+}
+
+func (s *Serial) writeBackoff(b []byte) error {
+	var err error
+	var n int
+
+	for i := 0; i < attempts; i++ {
+		n, err = s.port.Write(b)
+		if n == 0 {
+			return fmt.Errorf("write serial error: zero write")
+		}
+	}
+	if err != nil {
+		return fmt.Errorf("write serial error: %w", err)
+	}
+	return nil
 }

@@ -59,6 +59,10 @@ func (w *Worker) Run(jobs <-chan command.Command) error {
 					return err
 				}
 				w.log.Errorf("update %d, retry [%d] worker error: %s", num, try+1, err.Error())
+				err = w.OffChannel(w.device.Restart())
+				if err != nil {
+					_ = w.sender.ResetDevice()
+				}
 				err = w.backoff()
 				if err != nil {
 					_ = w.sender.ResetDevice()

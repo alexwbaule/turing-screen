@@ -68,6 +68,11 @@ func NewUsbDevice(portn string, l *logger.Logger) (*UsbDevice, error) {
 }
 
 func wakeUpDevice(name string, l *logger.Logger) {
+	defer func() {
+		if r := recover(); r != nil {
+			l.Info("recovering the device....")
+		}
+	}()
 	mode := &serial.Mode{
 		BaudRate: 115200,
 		Parity:   serial.NoParity,
@@ -83,7 +88,7 @@ func wakeUpDevice(name string, l *logger.Logger) {
 	if err != nil {
 		l.Errorf("could not open a device: %s", err)
 	}
-	port.Close()
+	_ = port.Close()
 }
 func (u UsbDevice) ResetDevice() error {
 	return resetDevice(u.log, u.VendorId, u.ProducId)
