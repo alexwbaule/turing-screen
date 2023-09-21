@@ -25,13 +25,13 @@ func BuildText(builder *local.Builder, mesurement any, format string, unit strin
 	return buildText(builder, str, text)
 }
 
-func BuildTextFloat(builder *local.Builder, mesurement float64, fn func(f float64) string, text *theme.Text) (*device.ImageProcess, int, int) {
-	str := fn(mesurement)
+func BuildTextFloat(builder *local.Builder, mesurement float64, fn func(f float64, b bool) string, text *theme.Text) (*device.ImageProcess, int, int) {
+	str := fn(mesurement, text.ShowUnit)
 	return buildText(builder, str, text)
 }
 
-func BuildTextUint(builder *local.Builder, mesurement uint64, fn func(f uint64) string, text *theme.Text) (*device.ImageProcess, int, int) {
-	str := fn(mesurement)
+func BuildTextUint(builder *local.Builder, mesurement uint64, fn func(f uint64, b bool) string, text *theme.Text) (*device.ImageProcess, int, int) {
+	str := fn(mesurement, text.ShowUnit)
 	return buildText(builder, str, text)
 }
 

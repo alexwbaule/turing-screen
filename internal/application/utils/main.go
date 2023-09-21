@@ -150,104 +150,125 @@ func DefaultFontFace() font.Face {
 	return face
 }
 
-func Hertz(s float64) string {
+func Hertz(s float64, showUnit bool) string {
 	sizes := []string{"MHz", "GHz", "THz", "PHz", "EHz"}
-	return humanateHertz(s, 1000, sizes)
+	return humanateHertz(s, 1000, sizes, showUnit)
 }
 
-func Bitsf(s float64) string {
+func Bitsf(s float64, showUnit bool) string {
 	sizes := []string{"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb"}
-	return humanateFloatBytes(s, 1000, sizes)
+	return humanateFloatBytes(s, 1000, sizes, showUnit)
 }
 
-func Bytesf(s float64) string {
+func Bytesf(s float64, showUnit bool) string {
 	sizes := []string{"B", "kB", "MB", "GB", "TB", "PB", "EB"}
-	return humanateFloatBytes(s, 1000, sizes)
+	return humanateFloatBytes(s, 1000, sizes, showUnit)
 }
 
-func IBytesf(s float64) string {
+func IBytesf(s float64, showUnit bool) string {
 	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
-	return humanateFloatBytes(s, 1024, sizes)
+	return humanateFloatBytes(s, 1024, sizes, showUnit)
 }
 
-func BitsShort(s uint64) string {
+func BitsShort(s uint64, showUnit bool) string {
 	sizes := []string{"b", "k", "M", "G", "T", "P", "E"}
-	return humanateBytes(s, 1000, sizes)
+	return humanateBytes(s, 1000, sizes, showUnit)
 }
 
-func Bits(s uint64) string {
+func Bits(s uint64, showUnit bool) string {
 	sizes := []string{"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb"}
-	return humanateBytes(s, 1000, sizes)
+	return humanateBytes(s, 1000, sizes, showUnit)
 }
 
-func Bytes(s uint64) string {
+func Bytes(s uint64, showUnit bool) string {
 	sizes := []string{"B", "kB", "MB", "GB", "TB", "PB", "EB"}
-	return humanateBytes(s, 1000, sizes)
+	return humanateBytes(s, 1000, sizes, showUnit)
 }
 
-func IBytes(s uint64) string {
+func IBytes(s uint64, showUnit bool) string {
 	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
-	return humanateBytes(s, 1024, sizes)
+	return humanateBytes(s, 1024, sizes, showUnit)
 }
 
-func humanateHertz(s float64, base float64, sizes []string) string {
+func humanateHertz(s float64, base float64, sizes []string, showUnit bool) string {
 	if s < 10 {
-		return fmt.Sprintf("%5d%s", s, sizes[0])
+		if showUnit {
+			return fmt.Sprintf("%3.2f%s", s, sizes[0])
+		}
+		return fmt.Sprintf("%3.2f", s)
 	}
 	e := math.Floor(logn(s, base))
 	suffix := sizes[int(e)]
 	val := math.Floor(s/math.Pow(base, e)*10) / 10
-	f := "%5.2f%s"
+	f := "%5.2f"
 	if CountStr(suffix) == 3 {
-		f = "%4.2f%s"
+		f = "%4.2f"
 		if val < 10 {
-			f = "%3.2f%s"
+			f = "%3.2f"
 		}
 	}
 	if val < 10 {
-		f = "%4.2f%s"
+		f = "%4.2f"
 	}
-	return fmt.Sprintf(f, val, suffix)
+	if showUnit {
+		f += "%s"
+		return fmt.Sprintf(f, val, suffix)
+	}
+	return fmt.Sprintf(f, val)
 }
 
-func humanateBytes(s uint64, base float64, sizes []string) string {
+func humanateBytes(s uint64, base float64, sizes []string, showUnit bool) string {
 	if s < 10 {
-		return fmt.Sprintf("%5d%s", s, sizes[0])
+		if showUnit {
+			return fmt.Sprintf("%5d%s", s, sizes[0])
+		}
+		return fmt.Sprintf("%5d", s)
 	}
 	e := math.Floor(logn(float64(s), base))
 	suffix := sizes[int(e)]
 	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
-	f := "%5.f%s"
+	f := "%5.f"
 	if CountStr(suffix) == 2 {
-		f = "%4.f%s"
+		f = "%4.f"
 		if val < 10 {
-			f = "%3.1f%s"
+			f = "%3.1f"
 		}
 	}
 	if val < 10 {
-		f = "%4.1f%s"
+		f = "%4.1f"
 	}
-	return fmt.Sprintf(f, val, suffix)
+	if showUnit {
+		f += "%s"
+		return fmt.Sprintf(f, val, suffix)
+	}
+	return fmt.Sprintf(f, val)
 }
 
-func humanateFloatBytes(s float64, base float64, sizes []string) string {
+func humanateFloatBytes(s float64, base float64, sizes []string, showUnit bool) string {
 	if s < 10 {
-		return fmt.Sprintf("%5d%s", s, sizes[0])
+		if showUnit {
+			return fmt.Sprintf("%3.2f%s", s, sizes[0])
+		}
+		return fmt.Sprintf("%3.2f", s)
 	}
 	e := math.Floor(logn(s, base))
 	suffix := sizes[int(e)]
 	val := math.Floor(s/math.Pow(base, e)*10+0.5) / 10
-	f := "%5.f%s"
+	f := "%5.f"
 	if CountStr(suffix) == 2 {
-		f = "%4.f%s"
+		f = "%4.f"
 		if val < 10 {
-			f = "%3.1f%s"
+			f = "%3.1f"
 		}
 	}
 	if val < 10 {
-		f = "%4.1f%s"
+		f = "%4.1f"
 	}
-	return fmt.Sprintf(f, val, suffix)
+	if showUnit {
+		f += "%s"
+		return fmt.Sprintf(f, val, suffix)
+	}
+	return fmt.Sprintf(f, val)
 }
 
 func logn(n, b float64) float64 {
