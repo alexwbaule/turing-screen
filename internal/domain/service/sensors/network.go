@@ -86,6 +86,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 				senttx := bts - g.wired.sent
 
 				if e.Wired.Download != nil && e.Wired.Download.Text.Show {
+					e.Wired.Download.Text.ShowUnit = true
 					v := (recvtx / uint64(e.Interval.Seconds())) * 8
 					if recvtx == 0 {
 						v = recvtx
@@ -94,10 +95,12 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wired.Downloaded != nil && e.Wired.Downloaded.Text.Show {
+					e.Wired.Downloaded.Text.ShowUnit = true
 					img, x, y := BuildTextUint(g.builder, btr, utils.IBytes, e.Wired.Downloaded.Text)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wired.Upload != nil && e.Wired.Upload.Text.Show {
+					e.Wired.Upload.Text.ShowUnit = true
 					v := (senttx / uint64(e.Interval.Seconds())) * 8
 					if senttx == 0 {
 						v = recvtx
@@ -106,6 +109,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wired.Uploaded != nil && e.Wired.Uploaded.Text.Show {
+					e.Wired.Uploaded.Text.ShowUnit = true
 					img, x, y := BuildTextUint(g.builder, bts, utils.IBytes, e.Wired.Uploaded.Text)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
@@ -121,6 +125,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 				senttx := bts - g.wifi.sent
 
 				if e.Wifi.Download != nil && e.Wifi.Download.Text.Show {
+					e.Wifi.Download.Text.ShowUnit = true
 					v := (recvtx / uint64(e.Interval.Seconds())) * 8
 					if recvtx == 0 {
 						v = recvtx
@@ -129,10 +134,12 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wifi.Downloaded != nil && e.Wifi.Downloaded.Text.Show {
+					e.Wifi.Downloaded.Text.ShowUnit = true
 					img, x, y := BuildTextUint(g.builder, btr, utils.IBytes, e.Wifi.Downloaded.Text)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wifi.Upload != nil && e.Wifi.Upload.Text.Show {
+					e.Wifi.Upload.Text.ShowUnit = true
 					v := (senttx / uint64(e.Interval.Seconds())) * 8
 					if senttx == 0 {
 						v = recvtx
@@ -141,6 +148,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wifi.Uploaded != nil && e.Wifi.Uploaded.Text.Show {
+					e.Wifi.Uploaded.Text.ShowUnit = true
 					img, x, y := BuildTextUint(g.builder, bts, utils.IBytes, e.Wifi.Uploaded.Text)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
