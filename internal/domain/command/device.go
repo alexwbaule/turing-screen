@@ -3,14 +3,54 @@ package command
 import (
 	"bytes"
 	"fmt"
+	"regexp"
+	"strconv"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
-	"regexp"
 )
 
 var (
-	deviceId = regexp.MustCompile(`^chs_5inch.dev1_rom\d.\d{2}`)
+	deviceId       = regexp.MustCompile(`^chs_5inch.dev1_rom\d.\d{2}`)
+	romVersionExpr = regexp.MustCompile(`chs_5inch\.dev1_rom(\d)\.(\d{2})`)
 )
+
+// HelloResponse holds the parsed result of a HELLO handshake response.
+type HelloResponse struct {
+	ROMVersion int
+	RawString  string
+}
+
+// ParseHelloResponse extracts the ROM version integer from the HELLO response.
+// The expected pattern is `chs_5inch.dev1_romX.YY` where YY is the version number.
+// If parsing fails, returns a default HelloResponse with ROMVersion = 99 (triggers BGRA)
+// and logs a warning.
+func ParseHelloResponse(response []byte, log *logger.Logger) (*HelloResponse, error) {
+	raw := string(bytes.Trim(response, "\x00"))
+
+	matches := romVersionExpr.FindStringSubmatch(raw)
+	if len(matches) < 3 {
+		log.Warnf("could not parse ROM version from HELLO response: %q, defaulting to ROM version 99 (BGRA)", raw)
+		return &HelloResponse{
+			ROMVersion: 99,
+			RawString:  raw,
+		}, nil
+	}
+
+	version, err := strconv.Atoi(matches[2])
+	if err != nil {
+		log.Warnf("could not convert ROM version to integer: %q, defaulting to ROM version 99 (BGRA)", matches[2])
+		return &HelloResponse{
+			ROMVersion: 99,
+			RawString:  raw,
+		}, nil
+	}
+
+	return &HelloResponse{
+		ROMVersion: version,
+		RawString:  raw,
+	}, nil
+}
 
 type Device struct {
 	bytes   []byte

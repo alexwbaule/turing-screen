@@ -2,6 +2,11 @@ package theme
 
 import (
 	"fmt"
+	"image"
+	"image/color"
+	"reflect"
+	"time"
+
 	"github.com/alexwbaule/turing-screen/internal/application/config"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
@@ -9,10 +14,6 @@ import (
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/viper"
 	"golang.org/x/image/font"
-	"image"
-	"image/color"
-	"reflect"
-	"time"
 )
 
 const (
@@ -99,7 +100,7 @@ func Hook(file string, reverse bool) mapstructure.DecodeHookFunc {
 			return translateStaticImage(file, data.(map[string]interface{}))
 		}
 		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.DinamicImage{}) || t == reflect.TypeOf(&theme.DinamicImage{})) {
-			return translateStaticImage(file, data.(map[string]interface{}))
+			return translateDinamicImage(file, data.(map[string]interface{}))
 		}
 		if t == reflect.TypeOf(time.Duration(1)) {
 			return translateDuration(data.(interface{}))
@@ -289,6 +290,18 @@ func translateStaticImage(file string, data map[string]interface{}) (interface{}
 	return v, nil
 }
 
+func translateDinamicImage(file string, data map[string]interface{}) (interface{}, error) {
+	imagePath := fmt.Sprintf(THEMEPATH, file)
+	v := theme.DinamicImage{
+		Path:   imagePath + data["path"].(string),
+		Height: data["height"].(int),
+		Width:  data["width"].(int),
+		X:      data["x"].(int),
+		Y:      data["y"].(int),
+	}
+	return v, nil
+}
+
 func translateStaticText(data map[string]interface{}) (interface{}, error) {
 	var bgColor color.Color
 	var fColor color.Color
@@ -431,4 +444,8 @@ func (t *Theme) GetDisplay() *theme.Display {
 
 func (t *Theme) GetPath() string {
 	return t.path
+}
+
+func (t *Theme) GetVideoPlay() map[string]theme.DinamicImage {
+	return t.theme.VideoPlay
 }

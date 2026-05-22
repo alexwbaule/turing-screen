@@ -2,12 +2,23 @@ package device
 
 import (
 	"bytes"
+	"image"
+	"math/big"
+
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/disintegration/imaging"
-	"image"
-	"math/big"
+)
+
+// PixelEncoding defines the pixel format used for partial display updates.
+// This type is defined here (rather than in the command package) to avoid
+// circular imports, since the command package imports this package.
+type PixelEncoding int
+
+const (
+	EncodingBGR  PixelEncoding = iota // 3 bytes per pixel (Blue, Green, Red), ROM <= 88
+	EncodingBGRA                      // 4 bytes per pixel (Blue, Green, Red, Alpha), ROM > 88
 )
 
 type ImageProcess struct {
@@ -19,13 +30,20 @@ type ImageBackground interface {
 }
 
 type ImagePartial interface {
-	GeneratePartialImage(orietation theme.Orientation, display *device.Display, xi, yi int) []byte
+	GeneratePartialImage(orietation theme.Orientation, display *device.Display, xi, yi int, encoding PixelEncoding) []byte
+	GetDimensions() (width, height int)
 }
 
 func NewImageProcess(i image.Image) *ImageProcess {
 	return &ImageProcess{
 		img: i,
 	}
+}
+
+// GetDimensions returns the width and height of the underlying image.
+func (i *ImageProcess) GetDimensions() (width, height int) {
+	bounds := i.img.Bounds()
+	return bounds.Dx(), bounds.Dy()
 }
 
 func (i *ImageProcess) GenerateBackgroundImage(orietation theme.Orientation) []byte {
@@ -49,7 +67,7 @@ func (i *ImageProcess) GenerateBackgroundImage(orietation theme.Orientation) []b
 	return imageAs.Bytes()
 }
 
-func (i *ImageProcess) GeneratePartialImage(orientation theme.Orientation, display *device.Display, x, y int) []byte {
+func (i *ImageProcess) GeneratePartialImage(orientation theme.Orientation, display *device.Display, x, y int, encoding PixelEncoding) []byte {
 	var imageAs bytes.Buffer
 
 	img := i.img
@@ -80,8 +98,12 @@ func (i *ImageProcess) GeneratePartialImage(orientation theme.Orientation, displ
 
 		imageAs.Write(positions)
 		for w := bounds.Min.X; w < bounds.Max.X; w++ {
-			r, g, b, _ := img.At(w, h).RGBA()
-			imageAs.Write([]byte{byte(b >> 8), byte(g >> 8), byte(r >> 8)})
+			r, g, b, a := img.At(w, h).RGBA()
+			if encoding == EncodingBGRA {
+				imageAs.Write([]byte{byte(b >> 8), byte(g >> 8), byte(r >> 8), byte(a >> 8)})
+			} else {
+				imageAs.Write([]byte{byte(b >> 8), byte(g >> 8), byte(r >> 8)})
+			}
 		}
 	}
 	imageAs.Write([]byte{0xef, 0x69})

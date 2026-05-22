@@ -87,18 +87,47 @@ func GetAMDGPUs() []string {
 	for _, path := range matches {
 		devPaths, _ := filepath.Glob(path + "/drm/*")
 		for _, devPath := range devPaths {
-			switch name := filepath.Base(devPath); {
-			case name[0:4] == "card":
+			name := filepath.Base(devPath)
+			// Prefer render nodes (renderD*) as they don't require DRM master privileges.
+			// Fall back to card nodes only if no render node is found.
+			if strings.HasPrefix(name, "renderD") {
 				cards = append(cards, name)
-				//devices[filepath.Base(path)][name[0:4]], _ = strconv.Atoi(name[4:])
 			}
 		}
 	}
+
+	// If no render nodes found, fall back to card nodes
+	if len(cards) == 0 {
+		for _, path := range matches {
+			devPaths, _ := filepath.Glob(path + "/drm/*")
+			for _, devPath := range devPaths {
+				name := filepath.Base(devPath)
+				if strings.HasPrefix(name, "card") {
+					cards = append(cards, name)
+				}
+			}
+		}
+	}
+
 	return cards
 }
 
 func AMDGPU(cardName string) bool {
-	sysfsVendorPath := "/sys/class/drm/" + cardName + "/device/vendor"
+	// For render nodes (renderD*), derive the card name to check vendor
+	// renderD128 corresponds to card0, renderD129 to card1, etc.
+	checkName := cardName
+	if strings.HasPrefix(cardName, "renderD") {
+		// Find the corresponding card node via the same PCI device
+		// Alternatively, check the render node's device vendor directly
+		sysfsVendorPath := "/sys/class/drm/" + cardName + "/device/vendor"
+		b, err := os.ReadFile(sysfsVendorPath)
+		if err == nil {
+			vid := strings.TrimSpace(string(b))
+			return "0x1002" == vid
+		}
+		return false
+	}
+	sysfsVendorPath := "/sys/class/drm/" + checkName + "/device/vendor"
 	b, err := os.ReadFile(sysfsVendorPath)
 	if err == nil {
 		vid := strings.TrimSpace(string(b))
@@ -120,7 +149,10 @@ func openAMDGPU(cardName string) (C.amdgpu_device_handle, error) {
 	if err != nil {
 		return nil, fmt.Errorf("fail to open %s: %s", devPath, err)
 	}
-	defer dev.Close()
+	// NOTE: Do NOT defer dev.Close() here. The file descriptor is passed to
+	// amdgpu_device_initialize which keeps using it internally. Closing it
+	// prematurely causes initialization to fail. The fd lifetime is managed
+	// by amdgpu_device_deinitialize called by the caller.
 
 	devFd := C.int(dev.Fd())
 
@@ -131,7 +163,8 @@ func openAMDGPU(cardName string) (C.amdgpu_device_handle, error) {
 	rc := C.amdgpu_device_initialize(devFd, &major, &minor, &devHandle)
 
 	if rc < 0 {
-		return nil, fmt.Errorf("fail to initialize %s: %d", devPath, err)
+		dev.Close()
+		return nil, fmt.Errorf("fail to initialize %s: rc=%d", devPath, int(rc))
 	}
 	return devHandle, nil
 }

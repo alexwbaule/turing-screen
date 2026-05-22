@@ -13,7 +13,7 @@ static_images:
     HEIGHT: 480
 static_texts:
   CPU_MODEL:
-   TEXT: I9 10900K
+   TEXT: "{{CPU_MODEL}}"
    X: 80
    Y: 32
    FONT: roboto/Roboto-Bold.ttf
@@ -22,7 +22,7 @@ static_texts:
    # BACKGROUND_COLOR: 255, 255, 255
    BACKGROUND_IMAGE: background.png
   GPU_MODEL:
-   TEXT: RTX3080TI
+   TEXT: "{{GPU_MODEL}}"
    X: 314
    Y: 32
    FONT: roboto/Roboto-Bold.ttf

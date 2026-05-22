@@ -4,17 +4,18 @@ display:
   ORIENTATION: landscape
   RGB_LED: 0, 0, 255
 
-static_images:
-  BACKGROUND:
-    PATH: background.png
+video_play:
+  BACKGROUND_VIDEO:
+    PATH: gunpla.mp4
     X: 0
     Y: 0
     WIDTH: 800
     HEIGHT: 480
+
 static_texts:
   CPU_MODEL:
-   TEXT: I9 10900K
-   X: 80
+   TEXT: "{{CPU_MODEL}}"
+   X: 50
    Y: 32
    FONT: roboto/Roboto-Bold.ttf
    FONT_SIZE: 30
@@ -22,7 +23,7 @@ static_texts:
    # BACKGROUND_COLOR: 255, 255, 255
    BACKGROUND_IMAGE: background.png
   GPU_MODEL:
-   TEXT: RTX3080TI
+   TEXT: "{{GPU_MODEL}}"
    X: 314
    Y: 32
    FONT: roboto/Roboto-Bold.ttf

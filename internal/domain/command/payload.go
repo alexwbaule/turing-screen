@@ -3,16 +3,19 @@ package command
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 
-	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"regexp"
+
+	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 )
 
 var (
-	imageSucess = regexp.MustCompile("^full_png_sucess$")
+	imageSucess   = regexp.MustCompile("^full_png_sucess$")
+	overlaySucess = regexp.MustCompile("^seq_png_init_sucess$")
 )
 
 type Payload struct {
@@ -98,6 +101,28 @@ func (m *Payload) SendPayload(background device.ImageBackground) *Payload {
 		payload: background.GenerateBackgroundImage(m.orientation),
 		size:    1024,
 		readed:  imageSucess,
+		log:     m.log,
+	}
+}
+
+// SendOverlay sends the background image as a video overlay using the 0xca command.
+// This is used after PLAY_VIDEO to render sensor data on top of the playing video.
+// The device responds with "seq_png_init_sucess" instead of "full_png_sucess".
+func (m *Payload) SendOverlay(background device.ImageBackground) *Payload {
+	return &Payload{
+		name: "SEND_OVERLAY",
+		bytes: [][]byte{
+			{
+				0x2c,
+			},
+			{
+				0xca, 0xef, 0x69, 0x00, 0x17, 0x70, 0x00, 0x00,
+			},
+		},
+		padding: []byte{0x2c, 0x00},
+		payload: background.GenerateBackgroundImage(m.orientation),
+		size:    1024,
+		readed:  overlaySucess,
 		log:     m.log,
 	}
 }

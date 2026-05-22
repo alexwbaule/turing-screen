@@ -1,6 +1,6 @@
 module github.com/alexwbaule/turing-screen
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/alexwbaule/gg v0.0.0-20230711213250-566dda28e48b
@@ -12,7 +12,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/spf13/viper v1.21.0
 	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
-	go.bug.st/serial v1.6.4
+	go.bug.st/serial v1.7.0
 	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa
 	golang.org/x/image v0.36.0
 	golang.org/x/sync v0.20.0
@@ -38,7 +38,7 @@ require (
 	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )

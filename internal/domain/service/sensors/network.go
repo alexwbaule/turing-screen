@@ -2,24 +2,27 @@ package sensors
 
 import (
 	"context"
+	"time"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	edevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/shirou/gopsutil/v3/net"
-	"time"
 )
 
 type NetStat struct {
-	log     *logger.Logger
-	jobs    chan<- command.Command
-	builder *local.Builder
-	p       *command.UpdatePayload
-	names   edevice.Net
-	wifi    lastValues
-	wired   lastValues
+	log      *logger.Logger
+	queue    *sender.RegionQueue
+	builder  *local.Builder
+	p        *command.UpdatePayload
+	encoding command.PixelEncoding
+	names    edevice.Net
+	wifi     lastValues
+	wired    lastValues
 }
 
 type lastValues struct {
@@ -27,13 +30,14 @@ type lastValues struct {
 	recv uint64
 }
 
-func NewDNetStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload, m edevice.Net) *NetStat {
+func NewDNetStat(l *logger.Logger, q *sender.RegionQueue, b *local.Builder, p *command.UpdatePayload, m edevice.Net, encoding command.PixelEncoding) *NetStat {
 	return &NetStat{
-		log:     l.With("runner", "net_stats"),
-		jobs:    j,
-		builder: b,
-		p:       p,
-		names:   m,
+		log:      l.With("runner", "net_stats"),
+		queue:    q,
+		builder:  b,
+		p:        p,
+		encoding: encoding,
+		names:    m,
 		wifi: lastValues{
 			sent: 0,
 			recv: 0,
@@ -92,12 +96,20 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 						v = recvtx
 					}
 					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wired.Download.Text)
-					payloads = append(payloads, g.p.SendPayload(img, x, y))
+					p, err := g.p.SendPayload(img, x, y, g.encoding)
+					if err != nil {
+						return err
+					}
+					payloads = append(payloads, p)
 				}
 				if e.Wired.Downloaded != nil && e.Wired.Downloaded.Text.Show {
 					e.Wired.Downloaded.Text.ShowUnit = true
 					img, x, y := BuildTextUint(g.builder, btr, utils.IBytes, e.Wired.Downloaded.Text)
-					payloads = append(payloads, g.p.SendPayload(img, x, y))
+					p, err := g.p.SendPayload(img, x, y, g.encoding)
+					if err != nil {
+						return err
+					}
+					payloads = append(payloads, p)
 				}
 				if e.Wired.Upload != nil && e.Wired.Upload.Text.Show {
 					e.Wired.Upload.Text.ShowUnit = true
@@ -106,12 +118,20 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 						v = recvtx
 					}
 					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wired.Upload.Text)
-					payloads = append(payloads, g.p.SendPayload(img, x, y))
+					p, err := g.p.SendPayload(img, x, y, g.encoding)
+					if err != nil {
+						return err
+					}
+					payloads = append(payloads, p)
 				}
 				if e.Wired.Uploaded != nil && e.Wired.Uploaded.Text.Show {
 					e.Wired.Uploaded.Text.ShowUnit = true
 					img, x, y := BuildTextUint(g.builder, bts, utils.IBytes, e.Wired.Uploaded.Text)
-					payloads = append(payloads, g.p.SendPayload(img, x, y))
+					p, err := g.p.SendPayload(img, x, y, g.encoding)
+					if err != nil {
+						return err
+					}
+					payloads = append(payloads, p)
 				}
 				g.wired.recv = btr
 				g.wired.sent = bts
@@ -131,12 +151,20 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 						v = recvtx
 					}
 					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wifi.Download.Text)
-					payloads = append(payloads, g.p.SendPayload(img, x, y))
+					p, err := g.p.SendPayload(img, x, y, g.encoding)
+					if err != nil {
+						return err
+					}
+					payloads = append(payloads, p)
 				}
 				if e.Wifi.Downloaded != nil && e.Wifi.Downloaded.Text.Show {
 					e.Wifi.Downloaded.Text.ShowUnit = true
 					img, x, y := BuildTextUint(g.builder, btr, utils.IBytes, e.Wifi.Downloaded.Text)
-					payloads = append(payloads, g.p.SendPayload(img, x, y))
+					p, err := g.p.SendPayload(img, x, y, g.encoding)
+					if err != nil {
+						return err
+					}
+					payloads = append(payloads, p)
 				}
 				if e.Wifi.Upload != nil && e.Wifi.Upload.Text.Show {
 					e.Wifi.Upload.Text.ShowUnit = true
@@ -145,12 +173,20 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 						v = recvtx
 					}
 					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wifi.Upload.Text)
-					payloads = append(payloads, g.p.SendPayload(img, x, y))
+					p, err := g.p.SendPayload(img, x, y, g.encoding)
+					if err != nil {
+						return err
+					}
+					payloads = append(payloads, p)
 				}
 				if e.Wifi.Uploaded != nil && e.Wifi.Uploaded.Text.Show {
 					e.Wifi.Uploaded.Text.ShowUnit = true
 					img, x, y := BuildTextUint(g.builder, bts, utils.IBytes, e.Wifi.Uploaded.Text)
-					payloads = append(payloads, g.p.SendPayload(img, x, y))
+					p, err := g.p.SendPayload(img, x, y, g.encoding)
+					if err != nil {
+						return err
+					}
+					payloads = append(payloads, p)
 				}
 				g.wifi.recv = btr
 				g.wifi.sent = bts
@@ -164,7 +200,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 			g.log.Info("stopping getNetStat")
 			return ctx.Err()
 		default:
-			g.jobs <- payload
+			g.queue.Enqueue(payload)
 		}
 	}
 	return nil

@@ -2,26 +2,30 @@ package sensors
 
 import (
 	"context"
+	"time"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
-	"time"
 )
 
 type DateTimeStat struct {
-	log     *logger.Logger
-	jobs    chan<- command.Command
-	builder *local.Builder
-	p       *command.UpdatePayload
+	log      *logger.Logger
+	queue    *sender.RegionQueue
+	builder  *local.Builder
+	p        *command.UpdatePayload
+	encoding command.PixelEncoding
 }
 
-func NewDateTimeStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *DateTimeStat {
+func NewDateTimeStat(l *logger.Logger, q *sender.RegionQueue, b *local.Builder, p *command.UpdatePayload, encoding command.PixelEncoding) *DateTimeStat {
 	return &DateTimeStat{
-		log:     l.With("runner", "datetime_stats"),
-		jobs:    j,
-		builder: b,
-		p:       p,
+		log:      l.With("runner", "datetime_stats"),
+		queue:    q,
+		builder:  b,
+		p:        p,
+		encoding: encoding,
 	}
 }
 
@@ -54,11 +58,19 @@ func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error
 
 	if e.Day != nil {
 		img, x, y := BuildTextDt(g.builder, t, theme.DATE, e.Day.Text)
-		payloads = append(payloads, g.p.SendPayload(img, x, y))
+		p, err := g.p.SendPayload(img, x, y, g.encoding)
+		if err != nil {
+			return err
+		}
+		payloads = append(payloads, p)
 	}
 	if e.Hour != nil {
 		img, x, y := BuildTextDt(g.builder, t, theme.TIME, e.Hour.Text)
-		payloads = append(payloads, g.p.SendPayload(img, x, y))
+		p, err := g.p.SendPayload(img, x, y, g.encoding)
+		if err != nil {
+			return err
+		}
+		payloads = append(payloads, p)
 	}
 
 	for _, payload := range payloads {
@@ -67,7 +79,7 @@ func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error
 			g.log.Info("stopping getDateTime")
 			return ctx.Err()
 		default:
-			g.jobs <- payload
+			g.queue.Enqueue(payload)
 		}
 	}
 	return nil

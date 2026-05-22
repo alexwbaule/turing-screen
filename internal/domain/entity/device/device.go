@@ -16,8 +16,23 @@ type Net struct {
 	Wifi  string `mapstructure:"wlo"`
 }
 
+type CPUSensorConfig struct {
+	TemperatureSensor string `mapstructure:"temperature_sensor"`
+}
+
+type DiskSensorConfig struct {
+	TemperatureSensor string `mapstructure:"temperature_sensor"`
+}
+
+type GPUSensorConfig struct {
+	Provider string `mapstructure:"provider"`
+}
+
 type Sensors struct {
-	Net `mapstructure:"network"`
+	Net  `mapstructure:"network"`
+	CPU  CPUSensorConfig  `mapstructure:"cpu"`
+	Disk DiskSensorConfig `mapstructure:"disk"`
+	GPU  GPUSensorConfig  `mapstructure:"gpu"`
 }
 
 type Display struct {
