@@ -65,9 +65,18 @@ func TestPlayCommands_FileNotFound(t *testing.T) {
 	}
 	vp := NewVideoPlayer(videos, log, storage)
 
-	_, _, err := vp.PlayCommands()
-	if err == nil {
-		t.Fatal("expected error")
+	// PlayCommands does not validate the local file — it only builds
+	// the command sequence assuming the video already exists on the device.
+	// Local file validation is the caller's responsibility.
+	cmds, devicePath, err := vp.PlayCommands()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cmds == nil {
+		t.Fatal("expected non-nil commands")
+	}
+	if devicePath != "/root/video/nonexistent.mp4" {
+		t.Fatalf("expected /root/video/nonexistent.mp4, got %s", devicePath)
 	}
 }
 

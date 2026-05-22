@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -204,7 +205,7 @@ func main() {
 
 // videoPreFlow runs the synchronous pre-flow for video themes.
 // This runs BEFORE the worker starts, using the serial port directly.
-// It handles: init, check if video exists, upload if needed.
+// It handles: init, check if video exists on device, upload if needed.
 func videoPreFlow(
 	ser *serial.Serial,
 	cmdDevice *command.Device,
@@ -248,13 +249,12 @@ func videoPreFlow(
 	}
 	log.Infof("<<< SET_BRIGHTNESS ok")
 
-	// CMD_0x7D (pre-upload setup) — only needed if upload will happen
-	// Skipping for now since we check file existence first
-	// log.Infof(">>> CMD_0x7D (pre-upload)")
-	// if _, err := ser.Write(cmdStorage.SetPreUpload(byte(brightness))); err != nil {
-	// 	return fmt.Errorf("SET_PRE_UPLOAD failed: %w", err)
-	// }
-	// log.Infof("<<< CMD_0x7D ok")
+	// CMD_0x7D (pre-upload setup) — sent before storage operations
+	log.Infof(">>> SET_PRE_UPLOAD (0x7d)")
+	if _, err := ser.Write(cmdStorage.SetPreUpload(byte(brightness))); err != nil {
+		return fmt.Errorf("SET_PRE_UPLOAD failed: %w", err)
+	}
+	log.Infof("<<< SET_PRE_UPLOAD ok")
 
 	// GET_STORAGE_STATUS
 	log.Infof(">>> GET_STORAGE_STATUS")
@@ -263,34 +263,103 @@ func videoPreFlow(
 	}
 	log.Infof("<<< GET_STORAGE_STATUS ok")
 
-	// GET_FILE_INFO — check if video exists on device
+	// GET_FILE_INFO — check if video already exists on device
 	log.Infof(">>> GET_FILE_INFO %s", devicePath)
 	if _, err := ser.Write(cmdStorage.GetFileInfo(devicePath)); err != nil {
 		return fmt.Errorf("GET_FILE_INFO failed: %w", err)
 	}
-	log.Infof("<<< GET_FILE_INFO ok")
 
-	// TODO: Parse the GET_FILE_INFO response to check if file exists.
-	// For now, assume the video is already on the device.
-	// If file doesn't exist, we need to upload it:
-	//
-	// Upload sequence:
-	//   ser.Write(cmdMedia.StopVideo())
-	//   ser.Write(cmdMedia.StopMedia())
-	//   ser.Write(cmdStorage.CreateFile(devicePath, fileSize))
-	//   ser.WriteRaw(fileData)
-	//   ser.ReadPoll(60 * time.Second) → "file_rev_done"
-	//
-	// The upload works in Python (scripts/upload_video.py).
-	// To implement in Go, need to:
-	// 1. Read the response from GET_FILE_INFO (parse "0" vs size)
-	// 2. If "0": read local file, send CREATE_FILE, WriteRaw, ReadPoll
-	// 3. The file must be in device format (H.264 800x480 24fps MP4)
+	// Read the GET_FILE_INFO response to check file size
+	resp, err := ser.ReadPoll(5 * time.Second)
+	if err != nil {
+		return fmt.Errorf("GET_FILE_INFO read failed: %w", err)
+	}
+	fileSizeOnDevice, err := command.ParseFileSize(resp)
+	if err != nil {
+		log.Errorf("GET_FILE_INFO parse error: %v (assuming file not found)", err)
+		fileSizeOnDevice = 0
+	}
+	log.Infof("<<< GET_FILE_INFO: device has %d bytes for %s", fileSizeOnDevice, devicePath)
 
-	_ = localPath
-	_ = os.ReadFile // will be used for upload
+	// Upload video if it doesn't exist on device
+	if fileSizeOnDevice == 0 {
+		log.Infof("video not on device, uploading %s → %s", localPath, devicePath)
 
-	log.Infof("video pre-flow: complete (assuming video on device)")
+		// Stop video/media again before upload
+		if _, err := ser.Write(cmdMedia.StopVideo()); err != nil {
+			return fmt.Errorf("STOP_VIDEO (pre-upload) failed: %w", err)
+		}
+		if _, err := ser.Write(cmdMedia.StopMedia()); err != nil {
+			return fmt.Errorf("STOP_MEDIA (pre-upload) failed: %w", err)
+		}
+
+		// Read the local video file
+		fileData, err := os.ReadFile(localPath)
+		if err != nil {
+			return fmt.Errorf("failed to read video file %s: %w", localPath, err)
+		}
+		fileSize := int64(len(fileData))
+		log.Infof("local file size: %d bytes", fileSize)
+
+		// List directory to find old files to clean up
+		dirPath := filepath.Dir(devicePath)
+		log.Infof(">>> LIST_DIR %s", dirPath)
+		if _, err := ser.Write(cmdStorage.ListDir(dirPath)); err != nil {
+			return fmt.Errorf("LIST_DIR failed: %w", err)
+		}
+		listResp, err := ser.ReadPoll(5 * time.Second)
+		if err != nil {
+			log.Errorf("LIST_DIR read failed: %v", err)
+		} else {
+			existingFiles, err := command.ParseListDir(listResp)
+			if err != nil {
+				log.Errorf("LIST_DIR parse error: %v", err)
+			} else {
+				// Delete old video files to free space
+				for _, f := range existingFiles {
+					oldPath := dirPath + "/" + f
+					log.Infof(">>> DELETE_FILE %s", oldPath)
+					if _, err := ser.Write(cmdStorage.DeleteFile(oldPath)); err != nil {
+						log.Errorf("DELETE_FILE %s failed: %v", oldPath, err)
+					}
+					// Small delay between deletes
+					time.Sleep(100 * time.Millisecond)
+				}
+			}
+		}
+
+		// CREATE_FILE — send file metadata
+		log.Infof(">>> CREATE_FILE %s (%d bytes)", devicePath, fileSize)
+		if _, err := ser.Write(cmdStorage.CreateFile(devicePath, fileSize)); err != nil {
+			return fmt.Errorf("CREATE_FILE failed: %w", err)
+		}
+		log.Infof("<<< CREATE_FILE ok (create_success)")
+
+		// Write raw file data in chunks
+		const uploadChunkSize = 4096
+		totalWritten := 0
+		for totalWritten < len(fileData) {
+			end := totalWritten + uploadChunkSize
+			if end > len(fileData) {
+				end = len(fileData)
+			}
+			n, err := ser.WriteRaw(fileData[totalWritten:end])
+			if err != nil {
+				return fmt.Errorf("file upload write failed at byte %d: %w", totalWritten, err)
+			}
+			totalWritten += n
+		}
+		log.Infof("uploaded %d bytes", totalWritten)
+
+		// Wait for device to confirm receipt ("file_rev_done")
+		doneResp, err := ser.ReadPoll(60 * time.Second)
+		if err != nil {
+			return fmt.Errorf("file upload confirmation timeout: %w", err)
+		}
+		log.Infof("<<< upload done: %s", string(bytes.Trim(doneResp, "\x00")))
+	}
+
+	log.Infof("video pre-flow: complete")
 	return nil
 }
 

@@ -47,6 +47,14 @@ func (m *mockSerialSender) Read(p command.Command) (int, error) {
 	return 0, nil
 }
 
+func (m *mockSerialSender) WriteRaw(data []byte) (int, error) {
+	return len(data), nil
+}
+
+func (m *mockSerialSender) ReadPoll(maxWait time.Duration) ([]byte, error) {
+	return nil, nil
+}
+
 func (m *mockSerialSender) RestartConnection() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -564,6 +572,14 @@ func (m *mockReconnectFailSender) ResetDevice() error {
 	return m.mockSerialSender.ResetDevice()
 }
 
+func (m *mockReconnectFailSender) WriteRaw(data []byte) (int, error) {
+	return m.mockSerialSender.WriteRaw(data)
+}
+
+func (m *mockReconnectFailSender) ReadPoll(maxWait time.Duration) ([]byte, error) {
+	return m.mockSerialSender.ReadPoll(maxWait)
+}
+
 // mockSlowReconnectSender wraps mockSerialSender but adds a delay to Reconnect
 // to simulate the time spent during reconnection.
 type mockSlowReconnectSender struct {
@@ -600,6 +616,14 @@ func (m *mockSlowReconnectSender) ResetDevice() error {
 	return m.mockSerialSender.ResetDevice()
 }
 
+func (m *mockSlowReconnectSender) WriteRaw(data []byte) (int, error) {
+	return m.mockSerialSender.WriteRaw(data)
+}
+
+func (m *mockSlowReconnectSender) ReadPoll(maxWait time.Duration) ([]byte, error) {
+	return m.mockSerialSender.ReadPoll(maxWait)
+}
+
 // mockClearOnReconnectSender wraps mockSerialSender and clears the writeErr
 // when Reconnect is called, simulating a successful reconnection.
 type mockClearOnReconnectSender struct {
@@ -632,6 +656,14 @@ func (m *mockClearOnReconnectSender) RestartConnection() error {
 
 func (m *mockClearOnReconnectSender) ResetDevice() error {
 	return m.mockSerialSender.ResetDevice()
+}
+
+func (m *mockClearOnReconnectSender) WriteRaw(data []byte) (int, error) {
+	return m.mockSerialSender.WriteRaw(data)
+}
+
+func (m *mockClearOnReconnectSender) ReadPoll(maxWait time.Duration) ([]byte, error) {
+	return m.mockSerialSender.ReadPoll(maxWait)
 }
 
 func contains(s, substr string) bool {
