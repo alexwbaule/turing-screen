@@ -88,17 +88,17 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 		// Find updated segments
 		x := bounds.Min.X
 		for x < bounds.Max.X {
-			currR, curG, currB, currA := vc.current.At(x, y).RGBA()
-			prevR, prevG, prevB, prevA := vc.previous.At(x, y).RGBA()
+			currIdx := (y-bounds.Min.Y)*vc.current.Stride + (x-bounds.Min.X)*4
+			prevIdx := (y-bounds.Min.Y)*vc.previous.Stride + (x-bounds.Min.X)*4
 
-			if currR != prevR || curG != prevG || currB != prevB || currA != prevA {
+			if !bytes.Equal(vc.current.Pix[currIdx:currIdx+4], vc.previous.Pix[prevIdx:prevIdx+4]) {
 				startX := x
 				width := 1
 				x++
 				for x < bounds.Max.X {
-					cR, cG, cB, cA := vc.current.At(x, y).RGBA()
-					pR, pG, pB, pA := vc.previous.At(x, y).RGBA()
-					if cR != pR || cG != pG || cB != pB || cA != pA {
+					cIdx := (y-bounds.Min.Y)*vc.current.Stride + (x-bounds.Min.X)*4
+					pIdx := (y-bounds.Min.Y)*vc.previous.Stride + (x-bounds.Min.X)*4
+					if !bytes.Equal(vc.current.Pix[cIdx:cIdx+4], vc.previous.Pix[pIdx:pIdx+4]) {
 						width++
 						x++
 					} else {
@@ -114,12 +114,28 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 				imgRawData.Write(positions)
 
 				for w := 0; w < width; w++ {
-					r, g, b, a := vc.current.At(startX+w, y).RGBA()
-					if encoding == command.EncodingBGRA {
-						imgRawData.Write([]byte{byte(b >> 8), byte(g >> 8), byte(r >> 8), byte(a >> 8)})
-					} else {
-						imgRawData.Write([]byte{byte(b >> 8), byte(g >> 8), byte(r >> 8)})
-					}
+					// Pega a cor diretamente do buffer Pix (8 bits por canal, sem pre-multiplicação)
+					idx := (y-bounds.Min.Y)*vc.current.Stride + (startX+w-bounds.Min.X)*4
+					r := vc.current.Pix[idx]
+					g := vc.current.Pix[idx+1]
+					b := vc.current.Pix[idx+2]
+					a := vc.current.Pix[idx+3]
+
+					// Codificação especial para Video Overlay:
+					// O dispositivo espera 3 bytes por pixel, mas precisa do canal Alpha.
+					// Portanto, as cores são espremidas em 4 bits (descartando os 4 bits menos significativos)
+					// e os 4 bits do Alfa são distribuídos nos bits livres.
+					// Formato:
+					// Byte 0: BBBB AA (top 2 bits do alpha)
+					// Byte 1: GGGG aa (bottom 2 bits do alpha)
+					// Byte 2: RRRR 0000
+					
+					alpha4bit := a >> 4
+					bByte := (b & 0xF0) | ((alpha4bit & 0xC) >> 2)
+					gByte := (g & 0xF0) | (alpha4bit & 0x3)
+					rByte := (r & 0xF0)
+
+					imgRawData.Write([]byte{bByte, gByte, rByte})
 				}
 			} else {
 				x++
@@ -129,14 +145,14 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 		// Find all visible segments (alpha > 0)
 		x = bounds.Min.X
 		for x < bounds.Max.X {
-			_, _, _, a := vc.current.At(x, y).RGBA()
-			if a > 0 {
+			idx := (y-bounds.Min.Y)*vc.current.Stride + (x-bounds.Min.X)*4
+			if vc.current.Pix[idx+3] > 0 {
 				startX := x
 				width := 1
 				x++
 				for x < bounds.Max.X {
-					_, _, _, a2 := vc.current.At(x, y).RGBA()
-					if a2 > 0 {
+					idx2 := (y-bounds.Min.Y)*vc.current.Stride + (x-bounds.Min.X)*4
+					if vc.current.Pix[idx2+3] > 0 {
 						width++
 						x++
 					} else {
@@ -156,7 +172,7 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 	}
 
 	// Copy current to previous
-	draw.Draw(vc.previous, bounds, vc.current, bounds.Min, draw.Src)
+	copy(vc.previous.Pix, vc.current.Pix)
 
 	// Reset current to the base background for the next composition cycle
 	draw.Draw(vc.current, bounds, vc.baseBg, bounds.Min, draw.Src)

@@ -184,7 +184,10 @@ func (w *Worker) processBatch(startNum int64) (int, int64, error) {
 			if len(bitmapBatch) > 0 {
 				var err error
 				if w.isVideoMode && w.compositor != nil {
+					// Para o vídeo, passamos o startNum exato desta iteração, não precisamos incrementar a cada sensor pq vamos enviar apenas 1 pacote consolidado.
 					err = w.sendVideoBitmapBatch(bitmapBatch, startNum+bitmapCount-int64(len(bitmapBatch)))
+					// no video mode a gente acumula tudo num frame só, então só gastamos 1 count.
+					bitmapCount = int64(len(bitmapBatch)) // ajustando para log, mas na verdade usamos count só 1 vez por batch.
 				} else {
 					err = w.sendBitmapBatch(bitmapBatch, startNum+bitmapCount-int64(len(bitmapBatch)))
 				}
@@ -229,12 +232,18 @@ func (w *Worker) sendVideoBitmapBatch(batch []command.Command, count int64) erro
 	w.log.Debugf("compositing video bitmap batch of %d commands, queue size: %d", len(batch), w.queue.Len())
 
 	var lastEncoding command.PixelEncoding = command.EncodingBGR
+	var lastCmd command.Command
 
 	for _, cmd := range batch {
 		if up, ok := cmd.(*command.UpdatePayload); ok {
 			w.compositor.ApplyUpdate(up)
 			lastEncoding = up.Encoding
+			lastCmd = up
 		}
+	}
+
+	if lastCmd == nil {
+		return nil
 	}
 
 	imgRawData, visiblePixels := w.compositor.GenerateUpdate(lastEncoding)
@@ -243,7 +252,8 @@ func (w *Worker) sendVideoBitmapBatch(batch []command.Command, count int64) erro
 	payload = append(payload, 0xef, 0x69)
 
 	// Create a custom video update payload
-	videoCmd := w.updatePayload.CustomVideoUpdate(payload, len(visiblePixels))
+	up := lastCmd.(*command.UpdatePayload)
+	videoCmd := up.CustomVideoUpdate(payload, len(visiblePixels))
 	videoCmd.SetCount(count) // Use the start count for this unified batch
 
 	// For video updates, we don't expect a response, so we use WriteBytes
