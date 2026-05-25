@@ -103,31 +103,24 @@ func main() {
 			}
 			app.Log.Infof("video theme: local=%s device=%s background=%s", videoLocalPath, videoDevicePath, videoBackgroundPath)
 
+			var baseOverlayImage image.Image
 			if videoBackgroundPath != "" {
 				img, err := utils.LoadImage(videoBackgroundPath)
 				if err != nil {
 					return fmt.Errorf("failed to load video background image %s: %w", videoBackgroundPath, err)
 				}
-				
-				// SALVANDO A IMAGEM PARA DEBUG
-				app.Log.Infof("DEBUG: Salvando o background enviado para 'DEBUG_OVERLAY_BACKGROUND.png'")
-				gg.NewContextForImage(img).SavePNG("DEBUG_OVERLAY_BACKGROUND.png")
-				
-				videoBackground = device2.NewImageProcess(img)
+				baseOverlayImage = img
 			} else {
-				// The overlay uses BLACK (0,0,0) as transparent — the device shows
-				// the video through black pixels. Sensor data renders on black background.
-				// Create a black background for the overlay.
-				var blackBg image.Image
-				blackBg = builder.BuildTransparentBackground() // RGBA all zeros = black+transparent
-				blackFbg := builder.BuildBackgroundTexts(blackBg, staticTexts)
-				
-				// SALVANDO A IMAGEM PARA DEBUG
-				app.Log.Infof("DEBUG: Salvando o background gerado em preto para 'DEBUG_OVERLAY_BACKGROUND.png'")
-				gg.NewContextForImage(blackFbg).SavePNG("DEBUG_OVERLAY_BACKGROUND.png")
-				
-				videoBackground = device2.NewImageProcess(blackFbg)
+				baseOverlayImage = builder.BuildTransparentBackground() // RGBA all zeros = black+transparent
 			}
+
+			// Desenha os textos estáticos em cima da imagem de fundo (seja a do tema ou a transparente)
+			finalBaseImage := builder.BuildBackgroundTexts(baseOverlayImage, staticTexts)
+			videoBackground = device2.NewImageProcess(finalBaseImage)
+
+			// SALVANDO A IMAGEM PARA DEBUG
+			app.Log.Infof("DEBUG: Salvando o background final com textos estáticos para 'DEBUG_OVERLAY_BACKGROUND.png'")
+			gg.NewContextForImage(finalBaseImage).SavePNG("DEBUG_OVERLAY_BACKGROUND.png")
 
 			compositor = sender.NewVideoCompositor(app.Config.GetDeviceDisplay(), statsTheme.GetDisplay().Orientation, videoBackground)
 
