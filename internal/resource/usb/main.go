@@ -49,7 +49,7 @@ func NewUsbDevice(portn string, l *logger.Logger) (*UsbDevice, error) {
 			} else if portn == "AUTO" && port.SerialNumber == "USB7INCH" {
 				l.Info("device is sleeping, let's wake ip up...(its lazy, 20 seconds to wake up!)")
 				wakeUpDevice(port.Name, l)
-				_ = resetDevice(l, uint16(vid), uint16(pid))
+				// _ = resetDevice(l, uint16(vid), uint16(pid)) // This can cause permission issues
 				time.Sleep(20 * time.Second)
 				l.Info("detecting again...")
 				return NewUsbDevice(portn, l)
@@ -79,8 +79,6 @@ func wakeUpDevice(name string, l *logger.Logger) {
 		Parity:      serial.ParityNone,
 		Size:        8,
 		StopBits:    serial.Stop1,
-		InitialDTR:  new(true),
-		InitialRTS:  new(true),
 		ReadTimeout: 2 * time.Second,
 	}
 	l.Infof("waking up device on: %s", name)
@@ -107,7 +105,9 @@ func resetDevice(u *logger.Logger, vid, pid uint16) error {
 	u.Info("reseting the device....")
 
 	dev, err := ctx.OpenDeviceWithVIDPID(gousb.ID(vid), gousb.ID(pid))
-	defer dev.Close()
+	if dev != nil {
+		defer dev.Close()
+	}
 
 	if err != nil {
 		u.Errorf("could not open a device: %s", err)

@@ -41,6 +41,7 @@ type SerialPort interface {
 	Write(b []byte) (int, error)
 	Flush() error
 	Close() error
+	ResetInputBuffer() error
 }
 
 type Serial struct {
@@ -68,15 +69,16 @@ func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 	}
 	l.Infof("Connecting Using: %s", device.Name)
 
+	f := true
 	config := &serial.Config{
 		Baud:        115200,
 		Name:        device.Name,
 		Parity:      serial.ParityNone,
 		StopBits:    serial.Stop1,
-		ReadTimeout: 5 * time.Second,
+		ReadTimeout: 1 * time.Second,
 		Size:        8,
-		InitialDTR:  new(true),
-		InitialRTS:  new(true),
+		InitialDTR:  &f,
+		InitialRTS:  &f,
 	}
 	port, err := serial.OpenPort(config)
 	if err != nil {
@@ -122,13 +124,6 @@ func (s *Serial) ResetDevice() error {
 	if err != nil {
 		return err
 	}
-	/*
-		// TESTING IF IS REALLY NECESSARY DO THIS.
-			err = s.device.ResetDevice()
-			if err != nil {
-				return err
-			}
-	*/
 	err = s.ReopenPort()
 	if err != nil {
 		return err
@@ -297,11 +292,13 @@ func (s *Serial) Read(p command.Command) (int, error) {
 			}
 			if strings.Contains(response, "needReSend:0") {
 				s.log.Debugf("Device confirmed receipt: %s", response)
+				_ = s.port.Flush()
 				return readed, nil
 			}
 
 			// Validate with the command logic
 			if valErr := p.ValidateCommand(buff[:readed], readed); valErr == nil {
+				_ = s.port.Flush()
 				return readed, nil
 			}
 		}
@@ -329,6 +326,7 @@ func (s *Serial) Read(p command.Command) (int, error) {
 		s.log.Debugf("Error on validate, readed [%s] = %s", string(bytes.Trim(buff[:readed], "\x00")), err.Error())
 		return readed, err // Return the read bytes along with the error
 	}
+	_ = s.port.Flush()
 	return readed, nil
 }
 

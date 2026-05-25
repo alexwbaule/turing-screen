@@ -28,6 +28,7 @@ type Worker struct {
 	device         *command.Device
 	media          *command.Media
 	payload        *command.Payload
+	updatePayload  *command.UpdatePayload
 	preUpdate      *command.PreUpdateBitmap
 	queue          *RegionQueue
 	healthCheck    *command.HealthCheck
@@ -39,21 +40,22 @@ type Worker struct {
 }
 
 func NewWorker(c context.Context, s serial.SerialSender, background device.ImageBackground,
-	d *command.Device, m *command.Media, p *command.Payload, pre *command.PreUpdateBitmap, h *command.HealthCheck, l *logger.Logger, q *RegionQueue, isVideoMode bool, compositor *VideoCompositor) *Worker {
+	d *command.Device, m *command.Media, p *command.Payload, upd *command.UpdatePayload, pre *command.PreUpdateBitmap, h *command.HealthCheck, l *logger.Logger, q *RegionQueue, isVideoMode bool, compositor *VideoCompositor) *Worker {
 	return &Worker{
-		ctx:         c,
-		sender:      s,
-		bg:          background,
-		log:         l,
-		device:      d,
-		media:       m,
-		payload:     p,
-		preUpdate:   pre,
-		healthCheck: h,
-		queue:       q,
-		healthTick:  time.NewTicker(healthCheckInterval),
-		isVideoMode: isVideoMode,
-		compositor:  compositor,
+		ctx:           c,
+		sender:        s,
+		bg:            background,
+		log:           l,
+		device:        d,
+		media:         m,
+		payload:       p,
+		updatePayload: upd,
+		preUpdate:     pre,
+		healthCheck:   h,
+		queue:         q,
+		healthTick:    time.NewTicker(healthCheckInterval),
+		isVideoMode:   isVideoMode,
+		compositor:    compositor,
 	}
 }
 
@@ -227,18 +229,12 @@ func (w *Worker) sendVideoBitmapBatch(batch []command.Command, count int64) erro
 	w.log.Debugf("compositing video bitmap batch of %d commands, queue size: %d", len(batch), w.queue.Len())
 
 	var lastEncoding command.PixelEncoding = command.EncodingBGR
-	var lastCmd command.Command
 
 	for _, cmd := range batch {
 		if up, ok := cmd.(*command.UpdatePayload); ok {
 			w.compositor.ApplyUpdate(up)
 			lastEncoding = up.Encoding
-			lastCmd = up
 		}
-	}
-
-	if lastCmd == nil {
-		return nil
 	}
 
 	imgRawData, visiblePixels := w.compositor.GenerateUpdate(lastEncoding)
@@ -247,23 +243,14 @@ func (w *Worker) sendVideoBitmapBatch(batch []command.Command, count int64) erro
 	payload = append(payload, 0xef, 0x69)
 
 	// Create a custom video update payload
-	up := lastCmd.(*command.UpdatePayload)
-	videoCmd := up.CustomVideoUpdate(payload, len(visiblePixels))
+	videoCmd := w.updatePayload.CustomVideoUpdate(payload, len(visiblePixels))
 	videoCmd.SetCount(count) // Use the start count for this unified batch
 
+	// For video updates, we don't expect a response, so we use WriteBytes
 	_, err := w.sender.WriteBytes(videoCmd)
 	if err != nil {
 		w.log.Errorf("video batch command [%s] failed: %s", videoCmd.GetName(), err.Error())
 		return err
-	}
-
-	v := videoCmd.ValidateWrite()
-	if v.Bytes != nil && v.Size > 0 {
-		_, err := w.sender.Write(newBatchQueryCommand(videoCmd))
-		if err != nil {
-			w.log.Errorf("video batch QUERY_STATUS failed: %s", err.Error())
-			return err
-		}
 	}
 
 	return nil

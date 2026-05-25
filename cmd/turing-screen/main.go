@@ -172,7 +172,7 @@ func main() {
 			queue.Enqueue(cmdPayload.SendPayload(background))
 		}
 
-		worker := sender.NewWorker(ctx, devSerial, background, cmdDevice, cmdMedia, cmdPayload, cmdPreUpdate, cmdHealthCheck, app.Log, queue, isVideoMode, compositor)
+		worker := sender.NewWorker(ctx, devSerial, background, cmdDevice, cmdMedia, cmdPayload, cmdUpdate, cmdPreUpdate, cmdHealthCheck, app.Log, queue, isVideoMode, compositor)
 
 		// ===== START WORKER + SENSORS =====
 		g, ctx := errgroup.WithContext(ctx)

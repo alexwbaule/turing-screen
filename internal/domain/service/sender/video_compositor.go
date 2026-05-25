@@ -19,6 +19,7 @@ type VideoCompositor struct {
 	orientation theme.Orientation
 	current     *image.RGBA
 	previous    *image.RGBA
+	baseBg      image.Image
 }
 
 func NewVideoCompositor(display *device.Display, orientation theme.Orientation, bg pdevice.ImageBackground) *VideoCompositor {
@@ -43,6 +44,7 @@ func NewVideoCompositor(display *device.Display, orientation theme.Orientation, 
 		orientation: orientation,
 		current:     current,
 		previous:    previous,
+		baseBg:      baseImg,
 	}
 }
 
@@ -155,6 +157,9 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 
 	// Copy current to previous
 	draw.Draw(vc.previous, bounds, vc.current, bounds.Min, draw.Src)
+
+	// Reset current to the base background for the next composition cycle
+	draw.Draw(vc.current, bounds, vc.baseBg, bounds.Min, draw.Src)
 
 	return imgRawData.Bytes(), visiblePixels.Bytes()
 }
