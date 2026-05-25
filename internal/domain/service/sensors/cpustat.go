@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/alexwbaule/gopsutil/v3/cpu"
+	"github.com/alexwbaule/gopsutil/v3/load"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/load"
 )
 
 type CpuStat struct {

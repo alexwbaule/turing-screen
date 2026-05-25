@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"image"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/alexwbaule/gg"
 	"github.com/alexwbaule/turing-screen/internal/application"
 	"github.com/alexwbaule/turing-screen/internal/application/hwinfo"
 	apptheme "github.com/alexwbaule/turing-screen/internal/application/theme"
+	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
@@ -75,21 +78,58 @@ func main() {
 		cmdStorage := command.NewStorage(app.Log)
 		encoding := command.EncodingBGR
 		queue := sender.NewRegionQueue(128)
-		worker := sender.NewWorker(ctx, devSerial, background, cmdDevice, cmdMedia, cmdPayload, cmdPreUpdate, cmdHealthCheck, app.Log, queue)
 
 		videoEntries := statsTheme.GetVideoPlay()
 		stats := statsTheme.GetStats()
 
+		var isVideoMode bool
+		if len(videoEntries) > 0 {
+			isVideoMode = true
+		}
+
+		var videoBackground device2.ImageBackground
+		var compositor *sender.VideoCompositor
+
 		app.Log.Info("starting app")
 
-		if len(videoEntries) > 0 {
+		if isVideoMode {
 			// ===== FLUXO 2: VÍDEO =====
-			// The overlay uses BLACK (0,0,0) as transparent — the device shows
-			// the video through black pixels. Sensor data renders on black background.
-			// Create a black background for the overlay.
-			blackBg := builder.BuildTransparentBackground() // RGBA all zeros = black+transparent
-			blackFbg := builder.BuildBackgroundTexts(blackBg, staticTexts)
-			videoBackground := device2.NewImageProcess(blackFbg)
+			var videoLocalPath, videoDevicePath, videoBackgroundPath string
+			for _, vid := range videoEntries {
+				videoLocalPath = vid.Path
+				videoDevicePath = "/root/video/" + filepath.Base(vid.Path)
+				videoBackgroundPath = vid.Background
+				break
+			}
+			app.Log.Infof("video theme: local=%s device=%s background=%s", videoLocalPath, videoDevicePath, videoBackgroundPath)
+
+			if videoBackgroundPath != "" {
+				img, err := utils.LoadImage(videoBackgroundPath)
+				if err != nil {
+					return fmt.Errorf("failed to load video background image %s: %w", videoBackgroundPath, err)
+				}
+				
+				// SALVANDO A IMAGEM PARA DEBUG
+				app.Log.Infof("DEBUG: Salvando o background enviado para 'DEBUG_OVERLAY_BACKGROUND.png'")
+				gg.NewContextForImage(img).SavePNG("DEBUG_OVERLAY_BACKGROUND.png")
+				
+				videoBackground = device2.NewImageProcess(img)
+			} else {
+				// The overlay uses BLACK (0,0,0) as transparent — the device shows
+				// the video through black pixels. Sensor data renders on black background.
+				// Create a black background for the overlay.
+				var blackBg image.Image
+				blackBg = builder.BuildTransparentBackground() // RGBA all zeros = black+transparent
+				blackFbg := builder.BuildBackgroundTexts(blackBg, staticTexts)
+				
+				// SALVANDO A IMAGEM PARA DEBUG
+				app.Log.Infof("DEBUG: Salvando o background gerado em preto para 'DEBUG_OVERLAY_BACKGROUND.png'")
+				gg.NewContextForImage(blackFbg).SavePNG("DEBUG_OVERLAY_BACKGROUND.png")
+				
+				videoBackground = device2.NewImageProcess(blackFbg)
+			}
+
+			compositor = sender.NewVideoCompositor(app.Config.GetDeviceDisplay(), statsTheme.GetDisplay().Orientation, videoBackground)
 
 			// For video mode, sensor updates use BGR (same as static mode)
 			// The device handles compositing internally
@@ -98,15 +138,6 @@ func main() {
 			// on transparent/black background (video shows through)
 			clearBackgroundImages(stats)
 			// Pré-fluxo roda SÍNCRONO (direto no serial, antes do worker)
-
-			// Determinar paths
-			var videoLocalPath, videoDevicePath string
-			for _, vid := range videoEntries {
-				videoLocalPath = vid.Path
-				videoDevicePath = "/root/video/" + filepath.Base(vid.Path)
-				break
-			}
-			app.Log.Infof("video theme: local=%s device=%s", videoLocalPath, videoDevicePath)
 
 			// --- PRÉ-FLUXO SÍNCRONO ---
 			if err := videoPreFlow(devSerial, cmdDevice, cmdMedia, cmdBright, cmdStorage,
@@ -118,11 +149,18 @@ func main() {
 			queue.Enqueue(cmdStorage.RestartDevice())
 			queue.Enqueue(&sleepCommand{duration: 2 * time.Second})
 			queue.Enqueue(cmdDevice.Hello())
-			queue.Enqueue(cmdStorage.GetFileInfo(videoDevicePath))
 			queue.Enqueue(cmdStorage.PlayVideo(videoDevicePath, true))
 			queue.Enqueue(cmdPreUpdate)
 			queue.Enqueue(cmdBright.SetBrightness(app.Config.GetDeviceDisplay().Brightness))
 			queue.Enqueue(cmdPayload.SendOverlay(videoBackground))
+			queue.Enqueue(cmdPayload.InitVideoOverlay())
+			queue.Enqueue(&sleepCommand{duration: 1 * time.Second})
+			if activateCmd, err := cmdUpdate.ActivateVideoOverlay(videoBackground); err == nil {
+				queue.Enqueue(activateCmd)
+			} else {
+				app.Log.Errorf("Failed to generate activate video overlay command: %v", err)
+			}
+			queue.Enqueue(cmdHealthCheck.QueryStatus())
 
 		} else {
 			// ===== FLUXO 1: IMAGEM ESTÁTICA =====
@@ -133,6 +171,8 @@ func main() {
 			queue.Enqueue(cmdPreUpdate)
 			queue.Enqueue(cmdPayload.SendPayload(background))
 		}
+
+		worker := sender.NewWorker(ctx, devSerial, background, cmdDevice, cmdMedia, cmdPayload, cmdPreUpdate, cmdHealthCheck, app.Log, queue, isVideoMode, compositor)
 
 		// ===== START WORKER + SENSORS =====
 		g, ctx := errgroup.WithContext(ctx)
@@ -174,28 +214,68 @@ func main() {
 		dsk := sensors.NewDiskStat(app.Log, queue, builder, cmdUpdate, encoding, app.Config.GetDiskSensorConfig().TemperatureSensor)
 		gpu := sensors.NewGpuStat(app.Log, queue, builder, cmdUpdate, encoding, gpuprovider.NewGPUProvider(app.Config.GetGPUSensorConfig().Provider, app.Log))
 
-		if stats.CPU.Percentage != nil {
-			g.Go(func() error { return cpu.RunPercentage(ctx, stats.CPU.Percentage) })
-		}
-		if stats.CPU.Frequency != nil {
-			g.Go(func() error { return cpu.RunFrequency(ctx, stats.CPU.Frequency) })
-		}
-		if stats.CPU.Temperature != nil {
-			g.Go(func() error { return cpu.RunTemperature(ctx, stats.CPU.Temperature) })
+		if stats.CPU != nil {
+			if stats.CPU.Percentage != nil {
+				if stats.CPU.Percentage.Interval <= 0 {
+					stats.CPU.Percentage.Interval = stats.CPU.Interval
+				}
+				if stats.CPU.Percentage.Interval > 0 {
+					g.Go(func() error { return cpu.RunPercentage(ctx, stats.CPU.Percentage) })
+				}
+			}
+			if stats.CPU.Frequency != nil {
+				if stats.CPU.Frequency.Interval <= 0 {
+					stats.CPU.Frequency.Interval = stats.CPU.Interval
+				}
+				if stats.CPU.Frequency.Interval > 0 {
+					g.Go(func() error { return cpu.RunFrequency(ctx, stats.CPU.Frequency) })
+				}
+			}
+			if stats.CPU.Temperature != nil {
+				if stats.CPU.Temperature.Interval <= 0 {
+					stats.CPU.Temperature.Interval = stats.CPU.Interval
+				}
+				if stats.CPU.Temperature.Interval > 0 {
+					g.Go(func() error { return cpu.RunTemperature(ctx, stats.CPU.Temperature) })
+				}
+			}
+			if stats.CPU.Load != nil {
+				if stats.CPU.Load.Interval <= 0 {
+					stats.CPU.Load.Interval = stats.CPU.Interval
+				}
+				if stats.CPU.Load.Interval > 0 {
+					g.Go(func() error { return cpu.RunLoad(ctx, stats.CPU.Load) })
+				}
+			}
 		}
 		if stats.Memory != nil {
+			if stats.Memory.Interval <= 0 {
+				stats.Memory.Interval = 1 * time.Second
+			} // Fallback
 			g.Go(func() error { return mem.RunMemStat(ctx, stats.Memory) })
 		}
 		if stats.Date != nil {
+			if stats.Date.Interval <= 0 {
+				stats.Date.Interval = 1 * time.Second
+			}
 			g.Go(func() error { return dt.RunDateTime(ctx, stats.Date) })
 		}
 		if stats.Net != nil {
+			if stats.Net.Interval <= 0 {
+				stats.Net.Interval = 1 * time.Second
+			}
 			g.Go(func() error { return net.RunNetStat(ctx, stats.Net) })
 		}
 		if stats.Disk != nil {
+			if stats.Disk.Interval <= 0 {
+				stats.Disk.Interval = 1 * time.Second
+			}
 			g.Go(func() error { return dsk.RunDiskStat(ctx, stats.Disk) })
 		}
 		if stats.GPU != nil {
+			if stats.GPU.Interval <= 0 {
+				stats.GPU.Interval = 1 * time.Second
+			}
 			g.Go(func() error { return gpu.RunGpuStat(ctx, stats.GPU) })
 		}
 
@@ -335,19 +415,22 @@ func videoPreFlow(
 		}
 		log.Infof("<<< CREATE_FILE ok (create_success)")
 
-		// Write raw file data in chunks
-		const uploadChunkSize = 4096
+		// Write file data in 250-byte frames (249 bytes data + 1 byte padding)
 		totalWritten := 0
 		for totalWritten < len(fileData) {
-			end := totalWritten + uploadChunkSize
+			end := totalWritten + 249
 			if end > len(fileData) {
 				end = len(fileData)
 			}
-			n, err := ser.WriteRaw(fileData[totalWritten:end])
+
+			frame := utils.BZero(250, 0x00)
+			copy(frame, fileData[totalWritten:end])
+
+			_, err := ser.WriteRaw(frame)
 			if err != nil {
 				return fmt.Errorf("file upload write failed at byte %d: %w", totalWritten, err)
 			}
-			totalWritten += n
+			totalWritten = end
 		}
 		log.Infof("uploaded %d bytes", totalWritten)
 

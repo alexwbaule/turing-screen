@@ -118,7 +118,14 @@ func translateDuration(data interface{}) (interface{}, error) {
 	var v time.Duration
 
 	if data != nil {
-		v = time.Duration(data.(int)) * time.Second
+		if val, ok := data.(int); ok {
+			v = time.Duration(val) * time.Second
+		} else if val, ok := data.(string); ok {
+			parsed, err := time.ParseDuration(val)
+			if err == nil {
+				v = parsed
+			}
+		}
 	} else {
 		v = time.Duration(0)
 	}
@@ -292,12 +299,17 @@ func translateStaticImage(file string, data map[string]interface{}) (interface{}
 
 func translateDinamicImage(file string, data map[string]interface{}) (interface{}, error) {
 	imagePath := fmt.Sprintf(THEMEPATH, file)
+	bg := ""
+	if data["background"] != nil {
+		bg = imagePath + data["background"].(string)
+	}
 	v := theme.DinamicImage{
-		Path:   imagePath + data["path"].(string),
-		Height: data["height"].(int),
-		Width:  data["width"].(int),
-		X:      data["x"].(int),
-		Y:      data["y"].(int),
+		Path:       imagePath + data["path"].(string),
+		Height:     data["height"].(int),
+		Width:      data["width"].(int),
+		X:          data["x"].(int),
+		Y:          data["y"].(int),
+		Background: bg,
 	}
 	return v, nil
 }

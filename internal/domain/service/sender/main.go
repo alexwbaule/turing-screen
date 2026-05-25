@@ -34,10 +34,12 @@ type Worker struct {
 	healthTick     *time.Ticker
 	healthFailures int
 	transmitting   bool
+	isVideoMode    bool
+	compositor     *VideoCompositor
 }
 
 func NewWorker(c context.Context, s serial.SerialSender, background device.ImageBackground,
-	d *command.Device, m *command.Media, p *command.Payload, pre *command.PreUpdateBitmap, h *command.HealthCheck, l *logger.Logger, q *RegionQueue) *Worker {
+	d *command.Device, m *command.Media, p *command.Payload, pre *command.PreUpdateBitmap, h *command.HealthCheck, l *logger.Logger, q *RegionQueue, isVideoMode bool, compositor *VideoCompositor) *Worker {
 	return &Worker{
 		ctx:         c,
 		sender:      s,
@@ -50,6 +52,8 @@ func NewWorker(c context.Context, s serial.SerialSender, background device.Image
 		healthCheck: h,
 		queue:       q,
 		healthTick:  time.NewTicker(healthCheckInterval),
+		isVideoMode: isVideoMode,
+		compositor:  compositor,
 	}
 }
 
@@ -176,7 +180,12 @@ func (w *Worker) processBatch(startNum int64) (int, int64, error) {
 		if _, isRegion := cmd.(command.RegionIdentifier); !isRegion {
 			// First, flush any accumulated bitmap batch
 			if len(bitmapBatch) > 0 {
-				err := w.sendBitmapBatch(bitmapBatch, startNum+bitmapCount-int64(len(bitmapBatch)))
+				var err error
+				if w.isVideoMode && w.compositor != nil {
+					err = w.sendVideoBitmapBatch(bitmapBatch, startNum+bitmapCount-int64(len(bitmapBatch)))
+				} else {
+					err = w.sendBitmapBatch(bitmapBatch, startNum+bitmapCount-int64(len(bitmapBatch)))
+				}
 				if err != nil {
 					return processed, bitmapCount, err
 				}
@@ -200,13 +209,64 @@ func (w *Worker) processBatch(startNum int64) (int, int64, error) {
 
 	// Send accumulated bitmap batch
 	if len(bitmapBatch) > 0 {
-		err := w.sendBitmapBatch(bitmapBatch, startNum)
+		var err error
+		if w.isVideoMode && w.compositor != nil {
+			err = w.sendVideoBitmapBatch(bitmapBatch, startNum)
+		} else {
+			err = w.sendBitmapBatch(bitmapBatch, startNum)
+		}
 		if err != nil {
 			return processed, bitmapCount, err
 		}
 	}
 
 	return processed, bitmapCount, nil
+}
+
+func (w *Worker) sendVideoBitmapBatch(batch []command.Command, count int64) error {
+	w.log.Debugf("compositing video bitmap batch of %d commands, queue size: %d", len(batch), w.queue.Len())
+
+	var lastEncoding command.PixelEncoding = command.EncodingBGR
+	var lastCmd command.Command
+
+	for _, cmd := range batch {
+		if up, ok := cmd.(*command.UpdatePayload); ok {
+			w.compositor.ApplyUpdate(up)
+			lastEncoding = up.Encoding
+			lastCmd = up
+		}
+	}
+
+	if lastCmd == nil {
+		return nil
+	}
+
+	imgRawData, visiblePixels := w.compositor.GenerateUpdate(lastEncoding)
+
+	payload := append(imgRawData, visiblePixels...)
+	payload = append(payload, 0xef, 0x69)
+
+	// Create a custom video update payload
+	up := lastCmd.(*command.UpdatePayload)
+	videoCmd := up.CustomVideoUpdate(payload, len(visiblePixels))
+	videoCmd.SetCount(count) // Use the start count for this unified batch
+
+	_, err := w.sender.WriteBytes(videoCmd)
+	if err != nil {
+		w.log.Errorf("video batch command [%s] failed: %s", videoCmd.GetName(), err.Error())
+		return err
+	}
+
+	v := videoCmd.ValidateWrite()
+	if v.Bytes != nil && v.Size > 0 {
+		_, err := w.sender.Write(newBatchQueryCommand(videoCmd))
+		if err != nil {
+			w.log.Errorf("video batch QUERY_STATUS failed: %s", err.Error())
+			return err
+		}
+	}
+
+	return nil
 }
 
 // sendBitmapBatch sends all UPDATE_BITMAP commands in the batch consecutively

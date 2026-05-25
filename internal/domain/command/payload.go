@@ -16,6 +16,7 @@ import (
 var (
 	imageSucess   = regexp.MustCompile("^full_png_sucess$")
 	overlaySucess = regexp.MustCompile("^seq_png_init_sucess$")
+	renderSucess  = regexp.MustCompile("^needReSend:0\\|renderCnt:0$")
 )
 
 type Payload struct {
@@ -46,12 +47,22 @@ func (m *Payload) GetBytes() [][]byte {
 	}
 	size := len(m.payload)
 
+	// Se payload vazio, não itera e retorna o header já feito
+	if size == 0 {
+		return fullImage
+	}
+
 	for i := 0; i < size; i += chunk {
 		end := i + chunk
 		if end > size {
 			end = size
 		}
-		tmp := utils.BZero(250, m.padding[1])
+		// A padding rule depends on the second element for chunking
+		padVal := byte(0x00)
+		if len(m.padding) > 1 {
+			padVal = m.padding[1]
+		}
+		tmp := utils.BZero(250, padVal)
 		copy(tmp, m.payload[i:end])
 		fullImage = append(fullImage, tmp)
 	}
@@ -67,6 +78,13 @@ func (m *Payload) GetName() string {
 }
 
 func (m *Payload) ValidateWrite() WriteValidation {
+	// Some commands like INIT_VIDEO_OVERLAY don't need a QUERY_STATUS directly inside Payload if handled by queue/worker
+	if m.size == 0 {
+		return WriteValidation{
+			Size:  0,
+			Bytes: nil,
+		}
+	}
 	return WriteValidation{
 		Size:  m.size,
 		Bytes: m.QueryStatus(),
@@ -80,7 +98,10 @@ func (m *Payload) QueryStatus() []byte {
 
 func (m *Payload) ValidateCommand(s []byte, i int) error {
 	v := string(bytes.Trim(s, "\x00"))
-	if i == m.size && m.readed.MatchString(v) {
+	if i == m.size && m.readed != nil && m.readed.MatchString(v) {
+		return nil
+	}
+	if m.readed == nil {
 		return nil
 	}
 	return fmt.Errorf("no matching item on: %s", m.readed.String())
@@ -123,6 +144,29 @@ func (m *Payload) SendOverlay(background device.ImageBackground) *Payload {
 		payload: background.GenerateBackgroundImage(m.orientation),
 		size:    1024,
 		readed:  overlaySucess,
+		log:     m.log,
+	}
+}
+
+// InitVideoOverlay sends the end marker and initializes the video overlay on the device.
+// This is required to signal the device which pixels are visible. In this case,
+// only the end marker is sent for initialization, effectively rendering everything
+// non-transparent over the video.
+func (m *Payload) InitVideoOverlay() *Payload {
+	return &Payload{
+		name: "INIT_VIDEO_OVERLAY",
+		bytes: [][]byte{
+			{
+				0xd0, 0xef, 0x69, 0x00, 0x00, 0x00, 0x02,
+			},
+			{
+				0xef, 0x69,
+			},
+		},
+		padding: []byte{0x00, 0x00},
+		payload: nil,
+		size:    0,
+		readed:  nil,
 		log:     m.log,
 	}
 }

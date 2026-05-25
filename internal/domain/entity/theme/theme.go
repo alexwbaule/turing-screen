@@ -63,8 +63,6 @@ func StringToFormat(src string) Format {
 func (f Format) String(t FormatDateTime) string {
 	switch f {
 	case SHORT:
-		//	//DATE: short (2/20/23) / medium (Feb 20, 2023) / long (February 20, 2023) / full (Monday, February 20, 2023)
-		//	//TIME: short (6:48 PM) / medium (6:48:53 PM) / long (6:48:53 PM UTC) / full (6:48:53 PM Coordinated Universal Time)
 		if t == DATE {
 			return "01/02/06"
 		}
@@ -151,11 +149,12 @@ type Display struct {
 }
 
 type DinamicImage struct {
-	Path   string `mapstructure:"PATH"`
-	Height int    `mapstructure:"HEIGHT"`
-	Width  int    `mapstructure:"WIDTH"`
-	X      int    `mapstructure:"X"`
-	Y      int    `mapstructure:"Y"`
+	Path       string `mapstructure:"PATH"`
+	Height     int    `mapstructure:"HEIGHT"`
+	Width      int    `mapstructure:"WIDTH"`
+	X          int    `mapstructure:"X"`
+	Y          int    `mapstructure:"Y"`
+	Background string `mapstructure:"BACKGROUND"`
 }
 
 type StaticImage struct {

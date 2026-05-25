@@ -1,6 +1,7 @@
 device:
   port: AUTO
-  theme: NZXT_B
+  #theme: Bilibili
+  theme: Bilibili
   log: debug
   sensors:
     network:

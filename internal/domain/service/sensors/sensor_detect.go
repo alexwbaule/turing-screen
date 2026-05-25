@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/alexwbaule/gopsutil/v3/host"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/shirou/gopsutil/v3/host"
 )
 
 // findSensorTemperature searches for a temperature sensor by configured name or auto-detection patterns.

@@ -27,17 +27,24 @@ type ImageProcess struct {
 
 type ImageBackground interface {
 	GenerateBackgroundImage(orietation theme.Orientation) []byte
+	GenerateVisibleSegments(orientation theme.Orientation, display *device.Display) []byte
+	GetImage() image.Image
 }
 
 type ImagePartial interface {
 	GeneratePartialImage(orietation theme.Orientation, display *device.Display, xi, yi int, encoding PixelEncoding) []byte
 	GetDimensions() (width, height int)
+	GetImage() image.Image
 }
 
 func NewImageProcess(i image.Image) *ImageProcess {
 	return &ImageProcess{
 		img: i,
 	}
+}
+
+func (i *ImageProcess) GetImage() image.Image {
+	return i.img
 }
 
 // GetDimensions returns the width and height of the underlying image.
@@ -65,6 +72,52 @@ func (i *ImageProcess) GenerateBackgroundImage(orietation theme.Orientation) []b
 		}
 	}
 	return imageAs.Bytes()
+}
+
+func (i *ImageProcess) GenerateVisibleSegments(orientation theme.Orientation, display *device.Display) []byte {
+	var visibleSegments bytes.Buffer
+
+	img := i.img
+	if orientation == theme.REVERSE_LANDSCAPE {
+		img = imaging.Rotate180(img)
+	} else if orientation == theme.REVERSE_PORTRAIT {
+		img = imaging.Rotate270(img)
+	} else if orientation == theme.PORTRAIT {
+		img = imaging.Rotate90(img)
+	}
+
+	bounds := img.Bounds()
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		x := bounds.Min.X
+		for x < bounds.Max.X {
+			_, _, _, a := img.At(x, y).RGBA()
+			// O Python testa a > 0. O RGBA() retorna alpha pré-multiplicado em 16 bits.
+			if a > 0 {
+				startX := x
+				width := 1
+				x++
+				for x < bounds.Max.X {
+					_, _, _, a2 := img.At(x, y).RGBA()
+					if a2 > 0 {
+						width++
+						x++
+					} else {
+						break
+					}
+				}
+
+				position := y*display.Width + startX
+				positions := make([]byte, 5)
+				copy(positions, utils.PadBegin(big.NewInt(int64(position)).Bytes(), 3))
+				copy(positions[3:], utils.PadBegin(big.NewInt(int64(width)).Bytes(), 2))
+				visibleSegments.Write(positions)
+			} else {
+				x++
+			}
+		}
+	}
+	return visibleSegments.Bytes()
 }
 
 func (i *ImageProcess) GeneratePartialImage(orientation theme.Orientation, display *device.Display, x, y int, encoding PixelEncoding) []byte {

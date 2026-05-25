@@ -6,7 +6,7 @@ display:
 
 video_play:
   BACKGROUND_VIDEO:
-    PATH: gunpla.mp4
+    PATH: 2233.mp4
     X: 0
     Y: 0
     WIDTH: 800

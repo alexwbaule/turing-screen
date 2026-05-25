@@ -3,15 +3,14 @@ package command
 import (
 	"bytes"
 	"errors"
+	"image"
+	"math/big"
+	"regexp"
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	tdevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-
-	"math/big"
-	"regexp"
-
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 )
 
@@ -24,20 +23,23 @@ var (
 )
 
 type UpdatePayload struct {
-	bytes        []byte
-	payload      []byte
-	name         string
-	padding      byte
-	size         int
-	count        int64
-	readed       *regexp.Regexp
-	log          *logger.Logger
-	orientation  theme.Orientation
-	device       *tdevice.Display
-	regionX      int
-	regionY      int
-	regionWidth  int
-	regionHeight int
+	bytes             []byte
+	payload           []byte
+	name              string
+	padding           byte
+	size              int
+	count             int64
+	readed            *regexp.Regexp
+	log               *logger.Logger
+	orientation       theme.Orientation
+	device            *tdevice.Display
+	regionX           int
+	regionY           int
+	regionWidth       int
+	regionHeight      int
+	visiblePixelsSize int
+	PartialImage      device.ImagePartial
+	Encoding          PixelEncoding
 }
 
 func NewUpdatePayload(log *logger.Logger, o theme.Orientation, t *tdevice.Display) *UpdatePayload {
@@ -62,6 +64,11 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 	copy(updateBitMapCmd[4:], pSize)
 	copy(updateBitMapCmd[7:], pPad)
 	copy(updateBitMapCmd[10:], pCount)
+
+	if m.visiblePixelsSize > 0 {
+		pVisible := utils.PadBegin(big.NewInt(int64(m.visiblePixelsSize)).Bytes(), 4)
+		copy(updateBitMapCmd[14:], pVisible)
+	}
 
 	fullImage = append(fullImage, updateBitMapCmd)
 	for i := 0; i < size; i += chunk {
@@ -139,5 +146,55 @@ func (m *UpdatePayload) SendPayload(partial device.ImagePartial, x, y int, encod
 		regionY:      y,
 		regionWidth:  width,
 		regionHeight: height,
+		PartialImage: partial,
+		Encoding:     encoding,
+		orientation:  m.orientation,
+		device:       m.device,
 	}, nil
+}
+
+func (m *UpdatePayload) ActivateVideoOverlay(background device.ImageBackground) (*UpdatePayload, error) {
+	visiblePixels := background.GenerateVisibleSegments(m.orientation, m.device)
+
+	// Payload for activation contains only the visible segments list and the end marker
+	payload := append(visiblePixels, 0xef, 0x69)
+
+	return &UpdatePayload{
+		name: "ACTIVATE_VIDEO_OVERLAY",
+		bytes: []byte{
+			0xcc, 0xef, 0x69, 0x00,
+		},
+		padding:           0x00,
+		size:              1024,
+		readed:            render,
+		payload:           payload,
+		log:               m.log,
+		orientation:       m.orientation,
+		device:            m.device,
+		visiblePixelsSize: len(visiblePixels),
+	}, nil
+}
+
+func (m *UpdatePayload) CustomVideoUpdate(payload []byte, visibleSize int) *UpdatePayload {
+	return &UpdatePayload{
+		name: "UPDATE_BITMAP",
+		bytes: []byte{
+			0xcc, 0xef, 0x69, 0x00,
+		},
+		padding:           0x00,
+		size:              1024,
+		readed:            render,
+		payload:           payload,
+		log:               m.log,
+		orientation:       m.orientation,
+		device:            m.device,
+		visiblePixelsSize: visibleSize,
+	}
+}
+
+func (m *UpdatePayload) GetPartialImage() image.Image {
+	if m.PartialImage == nil {
+		return nil
+	}
+	return m.PartialImage.GetImage()
 }

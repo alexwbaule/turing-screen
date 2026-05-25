@@ -17,11 +17,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alexwbaule/gopsutil/v3/cpu"
+	"github.com/alexwbaule/gopsutil/v3/disk"
+	"github.com/alexwbaule/gopsutil/v3/mem"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	amdgpu "github.com/alexwbaule/turing-screen/internal/resource/gpu"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/disk"
-	"github.com/shirou/gopsutil/v3/mem"
 )
 
 // HWInfo holds detected hardware model names.

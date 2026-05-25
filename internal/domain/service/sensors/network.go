@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/alexwbaule/gopsutil/v3/net"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
@@ -11,7 +12,6 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
-	"github.com/shirou/gopsutil/v3/net"
 )
 
 type NetStat struct {

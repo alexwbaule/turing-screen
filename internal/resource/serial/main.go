@@ -6,14 +6,12 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"syscall"
 	"time"
-	"unsafe"
 
+	"github.com/alexwbaule/serial"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/usb"
-	"github.com/tarm/serial"
 )
 
 const attempts = 3
@@ -63,31 +61,6 @@ type SerialSender interface {
 	Reconnect(ctx context.Context) error
 }
 
-// setDTRRTS sets DTR and RTS modem control lines on the serial port file descriptor.
-// This is required for the Turing Screen device to accept bulk data writes.
-func setDTRRTS(fd uintptr) {
-	// TIOCMBIS = set modem bits
-	const TIOCMBIS = 0x5416
-	const TIOCM_DTR = 0x002
-	const TIOCM_RTS = 0x004
-	bits := TIOCM_DTR | TIOCM_RTS
-	syscall.Syscall(syscall.SYS_IOCTL, fd, TIOCMBIS, uintptr(unsafe.Pointer(&bits)))
-}
-
-// disableFlowControl disables XON/XOFF and hardware flow control on the port.
-// Without this, the kernel may pause reads when the device sends certain bytes.
-func disableFlowControl(fd uintptr) {
-	// Get current termios
-	var termios syscall.Termios
-	syscall.Syscall(syscall.SYS_IOCTL, fd, syscall.TCGETS, uintptr(unsafe.Pointer(&termios)))
-	// Disable IXON, IXOFF, IXANY (software flow control)
-	termios.Iflag &^= syscall.IXON | syscall.IXOFF | syscall.IXANY
-	// Disable CRTSCTS (hardware flow control)
-	termios.Cflag &^= 0x80000000 // CRTSCTS
-	// Apply
-	syscall.Syscall(syscall.SYS_IOCTL, fd, syscall.TCSETS, uintptr(unsafe.Pointer(&termios)))
-}
-
 func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 	device, err := usb.NewUsbDevice(portName, l)
 	if err != nil {
@@ -100,20 +73,14 @@ func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 		Name:        device.Name,
 		Parity:      serial.ParityNone,
 		StopBits:    serial.Stop1,
-		ReadTimeout: 10 * time.Second,
+		ReadTimeout: 5 * time.Second,
+		Size:        8,
+		InitialDTR:  new(true),
+		InitialRTS:  new(true),
 	}
 	port, err := serial.OpenPort(config)
 	if err != nil {
 		return nil, fmt.Errorf("error opening port %s: %w", device.Name, err)
-	}
-
-	// CRITICAL: Set DTR=1 and RTS=1 via ioctl.
-	// Required for bulk data transfer (file upload) to work.
-	// The tarm/serial library doesn't expose DTR/RTS control directly.
-	if f, ok := interface{}(port).(interface{ Fd() uintptr }); ok {
-		setDTRRTS(f.Fd())
-		disableFlowControl(f.Fd())
-		l.Info("DTR=1 RTS=1 set, flow control disabled")
 	}
 
 	return &Serial{
@@ -307,53 +274,60 @@ func (s *Serial) WriteBytes(p command.Command) (int, error) {
 func (s *Serial) Read(p command.Command) (int, error) {
 	var readed int
 	var trying = 0
-	var err error
 
 	v := p.ValidateWrite()
-
 	buff := make([]byte, v.Size)
 
 	for {
-		n, err := s.port.Read(buff)
+		// Read into the remaining space of buff
+		n, err := s.port.Read(buff[readed:])
 		readed += n
 		trying++
 
 		if err != nil && err != io.EOF {
 			return 0, fmt.Errorf("read serial error: %w", err)
 		}
+
+		if readed > 0 {
+			response := string(bytes.Trim(buff[:readed], "\x00"))
+
+			if strings.Contains(response, "needReSend:1") {
+				s.log.Warnf("Device requested retransmission: %s", response)
+				return readed, s.handleNeedReSend(p)
+			}
+			if strings.Contains(response, "needReSend:0") {
+				s.log.Debugf("Device confirmed receipt: %s", response)
+				return readed, nil
+			}
+
+			// Validate with the command logic
+			if valErr := p.ValidateCommand(buff[:readed], readed); valErr == nil {
+				return readed, nil
+			}
+		}
+
 		if n == 0 && trying <= attempts {
 			s.log.Warnf("Readed zero, trying again [%d]", trying)
 			continue
 		}
+
 		if readed == 0 {
 			return 0, fmt.Errorf("read serial error: no response")
 		}
-		if n == v.Size {
+
+		if readed >= v.Size {
 			break
 		}
-		if readed > 0 && err == io.EOF {
+		if n == 0 && trying > attempts {
 			break
 		}
 	}
 
-	// Check for needReSend responses before falling through to ValidateCommand
-	response := string(bytes.Trim(buff[:readed], "\x00"))
-
-	if strings.Contains(response, "needReSend:1") {
-		s.log.Warnf("Device requested retransmission: %s", response)
-		return readed, s.handleNeedReSend(p)
-	}
-
-	if strings.Contains(response, "needReSend:0") {
-		s.log.Debugf("Device confirmed receipt: %s", response)
-		return readed, nil
-	}
-
-	// For other responses, validate via command's ValidateCommand
-	err = p.ValidateCommand(buff, readed)
+	// Final validation check if we break out of the loop
+	err := p.ValidateCommand(buff[:readed], readed)
 	if err != nil {
-		s.log.Debugf("Error on validate, readed [%s] = %s", string(bytes.Trim(buff, "\x00")), err.Error())
-		return 0, err
+		s.log.Debugf("Error on validate, readed [%s] = %s", string(bytes.Trim(buff[:readed], "\x00")), err.Error())
+		return readed, err // Return the read bytes along with the error
 	}
 	return readed, nil
 }
@@ -416,10 +390,12 @@ func (s *Serial) handleNeedReSend(lastCommand command.Command) error {
 			return fmt.Errorf("retransmit flush error on attempt %d: %w", attempt, err)
 		}
 
-		// Read the response
+		// Read the response using the same logic as Read()
 		buff := make([]byte, v.Size)
 		var readed int
 		var trying int
+		success := false
+
 		for {
 			n, err := s.port.Read(buff[readed:])
 			readed += n
@@ -428,39 +404,35 @@ func (s *Serial) handleNeedReSend(lastCommand command.Command) error {
 			if err != nil && err != io.EOF {
 				return fmt.Errorf("retransmit read error on attempt %d: %w", attempt, err)
 			}
+
+			if readed > 0 {
+				response := string(bytes.Trim(buff[:readed], "\x00"))
+
+				if strings.Contains(response, "needReSend:0") {
+					s.log.Infof("Retransmit successful on attempt %d: %s", attempt, response)
+					return nil
+				}
+				if strings.Contains(response, "needReSend:1") {
+					s.log.Warnf("Retransmit attempt %d: device still requesting resend: %s", attempt, response)
+					break // break inner loop to retry retransmission attempt
+				}
+				if valErr := lastCommand.ValidateCommand(buff[:readed], readed); valErr == nil {
+					s.log.Infof("Retransmit successful (validated) on attempt %d", attempt)
+					return nil
+				}
+			}
+
 			if n == 0 && trying <= attempts {
 				continue
 			}
-			if readed == 0 {
-				break // No response, will retry
-			}
-			if readed >= v.Size {
-				break
-			}
-			if readed > 0 && err == io.EOF {
+			if readed >= v.Size || (n == 0 && trying > attempts) {
 				break
 			}
 		}
 
-		if readed == 0 {
-			s.log.Warnf("Retransmit attempt %d: no response from device", attempt)
-			continue
+		if !success {
+			s.log.Warnf("Retransmit attempt %d failed to get valid confirmation", attempt)
 		}
-
-		response := string(bytes.Trim(buff[:readed], "\x00"))
-
-		if strings.Contains(response, "needReSend:0") {
-			s.log.Infof("Retransmit successful on attempt %d: %s", attempt, response)
-			return nil
-		}
-
-		if strings.Contains(response, "needReSend:1") {
-			s.log.Warnf("Retransmit attempt %d: device still requesting resend: %s", attempt, response)
-			continue
-		}
-
-		// Unexpected response during retransmission
-		s.log.Warnf("Retransmit attempt %d: unexpected response: %s", attempt, response)
 	}
 
 	return fmt.Errorf("retransmission failed after %d attempts for command [%s]", retransmitAttempts, lastCommand.GetName())

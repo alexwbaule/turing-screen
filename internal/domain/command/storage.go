@@ -177,8 +177,8 @@ func (s *Storage) ListDir(path string) *Storage {
 		name:    "LIST_DIR",
 		bytes:   buildPathPayload(cmdListDir, path),
 		padding: 0x00,
-		size:    1024,
-		readed:  listDirResult,
+		size:    0,
+		readed:  nil,
 		log:     s.log,
 	}
 }
@@ -204,7 +204,7 @@ func (s *Storage) GetFileInfo(path string) *Storage {
 		name:    "GET_FILE_INFO",
 		bytes:   buildPathPayload(cmdGetFileInfo, path),
 		padding: 0x00,
-		size:    1024,
+		size:    0,
 		readed:  nil,
 		log:     s.log,
 	}
