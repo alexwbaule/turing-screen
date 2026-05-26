@@ -70,6 +70,16 @@ func (m *UpdatePayload) GetBytes() [][]byte {
 		copy(updateBitMapCmd[14:], pVisible)
 	}
 
+	if m.log != nil && m.name == "UPDATE_BITMAP" {
+		m.log.Debugf(
+			"UPDATE_BITMAP header: size=%d visible=%d count=%d header=%x",
+			size,
+			m.visiblePixelsSize,
+			m.count,
+			updateBitMapCmd[:18],
+		)
+	}
+
 	fullImage = append(fullImage, updateBitMapCmd)
 	for i := 0; i < size; i += chunk {
 		end := i + chunk

@@ -72,9 +72,9 @@ func (vc *VideoCompositor) ApplyUpdate(up *command.UpdatePayload) {
 		x0, y0 = y, x
 	}
 
-	// Draw the image onto the current buffer
+	// Match PIL paste(image, (x, y)): replace the destination pixels.
 	drawRect := image.Rect(y0, x0, y0+img.Bounds().Dx(), x0+img.Bounds().Dy())
-	draw.Draw(vc.current, drawRect, img, img.Bounds().Min, draw.Over) // draw.Over for alpha blending
+	draw.Draw(vc.current, drawRect, img, img.Bounds().Min, draw.Over)
 }
 
 // GenerateUpdate generates the img_raw_data and visible_pixels byte array
@@ -83,22 +83,30 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 	var visiblePixels bytes.Buffer
 
 	bounds := vc.current.Bounds()
+	logicalWidth := bounds.Dx()
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		// Find updated segments
+		// Find updated visible segments
 		x := bounds.Min.X
 		for x < bounds.Max.X {
 			currIdx := (y-bounds.Min.Y)*vc.current.Stride + (x-bounds.Min.X)*4
 			prevIdx := (y-bounds.Min.Y)*vc.previous.Stride + (x-bounds.Min.X)*4
 
-			if !bytes.Equal(vc.current.Pix[currIdx:currIdx+4], vc.previous.Pix[prevIdx:prevIdx+4]) {
+			changed := !bytes.Equal(vc.current.Pix[currIdx:currIdx+4], vc.previous.Pix[prevIdx:prevIdx+4])
+			visible := vc.current.Pix[currIdx+3] > 0
+
+			if changed && visible {
 				startX := x
 				width := 1
 				x++
 				for x < bounds.Max.X {
 					cIdx := (y-bounds.Min.Y)*vc.current.Stride + (x-bounds.Min.X)*4
 					pIdx := (y-bounds.Min.Y)*vc.previous.Stride + (x-bounds.Min.X)*4
-					if !bytes.Equal(vc.current.Pix[cIdx:cIdx+4], vc.previous.Pix[pIdx:pIdx+4]) {
+
+					segmentChanged := !bytes.Equal(vc.current.Pix[cIdx:cIdx+4], vc.previous.Pix[pIdx:pIdx+4])
+					segmentVisible := vc.current.Pix[cIdx+3] > 0
+
+					if segmentChanged && segmentVisible {
 						width++
 						x++
 					} else {
@@ -107,33 +115,27 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 				}
 
 				// Append to imgRawData
-				position := y*vc.display.Width + startX
+				position := (y-bounds.Min.Y)*logicalWidth + (startX - bounds.Min.X)
 				positions := make([]byte, 5)
 				copy(positions, utils.PadBegin(big.NewInt(int64(position)).Bytes(), 3))
 				copy(positions[3:], utils.PadBegin(big.NewInt(int64(width)).Bytes(), 2))
 				imgRawData.Write(positions)
 
 				for w := 0; w < width; w++ {
-					// Pega a cor diretamente do buffer Pix (8 bits por canal, sem pre-multiplicação)
 					idx := (y-bounds.Min.Y)*vc.current.Stride + (startX+w-bounds.Min.X)*4
 					r := vc.current.Pix[idx]
 					g := vc.current.Pix[idx+1]
 					b := vc.current.Pix[idx+2]
 					a := vc.current.Pix[idx+3]
 
-					// Codificação especial para Video Overlay:
-					// O dispositivo espera 3 bytes por pixel, mas precisa do canal Alpha.
-					// Portanto, as cores são espremidas em 4 bits (descartando os 4 bits menos significativos)
-					// e os 4 bits do Alfa são distribuídos nos bits livres.
-					// Formato:
-					// Byte 0: BBBB AA (top 2 bits do alpha)
-					// Byte 1: GGGG aa (bottom 2 bits do alpha)
-					// Byte 2: RRRR 0000
-					
-					alpha4bit := a >> 4
-					bByte := (b & 0xF0) | ((alpha4bit & 0xC) >> 2)
-					gByte := (g & 0xF0) | (alpha4bit & 0x3)
-					rByte := (r & 0xF0)
+					r4 := byte(int(r) * 15 / 255)
+					g4 := byte(int(g) * 15 / 255)
+					b4 := byte(int(b) * 15 / 255)
+					a4 := byte(int(a) * 15 / 255)
+
+					bByte := (b4 << 4) | ((a4 & 0xC) >> 2)
+					gByte := (g4 << 4) | (a4 & 0x3)
+					rByte := r4 << 4
 
 					imgRawData.Write([]byte{bByte, gByte, rByte})
 				}
@@ -160,7 +162,7 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 					}
 				}
 
-				position := y*vc.display.Width + startX
+				position := (y-bounds.Min.Y)*logicalWidth + (startX - bounds.Min.X)
 				positions := make([]byte, 5)
 				copy(positions, utils.PadBegin(big.NewInt(int64(position)).Bytes(), 3))
 				copy(positions[3:], utils.PadBegin(big.NewInt(int64(width)).Bytes(), 2))
@@ -171,11 +173,8 @@ func (vc *VideoCompositor) GenerateUpdate(encoding command.PixelEncoding) ([]byt
 		}
 	}
 
-	// Copy current to previous
+	// Match Python: previous_video_overlay = video_overlay.copy()
 	copy(vc.previous.Pix, vc.current.Pix)
-
-	// Reset current to the base background for the next composition cycle
-	draw.Draw(vc.current, bounds, vc.baseBg, bounds.Min, draw.Src)
 
 	return imgRawData.Bytes(), visiblePixels.Bytes()
 }

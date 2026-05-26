@@ -248,8 +248,29 @@ func (w *Worker) sendVideoBitmapBatch(batch []command.Command, count int64) erro
 
 	imgRawData, visiblePixels := w.compositor.GenerateUpdate(lastEncoding)
 
+	if len(imgRawData) > 0 {
+		w.log.Debugf("Sending video UPDATE (diff size: %d, visible size: %d)", len(imgRawData), len(visiblePixels))
+	} else {
+		w.log.Debug("Skipping video update, no pixel changes detected")
+	}
+
 	payload := append(imgRawData, visiblePixels...)
 	payload = append(payload, 0xef, 0x69)
+
+	w.log.Debugf(
+		"video update: count=%d imgRaw=%d visible=%d payload=%d payload%%250=%d",
+		count,
+		len(imgRawData),
+		len(visiblePixels),
+		len(payload),
+		len(payload)%250,
+	)
+
+	if len(payload) >= 16 {
+		w.log.Debugf("video payload head=%x tail=%x", payload[:16], payload[len(payload)-16:])
+	} else {
+		w.log.Debugf("video payload=%x", payload)
+	}
 
 	// Create a custom video update payload
 	up := lastCmd.(*command.UpdatePayload)
