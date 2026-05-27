@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/alexwbaule/turing-screen/internal/application"
+	"github.com/alexwbaule/turing-screen/internal/application/hwinfo"
 	"github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
@@ -37,6 +38,15 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		// Detect hardware info and replace template placeholders
+		hw := hwinfo.Detect(app.Log, app.Config.GetGPUSensorConfig().Provider)
+		staticTexts := statsTheme.GetStaticTexts()
+		for key, st := range staticTexts {
+			st.Text = hw.ReplaceText(st.Text)
+			staticTexts[key] = st
+		}
+
 		builder := local.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
 
 		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())

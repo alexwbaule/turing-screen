@@ -4,8 +4,8 @@ device:
   log: debug
   sensors:
     network:
-      eth: "enp4s0"
-      wlo: "wlp3s0"
+      eth: "enp3s0"
+      wlo: "wlp4s0"
     cpu:
       temperature_sensor: ""  # e.g. "zenpower_tdie", empty for auto-detection
     disk:
