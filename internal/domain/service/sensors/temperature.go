@@ -26,7 +26,7 @@ func findSensorTemperature(ctx context.Context, configuredName string, autoDetec
 		return 0, 0
 	}
 
-	if configuredName != "" {
+	if configuredName != "" && configuredName != "auto" {
 		// Exact match for configured sensor name
 		for _, stat := range stats {
 			if stat.SensorKey == configuredName {

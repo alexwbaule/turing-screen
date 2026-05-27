@@ -1,11 +1,12 @@
 package theme
 
 import (
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
 	"strings"
 	"time"
+
+	"golang.org/x/image/font"
 )
 
 type Orientation int
@@ -176,12 +177,13 @@ type StaticText struct {
 }
 
 type Stats struct {
-	CPU    *CPU      `mapstructure:"CPU"`
-	GPU    *GPU      `mapstructure:"GPU"`
-	Memory *Memory   `mapstructure:"MEMORY"`
-	Disk   *Disk     `mapstructure:"DISK"`
-	Net    *Network  `mapstructure:"NET"`
-	Date   *DateTime `mapstructure:"DATE"`
+	CPU     *CPU      `mapstructure:"CPU"`
+	GPU     *GPU      `mapstructure:"GPU"`
+	Memory  *Memory   `mapstructure:"MEMORY"`
+	Disk    *Disk     `mapstructure:"DISK"`
+	Net     *Network  `mapstructure:"NET"`
+	Date    *DateTime `mapstructure:"DATE"`
+	Weather *Weather  `mapstructure:"WEATHER"` // Novo sensor
 }
 
 type Mesurement struct {

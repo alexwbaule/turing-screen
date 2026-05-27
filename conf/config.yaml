@@ -1,11 +1,22 @@
 device:
   port: AUTO
-  theme: 5inchTheme2
+  theme: NZXT_B
   log: debug
   sensors:
     network:
-      eth: "enp4s0"
-      wlo: "wlp3s0"
+      eth: "enp3s0"
+      wlo: "wlp4s0"
+    cpu:
+      temperature_sensor: "auto"  # e.g. "zenpower_tdie", "auto" for auto-detection
+    disk:
+      temperature_sensor: "auto"  # e.g. "nvme_composite", "auto" for auto-detection
+    gpu:
+      provider: "auto"  # auto | amd | nvidia | none
+    weather:
+      enabled: true
+      city: "Sao Paulo,BR"
+      api_key: "xxxxxx"
+      interval: 30m
   display:
     width: 800
     height: 480

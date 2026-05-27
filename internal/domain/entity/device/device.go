@@ -1,5 +1,7 @@
 package device
 
+import "time"
+
 type Config struct {
 	Device
 }
@@ -29,10 +31,11 @@ type GPUSensorConfig struct {
 }
 
 type Sensors struct {
-	Net  `mapstructure:"network"`
-	CPU  CPUSensorConfig  `mapstructure:"cpu"`
-	Disk DiskSensorConfig `mapstructure:"disk"`
-	GPU  GPUSensorConfig  `mapstructure:"gpu"`
+	Net     `mapstructure:"network"`
+	CPU     CPUSensorConfig  `mapstructure:"cpu"`
+	Disk    DiskSensorConfig `mapstructure:"disk"`
+	GPU     GPUSensorConfig  `mapstructure:"gpu"`
+	Weather WeatherConfig    `mapstructure:"weather"`
 }
 
 type Display struct {
@@ -40,4 +43,12 @@ type Display struct {
 	Brightness int  `mapstructure:"brightness"`
 	Width      int  `mapstructure:"width"`
 	Height     int  `mapstructure:"height"`
+}
+
+// Nova struct para a configuração do tempo
+type WeatherConfig struct {
+	Enabled  bool          `mapstructure:"enabled"`
+	City     string        `mapstructure:"city"`
+	ApiKey   string        `mapstructure:"api_key"`
+	Interval time.Duration `mapstructure:"interval"`
 }

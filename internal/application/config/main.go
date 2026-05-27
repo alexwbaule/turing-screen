@@ -55,3 +55,6 @@ func (c *Config) GetDiskSensorConfig() device.DiskSensorConfig {
 func (c *Config) GetGPUSensorConfig() device.GPUSensorConfig {
 	return c.device.Sensors.GPU
 }
+func (c *Config) GetWeatherConfig() *device.WeatherConfig {
+	return &c.device.Sensors.Weather
+}

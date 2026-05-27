@@ -14,6 +14,7 @@ import (
 	device2 "github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
+	"github.com/alexwbaule/turing-screen/internal/resource/weather"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -103,6 +104,16 @@ func main() {
 		net := sensors.NewDNetStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetNetworkConfig())
 		dsk := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetDiskSensorConfig().TemperatureSensor)
 		gpu := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate, gpu2.NewGPUProvider(app.Config.GetGPUSensorConfig().Provider, app.Log))
+
+		weatherConfig := app.Config.GetWeatherConfig() // Pega a nova config
+
+		if weatherConfig.Enabled && stats.Weather != nil {
+			weatherClient := weather.NewClient(weatherConfig.ApiKey)
+			weatherSensor := sensors.NewWeatherSensor(app.Log, jobs, builder, cmdUpdate, weatherClient, weatherConfig.City)
+			g.Go(func() error {
+				return weatherSensor.Run(ctx, stats.Weather, weatherConfig.Interval)
+			})
+		}
 
 		if stats.CPU.Percentage != nil {
 			g.Go(func() error {
