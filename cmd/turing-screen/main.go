@@ -2,16 +2,19 @@ package main
 
 import (
 	"context"
+	"time"
+
 	"github.com/alexwbaule/turing-screen/internal/application"
+	"github.com/alexwbaule/turing-screen/internal/application/hwinfo"
 	"github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sensors"
+	gpu2 "github.com/alexwbaule/turing-screen/internal/resource/gpu"
 	device2 "github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 	"golang.org/x/sync/errgroup"
-	"time"
 )
 
 func main() {
@@ -35,6 +38,15 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		// Detect hardware info and replace template placeholders
+		hw := hwinfo.Detect(app.Log, app.Config.GetGPUSensorConfig().Provider)
+		staticTexts := statsTheme.GetStaticTexts()
+		for key, st := range staticTexts {
+			st.Text = hw.ReplaceText(st.Text)
+			staticTexts[key] = st
+		}
+
 		builder := local.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
 
 		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())
@@ -85,13 +97,12 @@ func main() {
 		jobs <- cmdPayload.SendPayload(background)
 
 		stats := statsTheme.GetStats()
-
-		cpu := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate)
+		cpu := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetCPUSensorConfig().TemperatureSensor)
 		mem := sensors.NewMemStat(app.Log, jobs, builder, cmdUpdate)
 		dt := sensors.NewDateTimeStat(app.Log, jobs, builder, cmdUpdate)
 		net := sensors.NewDNetStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetNetworkConfig())
-		dsk := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate)
-		gpu := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate)
+		dsk := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetDiskSensorConfig().TemperatureSensor)
+		gpu := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate, gpu2.NewGPUProvider(app.Config.GetGPUSensorConfig().Provider, app.Log))
 
 		if stats.CPU.Percentage != nil {
 			g.Go(func() error {

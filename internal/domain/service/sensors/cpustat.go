@@ -2,30 +2,32 @@ package sensors
 
 import (
 	"context"
+	"time"
+
+	"github.com/alexwbaule/gopsutil/v3/cpu"
+	"github.com/alexwbaule/gopsutil/v3/load"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/host"
-	"github.com/shirou/gopsutil/v3/load"
-	"time"
 )
 
 type CpuStat struct {
-	log     *logger.Logger
-	jobs    chan<- command.Command
-	builder *local.Builder
-	p       *command.UpdatePayload
+	log               *logger.Logger
+	jobs              chan<- command.Command
+	builder           *local.Builder
+	p                 *command.UpdatePayload
+	temperatureSensor string
 }
 
-func NewCpuStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *CpuStat {
+func NewCpuStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload, temperatureSensor string) *CpuStat {
 	return &CpuStat{
-		log:     l.With("runner", "cpu_stats"),
-		jobs:    j,
-		builder: b,
-		p:       p,
+		log:               l.With("runner", "cpu_stats"),
+		jobs:              j,
+		builder:           b,
+		p:                 p,
+		temperatureSensor: temperatureSensor,
 	}
 }
 
@@ -190,19 +192,8 @@ func (g *CpuStat) RunTemperature(ctx context.Context, e *theme.Mesurement) error
 func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) error {
 	var payloads []*command.UpdatePayload
 
-	var temperature float64 = 0
-	var percent float64 = 0
-
-	stats, err := host.SensorsTemperaturesWithContext(ctx)
-	if err != nil {
-		return err
-	}
-	for _, stat := range stats {
-		if stat.SensorKey == "zenpower_tdie" {
-			temperature = stat.Temperature
-			percent = (stat.Temperature / stat.Critical) * 100
-		}
-	}
+	cpuPatterns := []string{"cpu", "tdie", "zenpower_tdie"}
+	temperature, percent := findSensorTemperature(ctx, g.temperatureSensor, cpuPatterns, g.log)
 
 	if e.Percent != nil && e.Percent.Show {
 		img, x, y := BuildText(g.builder, percent, "%3.0f", "°C", e.Percent)

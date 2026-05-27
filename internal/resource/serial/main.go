@@ -3,12 +3,13 @@ package serial
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"time"
+
+	"github.com/alexwbaule/serial"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/usb"
-	"github.com/tarm/serial"
-	"io"
-	"time"
 )
 
 const attempts = 3

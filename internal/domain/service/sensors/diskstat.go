@@ -2,29 +2,31 @@ package sensors
 
 import (
 	"context"
+	"time"
+
+	"github.com/alexwbaule/gopsutil/v3/disk"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
-	"github.com/shirou/gopsutil/v3/disk"
-	"github.com/shirou/gopsutil/v3/host"
-	"time"
 )
 
 type DiskStat struct {
-	log     *logger.Logger
-	jobs    chan<- command.Command
-	builder *local.Builder
-	p       *command.UpdatePayload
+	log               *logger.Logger
+	jobs              chan<- command.Command
+	builder           *local.Builder
+	p                 *command.UpdatePayload
+	temperatureSensor string
 }
 
-func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *DiskStat {
+func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload, temperatureSensor string) *DiskStat {
 	return &DiskStat{
-		log:     l.With("runner", "disk_stats"),
-		jobs:    j,
-		builder: b,
-		p:       p,
+		log:               l.With("runner", "disk_stats"),
+		jobs:              j,
+		builder:           b,
+		p:                 p,
+		temperatureSensor: temperatureSensor,
 	}
 }
 
@@ -114,19 +116,8 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 		}
 	}
 	if e.Temperature != nil {
-		var temperature float64 = 0
-		var percent float64 = 0
-
-		stats, err := host.SensorsTemperaturesWithContext(ctx)
-		if err != nil {
-			return err
-		}
-		for _, stat := range stats {
-			if stat.SensorKey == "nvme_composite" {
-				temperature = stat.Temperature
-				percent = (stat.Temperature / stat.Critical) * 100
-			}
-		}
+		diskPatterns := []string{"nvme", "disk", "nvme_composite"}
+		temperature, percent := findSensorTemperature(ctx, g.temperatureSensor, diskPatterns, g.log)
 
 		if e.Temperature.Percent != nil && e.Temperature.Percent.Show {
 			img, x, y := BuildText(g.builder, percent, "%3.0f", "%", e.Temperature.Percent)
