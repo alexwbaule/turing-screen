@@ -3,12 +3,13 @@ package serial
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"time"
+
+	"github.com/alexwbaule/serial"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/usb"
-	"github.com/tarm/serial"
-	"io"
-	"time"
 )
 
 const attempts = 3
@@ -19,7 +20,7 @@ type Serial struct {
 	log    *logger.Logger
 }
 
-type SerialSender interface {
+type Sender interface {
 	Write(p command.Command) (int, error)
 	Read(p command.Command) (int, error)
 	RestartConnection() error
@@ -33,12 +34,16 @@ func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 	}
 	l.Infof("Connecting Using: %s", device.Name)
 
+	initial := true
+
 	config := &serial.Config{
 		Baud:        115200,
 		Name:        device.Name,
 		Parity:      serial.ParityNone,
 		StopBits:    serial.Stop1,
 		ReadTimeout: 5 * time.Second,
+		InitialDTR:  &initial,
+		InitialRTS:  &initial,
 	}
 	port, err := serial.OpenPort(config)
 	if err != nil {

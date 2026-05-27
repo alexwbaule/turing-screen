@@ -2,28 +2,31 @@ package sensors
 
 import (
 	"context"
+	"time"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	amdgpu "github.com/alexwbaule/turing-screen/internal/resource/gpu"
+	"github.com/alexwbaule/turing-screen/internal/resource/interfaces"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
-	"time"
 )
 
 type GpuStat struct {
-	log     *logger.Logger
-	jobs    chan<- command.Command
-	builder *local.Builder
-	p       *command.UpdatePayload
+	log      *logger.Logger
+	jobs     chan<- command.Command
+	builder  *local.Builder
+	p        *command.UpdatePayload
+	provider interfaces.Provider
 }
 
-func NewGpuStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *GpuStat {
+func NewGpuStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload, provider interfaces.Provider) *GpuStat {
 	return &GpuStat{
-		log:     l.With("runner", "gpu_stats"),
-		jobs:    j,
-		builder: b,
-		p:       p,
+		log:      l.With("runner", "gpu_stats"),
+		jobs:     j,
+		builder:  b,
+		p:        p,
+		provider: provider,
 	}
 }
 
@@ -54,38 +57,21 @@ func (g *GpuStat) RunGpuStat(ctx context.Context, e *theme.GPU) error {
 func (g *GpuStat) getGpuStat(ctx context.Context, e *theme.GPU) error {
 	var payloads []*command.UpdatePayload
 
-	var sensorMeasurements map[string]uint64
-	var err error
-
 	var gpuAvgPower uint64 = 0
 	var gpuTemp uint64 = 0
 	var gpuLoad uint64 = 0
 	var vranUsage uint64 = 0
 	var vramSize uint64 = 0
 
-	cards := amdgpu.GetAMDGPUs()
-
-	if len(cards) > 0 {
-		sensorMeasurements, err = amdgpu.GetCardSensor(cards[0])
-		if err != nil {
-			return err
-		}
-	}
-
-	if measurement, exists := sensorMeasurements["GPU_AVG_POWER"]; exists {
-		gpuAvgPower = measurement
-	}
-	if measurement, exists := sensorMeasurements["GPU_TEMP"]; exists {
-		gpuTemp = measurement
-	}
-	if measurement, exists := sensorMeasurements["GPU_LOAD"]; exists {
-		gpuLoad = measurement
-	}
-	if measurement, exists := sensorMeasurements["VRAM_USAGE"]; exists {
-		vranUsage = measurement
-	}
-	if measurement, exists := sensorMeasurements["VRAM_SIZE"]; exists {
-		vramSize = measurement
+	metrics, err := g.provider.GetMetrics()
+	if err != nil {
+		g.log.Warnf("failed to get GPU metrics: %v", err)
+	} else {
+		gpuTemp = metrics.Temperature
+		gpuLoad = metrics.Load
+		gpuAvgPower = metrics.Power
+		vranUsage = metrics.VRAMUsage
+		vramSize = metrics.VRAMSize
 	}
 
 	if e.Memory != nil {

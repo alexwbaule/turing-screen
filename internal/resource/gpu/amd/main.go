@@ -1,6 +1,6 @@
 // Package amdgpu is a collection of utility functions to access various properties
 // of AMD GPU via Linux kernel interfaces like sysfs and ioctl (using libdrm.)
-package amdgpu
+package amd
 
 // #cgo pkg-config: libdrm libdrm_amdgpu
 // #include <stdint.h>
@@ -15,7 +15,52 @@ import (
 	"path/filepath"
 	"strings"
 	"unsafe"
+
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/metric"
 )
+
+// newAMDProvider creates an AMD GPU provider wrapping existing amdgpu functions.
+// If no AMD GPU is found, it falls back to noop with a warning (Req 14.6).
+func NewAMDProvider(log *logger.Logger) *Provider {
+	cards := GetAMDGPUs()
+	if len(cards) == 0 {
+		log.Warn("GPU provider configured as \"amd\" but no AMD GPU found, falling back to noop")
+		return nil
+	}
+	return &Provider{log: log}
+}
+
+// amdProvider wraps the existing amdgpu package functions into the GPUProvider interface.
+type Provider struct {
+	log *logger.Logger
+}
+
+func (p *Provider) GetMetrics() (*metric.GPU, error) {
+	cards := GetAMDGPUs()
+	if len(cards) == 0 {
+		p.log.Warn("no AMD GPU found")
+		return &metric.GPU{}, nil
+	}
+
+	sensors, err := GetCardSensor(cards[0])
+	if err != nil {
+		return nil, err
+	}
+
+	return &metric.GPU{
+		Temperature: sensors["GPU_TEMP"],
+		Load:        sensors["GPU_LOAD"],
+		Power:       sensors["GPU_AVG_POWER"],
+		VRAMUsage:   sensors["VRAM_USAGE"],
+		VRAMSize:    sensors["VRAM_SIZE"],
+	}, nil
+}
+
+func (p *Provider) Available() bool {
+	cards := GetAMDGPUs()
+	return len(cards) > 0
+}
 
 func GetCardSensor(cardName string) (map[string]uint64, error) {
 	devHandle, err := openAMDGPU(cardName)

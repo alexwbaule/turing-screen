@@ -2,17 +2,18 @@ package sender
 
 import (
 	"context"
+	"time"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
-	"time"
 )
 
 const attempts = 3
 
 type Worker struct {
-	sender  serial.SerialSender
+	sender  serial.Sender
 	log     *logger.Logger
 	ctx     context.Context
 	bg      device.ImageBackground
@@ -21,7 +22,7 @@ type Worker struct {
 	payload *command.Payload
 }
 
-func NewWorker(c context.Context, s serial.SerialSender, background device.ImageBackground,
+func NewWorker(c context.Context, s serial.Sender, background device.ImageBackground,
 	d *command.Device, m *command.Media, p *command.Payload, l *logger.Logger) *Worker {
 	return &Worker{
 		ctx:     c,

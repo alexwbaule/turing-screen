@@ -2,12 +2,13 @@ package usb
 
 import (
 	"fmt"
-	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/google/gousb"
-	"go.bug.st/serial"
-	"go.bug.st/serial/enumerator"
+
 	"strconv"
 	"time"
+
+	"github.com/alexwbaule/serial"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/google/gousb"
 )
 
 type UsbDevice struct {
@@ -19,7 +20,7 @@ type UsbDevice struct {
 }
 
 func NewUsbDevice(portn string, l *logger.Logger) (*UsbDevice, error) {
-	ports, err := enumerator.GetDetailedPortsList()
+	ports, err := serial.GetDetailedPortsList()
 	if err != nil {
 		l.Error(err.Error())
 		return nil, err
@@ -73,18 +74,19 @@ func wakeUpDevice(name string, l *logger.Logger) {
 			l.Info("recovering the device....")
 		}
 	}()
-	mode := &serial.Mode{
-		BaudRate: 115200,
-		Parity:   serial.NoParity,
-		DataBits: 8,
-		StopBits: serial.OneStopBit,
-		InitialStatusBits: &serial.ModemOutputBits{
-			RTS: true,
-			DTR: true,
-		},
+	initial := true
+	mode := &serial.Config{
+		Name:        name,
+		Baud:        115200,
+		Parity:      serial.ParityNone,
+		Size:        8,
+		StopBits:    serial.Stop1,
+		InitialDTR:  &initial,
+		InitialRTS:  &initial,
+		ReadTimeout: 5 * time.Second,
 	}
 	l.Infof("waking up device on: %s", name)
-	port, err := serial.Open(name, mode)
+	port, err := serial.OpenPort(mode)
 	if err != nil {
 		l.Errorf("could not open a device: %s", err)
 	}
