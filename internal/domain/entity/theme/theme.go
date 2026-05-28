@@ -139,11 +139,11 @@ func StringToOrientation(src string, reverse bool) Orientation {
 }
 
 type Theme struct {
-	Display      *Display                `mapstructure:"display"`
-	StaticImages map[string]StaticImage  `mapstructure:"static_images"`
-	VideoPlay    map[string]DinamicImage `mapstructure:"video_play"`
-	StaticTexts  map[string]StaticText   `mapstructure:"static_texts"`
-	Stats        *Stats                  `mapstructure:"STATS"`
+	Display      *Display               `mapstructure:"display"`
+	StaticImages map[string]StaticImage `mapstructure:"static_images"`
+	VideoPlay    *DinamicImage          `mapstructure:"video_play"`
+	StaticTexts  map[string]StaticText  `mapstructure:"static_texts"`
+	Stats        *Stats                 `mapstructure:"STATS"`
 }
 
 type Display struct {
@@ -152,11 +152,13 @@ type Display struct {
 }
 
 type DinamicImage struct {
-	Path   string `mapstructure:"PATH"`
-	Height int    `mapstructure:"HEIGHT"`
-	Width  int    `mapstructure:"WIDTH"`
-	X      int    `mapstructure:"X"`
-	Y      int    `mapstructure:"Y"`
+	Path                string `mapstructure:"PATH"`
+	BackgroundImagePath string `mapstructure:"BACKGROUND"`
+	BackgroundImage     image.Image
+	Height              int `mapstructure:"HEIGHT"`
+	Width               int `mapstructure:"WIDTH"`
+	X                   int `mapstructure:"X"`
+	Y                   int `mapstructure:"Y"`
 }
 
 type StaticImage struct {

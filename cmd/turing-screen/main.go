@@ -9,14 +9,13 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
-	"github.com/alexwbaule/turing-screen/internal/domain/service/sensors"
-	gpu2 "github.com/alexwbaule/turing-screen/internal/resource/gpu"
 	device2 "github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
-	"github.com/alexwbaule/turing-screen/internal/resource/weather"
 	"golang.org/x/sync/errgroup"
 )
+
+var isVideoMode bool = false
 
 func main() {
 	app := application.NewApplication()
@@ -53,13 +52,19 @@ func main() {
 		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())
 		fbg := builder.BuildBackgroundTexts(bg, statsTheme.GetStaticTexts())
 		background := device2.NewImageProcess(fbg)
-
 		cmdDevice := command.NewDevice(app.Log)
 		cmdMedia := command.NewMedia(app.Log)
 		cmdBright := command.NewBrightness(app.Log)
 		cmdPayload := command.NewPayload(app.Log, statsTheme.GetDisplay().Orientation)
-		cmdUpdate := command.NewUpdatePayload(app.Log, statsTheme.GetDisplay().Orientation, app.Config.GetDeviceDisplay())
+		//cmdStorage := command.NewStorage(app.Log)
+		//cmdUpdate := command.NewUpdatePayload(app.Log, statsTheme.GetDisplay().Orientation, app.Config.GetDeviceDisplay())
 		worker := sender.NewWorker(ctx, devSerial, background, cmdDevice, cmdMedia, cmdPayload, app.Log)
+
+		videoDisplay := statsTheme.GetVideoPlay()
+
+		if videoDisplay != nil {
+			isVideoMode = true
+		}
 
 		g, ctx := errgroup.WithContext(ctx)
 
@@ -92,77 +97,95 @@ func main() {
 
 		app.Log.Info("starting app")
 		jobs <- cmdDevice.Hello()
+
+		if isVideoMode {
+			//jobs <- cmdStorage.GetFileInfo(videoDisplay.BackgroundImagePath)
+			/*
+				if videoSize == 0 && VIDEO_LOCAL_PATH != "" {
+					if _, err := os.Stat(VIDEO_LOCAL_PATH); err == nil {
+						fmt.Println("Uploading video ...")
+						lcdComm.UploadFile(VIDEO_LOCAL_PATH, VIDEO_DEVICE_PATH)
+						fmt.Println("Upload done")
+						fmt.Println(lcdComm.GetFileSize(VIDEO_DEVICE_PATH))
+					}
+				}
+			*/
+		}
 		jobs <- cmdMedia.StopVideo()
 		jobs <- cmdMedia.StopMedia()
 		jobs <- cmdBright.SetBrightness(app.Config.GetDeviceDisplay().Brightness)
 		jobs <- cmdPayload.SendPayload(background)
 
-		stats := statsTheme.GetStats()
-		cpu := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetCPUSensorConfig().TemperatureSensor)
-		mem := sensors.NewMemStat(app.Log, jobs, builder, cmdUpdate)
-		dt := sensors.NewDateTimeStat(app.Log, jobs, builder, cmdUpdate)
-		net := sensors.NewDNetStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetNetworkConfig())
-		dsk := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetDiskSensorConfig().TemperatureSensor)
-		gpu := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate, gpu2.NewGPUProvider(app.Config.GetGPUSensorConfig().Provider, app.Log))
+		/*
+			stats := statsTheme.GetStats()
+			cpu := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetCPUSensorConfig().TemperatureSensor)
+			mem := sensors.NewMemStat(app.Log, jobs, builder, cmdUpdate)
+			dt := sensors.NewDateTimeStat(app.Log, jobs, builder, cmdUpdate)
+			net := sensors.NewDNetStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetNetworkConfig())
+			dsk := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate, app.Config.GetDiskSensorConfig().TemperatureSensor)
+			gpu := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate, gpu2.NewGPUProvider(app.Config.GetGPUSensorConfig().Provider, app.Log))
 
-		weatherConfig := app.Config.GetWeatherConfig() // Pega a nova config
+			weatherConfig := app.Config.GetWeatherConfig() // Pega a nova config
 
-		if weatherConfig.Enabled && stats.Weather != nil {
-			weatherClient := weather.NewClient(weatherConfig.ApiKey)
-			weatherSensor := sensors.NewWeatherSensor(app.Log, jobs, builder, cmdUpdate, weatherClient, weatherConfig.City)
-			g.Go(func() error {
-				return weatherSensor.Run(ctx, stats.Weather, weatherConfig.Interval)
-			})
-		}
 
-		if stats.CPU.Percentage != nil {
-			g.Go(func() error {
-				app.Log.Info("starting worker CPU Percentage")
-				return cpu.RunPercentage(ctx, stats.CPU.Percentage)
-			})
-		}
-		if stats.CPU.Frequency != nil {
-			g.Go(func() error {
-				app.Log.Info("starting worker CPU Frequency")
-				return cpu.RunFrequency(ctx, stats.CPU.Frequency)
-			})
-		}
-		if stats.CPU.Temperature != nil {
-			g.Go(func() error {
-				app.Log.Info("starting worker CPU Temperature")
-				return cpu.RunTemperature(ctx, stats.CPU.Temperature)
-			})
-		}
-		if stats.Memory != nil {
-			g.Go(func() error {
-				app.Log.Info("starting worker Memory")
-				return mem.RunMemStat(ctx, stats.Memory)
-			})
-		}
-		if stats.Date != nil {
-			g.Go(func() error {
-				app.Log.Info("starting worker Date")
-				return dt.RunDateTime(ctx, stats.Date)
-			})
-		}
-		if stats.Net != nil {
-			g.Go(func() error {
-				app.Log.Info("starting worker Net")
-				return net.RunNetStat(ctx, stats.Net)
-			})
-		}
-		if stats.Disk != nil {
-			g.Go(func() error {
-				app.Log.Info("starting worker Disk")
-				return dsk.RunDiskStat(ctx, stats.Disk)
-			})
-		}
-		if stats.GPU != nil {
-			g.Go(func() error {
-				app.Log.Info("starting worker GPU")
-				return gpu.RunGpuStat(ctx, stats.GPU)
-			})
-		}
+				if weatherConfig.Enabled && stats.Weather != nil {
+					weatherClient := weather.NewClient(weatherConfig.ApiKey)
+					weatherSensor := sensors.NewWeatherSensor(app.Log, jobs, builder, cmdUpdate, weatherClient, weatherConfig.City)
+					g.Go(func() error {
+						return weatherSensor.Run(ctx, stats.Weather, weatherConfig.Interval)
+					})
+				}
+
+				if stats.CPU.Percentage != nil {
+					g.Go(func() error {
+						app.Log.Info("starting worker CPU Percentage")
+						return cpu.RunPercentage(ctx, stats.CPU.Percentage)
+					})
+				}
+				if stats.CPU.Frequency != nil {
+					g.Go(func() error {
+						app.Log.Info("starting worker CPU Frequency")
+						return cpu.RunFrequency(ctx, stats.CPU.Frequency)
+					})
+				}
+				if stats.CPU.Temperature != nil {
+					g.Go(func() error {
+						app.Log.Info("starting worker CPU Temperature")
+						return cpu.RunTemperature(ctx, stats.CPU.Temperature)
+					})
+				}
+				if stats.Memory != nil {
+					g.Go(func() error {
+						app.Log.Info("starting worker Memory")
+						return mem.RunMemStat(ctx, stats.Memory)
+					})
+				}
+				if stats.Date != nil {
+					g.Go(func() error {
+						app.Log.Info("starting worker Date")
+						return dt.RunDateTime(ctx, stats.Date)
+					})
+				}
+				if stats.Net != nil {
+					g.Go(func() error {
+						app.Log.Info("starting worker Net")
+						return net.RunNetStat(ctx, stats.Net)
+					})
+				}
+				if stats.Disk != nil {
+					g.Go(func() error {
+						app.Log.Info("starting worker Disk")
+						return dsk.RunDiskStat(ctx, stats.Disk)
+					})
+				}
+				if stats.GPU != nil {
+					g.Go(func() error {
+						app.Log.Info("starting worker GPU")
+						return gpu.RunGpuStat(ctx, stats.GPU)
+					})
+				}
+
+		*/
 		return g.Wait()
 	})
 }
