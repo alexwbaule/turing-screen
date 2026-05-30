@@ -2,12 +2,16 @@ package device
 
 import (
 	"bytes"
+	"image"
+	"image/color"
+	"image/draw"
+	"math/big"
+
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/disintegration/imaging"
-	"image"
-	"math/big"
+	xdraw "golang.org/x/image/draw"
 )
 
 type ImageProcess struct {
@@ -30,6 +34,24 @@ func NewImageProcess(i image.Image) *ImageProcess {
 
 func (i *ImageProcess) GetImage() image.Image {
 	return i.img
+}
+
+// NewScaledNRGBA scales src to dstW x dstH using CatmullRom interpolation.
+func NewScaledNRGBA(src image.Image, dstW, dstH int) *image.NRGBA {
+	rect := image.Rect(0, 0, dstW, dstH)
+	dst := image.NewNRGBA(rect)
+	if src != nil {
+		xdraw.CatmullRom.Scale(dst, rect, src, src.Bounds(), draw.Over, nil)
+	}
+	return dst
+}
+
+// NewBlank creates a blank white NRGBA image of the given dimensions.
+func NewBlank(w, h int) *image.NRGBA {
+	rect := image.Rect(0, 0, w, h)
+	img := image.NewNRGBA(rect)
+	draw.Draw(img, rect, &image.Uniform{color.RGBA{255, 255, 255, 255}}, image.Point{}, draw.Src)
+	return img
 }
 
 func (i *ImageProcess) GenerateBackgroundImage(orietation theme.Orientation) []byte {

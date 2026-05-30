@@ -3,8 +3,6 @@ package initializer
 import (
 	"fmt"
 	"image"
-	"image/color"
-	"image/draw"
 	"os"
 	"time"
 
@@ -122,18 +120,29 @@ func (i *Initializer) Run(background device.ImageBackground) error {
 		}
 		orientation := i.theme.GetDisplay().Orientation
 
-		initCmd := command.NewInitVideoOverlay(i.log, videoDisplay.BackgroundImage, w, h, orientation)
+		// Scale background image to display dimensions
+		var scaled *image.NRGBA
+		if videoDisplay.BackgroundImage != nil {
+			scaled = device.NewScaledNRGBA(videoDisplay.BackgroundImage, w, h)
+		} else {
+			scaled = device.NewBlank(w, h)
+		}
+
+		// Build BGRA payload (rotation + BGRA + 249+1 chunking)
+		bgraPayload := video.BuildInitPayload(scaled, orientation)
+
+		// Create overlay buffer with initial background
+		overlay := video.NewOverlayBuffer(i.log, display)
+		overlay.SetInitial(scaled)
+
+		// Send InitVideoOverlay command (pre-encoded packets)
+		initCmd := command.NewInitVideoOverlay(i.log, bgraPayload)
 		if _, err := i.sender.Execute(initCmd); err != nil {
 			return fmt.Errorf("failed on INIT_VIDEO_OVERLAY command: %w", err)
 		}
 		i.log.Info("video overlay initialized")
 
 		// Initial refresh (matching reference: ResfreshVideoOverlay called right after InitializeVideoOverlay)
-		// Uses the SAME NRGBA that was sent during init
-		overlay := video.NewOverlayBuffer(i.log, display)
-		if nrgba := initCmd.OverlayNRGBA(); nrgba != nil {
-			overlay.SetInitial(nrgba)
-		}
 		refreshCmd := overlay.Refresh()
 		if _, err := i.sender.Execute(refreshCmd); err != nil {
 			return fmt.Errorf("failed on initial overlay refresh: %w", err)
@@ -169,10 +178,7 @@ func (i *Initializer) clearDisplay() {
 	if display.Reverse {
 		w, h = h, w
 	}
-	blankRect := image.Rect(0, 0, w, h)
-	blank := image.NewNRGBA(blankRect)
-	draw.Draw(blank, blankRect, &image.Uniform{color.RGBA{255, 255, 255, 255}}, image.Point{}, draw.Src)
-	blankImg := device.NewImageProcess(blank)
+	blankImg := device.NewImageProcess(device.NewBlank(w, h))
 	if _, err := i.sender.Execute(i.cmdPayload.SendPayload(blankImg, false)); err != nil {
 		i.log.Warnf("failed on clear display command: %v", err)
 	}

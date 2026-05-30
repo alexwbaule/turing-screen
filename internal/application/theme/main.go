@@ -100,11 +100,9 @@ func Hook(file string, reverse bool) mapstructure.DecodeHookFunc {
 			return translateStaticImage(file, data.(map[string]interface{}))
 		}
 		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.DinamicImage{}) || t == reflect.TypeOf(&theme.DinamicImage{})) {
-			fmt.Printf("%#v\n", data.(map[string]interface{}))
 			return translateDinamicImage(file, data.(map[string]interface{}))
 		}
 		if t == reflect.TypeOf(time.Duration(1)) {
-			fmt.Printf("DURATION: %#v\n", data.(interface{}))
 			return translateDuration(data.(interface{}))
 		}
 		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Graph{}) || t == reflect.TypeOf(&theme.Graph{})) {
