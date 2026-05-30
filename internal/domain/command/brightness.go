@@ -15,7 +15,7 @@ type Brightness struct {
 
 func NewBrightness(log *logger.Logger) *Brightness {
 	return &Brightness{
-		name: "SetBrightness",
+		name: "SET_BRIGHTNESS",
 		bytes: []byte{
 			0x7b, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
 		},

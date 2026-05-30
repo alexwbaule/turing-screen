@@ -1,5 +1,7 @@
 package command
 
+import "github.com/alexwbaule/turing-screen/internal/application/logger"
+
 type StartMode byte
 type FlipMode byte
 type SleepInterval byte
@@ -27,25 +29,30 @@ const (
 type Option struct {
 	name    string
 	bytes   []byte
-	start   StartMode
 	padding byte
+	start   StartMode
 	flip    FlipMode
 	sleep   SleepInterval
+	log     *logger.Logger
 }
 
-func NewOption() *Option {
-	return &Option{}
-}
-
-func (o *Option) SetOptions(s StartMode, f FlipMode, si SleepInterval) {
-	o.name = "OPTIONS"
-	o.bytes = []byte{
-		0x7d, 0xef, 0x69, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x2d,
+func NewOption(log *logger.Logger) *Option {
+	return &Option{
+		log: log,
 	}
-	o.start = s
-	o.padding = 0x00
-	o.flip = f
-	o.sleep = si
+}
+
+func (o *Option) SetOptions(s StartMode, f FlipMode, si SleepInterval) *Option {
+	return &Option{
+		name: "OPTIONS",
+		bytes: []byte{
+			0x7d, 0xef, 0x69, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x2d,
+		},
+		start:   s,
+		padding: 0x00,
+		flip:    f,
+		sleep:   si,
+	}
 }
 
 func (o *Option) GetBytes() [][]byte {

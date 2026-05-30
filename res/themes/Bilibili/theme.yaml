@@ -3,7 +3,7 @@ display:
     ORIENTATION: landscape
     RGB_LED: 0, 0, 255
 video_play:
-    PATH: 2233.mp4
+    PATH: gunpla.mp4
     HEIGHT: 480
     WIDTH: 800
     X: 0

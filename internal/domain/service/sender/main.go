@@ -2,11 +2,13 @@ package sender
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
-	"time"
 )
 
 const attempts = 3
@@ -14,17 +16,15 @@ const attempts = 3
 type Worker struct {
 	sender  serial.SerialSender
 	log     *logger.Logger
-	ctx     context.Context
 	bg      device.ImageBackground
 	device  *command.Device
 	media   *command.Media
 	payload *command.Payload
 }
 
-func NewWorker(c context.Context, s serial.SerialSender, background device.ImageBackground,
+func NewWorker(s serial.SerialSender, background device.ImageBackground,
 	d *command.Device, m *command.Media, p *command.Payload, l *logger.Logger) *Worker {
 	return &Worker{
-		ctx:     c,
 		sender:  s,
 		bg:      background,
 		log:     l,
@@ -34,15 +34,15 @@ func NewWorker(c context.Context, s serial.SerialSender, background device.Image
 	}
 }
 
-func (w *Worker) Run(jobs <-chan command.Command) error {
+func (w *Worker) Run(ctx context.Context, jobs <-chan command.Command) error {
 	var try = 0
 	var num int64 = 0
 
 	for {
 		select {
-		case <-w.ctx.Done():
+		case <-ctx.Done():
 			w.log.Infof("stopping worker with %d updates.", num)
-			return w.ctx.Err()
+			return ctx.Err()
 		case item := <-jobs:
 			w.log.Debugf("queue size: %d - update payload num: %d", len(jobs), num)
 
@@ -63,11 +63,6 @@ func (w *Worker) Run(jobs <-chan command.Command) error {
 				if err != nil {
 					_ = w.sender.ResetDevice()
 				}
-				err = w.backoff()
-				if err != nil {
-					_ = w.sender.ResetDevice()
-					return err
-				}
 				try++
 				num = 0
 			}
@@ -75,41 +70,36 @@ func (w *Worker) Run(jobs <-chan command.Command) error {
 	}
 }
 
-func (w *Worker) backoff() error {
-	err := w.OffChannel(w.media.StopVideo())
-	if err != nil {
-		return err
-	}
-	err = w.OffChannel(w.media.StopMedia())
-	if err != nil {
-		return err
-	}
-	err = w.OffChannel(w.device.Hello())
-	if err != nil {
-		return err
-	}
-	err = w.OffChannel(w.media.StopVideo())
-	if err != nil {
-		return err
-	}
-	err = w.OffChannel(w.media.StopMedia())
-	if err != nil {
-		return err
-	}
-	err = w.OffChannel(w.payload.SendPayload(w.bg))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (w *Worker) OffChannel(cmd command.Command) error {
-	now := time.Now()
-	write, err := w.sender.Write(cmd)
-	w.log.Debugf("time to write %s", time.Since(now))
+	w.log.Debugf("worker processing command: %s", cmd.GetName())
+	startTime := time.Now()
 
-	if err != nil {
-		w.log.Errorf("can't send command [%s] to device, bytes [%d] -> %s", cmd.GetName(), write, err)
+	// 1. Write all command packets
+	for _, bytesToWrite := range cmd.GetBytes() {
+		if _, err := w.sender.Write(bytesToWrite); err != nil {
+			return fmt.Errorf("worker write failed for %s: %w", cmd.GetName(), err)
+		}
 	}
-	return err
+
+	// 2. Check if a response is expected
+	validation := cmd.ValidateWrite()
+	if validation.Size == 0 {
+		w.log.Debugf("command %s sent successfully (no response expected)", cmd.GetName())
+		return nil // Command sent, no response to read
+	}
+
+	// 3. If necessary, read the response
+	responseBuf := make([]byte, validation.Size)
+	n, err := w.sender.Read(responseBuf)
+	if err != nil {
+		return fmt.Errorf("worker read failed for %s: %w", cmd.GetName(), err)
+	}
+
+	// 4. Validate the response
+	if err := cmd.ValidateCommand(responseBuf, n); err != nil {
+		return fmt.Errorf("invalid response for worker command %s: %w", cmd.GetName(), err)
+	}
+
+	w.log.Debugf("command %s processed successfully in %s", cmd.GetName(), time.Since(startTime))
+	return nil
 }

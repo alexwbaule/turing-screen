@@ -104,6 +104,7 @@ func Hook(file string, reverse bool) mapstructure.DecodeHookFunc {
 			return translateDinamicImage(file, data.(map[string]interface{}))
 		}
 		if t == reflect.TypeOf(time.Duration(1)) {
+			fmt.Printf("DURATION: %#v\n", data.(interface{}))
 			return translateDuration(data.(interface{}))
 		}
 		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Graph{}) || t == reflect.TypeOf(&theme.Graph{})) {
@@ -119,9 +120,13 @@ func translateDuration(data interface{}) (interface{}, error) {
 	var v time.Duration
 
 	if data != nil {
-		v = time.Duration(data.(int)) * time.Second
+		if data.(int) > 0 {
+			v = time.Duration(data.(int)) * time.Second
+		} else {
+			v = time.Duration(1) * time.Second
+		}
 	} else {
-		v = time.Duration(0)
+		v = time.Duration(1) * time.Second
 	}
 	return v, nil
 }
@@ -293,6 +298,21 @@ func translateStaticImage(file string, data map[string]interface{}) (interface{}
 
 func translateDinamicImage(file string, data map[string]interface{}) (interface{}, error) {
 	imagePath := fmt.Sprintf(THEMEPATH, file)
+	var bgImagePath string
+	var bgImage image.Image
+	var err error
+
+	if data["background"] != nil {
+		bgImagePath = imagePath + data["background"].(string)
+		bgImage, err = utils.LoadImage(bgImagePath)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		bgImagePath = ""
+		bgImage = nil
+	}
+
 	v := theme.DinamicImage{
 		Path:                imagePath + data["path"].(string),
 		BackgroundImagePath: imagePath + data["background"].(string),
@@ -300,6 +320,7 @@ func translateDinamicImage(file string, data map[string]interface{}) (interface{
 		Width:               data["width"].(int),
 		X:                   data["x"].(int),
 		Y:                   data["y"].(int),
+		BackgroundImage:     bgImage,
 	}
 	return v, nil
 }

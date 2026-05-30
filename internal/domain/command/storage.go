@@ -2,11 +2,12 @@ package command
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
@@ -31,6 +32,7 @@ var (
 	listDirResult                        = regexp.MustCompile(`^result:dir:`)
 	createSuccess                        = regexp.MustCompile(`^create_success$`)
 	fileRevDone                          = regexp.MustCompile(`^file_rev_done`)
+	fileSizeResponse                     = regexp.MustCompile(`^\d+$`)
 	PADDING_NULL                 Padding = []byte{0x00}
 	PADDING_START_DISPLAY_BITMAP Padding = []byte{0x2c}
 )
@@ -64,51 +66,43 @@ func ParseStorageInfo(response []byte) (*StorageInfo, error) {
 	return &StorageInfo{TotalKB: total, UsedKB: used, FreeKB: free}, nil
 }
 
-// ParseListDir parses the device LIST_DIR response "result:dir:file:name1/name2/..."
-// and returns a slice of file names.
-func ParseListDir(response []byte) ([]string, error) {
-	raw := string(bytes.Trim(response, "\x00"))
-	if !strings.HasPrefix(raw, "result:dir:") {
-		return nil, fmt.Errorf("invalid list dir response: %q", raw)
-	}
-	// Format: "result:dir:file:name1/name2/name3/"
-	content := strings.TrimPrefix(raw, "result:dir:")
-	content = strings.TrimPrefix(content, "file:")
-	content = strings.TrimRight(content, "/")
-	if content == "" {
-		return nil, nil
-	}
-	return strings.Split(content, "/"), nil
-}
-
-// ParseFileSize parses the GET_FILE_INFO response (ASCII decimal file size).
-func ParseFileSize(response []byte) (int64, error) {
-	raw := string(bytes.Trim(response, "\x00"))
-	size, err := strconv.ParseInt(raw, 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("invalid file size response: %q: %w", raw, err)
-	}
-	return size, nil
-}
-
 // Storage provides commands for device storage operations.
 type Storage struct {
-	bytes   []byte
-	name    string
-	padding byte
-	payload []byte
-	size    int
-	readed  *regexp.Regexp
-	log     *logger.Logger
+	bytes     []byte
+	name      string
+	padding   byte
+	payload   []byte
+	size      int
+	videoSize int64
+	readed    *regexp.Regexp
+	log       *logger.Logger
 }
 
 func NewStorage(log *logger.Logger) *Storage {
 	return &Storage{
-		log: log,
+		log:       log,
+		videoSize: 0,
 	}
 }
 
 func (s *Storage) GetBytes() [][]byte {
+	if s.name == "UPLOAD_FILE" {
+		var chunks [][]byte
+		dataSize := len(s.payload)
+
+		for i := 0; i < dataSize; i += 249 {
+			end := i + 249
+			if end > dataSize {
+				end = dataSize
+			}
+
+			packet := utils.BZero(250, s.padding)
+			copy(packet, s.payload[i:end])
+			chunks = append(chunks, packet)
+		}
+		return chunks
+	}
+
 	if s.bytes == nil {
 		return nil
 	}
@@ -138,18 +132,36 @@ func (s *Storage) ValidateCommand(data []byte, i int) error {
 	}
 	v := string(bytes.Trim(data[:i], "\x00"))
 	if s.readed.MatchString(v) {
+		if s.name == "GET_FILE_INFO" {
+			bts, err := utils.ParseFileSize(data)
+			if err != nil {
+				return fmt.Errorf("unexpected response for %s: %q", s.name, v)
+			}
+			s.videoSize = bts
+		}
 		return nil
 	}
 	return fmt.Errorf("unexpected response for %s: %q", s.name, v)
 }
 
+func (s *Storage) GetVideoSize() int64 {
+	time.Sleep(3 * time.Second)
+	s.log.Debugf("Returning video size: %d", s.videoSize)
+	return s.videoSize
+}
+
 // buildPathPayload creates the command payload for path-based commands.
-// Format: [cmd:1][0xEF69:2][path_len:4BE][0x000000:3][path:path_len]
+// Format: [cmd:6][path_len:1][0x00:3][path:path_len]
 func buildPathPayload(cmd []byte, path string) []byte {
 	pyd := []byte{byte(len(path))}
 	pyd = append(pyd, PADDING_NULL[0], PADDING_NULL[0], PADDING_NULL[0])
 	pyd = append(pyd, []byte(path)...)
-	return pyd
+
+	finalCmd := make([]byte, 0, len(cmd)+len(pyd))
+	finalCmd = append(finalCmd, cmd...)
+	finalCmd = append(finalCmd, pyd...)
+
+	return finalCmd
 }
 
 // GetStorageStatus queries the device storage capacity.
@@ -160,10 +172,11 @@ func (s *Storage) GetStorageStatus() *Storage {
 		bytes: []byte{
 			cmdGetStorageStatus, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
 		},
-		padding: 0x00,
-		size:    1024,
-		readed:  storageStatus,
-		log:     s.log,
+		padding:   0x00,
+		size:      1024,
+		readed:    storageStatus,
+		log:       s.log,
+		videoSize: 0,
 	}
 }
 
@@ -172,10 +185,10 @@ func (s *Storage) GetStorageStatus() *Storage {
 func (s *Storage) ListDir(path string) *Storage {
 	return &Storage{
 		name:    "LIST_DIR",
-		bytes:   buildPathPayload([]byte{0x6e, 0xef, 0x69, 0x00, 0x00, 0x00}, path),
+		bytes:   buildPathPayload([]byte{cmdListDir, 0xef, 0x69, 0x00, 0x00, 0x00}, path),
 		padding: 0x00,
-		size:    0,
-		readed:  nil,
+		size:    1024,
+		readed:  listDirResult,
 		log:     s.log,
 	}
 }
@@ -185,10 +198,10 @@ func (s *Storage) ListDir(path string) *Storage {
 func (s *Storage) DeleteFile(path string) *Storage {
 	return &Storage{
 		name:    "DELETE_FILE",
-		bytes:   buildPathPayload(cmdDeleteFile, path),
+		bytes:   buildPathPayload([]byte{cmdDeleteFile, 0xef, 0x69, 0x00, 0x00, 0x00}, utils.ParsePath(path)),
 		padding: 0x00,
 		size:    1024,
-		readed:  nil,
+		readed:  nil, // Assuming no specific success message to parse
 		log:     s.log,
 	}
 }
@@ -197,16 +210,12 @@ func (s *Storage) DeleteFile(path string) *Storage {
 // Response: ASCII decimal file size (e.g. "480610").
 // Returns "0" if the file does not exist.
 func (s *Storage) GetFileInfo(path string) *Storage {
-	fileName := filepath.Base(path)
-	newDir := "/root/video"
-	newPath := filepath.Join(newDir, fileName)
-
 	return &Storage{
 		name:    "GET_FILE_INFO",
-		bytes:   buildPathPayload(cmdGetFileInfo, newPath),
+		bytes:   buildPathPayload([]byte{cmdGetFileInfo, 0xef, 0x69, 0x00, 0x00, 0x00}, utils.ParsePath(path)),
 		padding: 0x00,
-		size:    0,
-		readed:  nil,
+		size:    1024,
+		readed:  fileSizeResponse,
 		log:     s.log,
 	}
 }
@@ -219,7 +228,7 @@ func (s *Storage) GetFileInfo(path string) *Storage {
 func (s *Storage) CreateFile(path string, fileSize int64) *Storage {
 	return &Storage{
 		name:    "CREATE_FILE",
-		bytes:   buildCreateFilePayload(path, fileSize),
+		bytes:   buildCreateFilePayload(utils.ParsePath(path), fileSize),
 		padding: 0x00,
 		size:    1024,
 		readed:  createSuccess,
@@ -227,13 +236,11 @@ func (s *Storage) CreateFile(path string, fileSize int64) *Storage {
 	}
 }
 
-// UploadDone is a pseudo-command used to read the device response after all
-// file data has been sent. The device responds with "file_rev_done" (possibly
-// followed by "img_show_") when the upload is complete.
-func (s *Storage) UploadDone() *Storage {
+// UploadFile prepares the command to send the file content in chunks.
+func (s *Storage) UploadFile(data []byte) *Storage {
 	return &Storage{
-		name:    "UPLOAD_DONE",
-		bytes:   nil,
+		name:    "UPLOAD_FILE",
+		payload: data,
 		padding: 0x00,
 		size:    1024,
 		readed:  fileRevDone,
@@ -242,28 +249,23 @@ func (s *Storage) UploadDone() *Storage {
 }
 
 // buildCreateFilePayload creates the CREATE_FILE command payload.
-// Format: [0x6f][0xEF69][path_len:4BE][0x000000][path][file_size:4LE]
+// Format: [cmd:6][path_len:1][0x00:3][path:path_len][file_size:4LE]
 func buildCreateFilePayload(path string, fileSize int64) []byte {
-	pathBytes := []byte(path)
-	pathLen := len(pathBytes)
+	cmd := []byte{0x6f, 0xef, 0x69, 0x00, 0x00, 0x00}
 
-	payload := make([]byte, 0, 10+pathLen+4)
-	payload = append(payload, cmdCreateFile, 0xef, 0x69)
-	// path length as 4 bytes big-endian
-	payload = append(payload, byte(pathLen>>24), byte(pathLen>>16), byte(pathLen>>8), byte(pathLen))
-	// 3-byte separator
-	payload = append(payload, 0x00, 0x00, 0x00)
-	// path
-	payload = append(payload, pathBytes...)
-	// file size as 4 bytes little-endian (after path)
-	payload = append(payload,
-		byte(fileSize),
-		byte(fileSize>>8),
-		byte(fileSize>>16),
-		byte(fileSize>>24),
-	)
+	pyd := []byte{byte(len(path))}
+	pyd = append(pyd, PADDING_NULL[0], PADDING_NULL[0], PADDING_NULL[0])
+	pyd = append(pyd, []byte(path)...)
 
-	return payload
+	sizeBuf := make([]byte, 4)
+	binary.LittleEndian.PutUint32(sizeBuf, uint32(fileSize))
+	pyd = append(pyd, sizeBuf...)
+
+	finalCmd := make([]byte, 0, len(cmd)+len(pyd))
+	finalCmd = append(finalCmd, cmd...)
+	finalCmd = append(finalCmd, pyd...)
+
+	return finalCmd
 }
 
 // PlayVideo starts playback of a video file from device storage.

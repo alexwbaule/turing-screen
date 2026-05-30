@@ -28,6 +28,10 @@ func NewImageProcess(i image.Image) *ImageProcess {
 	}
 }
 
+func (i *ImageProcess) GetImage() image.Image {
+	return i.img
+}
+
 func (i *ImageProcess) GenerateBackgroundImage(orietation theme.Orientation) []byte {
 	img := i.img
 	if orietation == theme.REVERSE_LANDSCAPE {

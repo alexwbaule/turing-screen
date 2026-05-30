@@ -2,6 +2,12 @@ package local
 
 import (
 	"fmt"
+	"image"
+	"image/color"
+	"math"
+	"os"
+	"strings"
+
 	"github.com/alexwbaule/gg"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
@@ -10,11 +16,6 @@ import (
 	"github.com/disintegration/gift"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
-	"image"
-	"image/color"
-	"math"
-	"os"
-	"strings"
 )
 
 type Builder struct {
@@ -57,6 +58,29 @@ func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) imag
 
 		ctx.DrawImage(numb, img.X, img.Y)
 	}
+	img := ctx.Image()
+
+	return img
+}
+
+func (b *Builder) BuildDinamicBackgroundImage(staticimage *theme.DinamicImage) image.Image {
+	var numb image.Image
+
+	if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
+		numb = image.NewRGBA(image.Rect(0, 0, b.device.Height, b.device.Width))
+	} else {
+		numb = image.NewRGBA(image.Rect(0, 0, b.device.Width, b.device.Height))
+	}
+	ctx := gg.NewContextForImage(numb)
+
+	numb, err := utils.LoadImage(staticimage.BackgroundImagePath)
+	if err != nil {
+		b.log.Fatalf("error open file %s: %s", staticimage.BackgroundImage, err)
+		os.Exit(-1)
+	}
+	//b.log.Debugf("Build Background Images [%s] X:%d Y:%d Size (%dx%d)", name, img.X, img.Y, numb.Bounds().Dx(), numb.Bounds().Dy())
+
+	ctx.DrawImage(numb, staticimage.X, staticimage.Y)
 	img := ctx.Image()
 
 	return img

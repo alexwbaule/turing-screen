@@ -3,12 +3,14 @@ package command
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 
-	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"regexp"
+
+	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 )
 
 var (
@@ -43,12 +45,15 @@ func (m *Payload) GetBytes() [][]byte {
 	}
 	size := len(m.payload)
 
+	// The padding for the payload chunks should be 0x00, which is the third byte in the padding slice.
+	payloadPadding := m.padding[2]
+
 	for i := 0; i < size; i += chunk {
 		end := i + chunk
 		if end > size {
 			end = size
 		}
-		tmp := utils.BZero(250, m.padding[1])
+		tmp := utils.BZero(250, payloadPadding)
 		copy(tmp, m.payload[i:end])
 		fullImage = append(fullImage, tmp)
 	}
@@ -83,20 +88,36 @@ func (m *Payload) ValidateCommand(s []byte, i int) error {
 	return fmt.Errorf("no matching item on: %s", m.readed.String())
 }
 
-func (m *Payload) SendPayload(background device.ImageBackground) *Payload {
+func (m *Payload) SendPayload(background device.ImageBackground, isVideoOverlay bool) *Payload {
+	var displayCmd []byte
+	var cmdName string
+	var size int
+	if isVideoOverlay {
+		cmdName = "SEND_PAYLOAD_VIDEO"
+		// DISPLAY_BITMAP_ON_VIDEO
+		displayCmd = []byte{0xca, 0xef, 0x69, 0x00, 0x17, 0x70}
+		size = 0
+	} else {
+		cmdName = "SEND_PAYLOAD_STATIC"
+		// DISPLAY_BITMAP
+		displayCmd = []byte{0xc8, 0xef, 0x69, 0x00, 0x17, 0x70}
+		size = 0
+	}
+
 	return &Payload{
-		name: "SEND_PAYLOAD",
+		name: cmdName,
 		bytes: [][]byte{
 			{
-				0x2c,
+				0x86, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01, // PRE_UPDATE_BITMAP
 			},
 			{
-				0xc8, 0xef, 0x69, 0x00, 0x17, 0x70,
+				0x2c, // START_DISPLAY_BITMAP
 			},
+			displayCmd,
 		},
-		padding: []byte{0x2c, 0x00},
+		padding: []byte{0x00, 0x2c, 0x00}, // Padding for each command: 0x00 for PRE_UPDATE, 0x2c for START_DISPLAY, 0x00 for payload chunks
 		payload: background.GenerateBackgroundImage(m.orientation),
-		size:    1024,
+		size:    size,
 		readed:  imageSucess,
 		log:     m.log,
 	}
