@@ -10,6 +10,10 @@ build:
 	mkdir -p bin/
 	CGO_ENABLED=1 go build $(LDFLAGS) -o bin/$(BINARY) -v cmd/$(BINARY)/main.go
 
+build-my:
+	mkdir -p bin/
+	CGO_ENABLED=1 go build $(LDFLAGS) -o bin/turing-my -v cmd/turing-my/main.go
+
 build-test:
 	mkdir -p bin/
 	CGO_ENABLED=1 go build $(LDFLAGS) -o bin/turing-test -v cmd/turing-test/main.go

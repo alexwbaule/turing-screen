@@ -88,6 +88,13 @@ func (w *Worker) OffChannel(cmd command.Command) error {
 		return nil // Command sent, no response to read
 	}
 
+	// 2.5. Send QueryStatus bytes if required (triggers device response)
+	if validation.Bytes != nil {
+		if _, err := w.sender.Write(validation.Bytes); err != nil {
+			return fmt.Errorf("worker query status write failed for %s: %w", cmd.GetName(), err)
+		}
+	}
+
 	// 3. If necessary, read the response
 	responseBuf := make([]byte, validation.Size)
 	n, err := w.sender.Read(responseBuf)

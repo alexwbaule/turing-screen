@@ -105,6 +105,9 @@ func (s *Serial) Execute(cmd command.Command) ([]byte, error) {
 
 // Write sends raw bytes to the serial port with a retry mechanism.
 func (s *Serial) Write(data []byte) (int, error) {
+	if s.port == nil {
+		return 0, fmt.Errorf("port is closed")
+	}
 	n, err := s.port.Write(data)
 	if err != nil {
 		return 0, fmt.Errorf("write serial error: %w", err)
@@ -112,6 +115,9 @@ func (s *Serial) Write(data []byte) (int, error) {
 	if n == 0 {
 		// Retry logic if zero bytes were written
 		for i := 0; i < attempts; i++ {
+			if s.port == nil {
+				return 0, fmt.Errorf("port is closed")
+			}
 			n, err = s.port.Write(data)
 			if err != nil {
 				return 0, fmt.Errorf("write retry error: %w", err)
@@ -130,12 +136,18 @@ func (s *Serial) Read(p []byte) (int, error) {
 	var totalRead int
 	var attemptsMade int
 
+	if s.port == nil {
+		return 0, fmt.Errorf("port is closed")
+	}
 	err := s.port.Flush()
 	if err != nil {
 		return 0, err
 	}
 
 	for totalRead < len(p) && attemptsMade < attempts {
+		if s.port == nil {
+			return 0, fmt.Errorf("port is closed")
+		}
 		n, err := s.port.Read(p[totalRead:])
 		if err != nil {
 			if err == io.EOF {

@@ -16,6 +16,7 @@ import (
 	"github.com/disintegration/gift"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
+	"golang.org/x/image/font/opentype"
 )
 
 type Builder struct {
@@ -39,9 +40,9 @@ func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) imag
 	var numb image.Image
 
 	if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
-		numb = image.NewRGBA(image.Rect(0, 0, b.device.Height, b.device.Width))
+		numb = image.NewNRGBA(image.Rect(0, 0, b.device.Height, b.device.Width))
 	} else {
-		numb = image.NewRGBA(image.Rect(0, 0, b.device.Width, b.device.Height))
+		numb = image.NewNRGBA(image.Rect(0, 0, b.device.Width, b.device.Height))
 	}
 	ctx := gg.NewContextForImage(numb)
 
@@ -49,41 +50,12 @@ func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) imag
 	slices.Sort(keys)
 	for _, name := range keys {
 		img := images[name]
-		numb, err := utils.LoadImage(img.Path)
-		if err != nil {
-			b.log.Fatalf("error open file %s: %s", name, err)
-			os.Exit(-1)
-		}
-		//b.log.Debugf("Build Background Images [%s] X:%d Y:%d Size (%dx%d)", name, img.X, img.Y, numb.Bounds().Dx(), numb.Bounds().Dy())
-
-		ctx.DrawImage(numb, img.X, img.Y)
+		b.log.Debugf("Build Background Image [%#v]", img)
+		ctx.DrawImage(img.BackgroundImage, img.X, img.Y)
 	}
-	img := ctx.Image()
+	//b.saveImage(ctx.Image(), fmt.Sprintf("res/test/image-texts.png"))
 
-	return img
-}
-
-func (b *Builder) BuildDinamicBackgroundImage(staticimage *theme.DinamicImage) image.Image {
-	var numb image.Image
-
-	if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
-		numb = image.NewRGBA(image.Rect(0, 0, b.device.Height, b.device.Width))
-	} else {
-		numb = image.NewRGBA(image.Rect(0, 0, b.device.Width, b.device.Height))
-	}
-	ctx := gg.NewContextForImage(numb)
-
-	numb, err := utils.LoadImage(staticimage.BackgroundImagePath)
-	if err != nil {
-		b.log.Fatalf("error open file %s: %s", staticimage.BackgroundImage, err)
-		os.Exit(-1)
-	}
-	//b.log.Debugf("Build Background Images [%s] X:%d Y:%d Size (%dx%d)", name, img.X, img.Y, numb.Bounds().Dx(), numb.Bounds().Dy())
-
-	ctx.DrawImage(numb, staticimage.X, staticimage.Y)
-	img := ctx.Image()
-
-	return img
+	return ctx.Image()
 }
 
 func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string]theme.StaticText) image.Image {
@@ -305,6 +277,98 @@ func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image
 	//b.saveImage(ii, fmt.Sprintf("res/test/image-radial-full-%.0f-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Radius))
 	//b.saveImage(dst, fmt.Sprintf("res/test/image-radial-%.0f-%dx%d-%dx%d.png", value, stat.X, stat.Y, stat.Width, stat.Radius))
 	return dst
+}
+
+func drawRadialBar(radius, barWidth, minValue, maxValue, angleStart, angleEnd, angleSep, angleSteps int,
+	clockwise bool, value int, text string, withText bool,
+	fontName string, fontSize int, fontColor color.Color, barColor color.Color) image.Image {
+
+	if value < minValue {
+		value = minValue
+	} else if value > maxValue {
+		value = maxValue
+	}
+
+	pct := float64(value-minValue) / float64(maxValue-minValue)
+	rad := func(deg float64) float64 { return deg * math.Pi / 180.0 }
+
+	diameter := 2 * radius
+	barImage := image.NewNRGBA(image.Rect(0, 0, diameter, diameter))
+	dc := gg.NewContextForImage(barImage)
+	dc.SetColor(barColor)
+	dc.SetLineWidth(float64(barWidth))
+	dc.SetLineCap(gg.LineCapButt)
+
+	rCenter := float64(radius)
+	arcRadius := rCenter - float64(barWidth)/2.0
+	angleStartMod := float64(angleStart % 361)
+	angleEndMod := float64(angleEnd % 361)
+
+	if clockwise {
+		ecart := 0.0
+		if angleEndMod < angleStartMod {
+			ecart = 360 - angleStartMod + angleEndMod
+		} else {
+			ecart = angleEndMod - angleStartMod
+		}
+		if angleSep == 0 {
+			aE := angleStartMod + pct*ecart
+			dc.DrawArc(rCenter, rCenter, arcRadius, rad(angleStartMod), rad(aE))
+			dc.Stroke()
+		} else {
+			aE := angleStartMod + pct*ecart
+			angleComplet := ecart / float64(angleSteps)
+			etapes := int((aE - angleStartMod) / angleComplet)
+			for i := 0; i < etapes; i++ {
+				s := angleStartMod + float64(i)*angleComplet
+				e := angleStartMod + float64(i+1)*angleComplet - float64(angleSep)
+				dc.DrawArc(rCenter, rCenter, arcRadius, rad(s), rad(e))
+				dc.Stroke()
+			}
+			s := angleStartMod + float64(etapes)*angleComplet
+			dc.DrawArc(rCenter, rCenter, arcRadius, rad(s), rad(aE))
+			dc.Stroke()
+		}
+	} else {
+		ecart := 0.0
+		if angleEndMod < angleStartMod {
+			ecart = angleStartMod - angleEndMod
+		} else {
+			ecart = 360 - angleEndMod + angleStartMod
+		}
+		if angleSep == 0 {
+			aS := angleStartMod - pct*ecart
+			dc.DrawArc(rCenter, rCenter, arcRadius, rad(aS), rad(angleStartMod))
+			dc.Stroke()
+		} else {
+			aS := angleStartMod - pct*ecart
+			angleComplet := ecart / float64(angleSteps)
+			etapes := int((angleStartMod - aS) / angleComplet)
+			for i := 0; i < etapes; i++ {
+				e := angleStartMod - float64(i)*angleComplet
+				s := angleStartMod - float64(i+1)*angleComplet + float64(angleSep)
+				dc.DrawArc(rCenter, rCenter, arcRadius, rad(s), rad(e))
+				dc.Stroke()
+			}
+			e := angleStartMod - float64(etapes)*angleComplet
+			dc.DrawArc(rCenter, rCenter, arcRadius, rad(aS), rad(e))
+			dc.Stroke()
+		}
+	}
+
+	if withText {
+		if text == "" {
+			text = fmt.Sprintf("%d%%", int(pct*100+0.5))
+		}
+		fontBytes, _ := os.ReadFile("./res/fonts/" + fontName)
+		f, _ := opentype.Parse(fontBytes)
+		face, _ := opentype.NewFace(f, &opentype.FaceOptions{Size: float64(fontSize), DPI: 72})
+		dc.SetFontFace(face)
+		dc.SetColor(fontColor)
+		dc.DrawStringAnchored(text, float64(radius), float64(radius), 0.5, 0.5)
+	}
+
+	return dc.Image()
 }
 
 func (b *Builder) saveImage(img image.Image, file string) {

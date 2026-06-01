@@ -9,26 +9,32 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 )
 
 // OverlayBuffer manages the video overlay buffers and diff computation.
 type OverlayBuffer struct {
-	mu      sync.Mutex
-	log     *logger.Logger
-	width   int
-	height  int
-	current *image.NRGBA
+	mu       sync.Mutex
+	log      *logger.Logger
+	width    int
+	height   int
+	current  *image.NRGBA
 	previous *image.NRGBA
-	encoder *OverlayEncoder
+	encoder  *OverlayEncoder
 }
 
-// NewOverlayBuffer creates a new overlay buffer for the given display dimensions.
-func NewOverlayBuffer(log *logger.Logger, display *device.Display) *OverlayBuffer {
-	w := display.Width
-	h := display.Height
-	// In landscape mode, swap dimensions
-	if display.Reverse {
-		w, h = h, w
+// NewOverlayBuffer creates a new overlay buffer for the given display and orientation.
+// The display dimensions in the config represent the effective display size
+// (e.g. Width=800, Height=480 for LANDSCAPE), so no swap is needed.
+func NewOverlayBuffer(log *logger.Logger, display *device.Display, orientation theme.Orientation) *OverlayBuffer {
+	var w, h int
+	switch orientation {
+	case theme.LANDSCAPE, theme.REVERSE_LANDSCAPE:
+		w = display.Width
+		h = display.Height
+	default: // PORTRAIT, REVERSE_PORTRAIT
+		w = display.Height
+		h = display.Width
 	}
 	rect := image.Rect(0, 0, w, h)
 
@@ -99,7 +105,7 @@ func (o *OverlayBuffer) Draw(img image.Image, x, y int) {
 
 // Refresh computes the diff between current and previous buffers,
 // delegates encoding to the OverlayEncoder, and swaps the buffers.
-func (o *OverlayBuffer) Refresh() *command.VideoOverlayRefresh {
+func (o *OverlayBuffer) Refresh() command.Command {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 

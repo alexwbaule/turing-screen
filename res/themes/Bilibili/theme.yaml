@@ -2,13 +2,21 @@ display:
     SIZE: 5"
     ORIENTATION: landscape
     RGB_LED: 0, 0, 255
-video_play:
+
+video:
     PATH: gunpla.mp4
     HEIGHT: 480
     WIDTH: 800
     X: 0
-    "Y": 0
-    BACKGROUND: background.png
+    Y: 0
+
+static_images:
+    BACKGROUND:
+        PATH: background.png
+        X: 0
+        Y: 0
+        WIDTH: 800
+        HEIGHT: 480
 
 static_texts:
     custom_text_0:
@@ -16,7 +24,7 @@ static_texts:
         SHOW: true
         SHOW_UNIT: false
         X: 334
-        "Y": 24
+        Y: 24
         FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
         FONT_SIZE: 24
         FONT_COLOR: 255,255,255
@@ -30,7 +38,7 @@ STATS:
             GRAPH:
                 SHOW: true
                 X: 185
-                "Y": 23
+                Y: 23
                 WIDTH: 150
                 HEIGHT: 15
                 MIN_VALUE: 0
@@ -45,7 +53,7 @@ STATS:
                 SHOW: true
                 SHOW_UNIT: true
                 X: 42
-                "Y": 191
+                Y: 191
                 FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
                 FONT_SIZE: 18
                 FONT_COLOR: 255, 255, 255
@@ -57,7 +65,7 @@ STATS:
                 SHOW: true
                 SHOW_UNIT: true
                 X: 78
-                "Y": 85
+                Y: 85
                 FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
                 FONT_SIZE: 18
                 FONT_COLOR: 44, 166, 214
@@ -71,7 +79,7 @@ STATS:
                 SHOW: true
                 SHOW_UNIT: true
                 X: 730
-                "Y": 121
+                Y: 121
                 FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
                 FONT_SIZE: 18
                 FONT_COLOR: 247, 164, 213
@@ -83,7 +91,7 @@ STATS:
                 SHOW: true
                 SHOW_UNIT: true
                 X: 707
-                "Y": 270
+                Y: 270
                 FONT: jetbrains-mono/JetBrainsMono-ExtraLight.ttf
                 FONT_SIZE: 18
                 FONT_COLOR: 255, 255, 255
@@ -94,7 +102,7 @@ STATS:
                 SHOW: true
                 SHOW_UNIT: true
                 X: 732
-                "Y": 86
+                Y: 86
                 FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
                 FONT_SIZE: 18
                 FONT_COLOR: 247, 164, 213
@@ -115,7 +123,7 @@ STATS:
                 SHOW: true
                 SHOW_UNIT: true
                 X: 317
-                "Y": 430
+                Y: 430
                 FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
                 FONT_SIZE: 18
                 FONT_COLOR: 247, 164, 213
@@ -134,7 +142,7 @@ STATS:
                     SHOW: true
                     SHOW_UNIT: true
                     X: 393
-                    "Y": 429
+                    Y: 429
                     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
                     FONT_SIZE: 18
                     FONT_COLOR: 247, 164, 213
@@ -145,12 +153,10 @@ STATS:
                     SHOW: true
                     SHOW_UNIT: true
                     X: 512
-                    "Y": 428
+                    Y: 428
                     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
                     FONT_SIZE: 18
                     FONT_COLOR: 247, 164, 213
-            UPLOADED: null
-            DOWNLOADED: null
     DATE:
         INTERVAL: 1
         DAY:
@@ -160,7 +166,7 @@ STATS:
                 SHOW: true
                 SHOW_UNIT: true
                 X: 272
-                "Y": 55
+                Y: 55
                 FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
                 FONT_SIZE: 20
                 FONT_COLOR: 44, 166, 214
@@ -171,7 +177,7 @@ STATS:
                 SHOW: true
                 SHOW_UNIT: true
                 X: 439
-                "Y": 54
+                Y: 54
                 FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
                 FONT_SIZE: 20
                 FONT_COLOR: 44, 166, 214

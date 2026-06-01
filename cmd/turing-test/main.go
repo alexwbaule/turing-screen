@@ -399,11 +399,11 @@ func (l *LcdCommRevC) DisplayPILImage(img image.Image, x, y int) {
 
 // ---- Clear — verbatim from PR #348 ----
 
-func (l *LcdCommRevC) Clear() {
+func (l *LcdCommRevC) Clear(bg image.Image) {
 	backupOrientation := l.Orientation
-	l.SetOrientation(PORTRAIT)
+	l.SetOrientation(LANDSCAPE)
 	blank := image.NewNRGBA(image.Rect(0, 0, l.getWidth(), l.getHeight()))
-	draw.Draw(blank, blank.Bounds(), &image.Uniform{color.RGBA{255, 255, 255, 255}}, image.Point{}, draw.Src)
+	draw.Draw(blank, blank.Bounds(), bg, image.Point{}, draw.Src)
 	l.DisplayPILImage(blank, 0, 0)
 	l.SetOrientation(backupOrientation)
 }
@@ -1004,7 +1004,7 @@ func main() {
 	}
 
 	lcdComm.StopVideo()
-	lcdComm.Clear()
+	lcdComm.Clear(background)
 
 	lcdComm.StartVideo(VIDEO_DEVICE_PATH)
 

@@ -7,12 +7,11 @@ import (
 
 // VideoOverlayRefresh represents an UPDATE_BITMAP command with diff payload.
 // The payload is already pre-formatted by the overlay diff engine with
-// 249-byte data chunks separated by 0x00 bytes (matching the reference
-// ResfreshVideoOverlay's sendCommand(SEND_PAYLOAD, ...) behavior).
+// 4-bit pixel packing, position encoding, and boundary fix.
 //
-// GetBytes() returns:
+// GetBytes() returns (matching reference ResfreshVideoOverlay):
 //   - Packet 1: header (18 bytes) padded to 250
-//   - Packets 2..N: payload in 250-byte aligned chunks (NOT 249)
+//   - Packet 2: entire payload padded to next 250 boundary (ONE block)
 //
 // No response is expected (ValidateWrite.Size = 0).
 type VideoOverlayRefresh struct {
@@ -34,30 +33,22 @@ func NewVideoOverlayRefresh(log *logger.Logger, header []byte, payload []byte) *
 }
 
 func (c *VideoOverlayRefresh) GetBytes() [][]byte {
-	var packets [][]byte
-
 	// Packet 1: header padded to 250
 	hdrPkt := utils.BZero(250, c.padding)
 	copy(hdrPkt, c.header)
-	packets = append(packets, hdrPkt)
 
-	// Packets 2..N: payload in 250-byte aligned chunks.
-	// The payload from Refresh() already has 249+1 structure (249 data + 0x00 sep).
-	// We must split on 250-byte boundaries to preserve that structure,
-	// matching the reference's sendCommand(SEND_PAYLOAD, imgPayload, ...) which
-	// pads the entire payload to 250 boundaries at the end.
-	size := len(c.payload)
-	for i := 0; i < size; i += 250 {
-		end := i + 250
-		if end > size {
-			end = size
-		}
-		pkt := utils.BZero(250, c.padding)
-		copy(pkt, c.payload[i:end])
-		packets = append(packets, pkt)
+	// Packet 2: entire payload padded to next 250 boundary (ONE block).
+	// The reference sendCommand(SEND_PAYLOAD, imgPayload, ...) pads the
+	// payload to 250 boundary at the END, not split into 250-byte chunks.
+	payloadSize := len(c.payload)
+	paddedSize := payloadSize
+	if paddedSize%250 != 0 {
+		paddedSize = ((payloadSize / 250) + 1) * 250
 	}
+	payloadPkt := utils.BZero(paddedSize, c.padding)
+	copy(payloadPkt, c.payload)
 
-	return packets
+	return [][]byte{hdrPkt, payloadPkt}
 }
 
 func (c *VideoOverlayRefresh) SetCount(count int64) {

@@ -69,6 +69,11 @@ func main() {
 			return fmt.Errorf("device initialization failed: %w", err)
 		}
 
+		// If video mode is active, configure cmdUpdate to use overlay
+		if overlay := initService.Overlay(); overlay != nil {
+			cmdUpdate.SetOverlay(overlay)
+		}
+
 		// 2. Start the asynchronous worker for sensor updates
 		worker := sender.NewWorker(devSerial, background, cmdDevice, cmdMedia, cmdPayload, app.Log)
 		g, ctx := errgroup.WithContext(ctx)
@@ -95,39 +100,28 @@ func main() {
 				}
 			}
 		})
-
 		// 3. Video overlay refresh goroutine (if video mode is active)
-		/*
-			if videoDisplay != nil {
-				display := app.Config.GetDeviceDisplay()
-				overlay := video.NewOverlayBuffer(app.Log, display)
-				// Use the SAME NRGBA that was sent during init (matching reference
-				// where l.VideoOverlay is shared between init and refresh)
-				if videoOverlayNRGBA != nil {
-					overlay.SetInitial(videoOverlayNRGBA)
-				}
-
-				g.Go(func() error {
-					app.Log.Info("starting video overlay refresh goroutine")
-					ticker := time.NewTicker(1 * time.Second)
-					defer ticker.Stop()
-					for {
+		if overlay := initService.Overlay(); overlay != nil {
+			g.Go(func() error {
+				app.Log.Info("starting video overlay refresh goroutine")
+				ticker := time.NewTicker(1 * time.Second)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ctx.Done():
+						app.Log.Info("video overlay refresh goroutine stopped")
+						return nil
+					case <-ticker.C:
+						refreshCmd := overlay.Refresh()
 						select {
-						case <-ctx.Done():
-							app.Log.Info("video overlay refresh goroutine stopped")
-							return nil
-						case <-ticker.C:
-							refreshCmd := overlay.Refresh()
-							select {
-							case jobs <- refreshCmd:
-							default:
-								app.Log.Warn("video overlay refresh dropped: jobs channel full")
-							}
+						case jobs <- refreshCmd:
+						default:
+							app.Log.Warn("video overlay refresh dropped: jobs channel full")
 						}
 					}
-				})
-			}
-		*/
+				}
+			})
+		}
 		// 4. Start sensor goroutines (they will feed the 'jobs' channel)
 		app.Log.Info("initialization complete. starting sensor monitoring.")
 
