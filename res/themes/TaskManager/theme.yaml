@@ -1,0 +1,331 @@
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: "0, 0, 255"
+
+video_play:
+  BACKGROUND_VIDEO:
+    PATH: 332.mp4
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+
+static_texts:
+  CPU:
+    TEXT: CPU
+    X: 160
+    Y: 20
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: "255, 255, 255"
+  DISK0:
+    TEXT: DISK0
+    X: 160
+    Y: 200
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: "255, 255, 255"
+  INTERNET:
+    TEXT: INTERNET
+    X: 160
+    Y: 290
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: "255, 255, 255"
+  MHZ:
+    TEXT: MHz
+    X: 258
+    Y: 60
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 14
+    FONT_COLOR: "255, 255, 255"
+  MEMORY:
+    TEXT: Memory
+    X: 160
+    Y: 110
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: "255, 255, 255"
+  STATIC_TEXT_05:
+    TEXT: /
+    X: 202
+    Y: 149
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 14
+    FONT_COLOR: "255, 255, 255"
+  GB:
+    TEXT: GB(        )
+    X: 257
+    Y: 149
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 14
+    FONT_COLOR: "255, 255, 255"
+  GPU0:
+    TEXT: GPU0
+    X: 160
+    Y: 380
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: "255, 255, 255"
+  CPU_USAGE:
+    TEXT: CPU Usage %
+    X: 384
+    Y: 56
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 11
+    FONT_COLOR: "85, 85, 85"
+  UAGE:
+    TEXT: Uage
+    X: 383
+    Y: 344
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: "255, 255, 255"
+  CLOCK:
+    TEXT: Clock
+    X: 466
+    Y: 344
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: "255, 255, 255"
+  100:
+    TEXT: 100%
+    X: 717
+    Y: 59
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: "255, 255, 255"
+  TIME:
+    TEXT: Time
+    X: 385
+    Y: 404
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: "255, 255, 255"
+  FAN_SPEED:
+    TEXT: Fan Speed
+    X: 611
+    Y: 354
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: "255, 255, 255"
+  POWER:
+    TEXT: Power
+    X: 643
+    Y: 389
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: "255, 255, 255"
+  VOLTAGE:
+    TEXT: Voltage
+    X: 635
+    Y: 427
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: "255, 255, 255"
+  STATIC_TEXT_23:
+    TEXT: /
+    X: 202
+    Y: 149
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 14
+    FONT_COLOR: "255, 255, 255"
+  GPU_MODEL:
+    TEXT: "{{GPU_MODEL}}"
+    X: 160
+    Y: 405
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 14
+    FONT_COLOR: "255, 255, 255"
+  CPU_MODEL:
+    TEXT: "{{CPU_MODEL}}"
+    X: 768
+    Y: 23
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: "255, 255, 255"
+
+STATS:
+  DISK:
+    INTERVAL: 10
+    USED:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 162
+        Y: 243
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+      CHART:
+        SHOW: True
+        X: 20
+        Y: 200
+        WIDTH: 120
+        HEIGHT: 70
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        COLUMN_WIDTH: 5
+        COLUMN_GAP: 1
+        LINE_COLOR: "0, 255, 0"
+        FILL_COLOR: "0, 255, 0"
+        BORDER_WIDTH: 1
+  CPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 160
+        Y: 60
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+      CHART:
+        SHOW: True
+        X: 20
+        Y: 20
+        WIDTH: 120
+        HEIGHT: 70
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        COLUMN_WIDTH: 5
+        COLUMN_GAP: 1
+        LINE_COLOR: "0, 128, 192"
+        FILL_COLOR: "0, 128, 192"
+        BORDER_WIDTH: 1
+    FREQUENCY:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: False
+        X: 210
+        Y: 60
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+    FAN:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 770
+        Y: 354
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+    POWER:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 771
+        Y: 388
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+    VOLTAGE:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 768
+        Y: 424
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+  MEMORY:
+    INTERVAL: 5
+    USED:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: False
+        X: 160
+        Y: 150
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+    TOTAL:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: False
+        X: 212
+        Y: 150
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+    VIRTUAL:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 296
+        Y: 150
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+      CHART:
+        SHOW: True
+        X: 20
+        Y: 110
+        WIDTH: 120
+        HEIGHT: 70
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        COLUMN_WIDTH: 5
+        COLUMN_GAP: 1
+        LINE_COLOR: "255, 128, 255"
+        FILL_COLOR: "255, 0, 255"
+        BORDER_WIDTH: 1
+  NET:
+    INTERVAL: 1
+    UPLOAD:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 160
+        Y: 330
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+    DOWNLOAD:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 250
+        Y: 330
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 160
+        Y: 430
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: "255, 255, 255"
+      CHART:
+        SHOW: True
+        X: 18
+        Y: 380
+        WIDTH: 120
+        HEIGHT: 70
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        COLUMN_WIDTH: 5
+        COLUMN_GAP: 1
+        LINE_COLOR: "0, 64, 128"
+        FILL_COLOR: "0, 64, 128"
+        BORDER_WIDTH: 1
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 380
+        Y: 426
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 19
+        FONT_COLOR: "255, 255, 255"

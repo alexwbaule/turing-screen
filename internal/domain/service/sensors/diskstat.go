@@ -2,29 +2,31 @@ package sensors
 
 import (
 	"context"
+	"time"
+
+	"github.com/alexwbaule/gopsutil/v3/disk"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
-	"github.com/shirou/gopsutil/v3/disk"
-	"github.com/shirou/gopsutil/v3/host"
-	"time"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 )
 
 type DiskStat struct {
-	log     *logger.Logger
-	jobs    chan<- command.Command
-	builder *local.Builder
-	p       *command.UpdatePayload
+	log               *logger.Logger
+	jobs              chan<- command.Command
+	builder           *renderer.Builder
+	p                 *command.UpdatePayload
+	temperatureSensor string
 }
 
-func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *DiskStat {
+func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, temperatureSensor string) *DiskStat {
 	return &DiskStat{
-		log:     l.With("runner", "disk_stats"),
-		jobs:    j,
-		builder: b,
-		p:       p,
+		log:               l.With("runner", "disk_stats"),
+		jobs:              j,
+		builder:           b,
+		p:                 p,
+		temperatureSensor: temperatureSensor,
 	}
 }
 
@@ -61,11 +63,11 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 	}
 	if e.Free != nil {
 		if e.Free.Percent != nil && e.Free.Percent.Show {
-			img, x, y := BuildText(g.builder, 100-disks.UsedPercent, "%3.f", "%", e.Free.Percent)
+			img, x, y := BuildText(g.builder, 100-disks.UsedPercent, "%3.f", "%", e.Free.Percent, SizePercent)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Free.Text != nil && e.Free.Text.Show {
-			img, x, y := BuildTextUint(g.builder, disks.Free, utils.Bytes, e.Free.Text)
+			img, x, y := BuildTextUint(g.builder, disks.Free, utils.Bytes, e.Free.Text, SizeBytes)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Free.Radial != nil && e.Free.Radial.Show {
@@ -79,11 +81,11 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 	}
 	if e.Used != nil {
 		if e.Used.Percent != nil && e.Used.Percent.Show {
-			img, x, y := BuildText(g.builder, disks.UsedPercent, "%3.f", "%", e.Used.Percent)
+			img, x, y := BuildText(g.builder, disks.UsedPercent, "%3.f", "%", e.Used.Percent, SizePercent)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Used.Text != nil && e.Used.Text.Show {
-			img, x, y := BuildTextUint(g.builder, disks.Used, utils.Bytes, e.Used.Text)
+			img, x, y := BuildTextUint(g.builder, disks.Used, utils.Bytes, e.Used.Text, SizeBytes)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Used.Radial != nil && e.Used.Radial.Show {
@@ -97,11 +99,11 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 	}
 	if e.Total != nil {
 		if e.Total.Percent != nil && e.Total.Percent.Show {
-			img, x, y := BuildText(g.builder, 100, "%3.f", "%", e.Total.Percent)
+			img, x, y := BuildText(g.builder, 100, "%3.f", "%", e.Total.Percent, SizePercent)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Total.Text != nil && e.Total.Text.Show {
-			img, x, y := BuildTextUint(g.builder, disks.Total, utils.Bytes, e.Total.Text)
+			img, x, y := BuildTextUint(g.builder, disks.Total, utils.Bytes, e.Total.Text, SizeBytes)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Total.Radial != nil && e.Total.Radial.Show {
@@ -114,26 +116,15 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 		}
 	}
 	if e.Temperature != nil {
-		var temperature float64 = 0
-		var percent float64 = 0
-
-		stats, err := host.SensorsTemperaturesWithContext(ctx)
-		if err != nil {
-			return err
-		}
-		for _, stat := range stats {
-			if stat.SensorKey == "nvme_composite" {
-				temperature = stat.Temperature
-				percent = (stat.Temperature / stat.Critical) * 100
-			}
-		}
+		diskPatterns := []string{"nvme", "disk", "nvme_composite"}
+		temperature, percent := findSensorTemperature(ctx, g.temperatureSensor, diskPatterns, g.log)
 
 		if e.Temperature.Percent != nil && e.Temperature.Percent.Show {
-			img, x, y := BuildText(g.builder, percent, "%3.0f", "%", e.Temperature.Percent)
+			img, x, y := BuildText(g.builder, percent, "%3.0f", "%", e.Temperature.Percent, SizePercent)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Temperature.Text != nil && e.Temperature.Text.Show {
-			img, x, y := BuildText(g.builder, temperature, "%3.0f", "°C", e.Temperature.Text)
+			img, x, y := BuildText(g.builder, temperature, "%3.0f", "°C", e.Temperature.Text, SizeTemp)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Temperature.Radial != nil && e.Temperature.Radial.Show {

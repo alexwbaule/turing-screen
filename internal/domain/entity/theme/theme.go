@@ -1,11 +1,12 @@
 package theme
 
 import (
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
 	"strings"
 	"time"
+
+	"golang.org/x/image/font"
 )
 
 type Orientation int
@@ -33,6 +34,28 @@ const (
 	DATE              FormatDateTime = 0
 	TIME              FormatDateTime = 1
 )
+
+// Layout define a posição e as dimensões de um componente na tela.
+type Layout struct {
+	X      int `mapstructure:"X"`
+	Y      int `mapstructure:"Y"`
+	Width  int `mapstructure:"WIDTH"`
+	Height int `mapstructure:"HEIGHT"`
+}
+
+// BackgroundStyle define o fundo de um componente.
+type BackgroundStyle struct {
+	BackgroundColor     color.Color
+	BackgroundImagePath string `mapstructure:"BACKGROUND_IMAGE"`
+	BackgroundImage     image.Image
+}
+
+// TextStyle define as propriedades de renderização de um texto.
+type TextStyle struct {
+	Font      font.Face
+	FontColor color.Color
+	Align     Alignment
+}
 
 func (a Alignment) String() string {
 	switch a {
@@ -63,8 +86,6 @@ func StringToFormat(src string) Format {
 func (f Format) String(t FormatDateTime) string {
 	switch f {
 	case SHORT:
-		//	//DATE: short (2/20/23) / medium (Feb 20, 2023) / long (February 20, 2023) / full (Monday, February 20, 2023)
-		//	//TIME: short (6:48 PM) / medium (6:48:53 PM) / long (6:48:53 PM UTC) / full (6:48:53 PM Coordinated Universal Time)
 		if t == DATE {
 			return "01/02/06"
 		}
@@ -138,11 +159,11 @@ func StringToOrientation(src string, reverse bool) Orientation {
 }
 
 type Theme struct {
-	Display      *Display                `mapstructure:"display"`
-	StaticImages map[string]StaticImage  `mapstructure:"static_images"`
-	VideoPlay    map[string]DinamicImage `mapstructure:"video_play"`
-	StaticTexts  map[string]StaticText   `mapstructure:"static_texts"`
-	Stats        *Stats                  `mapstructure:"STATS"`
+	Display      *Display               `mapstructure:"display"`
+	VideoPlay    *VideoPlay             `mapstructure:"video"`
+	StaticImages map[string]StaticImage `mapstructure:"static_images"`
+	StaticTexts  map[string]StaticText  `mapstructure:"static_texts"`
+	Stats        *Stats                 `mapstructure:"STATS"`
 }
 
 type Display struct {
@@ -150,38 +171,36 @@ type Display struct {
 	Orientation Orientation
 }
 
-type DinamicImage struct {
-	Path   string `mapstructure:"PATH"`
-	Height int    `mapstructure:"HEIGHT"`
-	Width  int    `mapstructure:"WIDTH"`
-	X      int    `mapstructure:"X"`
-	Y      int    `mapstructure:"Y"`
+type VideoPlay struct {
+	Layout
+	Video           []byte
+	Size            int64
+	ForegroundImage image.Image
+	Path            string `mapstructure:"PATH"`
+	DevicePath      string
 }
 
 type StaticImage struct {
-	Path   string `mapstructure:"PATH"`
-	Height int    `mapstructure:"HEIGHT"`
-	Width  int    `mapstructure:"WIDTH"`
-	X      int    `mapstructure:"X"`
-	Y      int    `mapstructure:"Y"`
+	Layout
+	BackgroundImage image.Image
+	Path            string `mapstructure:"PATH"`
 }
 
 type StaticText struct {
-	Text            string `mapstructure:"TEXT"`
-	X               int    `mapstructure:"X"`
-	Y               int    `mapstructure:"Y"`
-	Font            font.Face
-	FontColor       color.Color
-	BackgroundColor color.Color
+	Layout
+	TextStyle
+	BackgroundStyle
+	Text string `mapstructure:"TEXT"`
 }
 
 type Stats struct {
-	CPU    *CPU      `mapstructure:"CPU"`
-	GPU    *GPU      `mapstructure:"GPU"`
-	Memory *Memory   `mapstructure:"MEMORY"`
-	Disk   *Disk     `mapstructure:"DISK"`
-	Net    *Network  `mapstructure:"NET"`
-	Date   *DateTime `mapstructure:"DATE"`
+	CPU     *CPU      `mapstructure:"CPU"`
+	GPU     *GPU      `mapstructure:"GPU"`
+	Memory  *Memory   `mapstructure:"MEMORY"`
+	Disk    *Disk     `mapstructure:"DISK"`
+	Net     *Network  `mapstructure:"NET"`
+	Date    *DateTime `mapstructure:"DATE"`
+	Weather *Weather  `mapstructure:"WEATHER"`
 }
 
 type Mesurement struct {
@@ -193,53 +212,39 @@ type Mesurement struct {
 }
 
 type Text struct {
-	Show                bool `mapstructure:"SHOW"`
-	ShowUnit            bool `mapstructure:"SHOW_UNIT"`
-	Format              Format
-	X                   int `mapstructure:"X"`
-	Y                   int `mapstructure:"Y"`
-	Font                font.Face
-	FontColor           color.Color
-	BackgroundColor     color.Color
-	BackgroundImagePath string `mapstructure:"BACKGROUND_IMAGE"`
-	BackgroundImage     image.Image
-	Align               Alignment
-	Size                int
+	Layout
+	BackgroundStyle
+	TextStyle
+	Show     bool `mapstructure:"SHOW"`
+	ShowUnit bool `mapstructure:"SHOW_UNIT"`
+	Format   Format
+	Size     int
 }
 
 type Graph struct {
-	Show                bool `mapstructure:"SHOW"`
-	X                   int  `mapstructure:"X"`
-	Y                   int  `mapstructure:"Y"`
-	Width               int  `mapstructure:"WIDTH"`
-	Height              int  `mapstructure:"HEIGHT"`
-	MinValue            int  `mapstructure:"MIN_VALUE"`
-	MaxValue            int  `mapstructure:"MAX_VALUE"`
-	BarColor            color.Color
-	BarOutline          bool   `mapstructure:"BAR_OUTLINE"`
-	BackgroundImagePath string `mapstructure:"BACKGROUND_IMAGE"`
-	BackgroundImage     image.Image
+	Layout
+	BackgroundStyle
+	Show       bool `mapstructure:"SHOW"`
+	MinValue   int  `mapstructure:"MIN_VALUE"`
+	MaxValue   int  `mapstructure:"MAX_VALUE"`
+	BarColor   color.Color
+	BarOutline bool `mapstructure:"BAR_OUTLINE"`
 }
 
 type Radial struct {
-	Show                bool `mapstructure:"SHOW"`
-	X                   int  `mapstructure:"X"`
-	Y                   int  `mapstructure:"Y"`
-	Radius              int  `mapstructure:"RADIUS"`
-	Width               int  `mapstructure:"WIDTH"`
-	MinValue            int  `mapstructure:"MIN_VALUE"`
-	MaxValue            int  `mapstructure:"MAX_VALUE"`
-	AngleStart          int  `mapstructure:"ANGLE_START"`
-	AngleEnd            int  `mapstructure:"ANGLE_END"`
-	AngleSteps          int  `mapstructure:"ANGLE_STEPS"`
-	AngleSep            int  `mapstructure:"ANGLE_SEP"`
-	Clockwise           bool `mapstructure:"CLOCKWISE"`
-	BarColor            color.Color
-	ShowText            bool `mapstructure:"SHOW_TEXT"`
-	ShowUnit            bool `mapstructure:"SHOW_UNIT"`
-	Font                font.Face
-	FontColor           color.Color
-	BackgroundColor     color.Color
-	BackgroundImagePath string `mapstructure:"BACKGROUND_IMAGE"`
-	BackgroundImage     image.Image
+	Layout
+	BackgroundStyle
+	TextStyle
+	Show       bool `mapstructure:"SHOW"`
+	Radius     int  `mapstructure:"RADIUS"`
+	MinValue   int  `mapstructure:"MIN_VALUE"`
+	MaxValue   int  `mapstructure:"MAX_VALUE"`
+	AngleStart int  `mapstructure:"ANGLE_START"`
+	AngleEnd   int  `mapstructure:"ANGLE_END"`
+	AngleSteps int  `mapstring:"ANGLE_STEPS"`
+	AngleSep   int  `mapstructure:"ANGLE_SEP"`
+	Clockwise  bool `mapstructure:"CLOCKWISE"`
+	BarColor   color.Color
+	ShowText   bool `mapstructure:"SHOW_TEXT"`
+	ShowUnit   bool `mapstructure:"SHOW_UNIT"`
 }

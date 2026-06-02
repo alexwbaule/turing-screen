@@ -3,12 +3,14 @@ package command
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 
-	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"regexp"
+
+	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 )
 
 var (
@@ -43,12 +45,15 @@ func (m *Payload) GetBytes() [][]byte {
 	}
 	size := len(m.payload)
 
+	// The padding for the payload chunks should be 0x00, which is the third byte in the padding slice.
+	payloadPadding := m.padding[2]
+
 	for i := 0; i < size; i += chunk {
 		end := i + chunk
 		if end > size {
 			end = size
 		}
-		tmp := utils.BZero(250, m.padding[1])
+		tmp := utils.BZero(250, payloadPadding)
 		copy(tmp, m.payload[i:end])
 		fullImage = append(fullImage, tmp)
 	}
@@ -76,28 +81,58 @@ func (m *Payload) QueryStatus() []byte {
 }
 
 func (m *Payload) ValidateCommand(s []byte, i int) error {
-	v := string(bytes.Trim(s, "\x00"))
-	if i == m.size && m.readed.MatchString(v) {
+	v := string(bytes.Trim(s[:i], "\x00"))
+	if m.readed != nil && m.readed.MatchString(v) {
 		return nil
 	}
-	return fmt.Errorf("no matching item on: %s", m.readed.String())
+	if m.readed == nil {
+		return nil
+	}
+	return fmt.Errorf("no matching item on: %s, got: %q", m.readed.String(), v)
 }
 
-func (m *Payload) SendPayload(background device.ImageBackground) *Payload {
+// SendStaticBitmap sends the full background image for static mode.
+// Protocol: PRE_UPDATE_BITMAP (0x86) → SEPARATOR (0x2c) → DISPLAY_BITMAP (0xc8) → payload
+// Response: "full_png_sucess"
+func (m *Payload) SendStaticBitmap(background device.ImageBackground) *Payload {
 	return &Payload{
-		name: "SEND_PAYLOAD",
+		name: "SEND_STATIC_BITMAP",
 		bytes: [][]byte{
-			{
-				0x2c,
-			},
-			{
-				0xc8, 0xef, 0x69, 0x00, 0x17, 0x70,
-			},
+			{0x86, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01}, // PRE_UPDATE_BITMAP
+			{0x2c},                               // START_DISPLAY_BITMAP
+			{0xc8, 0xef, 0x69, 0x00, 0x17, 0x70}, // DISPLAY_BITMAP
 		},
-		padding: []byte{0x2c, 0x00},
+		padding: []byte{0x00, 0x2c, 0x00},
 		payload: background.GenerateBackgroundImage(m.orientation),
 		size:    1024,
 		readed:  imageSucess,
 		log:     m.log,
 	}
+}
+
+// SendVideoOverlay sends the overlay image for video mode.
+// Protocol: PRE_UPDATE_BITMAP (0x86) → SEPARATOR (0x2c) → DISPLAY_BITMAP_ON_VIDEO (0xca) → payload
+// No response expected (size=0) — the InitVideoOverlay handles the response.
+func (m *Payload) SendVideoOverlay(background device.ImageBackground) *Payload {
+	return &Payload{
+		name: "SEND_VIDEO_OVERLAY",
+		bytes: [][]byte{
+			{0x86, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01}, // PRE_UPDATE_BITMAP
+			{0x2c},                               // START_DISPLAY_BITMAP
+			{0xca, 0xef, 0x69, 0x00, 0x17, 0x70}, // DISPLAY_BITMAP_ON_VIDEO
+		},
+		padding: []byte{0x00, 0x2c, 0x00},
+		payload: background.GenerateBackgroundImage(m.orientation),
+		size:    0,
+		readed:  nil,
+		log:     m.log,
+	}
+}
+
+// SendPayload is kept for backward compatibility. Use SendStaticBitmap or SendVideoOverlay instead.
+func (m *Payload) SendPayload(background device.ImageBackground, isVideoOverlay bool) *Payload {
+	if isVideoOverlay {
+		return m.SendVideoOverlay(background)
+	}
+	return m.SendStaticBitmap(background)
 }

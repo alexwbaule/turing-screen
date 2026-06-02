@@ -1,20 +1,24 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/draw"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
 	"image"
 	"image/color"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"io"
 	"math"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/draw"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
 )
 
 var DefaultFont = DefaultFontFace()
@@ -69,6 +73,63 @@ func LoadImage(path string) (image.Image, error) {
 		return nil, fmt.Errorf("failed to decode %s: %s", path, err)
 	}
 	return img, nil
+}
+
+func LoadVideo(path string) ([]byte, int64, error) {
+	if path == "" {
+		return nil, 0, fmt.Errorf("path is empty")
+	}
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to stat %s: %s", path, err)
+	}
+	reader, err := os.Open(path)
+	defer reader.Close()
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to open %s: %s", path, err)
+	}
+
+	buffer, err := io.ReadAll(reader)
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to read %s: %s", path, err)
+	}
+
+	return buffer, fileInfo.Size(), nil
+}
+
+// ParseListDir parses the device LIST_DIR response "result:dir:file:name1/name2/..."
+// and returns a slice of file names.
+func ParseListDir(response []byte) ([]string, error) {
+	raw := string(bytes.Trim(response, "\x00"))
+	if !strings.HasPrefix(raw, "result:dir:") {
+		return nil, fmt.Errorf("invalid list dir response: %q", raw)
+	}
+	// Format: "result:dir:file:name1/name2/name3/"
+	content := strings.TrimPrefix(raw, "result:dir:")
+	content = strings.TrimPrefix(content, "file:")
+	content = strings.TrimRight(content, "/")
+	if content == "" {
+		return nil, nil
+	}
+	return strings.Split(content, "/"), nil
+}
+
+// ParseFileSize parses the GET_FILE_INFO response (ASCII decimal file size).
+func ParseFileSize(response []byte) (int64, error) {
+	raw := string(bytes.Trim(response, "\x00"))
+	size, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid file size response: %q: %w", raw, err)
+	}
+	return size, nil
+}
+
+func ParsePath(path string) string {
+	fileName := filepath.Base(path)
+	newDir := "/root/video"
+	return filepath.Join(newDir, fileName)
 }
 
 func ConvertToColor(s string, dft color.Color) color.Color {
@@ -188,6 +249,63 @@ func Bytes(s uint64, showUnit bool) string {
 func IBytes(s uint64, showUnit bool) string {
 	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
 	return humanateBytes(s, 1024, sizes, showUnit)
+}
+
+// NetSpeed formats a network speed value (bytes per second) into human-readable
+// format like "1.2 MB/s", "950 KB/s", "0 B/s".
+// Always uses format: value + space + unit, with consistent width.
+func NetSpeed(bytesPerSec float64, showUnit bool) string {
+	sizes := []string{"B/s", "KB/s", "MB/s", "GB/s"}
+	if bytesPerSec < 1 {
+		if showUnit {
+			return fmt.Sprintf("%3.f %s", 0.0, sizes[0])
+		}
+		return fmt.Sprintf("%3.f", 0.0)
+	}
+	e := math.Floor(logn(bytesPerSec, 1000))
+	if int(e) >= len(sizes) {
+		e = float64(len(sizes) - 1)
+	}
+	suffix := sizes[int(e)]
+	val := math.Floor(bytesPerSec/math.Pow(1000, e)*10+0.5) / 10
+	if showUnit {
+		if val < 10 {
+			return fmt.Sprintf("%3.1f %s", val, suffix)
+		}
+		return fmt.Sprintf("%3.f %s", val, suffix)
+	}
+	if val < 10 {
+		return fmt.Sprintf("%3.1f", val)
+	}
+	return fmt.Sprintf("%3.f", val)
+}
+
+// NetSpeedBits formats a network speed value (bits per second) into human-readable
+// format like "1.2 Mbps", "950 Kbps", "0 bps".
+func NetSpeedBits(bitsPerSec float64, showUnit bool) string {
+	sizes := []string{"bps", "Kbps", "Mbps", "Gbps"}
+	if bitsPerSec < 1 {
+		if showUnit {
+			return fmt.Sprintf("%3.f %s", 0.0, sizes[0])
+		}
+		return fmt.Sprintf("%3.f", 0.0)
+	}
+	e := math.Floor(logn(bitsPerSec, 1000))
+	if int(e) >= len(sizes) {
+		e = float64(len(sizes) - 1)
+	}
+	suffix := sizes[int(e)]
+	val := math.Floor(bitsPerSec/math.Pow(1000, e)*10+0.5) / 10
+	if showUnit {
+		if val < 10 {
+			return fmt.Sprintf("%3.1f %s", val, suffix)
+		}
+		return fmt.Sprintf("%3.f %s", val, suffix)
+	}
+	if val < 10 {
+		return fmt.Sprintf("%3.1f", val)
+	}
+	return fmt.Sprintf("%3.f", val)
 }
 
 func humanateHertz(s float64, base float64, sizes []string, showUnit bool) string {

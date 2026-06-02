@@ -3,18 +3,21 @@ package command
 import (
 	"bytes"
 	"errors"
+	"regexp"
+
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
-	"regexp"
 )
 
 var (
-	mediaStop = regexp.MustCompile(`^media_stop$`)
-	ErrMatch  = errors.New("no matching item")
+	mediaStop   = regexp.MustCompile(`^media_stop$`)
+	queryStatus = regexp.MustCompile(`^standby$`) // A generic response, can be adjusted
+	ErrMatch    = errors.New("no matching item")
 )
 
 type Media struct {
 	bytes   []byte
+	payload []byte
 	name    string
 	padding byte
 	size    int
@@ -29,8 +32,14 @@ func NewMedia(log *logger.Logger) *Media {
 }
 
 func (m *Media) GetBytes() [][]byte {
+	finalCmd := make([]byte, len(m.bytes)+len(m.payload))
+	copy(finalCmd, m.bytes)
+	if m.payload != nil {
+		copy(finalCmd[len(m.bytes):], m.payload)
+	}
+
 	tmp := utils.BZero(250, m.padding)
-	copy(tmp, m.bytes)
+	copy(tmp, finalCmd)
 	return [][]byte{tmp}
 }
 
@@ -50,8 +59,11 @@ func (m *Media) ValidateWrite() WriteValidation {
 }
 
 func (m *Media) ValidateCommand(s []byte, i int) error {
+	if m.readed == nil {
+		return nil // No validation needed
+	}
 	v := string(bytes.Trim(s, "\x00"))
-	if i == m.size && m.readed.MatchString(v) {
+	if i >= 0 && m.readed.MatchString(v) { // Changed to i >= 0 to handle empty but valid responses
 		return nil
 	}
 	return ErrMatch
@@ -86,6 +98,56 @@ func (m *Media) PostUpdateBitmap() *Media {
 			0x86, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
 		},
 		padding: 0x00,
+		log:     m.log,
+	}
+}
+
+func (m *Media) StartVideo(videoPath string) *Media {
+	path := utils.ParsePath(videoPath)
+
+	pyd := []byte{byte(len(path))}
+	pyd = append(pyd, PADDING_NULL[0], PADDING_NULL[0], PADDING_NULL[0])
+	pyd = append(pyd, []byte(path)...)
+
+	return &Media{
+		name: "START_VIDEO",
+		bytes: append([]byte{
+			0x78, 0xef, 0x69, 0x00, 0x00, 0x00}, pyd...,
+		),
+		padding: 0x00,
+		log:     m.log,
+	}
+}
+
+func (m *Media) StartDisplayBitmap() *Media {
+	return &Media{
+		name:    "START_DISPLAY_BITMAP",
+		bytes:   []byte{0x2c},
+		padding: 0x2c,
+		log:     m.log,
+	}
+}
+
+func (m *Media) DisplayBitmapOnVideo() *Media {
+	return &Media{
+		name: "DISPLAY_BITMAP_ON_VIDEO",
+		bytes: []byte{
+			0xca, 0xef, 0x69, 0x00, 0x17, 0x70,
+		},
+		padding: 0x00,
+		log:     m.log,
+	}
+}
+
+func (m *Media) QueryStatus() *Media {
+	return &Media{
+		name: "QUERY_STATUS",
+		bytes: []byte{
+			0xcf, 0xef, 0x69, 0x00, 0x00, 0x00, 0x01,
+		},
+		padding: 0x00,
+		size:    1024,
+		readed:  nil, // No specific validation, just read
 		log:     m.log,
 	}
 }

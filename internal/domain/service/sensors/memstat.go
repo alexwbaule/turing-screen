@@ -2,23 +2,24 @@ package sensors
 
 import (
 	"context"
+	"time"
+
+	"github.com/alexwbaule/gopsutil/v3/mem"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
-	"github.com/shirou/gopsutil/v3/mem"
-	"time"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 )
 
 type MemStat struct {
 	log     *logger.Logger
 	jobs    chan<- command.Command
-	builder *local.Builder
+	builder *renderer.Builder
 	p       *command.UpdatePayload
 }
 
-func NewMemStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *MemStat {
+func NewMemStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload) *MemStat {
 	return &MemStat{
 		log:     l.With("runner", "mem_stats"),
 		jobs:    j,
@@ -60,15 +61,15 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 		}
 
 		if e.Virtual.Free != nil && e.Virtual.Free.Show {
-			img, x, y := BuildTextUint(g.builder, virtualMem.Available, utils.BitsShort, e.Virtual.Free)
+			img, x, y := BuildTextUint(g.builder, virtualMem.Available, utils.BitsShort, e.Virtual.Free, SizeBytes)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Virtual.Used != nil && e.Virtual.Used.Show {
-			img, x, y := BuildTextUint(g.builder, virtualMem.Used, utils.BitsShort, e.Virtual.Used)
+			img, x, y := BuildTextUint(g.builder, virtualMem.Used, utils.BitsShort, e.Virtual.Used, SizeBytes)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Virtual.PercentText != nil && e.Virtual.PercentText.Show {
-			img, x, y := BuildText(g.builder, virtualMem.UsedPercent, "%3.0f", "%", e.Virtual.PercentText)
+			img, x, y := BuildText(g.builder, virtualMem.UsedPercent, "%3.0f", "%", e.Virtual.PercentText, SizePercent)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Virtual.Graph != nil && e.Virtual.Graph.Show {
@@ -83,15 +84,15 @@ func (g *MemStat) getMemStat(ctx context.Context, e *theme.Memory) error {
 		}
 
 		if e.Swap.Free != nil && e.Swap.Free.Show {
-			img, x, y := BuildTextUint(g.builder, swapMem.Free, utils.BitsShort, e.Swap.Free)
+			img, x, y := BuildTextUint(g.builder, swapMem.Free, utils.BitsShort, e.Swap.Free, SizeBytes)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Swap.Used != nil && e.Swap.Used.Show {
-			img, x, y := BuildTextUint(g.builder, swapMem.Used, utils.BitsShort, e.Swap.Used)
+			img, x, y := BuildTextUint(g.builder, swapMem.Used, utils.BitsShort, e.Swap.Used, SizeBytes)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Swap.PercentText != nil && e.Swap.PercentText.Show {
-			img, x, y := BuildText(g.builder, swapMem.UsedPercent, "%3.0f", "%", e.Swap.PercentText)
+			img, x, y := BuildText(g.builder, swapMem.UsedPercent, "%3.0f", "%", e.Swap.PercentText, SizePercent)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Swap.Graph != nil && e.Swap.Graph.Show {

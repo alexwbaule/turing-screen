@@ -2,12 +2,15 @@ package device
 
 import (
 	"bytes"
+	"image"
+	"image/color"
+	"image/draw"
+	"math/big"
+
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/disintegration/imaging"
-	"image"
-	"math/big"
 )
 
 type ImageProcess struct {
@@ -15,17 +18,41 @@ type ImageProcess struct {
 }
 
 type ImageBackground interface {
+	GetImage() image.Image
 	GenerateBackgroundImage(orietation theme.Orientation) []byte
 }
 
 type ImagePartial interface {
+	GetImage() image.Image
 	GeneratePartialImage(orietation theme.Orientation, display *device.Display, xi, yi int) []byte
+	TransformForOverlay(orientation theme.Orientation, display *device.Display, xi, yi int) (image.Image, int, int)
 }
 
 func NewImageProcess(i image.Image) *ImageProcess {
 	return &ImageProcess{
 		img: i,
 	}
+}
+
+func (i *ImageProcess) GetImage() image.Image {
+	return i.img
+}
+
+// NewScaledNRGBA scales src to dstW x dstH using CatmullRom interpolation.
+func NewScaledNRGBA(src image.Image, dstW, dstH int) *image.NRGBA {
+	rect := image.Rect(0, 0, dstW, dstH)
+	dst := image.NewNRGBA(rect)
+	draw.Draw(dst, rect, src, src.Bounds().Min, draw.Src)
+
+	return dst
+}
+
+// NewBlank creates a blank white NRGBA image of the given dimensions.
+func NewBlank(w, h int) *image.NRGBA {
+	rect := image.Rect(0, 0, w, h)
+	img := image.NewNRGBA(rect)
+	draw.Draw(img, rect, &image.Uniform{color.RGBA{255, 255, 255, 255}}, image.Point{}, draw.Src)
+	return img
 }
 
 func (i *ImageProcess) GenerateBackgroundImage(orietation theme.Orientation) []byte {
@@ -47,6 +74,42 @@ func (i *ImageProcess) GenerateBackgroundImage(orietation theme.Orientation) []b
 		}
 	}
 	return imageAs.Bytes()
+}
+
+// TransformForOverlay converts a builder-produced partial image and its
+// theme-space coordinates into overlay display-space for draw.Draw().
+//
+// Unlike GeneratePartialImage (which encodes positions as byte offsets
+// (x0+h)*W+y0 in the framebuffer), the overlay uses draw.Draw(x, y)
+// where x=column, y=row directly on the display-space buffer. The
+// coordinate systems are different, so the transformations differ.
+//
+// When display.Reverse=false and LANDSCAPE: the builder canvas is already
+// 800x480 (display space), matching the overlay. No transformation needed.
+func (i *ImageProcess) TransformForOverlay(orientation theme.Orientation, display *device.Display, x, y int) (image.Image, int, int) {
+	img := i.img
+	x0, y0 := x, y
+
+	if orientation == theme.PORTRAIT {
+		img = imaging.Rotate90(img)
+		x0 = display.Height - x - img.Bounds().Dy()
+	} else if orientation == theme.REVERSE_PORTRAIT {
+		img = imaging.Rotate270(img)
+		y0 = display.Width - y - img.Bounds().Dx()
+	} else if orientation == theme.REVERSE_LANDSCAPE {
+		img = imaging.Rotate180(img)
+		y0 = display.Height - x - img.Bounds().Dx()
+		x0 = display.Width - y - img.Bounds().Dy()
+	} else if orientation == theme.LANDSCAPE {
+		if display.Reverse {
+			// Builder creates WxH (480x800 fb), overlay is HxW (800x480 display).
+			// Swap coordinates to map fb→display.
+			x0, y0 = y, x
+		}
+		// else: builder canvas IS display-sized (800x480), no transform needed.
+	}
+
+	return img, x0, y0
 }
 
 func (i *ImageProcess) GeneratePartialImage(orientation theme.Orientation, display *device.Display, x, y int) []byte {

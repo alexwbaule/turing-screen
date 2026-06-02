@@ -1,0 +1,207 @@
+display:
+    SIZE: 5"
+    ORIENTATION: landscape
+    RGB_LED: 0, 0, 255
+
+video:
+    PATH: gunpla.mp4
+    HEIGHT: 480
+    WIDTH: 800
+    X: 0
+    Y: 0
+
+static_images:
+    BACKGROUND:
+        PATH: background.png
+        X: 0
+        Y: 0
+        WIDTH: 800
+        HEIGHT: 480
+
+static_texts:
+    custom_text_0:
+        TEXT: Texto Estático
+        SHOW: true
+        SHOW_UNIT: false
+        X: 334
+        Y: 24
+        FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255,255,255
+        ALIGN: CENTER
+STATS:
+    CPU:
+        INTERVAL: 200ms
+        PERCENTAGE:
+            INTERVAL: 0
+            SHOW: true
+            GRAPH:
+                SHOW: true
+                X: 185
+                Y: 23
+                WIDTH: 150
+                HEIGHT: 15
+                MIN_VALUE: 0
+                MAX_VALUE: 0
+                BAR_COLOR: 0,255,0
+                BACKGROUND_COLOR: 50,50,50
+                BAR_OUTLINE: false
+        FREQUENCY:
+            INTERVAL: 200ms
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 42
+                Y: 191
+                FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+                FONT_SIZE: 18
+                FONT_COLOR: 255, 255, 255
+        LOAD:
+            INTERVAL: 200ms
+            ONE:
+                TEXT:
+                    SHOW: true
+                    SHOW_UNIT: true
+                    X: 78
+                    Y: 120
+                    FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+                    FONT_SIZE: 18
+                    FONT_COLOR: 44, 166, 214
+                    ALIGN: LEFT
+        TEMPERATURE:
+            INTERVAL: 200ms
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 78
+                Y: 85
+                FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+                FONT_SIZE: 18
+                FONT_COLOR: 44, 166, 214
+                ALIGN: LEFT
+    GPU:
+        INTERVAL: 200ms
+        PERCENTAGE:
+            INTERVAL: 0
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 730
+                Y: 121
+                FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+                FONT_SIZE: 18
+                FONT_COLOR: 247, 164, 213
+                ALIGN: LEFT
+        MEMORY:
+            INTERVAL: 200ms
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 707
+                Y: 270
+                FONT: jetbrains-mono/JetBrainsMono-ExtraLight.ttf
+                FONT_SIZE: 18
+                FONT_COLOR: 255, 255, 255
+        TEMPERATURE:
+            INTERVAL: 200ms
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 732
+                Y: 86
+                FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+                FONT_SIZE: 18
+                FONT_COLOR: 247, 164, 213
+                ALIGN: LEFT
+        POWER:
+            INTERVAL: 200ms
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 732
+                Y: 165
+                FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+                FONT_SIZE: 18
+                FONT_COLOR: 247, 164, 213
+                ALIGN: LEFT
+    MEMORY:
+        INTERVAL: 200ms
+        SWAP:
+            SHOW: false
+        VIRTUAL:
+            SHOW: false
+    DISK:
+        INTERVAL: 10
+        USED:
+            INTERVAL: 0
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 317
+                Y: 430
+                FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+                FONT_SIZE: 18
+                FONT_COLOR: 247, 164, 213
+    NET:
+        INTERVAL: 1
+        WLO:
+            UPLOAD: null
+            DOWNLOAD: null
+            UPLOADED: null
+            DOWNLOADED: null
+        ETH:
+            UPLOAD:
+                INTERVAL: 200ms
+                SHOW: true
+                TEXT:
+                    SHOW: true
+                    SHOW_UNIT: true
+                    SIZE: 8
+                    X: 393
+                    Y: 429
+                    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+                    FONT_SIZE: 18
+                    FONT_COLOR: 247, 164, 213
+            DOWNLOAD:
+                INTERVAL: 200ms
+                SHOW: true
+                TEXT:
+                    SHOW: true
+                    SHOW_UNIT: true
+                    SIZE: 8
+                    X: 512
+                    Y: 428
+                    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+                    FONT_SIZE: 18
+                    FONT_COLOR: 247, 164, 213
+    DATE:
+        INTERVAL: 1
+        DAY:
+            INTERVAL: 200ms
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 272
+                Y: 55
+                FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+                FONT_SIZE: 20
+                FONT_COLOR: 44, 166, 214
+        HOUR:
+            INTERVAL: 0
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 439
+                Y: 54
+                FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+                FONT_SIZE: 20
+                FONT_COLOR: 44, 166, 214

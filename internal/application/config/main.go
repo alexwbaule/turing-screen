@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/spf13/viper"
 )
@@ -44,4 +45,16 @@ func (c *Config) GetDeviceDisplay() *device.Display {
 }
 func (c *Config) GetNetworkConfig() device.Net {
 	return c.device.Sensors.Net
+}
+func (c *Config) GetCPUSensorConfig() device.CPUSensorConfig {
+	return c.device.Sensors.CPU
+}
+func (c *Config) GetDiskSensorConfig() device.DiskSensorConfig {
+	return c.device.Sensors.Disk
+}
+func (c *Config) GetGPUSensorConfig() device.GPUSensorConfig {
+	return c.device.Sensors.GPU
+}
+func (c *Config) GetWeatherConfig() *device.WeatherConfig {
+	return &c.device.Sensors.Weather
 }

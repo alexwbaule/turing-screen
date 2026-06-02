@@ -3,30 +3,44 @@ package serial
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"time"
+
+	"github.com/alexwbaule/serial"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/resource/usb"
-	"github.com/tarm/serial"
-	"io"
-	"time"
 )
 
 const attempts = 3
 
+// SerialSender defines the interface for interacting with the serial device.
+type SerialSender interface {
+	// Execute performs a synchronous command: writes, waits for a response, validates it, and returns the response.
+	Execute(cmd command.Command) ([]byte, error)
+
+	// Write sends raw bytes to the serial port. Used for asynchronous operations by the worker.
+	Write(data []byte) (int, error)
+
+	// Read reads raw bytes from the serial port into the given buffer.
+	Read(p []byte) (int, error)
+
+	// Close terminates the connection.
+	Close() error
+
+	// ResetDevice performs a hardware reset and reopens the connection.
+	ResetDevice() error
+}
+
+// Serial implements the SerialSender interface.
 type Serial struct {
 	device *usb.UsbDevice
 	port   *serial.Port
 	log    *logger.Logger
 }
 
-type SerialSender interface {
-	Write(p command.Command) (int, error)
-	Read(p command.Command) (int, error)
-	RestartConnection() error
-	ResetDevice() error
-}
-
-func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
+// NewSerial creates and opens a new serial port connection.
+func NewSerial(portName string, l *logger.Logger) (SerialSender, error) {
 	device, err := usb.NewUsbDevice(portName, l)
 	if err != nil {
 		return nil, fmt.Errorf("error finding devices %s: %w", portName, err)
@@ -52,143 +66,175 @@ func NewSerial(portName string, l *logger.Logger) (*Serial, error) {
 	}, nil
 }
 
-func (s *Serial) ReopenPort() error {
-	s.log.Infof("Reopening serial port connection on %s", time.Second*10)
+// Execute performs a synchronous command execution.
+func (s *Serial) Execute(cmd command.Command) ([]byte, error) {
+	s.log.Debugf("executing sync command: %s", cmd.GetName())
 
+	// 1. Write all command packets
+	for _, b := range cmd.GetBytes() {
+		if _, err := s.Write(b); err != nil {
+			return nil, fmt.Errorf("sync write failed for %s: %w", cmd.GetName(), err)
+		}
+	}
+
+	// 2. Check if the command expects a response
+	validation := cmd.ValidateWrite()
+	if validation.Size == 0 {
+		return nil, nil // No response expected
+	}
+
+	// 3. Read the expected number of bytes
+	responseBuf := make([]byte, validation.Size)
+	n, err := s.Read(responseBuf)
+	if err != nil {
+		return nil, fmt.Errorf("sync read failed for %s: %w", cmd.GetName(), err)
+	}
+
+	response := responseBuf[:n]
+
+	// 4. Validate the response using the command's own logic
+	if err := cmd.ValidateCommand(response, n); err != nil {
+		return nil, fmt.Errorf("invalid response for sync command %s: %w", cmd.GetName(), err)
+	}
+
+	s.log.Debugf("Sync command %s successful, response: %s", cmd.GetName(), string(bytes.Trim(response, "\x00")))
+
+	// 5. Return the raw response
+	return response, nil
+}
+
+// Write sends raw bytes to the serial port with a retry mechanism.
+func (s *Serial) Write(data []byte) (int, error) {
+	if s.port == nil {
+		return 0, fmt.Errorf("port is closed")
+	}
+	n, err := s.port.Write(data)
+	if err != nil {
+		return 0, fmt.Errorf("write serial error: %w", err)
+	}
+	if n == 0 {
+		// Retry logic if zero bytes were written
+		for i := 0; i < attempts; i++ {
+			if s.port == nil {
+				return 0, fmt.Errorf("port is closed")
+			}
+			n, err = s.port.Write(data)
+			if err != nil {
+				return 0, fmt.Errorf("write retry error: %w", err)
+			}
+			if n > 0 {
+				return n, nil
+			}
+		}
+		return 0, fmt.Errorf("write serial error: zero bytes written after %d attempts", attempts)
+	}
+	return n, nil
+}
+
+// Read reads from the serial port with retry logic for empty reads.
+func (s *Serial) Read(p []byte) (int, error) {
+	var totalRead int
+	var attemptsMade int
+
+	if s.port == nil {
+		return 0, fmt.Errorf("port is closed")
+	}
+	err := s.port.Flush()
+	if err != nil {
+		return 0, err
+	}
+
+	for totalRead < len(p) && attemptsMade < attempts {
+		if s.port == nil {
+			return 0, fmt.Errorf("port is closed")
+		}
+		n, err := s.port.Read(p[totalRead:])
+		if err != nil {
+			if err == io.EOF {
+				s.log.Warnf("Read EOF, trying again")
+				attemptsMade++
+				time.Sleep(100 * time.Millisecond) // Small delay before retry
+				continue
+			}
+			return totalRead, fmt.Errorf("read serial error: %w", err)
+		}
+
+		if n == 0 {
+			attemptsMade++
+			s.log.Warnf("Read zero bytes, attempt %d/%d", attemptsMade, attempts)
+			time.Sleep(100 * time.Millisecond) // Small delay before retry
+			continue
+		}
+
+		totalRead += n
+		attemptsMade = 0 // Reset attempts on successful read
+	}
+
+	if totalRead == 0 {
+		return 0, fmt.Errorf("read serial error: no response after %d attempts", attempts)
+	}
+
+	return totalRead, nil
+}
+
+func (s *Serial) ReopenPort() error {
+	s.log.Infof("Reopening serial port connection on %s", s.device.Name)
 	time.Sleep(time.Second * 5)
-	v, err := NewSerial(s.device.Name, s.log)
+
+	newSerial, err := NewSerial(s.device.Name, s.log)
 	if err != nil {
 		return err
 	}
-	s.port = v.port
-	s.device = v.device
+
+	// This is not an idiomatic way to re-assign. It's better to handle this at a higher level.
+	// For now, let's just update the internal fields.
+	if newConcrete, ok := newSerial.(*Serial); ok {
+		s.port = newConcrete.port
+		s.device = newConcrete.device
+	} else {
+		return fmt.Errorf("failed to cast new serial instance")
+	}
+
 	return nil
 }
+
 func (s *Serial) RestartConnection() error {
 	s.log.Info("Restarting serial port connection")
-	err := s.Close()
-	if err != nil {
+	if err := s.Close(); err != nil {
 		return err
 	}
-	err = s.ReopenPort()
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.ReopenPort()
 }
 
 func (s *Serial) ResetDevice() error {
-	s.log.Info("Restarting device")
-	err := s.Close()
-	if err != nil {
-		return err
+	s.log.Info("Resetting device")
+	if err := s.Close(); err != nil {
+		// Log the error but continue, as reopening is the main goal
+		s.log.Warnf("error during close on reset: %v", err)
 	}
+
+	// The original code commented this out. Let's respect that.
 	/*
-		// TESTING IF IS REALLY NECESSARY DO THIS.
-			err = s.device.ResetDevice()
-			if err != nil {
-				return err
-			}
+		err = s.device.ResetDevice()
+		if err != nil {
+			return err
+		}
 	*/
-	err = s.ReopenPort()
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return s.ReopenPort()
 }
 
 func (s *Serial) Close() error {
-	s.log.Info("Closing serial port..")
-	err := s.port.Flush()
-	if err != nil {
-		return fmt.Errorf("serial reset input buffer error: %w", err)
+	s.log.Info("Closing serial port...")
+	if s.port == nil {
+		return nil
 	}
-	s.log.Info("Done!")
-	return s.port.Close()
-}
-
-func (s *Serial) Write(p command.Command) (int, error) {
-	var writen int
-	for _, b := range p.GetBytes() {
-		n, err := s.port.Write(b)
-		writen += n
-		if n == 0 {
-			err = s.writeBackoff(b)
-		}
-		if err != nil {
-			return 0, fmt.Errorf("write serial error: %w", err)
-		}
+	if err := s.port.Flush(); err != nil {
+		s.log.Warnf("serial flush error on close: %v", err)
+		// Don't return here, still try to close
 	}
-	v := p.ValidateWrite()
-	if v.Bytes != nil {
-		n, err := s.port.Write(v.Bytes)
-		writen += n
-		if n == 0 {
-			err = s.writeBackoff(v.Bytes)
-		}
-		if err != nil {
-			return 0, fmt.Errorf("write serial error: %w", err)
-		}
-	}
-	if v.Size > 0 {
-		return s.Read(p)
-	}
-	return writen, nil
-}
-
-func (s *Serial) Read(p command.Command) (int, error) {
-	var readed int
-	var trying = 0
-
-	v := p.ValidateWrite()
-
-	buff := make([]byte, v.Size)
-	err := s.port.Flush()
-	if err != nil {
-		return 0, err
-	}
-	for {
-		n, err := s.port.Read(buff)
-		readed += n
-		trying++
-
-		if err != nil && err != io.EOF {
-			return 0, fmt.Errorf("read serial error: %w", err)
-		}
-		if n == 0 && trying <= attempts {
-			s.log.Warnf("Readed zero, trying again [%d]", trying)
-			continue
-		}
-		if readed == 0 {
-			return 0, fmt.Errorf("read serial error: no response")
-		}
-		if n == v.Size {
-			break
-		}
-		if readed > 0 && err == io.EOF {
-			break
-		}
-	}
-	err = p.ValidateCommand(buff, readed)
-	if err != nil {
-		s.log.Debugf("Error on validate, readed [%s] = %s", string(bytes.Trim(buff, "\x00")), err.Error())
-		return 0, err
-	}
-	return readed, nil
-}
-
-func (s *Serial) writeBackoff(b []byte) error {
-	var err error
-	var n int
-
-	for i := 0; i < attempts; i++ {
-		n, err = s.port.Write(b)
-		if n == 0 {
-			return fmt.Errorf("write serial error: zero write")
-		}
-	}
-	if err != nil {
-		return fmt.Errorf("write serial error: %w", err)
-	}
-	return nil
+	err := s.port.Close()
+	s.port = nil
+	s.log.Info("Serial port closed.")
+	return err
 }
