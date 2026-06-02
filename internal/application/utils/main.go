@@ -251,6 +251,32 @@ func IBytes(s uint64, showUnit bool) string {
 	return humanateBytes(s, 1024, sizes, showUnit)
 }
 
+// NetSpeed formats a network speed value (bytes per second) into human-readable
+// format like "1.2 MB/s", "950 KB/s", "0 B/s".
+func NetSpeed(bytesPerSec float64, showUnit bool) string {
+	sizes := []string{"B/s", "KB/s", "MB/s", "GB/s"}
+	if bytesPerSec < 1 {
+		if showUnit {
+			return "0 " + sizes[0]
+		}
+		return "0"
+	}
+	return humanateFloatBytes(bytesPerSec, 1000, sizes, showUnit)
+}
+
+// NetSpeedBits formats a network speed value (bits per second) into human-readable
+// format like "1.2 Mbps", "950 Kbps", "0 bps".
+func NetSpeedBits(bitsPerSec float64, showUnit bool) string {
+	sizes := []string{"bps", "Kbps", "Mbps", "Gbps"}
+	if bitsPerSec < 1 {
+		if showUnit {
+			return "0 " + sizes[0]
+		}
+		return "0"
+	}
+	return humanateFloatBytes(bitsPerSec, 1000, sizes, showUnit)
+}
+
 func humanateHertz(s float64, base float64, sizes []string, showUnit bool) string {
 	if s < 10 {
 		if showUnit {

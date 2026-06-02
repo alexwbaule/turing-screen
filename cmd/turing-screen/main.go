@@ -15,7 +15,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sensors"
 	"github.com/alexwbaule/turing-screen/internal/resource/gpu"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 	"github.com/alexwbaule/turing-screen/internal/resource/weather"
 	"golang.org/x/sync/errgroup"
@@ -47,7 +47,7 @@ func main() {
 			staticTexts[key] = st
 		}
 
-		builder := local.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
+		builder := renderer.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
 
 		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())
 		fbg := builder.BuildBackgroundTexts(bg, statsTheme.GetStaticTexts())

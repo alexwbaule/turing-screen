@@ -9,18 +9,18 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 )
 
 type DiskStat struct {
 	log               *logger.Logger
 	jobs              chan<- command.Command
-	builder           *local.Builder
+	builder           *renderer.Builder
 	p                 *command.UpdatePayload
 	temperatureSensor string
 }
 
-func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload, temperatureSensor string) *DiskStat {
+func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, temperatureSensor string) *DiskStat {
 	return &DiskStat{
 		log:               l.With("runner", "disk_stats"),
 		jobs:              j,

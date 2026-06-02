@@ -7,21 +7,21 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 	"github.com/alexwbaule/turing-screen/internal/resource/weather"
 )
 
 type WeatherSensor struct {
 	log           *logger.Logger
 	jobs          chan<- command.Command
-	builder       *local.Builder
+	builder       *renderer.Builder
 	p             *command.UpdatePayload
 	weatherClient *weather.Client
 	city          string
 }
 
 // Construtor para o modo estático
-func NewWeatherSensor(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload, client *weather.Client, city string) *WeatherSensor {
+func NewWeatherSensor(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, client *weather.Client, city string) *WeatherSensor {
 	return &WeatherSensor{
 		log:           l.With("runner", "weather_sensor"),
 		jobs:          j,

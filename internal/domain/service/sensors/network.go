@@ -10,13 +10,13 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	edevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 )
 
 type NetStat struct {
 	log     *logger.Logger
 	jobs    chan<- command.Command
-	builder *local.Builder
+	builder *renderer.Builder
 	p       *command.UpdatePayload
 	names   edevice.Net
 	wifi    lastValues
@@ -28,7 +28,7 @@ type lastValues struct {
 	recv uint64
 }
 
-func NewDNetStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload, m edevice.Net) *NetStat {
+func NewDNetStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, m edevice.Net) *NetStat {
 	return &NetStat{
 		log:     l.With("runner", "net_stats"),
 		jobs:    j,
@@ -88,11 +88,8 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 
 				if e.Wired.Download != nil && e.Wired.Download.Text.Show {
 					e.Wired.Download.Text.ShowUnit = true
-					v := (recvtx / uint64(e.Interval.Seconds())) * 8
-					if recvtx == 0 {
-						v = recvtx
-					}
-					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wired.Download.Text)
+					v := float64(recvtx) / e.Interval.Seconds()
+					img, x, y := BuildTextFloat(g.builder, v, utils.NetSpeed, e.Wired.Download.Text)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wired.Downloaded != nil && e.Wired.Downloaded.Text.Show {
@@ -102,11 +99,8 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 				}
 				if e.Wired.Upload != nil && e.Wired.Upload.Text.Show {
 					e.Wired.Upload.Text.ShowUnit = true
-					v := (senttx / uint64(e.Interval.Seconds())) * 8
-					if senttx == 0 {
-						v = recvtx
-					}
-					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wired.Upload.Text)
+					v := float64(senttx) / e.Interval.Seconds()
+					img, x, y := BuildTextFloat(g.builder, v, utils.NetSpeed, e.Wired.Upload.Text)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wired.Uploaded != nil && e.Wired.Uploaded.Text.Show {
@@ -127,11 +121,8 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 
 				if e.Wifi.Download != nil && e.Wifi.Download.Text.Show {
 					e.Wifi.Download.Text.ShowUnit = true
-					v := (recvtx / uint64(e.Interval.Seconds())) * 8
-					if recvtx == 0 {
-						v = recvtx
-					}
-					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wifi.Download.Text)
+					v := float64(recvtx) / e.Interval.Seconds()
+					img, x, y := BuildTextFloat(g.builder, v, utils.NetSpeed, e.Wifi.Download.Text)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wifi.Downloaded != nil && e.Wifi.Downloaded.Text.Show {
@@ -141,11 +132,8 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 				}
 				if e.Wifi.Upload != nil && e.Wifi.Upload.Text.Show {
 					e.Wifi.Upload.Text.ShowUnit = true
-					v := (senttx / uint64(e.Interval.Seconds())) * 8
-					if senttx == 0 {
-						v = recvtx
-					}
-					img, x, y := BuildTextUint(g.builder, v, utils.Bits, e.Wifi.Upload.Text)
+					v := float64(senttx) / e.Interval.Seconds()
+					img, x, y := BuildTextFloat(g.builder, v, utils.NetSpeed, e.Wifi.Upload.Text)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
 				if e.Wifi.Uploaded != nil && e.Wifi.Uploaded.Text.Show {

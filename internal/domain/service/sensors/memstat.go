@@ -9,17 +9,17 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 )
 
 type MemStat struct {
 	log     *logger.Logger
 	jobs    chan<- command.Command
-	builder *local.Builder
+	builder *renderer.Builder
 	p       *command.UpdatePayload
 }
 
-func NewMemStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *MemStat {
+func NewMemStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload) *MemStat {
 	return &MemStat{
 		log:     l.With("runner", "mem_stats"),
 		jobs:    j,

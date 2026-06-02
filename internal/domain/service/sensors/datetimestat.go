@@ -5,18 +5,18 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
-	"github.com/alexwbaule/turing-screen/internal/resource/process/local"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 	"time"
 )
 
 type DateTimeStat struct {
 	log     *logger.Logger
 	jobs    chan<- command.Command
-	builder *local.Builder
+	builder *renderer.Builder
 	p       *command.UpdatePayload
 }
 
-func NewDateTimeStat(l *logger.Logger, j chan<- command.Command, b *local.Builder, p *command.UpdatePayload) *DateTimeStat {
+func NewDateTimeStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload) *DateTimeStat {
 	return &DateTimeStat{
 		log:     l.With("runner", "datetime_stats"),
 		jobs:    j,
