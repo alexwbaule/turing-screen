@@ -52,6 +52,9 @@ func (p *Provider) GetMetrics() (*metric.GPU, error) {
 		Temperature: sensors["GPU_TEMP"],
 		Load:        sensors["GPU_LOAD"],
 		Power:       sensors["GPU_AVG_POWER"],
+		Frequency:   sensors["GFX_SCLK"],
+		MemClock:    sensors["GFX_MCLK"],
+		Voltage:     sensors["VDDGFX"],
 		VRAMUsage:   sensors["VRAM_USAGE"],
 		VRAMSize:    sensors["VRAM_SIZE"],
 	}, nil

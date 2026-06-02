@@ -253,15 +253,31 @@ func IBytes(s uint64, showUnit bool) string {
 
 // NetSpeed formats a network speed value (bytes per second) into human-readable
 // format like "1.2 MB/s", "950 KB/s", "0 B/s".
+// Always uses format: value + space + unit, with consistent width.
 func NetSpeed(bytesPerSec float64, showUnit bool) string {
 	sizes := []string{"B/s", "KB/s", "MB/s", "GB/s"}
 	if bytesPerSec < 1 {
 		if showUnit {
-			return "0 " + sizes[0]
+			return fmt.Sprintf("%3.f %s", 0.0, sizes[0])
 		}
-		return "0"
+		return fmt.Sprintf("%3.f", 0.0)
 	}
-	return humanateFloatBytes(bytesPerSec, 1000, sizes, showUnit)
+	e := math.Floor(logn(bytesPerSec, 1000))
+	if int(e) >= len(sizes) {
+		e = float64(len(sizes) - 1)
+	}
+	suffix := sizes[int(e)]
+	val := math.Floor(bytesPerSec/math.Pow(1000, e)*10+0.5) / 10
+	if showUnit {
+		if val < 10 {
+			return fmt.Sprintf("%3.1f %s", val, suffix)
+		}
+		return fmt.Sprintf("%3.f %s", val, suffix)
+	}
+	if val < 10 {
+		return fmt.Sprintf("%3.1f", val)
+	}
+	return fmt.Sprintf("%3.f", val)
 }
 
 // NetSpeedBits formats a network speed value (bits per second) into human-readable
@@ -270,11 +286,26 @@ func NetSpeedBits(bitsPerSec float64, showUnit bool) string {
 	sizes := []string{"bps", "Kbps", "Mbps", "Gbps"}
 	if bitsPerSec < 1 {
 		if showUnit {
-			return "0 " + sizes[0]
+			return fmt.Sprintf("%3.f %s", 0.0, sizes[0])
 		}
-		return "0"
+		return fmt.Sprintf("%3.f", 0.0)
 	}
-	return humanateFloatBytes(bitsPerSec, 1000, sizes, showUnit)
+	e := math.Floor(logn(bitsPerSec, 1000))
+	if int(e) >= len(sizes) {
+		e = float64(len(sizes) - 1)
+	}
+	suffix := sizes[int(e)]
+	val := math.Floor(bitsPerSec/math.Pow(1000, e)*10+0.5) / 10
+	if showUnit {
+		if val < 10 {
+			return fmt.Sprintf("%3.1f %s", val, suffix)
+		}
+		return fmt.Sprintf("%3.f %s", val, suffix)
+	}
+	if val < 10 {
+		return fmt.Sprintf("%3.1f", val)
+	}
+	return fmt.Sprintf("%3.f", val)
 }
 
 func humanateHertz(s float64, base float64, sizes []string, showUnit bool) string {

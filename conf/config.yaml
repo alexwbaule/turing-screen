@@ -1,6 +1,6 @@
 device:
   port: AUTO
-  theme: Bilibili
+  theme: VIPER
   log: debug
   sensors:
     network:

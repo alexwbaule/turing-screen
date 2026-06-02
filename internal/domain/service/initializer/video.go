@@ -157,14 +157,16 @@ func (i *Initializer) buildOverlayBackground(videoDisplay *themeEntity.VideoPlay
 	return device.NewScaledNRGBA(staticComposite, w, h)
 }
 
-// clearDisplay sends a blank white image to clear the display.
+// clearDisplay sends a transparent image to clear the display before video starts.
 func (i *Initializer) clearDisplay() {
 	display := i.cfg.GetDeviceDisplay()
 	w, h := display.Width, display.Height
 	if display.Reverse {
 		w, h = h, w
 	}
-	blankImg := device.NewImageProcess(device.NewBlank(w, h))
+	// Use transparent (alpha=0) so the device shows black/nothing before video starts
+	transparent := image.NewNRGBA(image.Rect(0, 0, w, h))
+	blankImg := device.NewImageProcess(transparent)
 	if _, err := i.sender.Execute(i.cmdPayload.SendStaticBitmap(blankImg)); err != nil {
 		i.log.Warnf("clear display failed (non-fatal): %v", err)
 	}

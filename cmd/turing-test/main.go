@@ -17,11 +17,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alexwbaule/gg"
 	"github.com/alexwbaule/serial"
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
+	"golang.org/x/image/math/fixed"
 )
 
 // =====================================================================
@@ -715,20 +715,33 @@ func (l *LcdCommRevC) DrawText(text string, x, y int, fontName string, fontSize 
 	}
 	face := l.fontCache[cacheKey]
 
-	dc := gg.NewContextForImage(textImage)
-	dc.SetFontFace(face)
-	dc.SetColor(fontColor)
+	dc := font.Drawer{
+		Dst:  textImage,
+		Src:  image.NewUniform(fontColor),
+		Face: face,
+	}
 
-	w, h := dc.MeasureString(text)
+	advance := dc.MeasureString(text)
+	w := fixedToFloat(advance)
+	metrics := face.Metrics()
+	h := fixedToFloat(metrics.Ascent + metrics.Descent)
+
 	// Simplified textbbox matching - anchor is approximated
-	ax, ay := 0.0, 0.0
+	ax := 0.0
 	if align == "center" {
 		ax = 0.5
 	} else if align == "right" {
 		ax = 1.0
 	}
 
-	dc.DrawStringAnchored(text, float64(x), float64(y)+h, ax, ay)
+	drawX := float64(x) - w*ax
+	drawY := float64(y) + h // baseline position
+
+	dc.Dot = fixed.Point26_6{
+		X: fixed.Int26_6(int(drawX * 64)),
+		Y: fixed.Int26_6(int(drawY * 64)),
+	}
+	dc.DrawString(text)
 
 	left := int(math.Floor(float64(x) - w*ax))
 	top := int(math.Floor(float64(y)))
@@ -788,17 +801,14 @@ func (l *LcdCommRevC) DrawProgressBar(x, y, width, height, minValue, maxValue, v
 		barFilledWidth = 0
 	}
 
-	dc := gg.NewContextForImage(barImage)
-	dc.SetColor(barColor)
-	dc.DrawRectangle(0, 0, barFilledWidth, float64(height-1))
-	dc.Fill()
+	// Fill the bar
+	fillRectNRGBA(barImage, 0, 0, int(barFilledWidth), height-1, barColor)
 
 	if barOutline {
-		dc.DrawRectangle(0, 0, float64(width-1), float64(height-1))
-		dc.Stroke()
+		strokeRectNRGBA(barImage, 0, 0, width-1, height-1, barColor)
 	}
 
-	return dc.Image()
+	return barImage
 }
 
 func (l *LcdCommRevC) DisplayProgressBar(x, y, width, height, minValue, maxValue, value int, barColor color.Color, barOutline bool, backgroundColor color.Color, backgroundImage string) {
@@ -846,11 +856,6 @@ func (l *LcdCommRevC) DrawRadialProgressBar(xc, yc, radius, barWidth, minValue, 
 	// Equivalência de graus para radianos
 	rad := func(deg float64) float64 { return deg * math.Pi / 180.0 }
 
-	dc := gg.NewContextForImage(barImage)
-	dc.SetColor(barColor)
-	dc.SetLineWidth(float64(barWidth))
-	dc.SetLineCap(gg.LineCapButt) // Pontas secas, igual à PIL
-
 	// O gg desenha pelo centro. Para bater com o BoundingBox da PIL,
 	// descontamos metade da largura da linha no raio.
 	rCenter := float64(radius)
@@ -874,8 +879,7 @@ func (l *LcdCommRevC) DrawRadialProgressBar(xc, yc, radius, barWidth, minValue, 
 				aS = angleStartMod
 				aE = angleStartMod + pct*ecart
 			}
-			dc.DrawArc(rCenter, rCenter, arcRadius, rad(aS), rad(aE))
-			dc.Stroke()
+			drawArcNRGBA(barImage, rCenter, rCenter, arcRadius, rad(aS), rad(aE), barWidth, barColor)
 		} else {
 			aE := angleStartMod + pct*ecart
 			angleComplet := ecart / float64(angleSteps)
@@ -883,12 +887,10 @@ func (l *LcdCommRevC) DrawRadialProgressBar(xc, yc, radius, barWidth, minValue, 
 			for i := 0; i < etapes; i++ {
 				s := angleStartMod + float64(i)*angleComplet
 				e := angleStartMod + float64(i+1)*angleComplet - float64(angleSep)
-				dc.DrawArc(rCenter, rCenter, arcRadius, rad(s), rad(e))
-				dc.Stroke()
+				drawArcNRGBA(barImage, rCenter, rCenter, arcRadius, rad(s), rad(e), barWidth, barColor)
 			}
 			s := angleStartMod + float64(etapes)*angleComplet
-			dc.DrawArc(rCenter, rCenter, arcRadius, rad(s), rad(aE))
-			dc.Stroke()
+			drawArcNRGBA(barImage, rCenter, rCenter, arcRadius, rad(s), rad(aE), barWidth, barColor)
 		}
 	} else {
 		ecart := 0.0
@@ -905,8 +907,7 @@ func (l *LcdCommRevC) DrawRadialProgressBar(xc, yc, radius, barWidth, minValue, 
 				aE = angleStartMod
 				aS = angleStartMod - pct*ecart
 			}
-			dc.DrawArc(rCenter, rCenter, arcRadius, rad(aS), rad(aE))
-			dc.Stroke()
+			drawArcNRGBA(barImage, rCenter, rCenter, arcRadius, rad(aS), rad(aE), barWidth, barColor)
 		} else {
 			aS := angleStartMod - pct*ecart
 			angleComplet := ecart / float64(angleSteps)
@@ -914,12 +915,10 @@ func (l *LcdCommRevC) DrawRadialProgressBar(xc, yc, radius, barWidth, minValue, 
 			for i := 0; i < etapes; i++ {
 				e := angleStartMod - float64(i)*angleComplet
 				s := angleStartMod - float64(i+1)*angleComplet + float64(angleSep)
-				dc.DrawArc(rCenter, rCenter, arcRadius, rad(s), rad(e))
-				dc.Stroke()
+				drawArcNRGBA(barImage, rCenter, rCenter, arcRadius, rad(s), rad(e), barWidth, barColor)
 			}
 			e := angleStartMod - float64(etapes)*angleComplet
-			dc.DrawArc(rCenter, rCenter, arcRadius, rad(aS), rad(e))
-			dc.Stroke()
+			drawArcNRGBA(barImage, rCenter, rCenter, arcRadius, rad(aS), rad(e), barWidth, barColor)
 		}
 	}
 
@@ -932,12 +931,26 @@ func (l *LcdCommRevC) DrawRadialProgressBar(xc, yc, radius, barWidth, minValue, 
 		f, _ := opentype.Parse(fontBytes)
 		face, _ := opentype.NewFace(f, &opentype.FaceOptions{Size: float64(fontSize), DPI: 72})
 
-		dc.SetFontFace(face)
-		dc.SetColor(fontColor)
-		dc.DrawStringAnchored(text, float64(radius), float64(radius), 0.5, 0.5)
+		d := font.Drawer{
+			Dst:  barImage,
+			Src:  image.NewUniform(fontColor),
+			Face: face,
+		}
+		advance := d.MeasureString(text)
+		tw := fixedToFloat(advance)
+		metrics := face.Metrics()
+		ascent := metrics.Ascent
+		descent := metrics.Descent
+		totalH := ascent + descent
+
+		drawX := fixed.Int26_6(int((float64(radius) - tw/2) * 64))
+		drawY := fixed.I(radius) + totalH/2 - descent
+
+		d.Dot = fixed.Point26_6{X: drawX, Y: drawY}
+		d.DrawString(text)
 	}
 
-	return dc.Image()
+	return barImage
 }
 
 func (l *LcdCommRevC) DisplayRadialProgressBar(xc, yc, radius, barWidth, minValue, maxValue, angleStart, angleEnd, angleSep, angleSteps int, clockwise bool, value int, text string, withText bool, fontName string, fontSize int, fontColor color.Color, barColor color.Color, backgroundColor color.Color, backgroundImage string) {
@@ -1037,4 +1050,120 @@ func main() {
 	}
 
 	lcdComm.closeSerial()
+}
+
+// =====================================================================
+// Drawing helpers (pure Go, no CGO)
+// =====================================================================
+
+func fixedToFloat(v fixed.Int26_6) float64 {
+	return float64(v) / 64.0
+}
+
+func fillRectNRGBA(dst *image.NRGBA, x, y, w, h int, c color.Color) {
+	r, g, b, a := c.RGBA()
+	nc := color.NRGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
+	bounds := dst.Bounds()
+	for py := y; py < y+h; py++ {
+		for px := x; px < x+w; px++ {
+			if px >= bounds.Min.X && py >= bounds.Min.Y && px < bounds.Max.X && py < bounds.Max.Y {
+				dst.SetNRGBA(px, py, nc)
+			}
+		}
+	}
+}
+
+func strokeRectNRGBA(dst *image.NRGBA, x, y, w, h int, c color.Color) {
+	r, g, b, a := c.RGBA()
+	nc := color.NRGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
+	bounds := dst.Bounds()
+	setPixel := func(px, py int) {
+		if px >= bounds.Min.X && py >= bounds.Min.Y && px < bounds.Max.X && py < bounds.Max.Y {
+			dst.SetNRGBA(px, py, nc)
+		}
+	}
+	for px := x; px <= x+w; px++ {
+		setPixel(px, y)
+		setPixel(px, y+h)
+	}
+	for py := y; py <= y+h; py++ {
+		setPixel(x, py)
+		setPixel(x+w, py)
+	}
+}
+
+func drawArcNRGBA(dst *image.NRGBA, cx, cy, radius, startAngle, endAngle float64, width int, c color.Color) {
+	r, g, b, a := c.RGBA()
+	nc := color.NRGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
+
+	for startAngle < 0 {
+		startAngle += 2 * math.Pi
+	}
+	for endAngle < 0 {
+		endAngle += 2 * math.Pi
+	}
+
+	halfWidth := float64(width) / 2.0
+	innerR := radius - halfWidth
+	outerR := radius + halfWidth
+	if innerR < 0 {
+		innerR = 0
+	}
+
+	minX := int(math.Floor(cx - outerR - 1))
+	maxX := int(math.Ceil(cx + outerR + 1))
+	minY := int(math.Floor(cy - outerR - 1))
+	maxY := int(math.Ceil(cy + outerR + 1))
+
+	bounds := dst.Bounds()
+	if minX < bounds.Min.X {
+		minX = bounds.Min.X
+	}
+	if minY < bounds.Min.Y {
+		minY = bounds.Min.Y
+	}
+	if maxX > bounds.Max.X {
+		maxX = bounds.Max.X
+	}
+	if maxY > bounds.Max.Y {
+		maxY = bounds.Max.Y
+	}
+
+	for py := minY; py < maxY; py++ {
+		for px := minX; px < maxX; px++ {
+			dx := float64(px) + 0.5 - cx
+			dy := float64(py) + 0.5 - cy
+			dist := math.Sqrt(dx*dx + dy*dy)
+			if dist < innerR || dist > outerR {
+				continue
+			}
+			angle := math.Atan2(dy, dx)
+			if angle < 0 {
+				angle += 2 * math.Pi
+			}
+			if isAngleInArcRange(angle, startAngle, endAngle) {
+				dst.SetNRGBA(px, py, nc)
+			}
+		}
+	}
+}
+
+func isAngleInArcRange(angle, start, end float64) bool {
+	twoPi := 2 * math.Pi
+	angle = math.Mod(angle, twoPi)
+	if angle < 0 {
+		angle += twoPi
+	}
+	start = math.Mod(start, twoPi)
+	if start < 0 {
+		start += twoPi
+	}
+	end = math.Mod(end, twoPi)
+	if end < 0 {
+		end += twoPi
+	}
+	if start <= end {
+		return angle >= start && angle <= end
+	}
+	return angle >= start || angle <= end
 }

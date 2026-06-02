@@ -369,10 +369,26 @@ func parseTextStyle(data map[string]interface{}) theme.TextStyle {
 }
 
 func translateDuration(data interface{}) (interface{}, error) {
-	if val, ok := data.(int); ok && val > 0 {
-		return time.Duration(val) * time.Second, nil
+	const minInterval = 100 * time.Millisecond
+
+	switch val := data.(type) {
+	case string:
+		d, err := time.ParseDuration(val)
+		if err != nil {
+			return minInterval, nil
+		}
+		if d < minInterval {
+			return minInterval, nil
+		}
+		return d, nil
+	case int:
+		d := time.Duration(val) * time.Second
+		if d < minInterval {
+			return minInterval, nil
+		}
+		return d, nil
 	}
-	return time.Duration(1) * time.Second, nil
+	return 1 * time.Second, nil
 }
 
 func translateGraph(file string, data map[string]interface{}) (interface{}, error) {
@@ -482,7 +498,6 @@ func translateStaticImage(file string, data map[string]interface{}) (interface{}
 		if err != nil {
 			return theme.BackgroundStyle{}, err
 		}
-		fmt.Printf("Bounds: %#v\n", bgImage.Bounds())
 
 		return theme.StaticImage{
 			Layout:          layout,
@@ -557,6 +572,11 @@ func translateText(file string, data map[string]interface{}) (interface{}, error
 		format = theme.SHORT
 	}
 
+	size := 0
+	if val, ok := data["size"].(int); ok {
+		size = val
+	}
+
 	v := theme.Text{
 		Layout:          layout,
 		BackgroundStyle: bgStyle,
@@ -564,6 +584,7 @@ func translateText(file string, data map[string]interface{}) (interface{}, error
 		Show:            show,
 		ShowUnit:        showUnit,
 		Format:          format,
+		Size:            size,
 	}
 	return v, nil
 }

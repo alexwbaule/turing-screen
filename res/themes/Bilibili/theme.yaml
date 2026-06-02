@@ -31,7 +31,7 @@ static_texts:
         ALIGN: CENTER
 STATS:
     CPU:
-        INTERVAL: 1
+        INTERVAL: 200ms
         PERCENTAGE:
             INTERVAL: 0
             SHOW: true
@@ -47,7 +47,7 @@ STATS:
                 BACKGROUND_COLOR: 50,50,50
                 BAR_OUTLINE: false
         FREQUENCY:
-            INTERVAL: 0
+            INTERVAL: 200ms
             SHOW: false
             TEXT:
                 SHOW: true
@@ -57,9 +57,20 @@ STATS:
                 FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
                 FONT_SIZE: 18
                 FONT_COLOR: 255, 255, 255
-        LOAD: null
+        LOAD:
+            INTERVAL: 200ms
+            ONE:
+                TEXT:
+                    SHOW: true
+                    SHOW_UNIT: true
+                    X: 78
+                    Y: 120
+                    FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+                    FONT_SIZE: 18
+                    FONT_COLOR: 44, 166, 214
+                    ALIGN: LEFT
         TEMPERATURE:
-            INTERVAL: 0
+            INTERVAL: 200ms
             SHOW: false
             TEXT:
                 SHOW: true
@@ -71,7 +82,7 @@ STATS:
                 FONT_COLOR: 44, 166, 214
                 ALIGN: LEFT
     GPU:
-        INTERVAL: 1
+        INTERVAL: 200ms
         PERCENTAGE:
             INTERVAL: 0
             SHOW: false
@@ -85,7 +96,7 @@ STATS:
                 FONT_COLOR: 247, 164, 213
                 ALIGN: LEFT
         MEMORY:
-            INTERVAL: 0
+            INTERVAL: 200ms
             SHOW: false
             TEXT:
                 SHOW: true
@@ -96,7 +107,7 @@ STATS:
                 FONT_SIZE: 18
                 FONT_COLOR: 255, 255, 255
         TEMPERATURE:
-            INTERVAL: 0
+            INTERVAL: 200ms
             SHOW: false
             TEXT:
                 SHOW: true
@@ -107,9 +118,20 @@ STATS:
                 FONT_SIZE: 18
                 FONT_COLOR: 247, 164, 213
                 ALIGN: LEFT
-        POWER: null
+        POWER:
+            INTERVAL: 200ms
+            SHOW: false
+            TEXT:
+                SHOW: true
+                SHOW_UNIT: true
+                X: 732
+                Y: 165
+                FONT: jetbrains-mono/JetBrainsMono-ExtraBold.ttf
+                FONT_SIZE: 18
+                FONT_COLOR: 247, 164, 213
+                ALIGN: LEFT
     MEMORY:
-        INTERVAL: 5
+        INTERVAL: 200ms
         SWAP:
             SHOW: false
         VIRTUAL:
@@ -136,22 +158,24 @@ STATS:
             DOWNLOADED: null
         ETH:
             UPLOAD:
-                INTERVAL: 0
+                INTERVAL: 200ms
                 SHOW: true
                 TEXT:
                     SHOW: true
                     SHOW_UNIT: true
+                    SIZE: 8
                     X: 393
                     Y: 429
                     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
                     FONT_SIZE: 18
                     FONT_COLOR: 247, 164, 213
             DOWNLOAD:
-                INTERVAL: 0
+                INTERVAL: 200ms
                 SHOW: true
                 TEXT:
                     SHOW: true
                     SHOW_UNIT: true
+                    SIZE: 8
                     X: 512
                     Y: 428
                     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -160,7 +184,7 @@ STATS:
     DATE:
         INTERVAL: 1
         DAY:
-            INTERVAL: 0
+            INTERVAL: 200ms
             SHOW: false
             TEXT:
                 SHOW: true

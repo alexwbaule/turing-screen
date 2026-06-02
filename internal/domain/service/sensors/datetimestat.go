@@ -53,11 +53,11 @@ func (g *DateTimeStat) getDateTime(ctx context.Context, e *theme.DateTime) error
 	t := time.Now()
 
 	if e.Day != nil {
-		img, x, y := BuildTextDt(g.builder, t, theme.DATE, e.Day.Text)
+		img, x, y := BuildTextDt(g.builder, t, theme.DATE, e.Day.Text, SizeDate)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 	if e.Hour != nil {
-		img, x, y := BuildTextDt(g.builder, t, theme.TIME, e.Hour.Text)
+		img, x, y := BuildTextDt(g.builder, t, theme.TIME, e.Hour.Text, SizeDate)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 

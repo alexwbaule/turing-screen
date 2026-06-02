@@ -11,11 +11,11 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/initializer"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sensors"
 	"github.com/alexwbaule/turing-screen/internal/resource/gpu"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
-	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 	"github.com/alexwbaule/turing-screen/internal/resource/weather"
 	"golang.org/x/sync/errgroup"
@@ -159,6 +159,12 @@ func main() {
 			g.Go(func() error {
 				app.Log.Info("starting worker CPU Temperature")
 				return cpu.RunTemperature(ctx, stats.CPU.Temperature)
+			})
+		}
+		if stats.CPU.Load != nil {
+			g.Go(func() error {
+				app.Log.Info("starting worker CPU Load")
+				return cpu.RunLoad(ctx, stats.CPU.Load)
 			})
 		}
 		if stats.Memory != nil {

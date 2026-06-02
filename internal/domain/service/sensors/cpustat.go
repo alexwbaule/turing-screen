@@ -67,11 +67,11 @@ func (g *CpuStat) getPercentageStat(ctx context.Context, e *theme.Mesurement) er
 		value = percent[0]
 
 		if e.Percent != nil && e.Percent.Show {
-			img, x, y := BuildText(g.builder, value, "%3.0f", "%", e.Percent)
+			img, x, y := BuildText(g.builder, value, "%3.0f", "%", e.Percent, SizePercent)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Text != nil && e.Text.Show {
-			img, x, y := BuildText(g.builder, value, "%3.0f", "%", e.Text)
+			img, x, y := BuildText(g.builder, value, "%3.0f", "%", e.Text, SizePercent)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 		if e.Radial != nil && e.Radial.Show {
@@ -137,11 +137,11 @@ func (g *CpuStat) getFrequencyStat(ctx context.Context, e *theme.Mesurement) err
 	speed := vcpu / float64(s)
 
 	if e.Percent != nil && e.Percent.Show {
-		img, x, y := BuildText(g.builder, speed, "%3.0f", "%", e.Percent)
+		img, x, y := BuildText(g.builder, speed, "%3.0f", "%", e.Percent, SizePercent)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 	if e.Text != nil && e.Text.Show {
-		img, x, y := BuildTextFloat(g.builder, speed, utils.Hertz, e.Text)
+		img, x, y := BuildTextFloat(g.builder, speed, utils.Hertz, e.Text, SizeHertz)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 	if e.Radial != nil && e.Radial.Show {
@@ -196,11 +196,11 @@ func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) e
 	temperature, percent := findSensorTemperature(ctx, g.temperatureSensor, cpuPatterns, g.log)
 
 	if e.Percent != nil && e.Percent.Show {
-		img, x, y := BuildText(g.builder, percent, "%3.0f", "°C", e.Percent)
+		img, x, y := BuildText(g.builder, percent, "%3.0f", "°C", e.Percent, SizeTemp)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 	if e.Text != nil && e.Text.Show {
-		img, x, y := BuildText(g.builder, temperature, "%3.0f", "°C", e.Text)
+		img, x, y := BuildText(g.builder, temperature, "%3.0f", "°C", e.Text, SizeTemp)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 	if e.Radial != nil && e.Radial.Show {
@@ -255,16 +255,16 @@ func (g *CpuStat) getLoadStat(ctx context.Context, e *theme.Load) error {
 		return err
 	}
 
-	if e.One.Text != nil && e.One.Text.Show {
-		img, x, y := BuildText(g.builder, lload.Load1, "%3.0f", "%", e.One.Text)
+	if e.One != nil && e.One.Text != nil && e.One.Text.Show {
+		img, x, y := BuildText(g.builder, lload.Load1, "%3.0f", "%", e.One.Text, SizePercent)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
-	if e.Five.Text != nil && e.Five.Text.Show {
-		img, x, y := BuildText(g.builder, lload.Load5, "%3.0f", "%", e.Five.Text)
+	if e.Five != nil && e.Five.Text != nil && e.Five.Text.Show {
+		img, x, y := BuildText(g.builder, lload.Load5, "%3.0f", "%", e.Five.Text, SizePercent)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
-	if e.Fifteen.Text != nil && e.Fifteen.Text.Show {
-		img, x, y := BuildText(g.builder, lload.Load15, "%3.0f", "%", e.Fifteen.Text)
+	if e.Fifteen != nil && e.Fifteen.Text != nil && e.Fifteen.Text.Show {
+		img, x, y := BuildText(g.builder, lload.Load15, "%3.0f", "%", e.Fifteen.Text, SizePercent)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 

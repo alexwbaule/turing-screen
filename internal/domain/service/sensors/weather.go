@@ -68,14 +68,14 @@ func (g *WeatherSensor) getWeather(ctx context.Context, e *theme.Weather) error 
 	// Exibe a temperatura (se configurado no tema)
 	if e.Temperature != nil {
 		if e.Temperature.Text != nil && e.Temperature.Text.Show {
-			img, x, y := BuildText(g.builder, forecast.Temperature, "%.0f", "°C", e.Temperature.Text)
+			img, x, y := BuildText(g.builder, forecast.Temperature, "%.0f", "°C", e.Temperature.Text, SizeTemp)
 			payloads = append(payloads, g.p.SendPayload(img, x, y))
 		}
 	}
 
 	// Exibe a condição do tempo (se configurado no tema)
 	if e.Condition != nil && e.Condition.Show {
-		img, x, y := BuildText(g.builder, forecast.Description, "", "", e.Condition)
+		img, x, y := BuildText(g.builder, forecast.Description, "", "", e.Condition, SizeDefault)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 

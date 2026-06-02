@@ -16,7 +16,7 @@ import (
 const (
 	nvidiaSMITimeout = 5 * time.Second
 	nvidiaSMIBinary  = "nvidia-smi"
-	nvidiaSMIArgs    = "--query-gpu=temperature.gpu,utilization.gpu,power.draw,memory.used,memory.total"
+	nvidiaSMIArgs    = "--query-gpu=temperature.gpu,utilization.gpu,power.draw,memory.used,memory.total,clocks.current.graphics,clocks.current.memory"
 	nvidiaSMIFormat  = "--format=csv,noheader,nounits"
 )
 
@@ -61,8 +61,8 @@ func (p *Provider) Available() bool {
 }
 
 // parseNvidiaSMIOutput parses the CSV output from nvidia-smi into GPUMetrics.
-// Expected format: "65, 42, 120.50, 4096, 8192\n"
-// Fields: temperature(°C), utilization(%), power(W), memory_used(MiB), memory_total(MiB)
+// Expected format: "65, 42, 120.50, 4096, 8192, 1800, 5001\n"
+// Fields: temperature(°C), utilization(%), power(W), memory_used(MiB), memory_total(MiB), graphics_clock(MHz), memory_clock(MHz)
 func parseNvidiaSMIOutput(output string) (*metric.GPU, error) {
 	line := strings.TrimSpace(output)
 	if line == "" {
@@ -70,8 +70,8 @@ func parseNvidiaSMIOutput(output string) (*metric.GPU, error) {
 	}
 
 	fields := strings.Split(line, ",")
-	if len(fields) != 5 {
-		return nil, fmt.Errorf("expected 5 fields, got %d: %q", len(fields), line)
+	if len(fields) < 5 {
+		return nil, fmt.Errorf("expected at least 5 fields, got %d: %q", len(fields), line)
 	}
 
 	// Parse temperature (integer °C)
@@ -104,10 +104,29 @@ func parseNvidiaSMIOutput(output string) (*metric.GPU, error) {
 		return nil, fmt.Errorf("failed to parse memory total %q: %w", fields[4], err)
 	}
 
+	var frequency, memClock uint64
+
+	// Parse graphics clock (MHz)
+	if len(fields) > 5 {
+		if v, err := strconv.ParseFloat(strings.TrimSpace(fields[5]), 64); err == nil {
+			frequency = uint64(math.Round(v))
+		}
+	}
+
+	// Parse memory clock (MHz)
+	if len(fields) > 6 {
+		if v, err := strconv.ParseFloat(strings.TrimSpace(fields[6]), 64); err == nil {
+			memClock = uint64(math.Round(v))
+		}
+	}
+
 	return &metric.GPU{
 		Temperature: uint64(math.Round(temp)),
 		Load:        uint64(math.Round(util)),
 		Power:       uint64(math.Round(power)),
+		Frequency:   frequency,
+		MemClock:    memClock,
+		Voltage:     0,                                          // nvidia-smi does not expose GPU voltage
 		VRAMUsage:   uint64(math.Round(memUsed)) * 1024 * 1024,  // MiB to bytes
 		VRAMSize:    uint64(math.Round(memTotal)) * 1024 * 1024, // MiB to bytes
 	}, nil
