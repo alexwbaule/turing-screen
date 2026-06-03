@@ -1,6 +1,6 @@
 device:
   port: AUTO
-  theme: VIPER
+  theme: Bilibili
   log: debug
   sensors:
     network:
@@ -15,7 +15,6 @@ device:
     weather:
       enabled: true
       city: "Sao Paulo,BR"
-      api_key: "xxxxxx"
       interval: 30m
   display:
     width: 800

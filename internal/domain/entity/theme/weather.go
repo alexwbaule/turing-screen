@@ -7,6 +7,5 @@ type Weather struct {
 	Condition   *Text         `mapstructure:"CONDITION"`
 	Enabled     bool          `mapstructure:"ENABLED"`
 	City        string        `mapstructure:"CITY"`
-	ApiKey      string        `mapstructure:"API_KEY"`
 	Interval    time.Duration `mapstructure:"INTERVAL"`
 }

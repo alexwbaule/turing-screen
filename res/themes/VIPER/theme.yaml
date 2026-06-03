@@ -1,0 +1,130 @@
+# Auto-converted from .turtheme
+# Source: VIPER
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 0, 0, 0
+video:
+  PATH: video/VIPER.mp4
+  X: 0
+  Y: 0
+  WIDTH: 800
+  HEIGHT: 480
+static_images:
+  BACKGROUND:
+    PATH: background.png
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+static_texts:
+  HDDTEMP_LABEL:
+    TEXT: 硬盘温度_1
+    X: 295
+    Y: 330
+    FONT: turtheme/Motorblock.ttf
+    FONT_SIZE: 18
+    FONT_COLOR: 0, 0, 0
+    BACKGROUND_IMAGE: background.png
+  GPUCLOCK_LABEL:
+    TEXT: 显卡频率
+    X: 718
+    Y: 40
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 10
+    FONT_COLOR: 137, 137, 137
+    BACKGROUND_IMAGE: background.png
+  TEXT_2:
+    TEXT: .
+    X: 597
+    Y: 433
+    FONT: turtheme/Motorblock.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: 0, 0, 0
+    BACKGROUND_IMAGE: background.png
+  TEXT_3:
+    TEXT: .
+    X: 639
+    Y: 433
+    FONT: turtheme/Motorblock.ttf
+    FONT_SIZE: 12
+    FONT_COLOR: 0, 0, 0
+    BACKGROUND_IMAGE: background.png
+  SSD:
+    TEXT: SSD
+    X: 647
+    Y: 303
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 10
+    FONT_COLOR: 0, 0, 0
+    BACKGROUND_IMAGE: background.png
+  VOL:
+    TEXT: VOL
+    X: 700
+    Y: 303
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 10
+    FONT_COLOR: 0, 0, 0
+    BACKGROUND_IMAGE: background.png
+STATS:
+  CPU:
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 295
+        Y: 170
+        FONT: turtheme/Motorblock.ttf
+        FONT_SIZE: 18
+        FONT_COLOR: 0, 0, 0
+        BACKGROUND_IMAGE: background.png
+        SHOW_UNIT: true
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 646
+        Y: 40
+        FONT: turtheme/Source-San-Hans-BLOD.ttf
+        FONT_SIZE: 10
+        FONT_COLOR: 137, 137, 137
+        BACKGROUND_IMAGE: background.png
+        SHOW_UNIT: true
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 457
+        Y: 255
+        FONT: turtheme/Motorblock.ttf
+        FONT_SIZE: 18
+        FONT_COLOR: 0, 0, 0
+        BACKGROUND_IMAGE: background.png
+        SHOW_UNIT: true
+  DATE:
+    INTERVAL: 1
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 525
+        Y: 430
+        FONT: turtheme/Motorblock.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: 0, 0, 0
+        BACKGROUND_IMAGE: background.png
+        SHOW_UNIT: true
+        FORMAT: medium
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 702
+        Y: 430
+        FONT: turtheme/Motorblock.ttf
+        FONT_SIZE: 14
+        FONT_COLOR: 0, 0, 0
+        BACKGROUND_IMAGE: background.png
+        SHOW_UNIT: true
+        FORMAT: short

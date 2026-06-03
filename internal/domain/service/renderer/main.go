@@ -50,7 +50,6 @@ func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) imag
 	slices.Sort(keys)
 	for _, name := range keys {
 		img := images[name]
-		b.log.Debugf("Build Background Image [%#v]", img)
 		r := image.Rect(img.X, img.Y, img.X+img.BackgroundImage.Bounds().Dx(), img.Y+img.BackgroundImage.Bounds().Dy())
 		draw.Draw(numb, r, img.BackgroundImage, img.BackgroundImage.Bounds().Min, draw.Over)
 	}

@@ -61,6 +61,8 @@ func (g *WeatherSensor) getWeather(ctx context.Context, e *theme.Weather) error 
 		return err
 	}
 
+	g.log.Infof("weather: %.1f°C, %s (%s)", forecast.Temperature, forecast.Condition, forecast.Description)
+
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}

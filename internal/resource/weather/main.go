@@ -4,66 +4,162 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 )
 
-// Forecast contém apenas os dados que nos interessam
+// Forecast contém os dados de previsão do tempo
 type Forecast struct {
 	Temperature float64
 	Condition   string // Ex: "Clouds", "Rain", "Clear"
-	Description string // Ex: "scattered clouds"
+	Description string // Ex: "partly cloudy"
 }
 
-// Estruturas para decodificar a resposta JSON da API
-type apiResponse struct {
-	Weather []struct {
-		Main        string `json:"main"`
-		Description string `json:"description"`
-	} `json:"weather"`
-	Main struct {
-		Temp float64 `json:"temp"`
-	} `json:"main"`
+// Estruturas para decodificar a resposta de geocoding do Open-Meteo
+type geocodingResponse struct {
+	Results []struct {
+		Name      string  `json:"name"`
+		Latitude  float64 `json:"latitude"`
+		Longitude float64 `json:"longitude"`
+		Country   string  `json:"country"`
+	} `json:"results"`
+}
+
+// Estruturas para decodificar a resposta de weather do Open-Meteo
+type weatherResponse struct {
+	CurrentWeather struct {
+		Temperature float64 `json:"temperature"`
+		WindSpeed   float64 `json:"windspeed"`
+		WeatherCode int     `json:"weathercode"`
+	} `json:"current_weather"`
 }
 
 type Client struct {
 	httpClient *http.Client
-	apiKey     string
+	latitude   float64
+	longitude  float64
+	resolved   bool
 }
 
-func NewClient(apiKey string) *Client {
+func NewClient() *Client {
 	return &Client{
 		httpClient: &http.Client{Timeout: 10 * time.Second},
-		apiKey:     apiKey,
 	}
 }
 
 func (c *Client) GetCurrentWeather(city string) (*Forecast, error) {
-	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric", city, c.apiKey)
+	// Resolve city to coordinates on first call
+	if !c.resolved {
+		if err := c.resolveCity(city); err != nil {
+			return nil, fmt.Errorf("failed to geocode city %q: %w", city, err)
+		}
+		c.resolved = true
+	}
 
-	resp, err := c.httpClient.Get(url)
+	// Fetch current weather from Open-Meteo
+	weatherURL := fmt.Sprintf(
+		"https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current_weather=true",
+		c.latitude, c.longitude,
+	)
+
+	resp, err := c.httpClient.Get(weatherURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get weather data: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("weather API returned non-200 status: %s", resp.Status)
+		return nil, fmt.Errorf("weather API returned status: %s", resp.Status)
 	}
 
-	var data apiResponse
+	var data weatherResponse
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("failed to decode weather response: %w", err)
 	}
 
-	if len(data.Weather) == 0 {
-		return nil, fmt.Errorf("no weather data in API response")
+	condition, description := weatherCodeToCondition(data.CurrentWeather.WeatherCode)
+
+	return &Forecast{
+		Temperature: data.CurrentWeather.Temperature,
+		Condition:   condition,
+		Description: description,
+	}, nil
+}
+
+func (c *Client) resolveCity(city string) error {
+	// Strip country code if present (e.g. "Sao Paulo,BR" -> "Sao Paulo")
+	cleanCity := city
+	if idx := len(city) - 1; idx > 0 {
+		for i := len(city) - 1; i >= 0; i-- {
+			if city[i] == ',' {
+				cleanCity = city[:i]
+				break
+			}
+		}
 	}
 
-	forecast := &Forecast{
-		Temperature: data.Main.Temp,
-		Condition:   data.Weather[0].Main,
-		Description: data.Weather[0].Description,
+	geocodeURL := fmt.Sprintf(
+		"https://geocoding-api.open-meteo.com/v1/search?name=%s&count=1&language=en&format=json",
+		url.QueryEscape(cleanCity),
+	)
+
+	resp, err := c.httpClient.Get(geocodeURL)
+	if err != nil {
+		return fmt.Errorf("geocoding request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("geocoding API returned status: %s", resp.Status)
 	}
 
-	return forecast, nil
+	var data geocodingResponse
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return fmt.Errorf("failed to decode geocoding response: %w", err)
+	}
+
+	if len(data.Results) == 0 {
+		return fmt.Errorf("city %q not found", city)
+	}
+
+	c.latitude = data.Results[0].Latitude
+	c.longitude = data.Results[0].Longitude
+	return nil
+}
+
+// weatherCodeToCondition maps WMO weather codes to condition strings
+// https://open-meteo.com/en/docs (WMO Weather interpretation codes)
+func weatherCodeToCondition(code int) (condition, description string) {
+	switch {
+	case code == 0:
+		return "Clear", "clear sky"
+	case code == 1:
+		return "Clear", "mainly clear"
+	case code == 2:
+		return "Clouds", "partly cloudy"
+	case code == 3:
+		return "Clouds", "overcast"
+	case code >= 45 && code <= 48:
+		return "Fog", "fog"
+	case code >= 51 && code <= 55:
+		return "Drizzle", "drizzle"
+	case code >= 56 && code <= 57:
+		return "Drizzle", "freezing drizzle"
+	case code >= 61 && code <= 65:
+		return "Rain", "rain"
+	case code >= 66 && code <= 67:
+		return "Rain", "freezing rain"
+	case code >= 71 && code <= 77:
+		return "Snow", "snow"
+	case code >= 80 && code <= 82:
+		return "Rain", "rain showers"
+	case code >= 85 && code <= 86:
+		return "Snow", "snow showers"
+	case code == 95:
+		return "Thunderstorm", "thunderstorm"
+	case code >= 96 && code <= 99:
+		return "Thunderstorm", "thunderstorm with hail"
+	default:
+		return "Unknown", "unknown"
+	}
 }
