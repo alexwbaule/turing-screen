@@ -136,7 +136,7 @@ func main() {
 		weatherConfig := app.Config.GetWeatherConfig() // Pega a nova config
 
 		if weatherConfig.Enabled && stats.Weather != nil {
-			weatherClient := weather.NewClient(weatherConfig.ApiKey)
+			weatherClient := weather.NewClient()
 			weatherSensor := sensors.NewWeatherSensor(app.Log, jobs, builder, cmdUpdate, weatherClient, weatherConfig.City)
 			g.Go(func() error {
 				return weatherSensor.Run(ctx, stats.Weather, weatherConfig.Interval)

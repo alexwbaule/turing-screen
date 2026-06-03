@@ -49,6 +49,5 @@ type Display struct {
 type WeatherConfig struct {
 	Enabled  bool          `mapstructure:"enabled"`
 	City     string        `mapstructure:"city"`
-	ApiKey   string        `mapstructure:"api_key"`
 	Interval time.Duration `mapstructure:"interval"`
 }
