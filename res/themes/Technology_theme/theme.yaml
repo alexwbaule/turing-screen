@@ -1,0 +1,297 @@
+# Auto-converted from .turtheme
+# Source: Technology theme
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+static_texts:
+  CPUMODEL:
+    TEXT: '{{CPU_MODEL}}'
+    X: 97
+    Y: 19
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 30
+    FONT_COLOR: 255, 255, 255
+  GPUMODEL:
+    TEXT: '{{GPU_MODEL}}'
+    X: 490
+    Y: 20
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 30
+    FONT_COLOR: 255, 255, 255
+  RAMMODEL:
+    TEXT: '{{MEM_TOTAL}}'
+    X: 92
+    Y: 230
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 26
+    FONT_COLOR: 255, 255, 255
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      RADIAL:
+        SHOW: true
+        X: 124
+        Y: 127
+        RADIUS: 65
+        WIDTH: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 36
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 255, 255
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+      TEXT:
+        SHOW: true
+        X: 124
+        Y: 99
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 48
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 312
+        Y: 72
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 28
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 241
+        Y: 56
+        WIDTH: 121
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 325
+        Y: 132
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 241
+        Y: 116
+        WIDTH: 121
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      RADIAL:
+        SHOW: true
+        X: 503
+        Y: 127
+        RADIUS: 65
+        WIDTH: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 36
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 255, 255
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+      TEXT:
+        SHOW: true
+        X: 504
+        Y: 99
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 48
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 695
+        Y: 72
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 603
+        Y: 56
+        WIDTH: 121
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+    MEMORY:
+      GRAPH:
+        SHOW: true
+        X: 603
+        Y: 116
+        WIDTH: 121
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+      TEXT:
+        SHOW: true
+        X: 654
+        Y: 162
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  DISK:
+    INTERVAL: 10
+    USED:
+      GRAPH:
+        SHOW: true
+        X: 312
+        Y: 277
+        WIDTH: 121
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+      PERCENT_TEXT:
+        SHOW: true
+        X: 481
+        Y: 309
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 327
+        Y: 309
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  NET:
+    INTERVAL: 1
+    ETH:
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          X: 301
+          Y: 379
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 24
+          FONT_COLOR: 255, 255, 255
+          ALIGN: center
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          X: 420
+          Y: 379
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 24
+          FONT_COLOR: 255, 255, 255
+          ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 124
+        Y: 311
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 48
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 124
+        Y: 339
+        RADIUS: 65
+        WIDTH: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 36
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 255, 255
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+  DATE:
+    INTERVAL: 1
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 619
+        Y: 257
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: medium
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 618
+        Y: 322
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: short
+  VOLUME:
+    TEXT:
+      SHOW: true
+      X: 707
+      Y: 378
+      FONT: geforce/GeForce-Bold.ttf
+      FONT_SIZE: 27
+      FONT_COLOR: 255, 255, 255
+      ALIGN: center
+  WEATHER:
+    CONDITION:
+      SHOW: true
+      X: 274
+      Y: 432
+      FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+      FONT_SIZE: 27
+      FONT_COLOR: 255, 255, 255
+      SHOW_UNIT: true
+      ALIGN: center

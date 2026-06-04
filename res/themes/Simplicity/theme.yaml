@@ -1,0 +1,281 @@
+# Auto-converted from .turtheme
+# Source: Simplicity
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 0, 0, 0
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+static_texts:
+  CPUMODEL:
+    TEXT: '{{CPU_MODEL}}'
+    X: 64
+    Y: 0
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 27
+    FONT_COLOR: 0, 0, 0
+  GPUMODEL:
+    TEXT: '{{GPU_MODEL}}'
+    X: 68
+    Y: 228
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 27
+    FONT_COLOR: 0, 0, 0
+  RAMMODEL:
+    TEXT: '{{MEM_TOTAL}}'
+    X: 370
+    Y: 0
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 27
+    FONT_COLOR: 0, 0, 0
+STATS:
+  CPU:
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 205
+        Y: 32
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 205
+        Y: 62
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 204
+        Y: 93
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    FAN:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 205
+        Y: 124
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    POWER:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 204
+        Y: 155
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    VOLTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 204
+        Y: 185
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 206
+        Y: 260
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    MEMORY:
+      TEXT:
+        SHOW: true
+        X: 207
+        Y: 292
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        X: 206
+        Y: 322
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    FREQUENCY:
+      TEXT:
+        SHOW: true
+        X: 205
+        Y: 352
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    POWER:
+      TEXT:
+        SHOW: true
+        X: 205
+        Y: 412
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    VOLTAGE:
+      TEXT:
+        SHOW: true
+        X: 205
+        Y: 382
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+    FAN:
+      TEXT:
+        SHOW: true
+        X: 206
+        Y: 442
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      USED:
+        SHOW: true
+        X: 500
+        Y: 62
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center
+      PERCENT_TEXT:
+        SHOW: true
+        X: 500
+        Y: 118
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          X: 501
+          Y: 219
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 27
+          FONT_COLOR: 0, 0, 0
+          SHOW_UNIT: true
+          ALIGN: center
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          X: 501
+          Y: 290
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 27
+          FONT_COLOR: 0, 0, 0
+          SHOW_UNIT: true
+          ALIGN: center
+  VOLUME:
+    TEXT:
+      SHOW: true
+      X: 503
+      Y: 352
+      FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+      FONT_SIZE: 27
+      FONT_COLOR: 0, 0, 0
+      SHOW_UNIT: true
+      ALIGN: center
+  DATE:
+    INTERVAL: 1
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 394
+        Y: 382
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: medium
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 574
+        Y: 190
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 42
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: short
+  WEATHER:
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 314
+        Y: 441
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center
+  DISK:
+    INTERVAL: 10
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 689
+        Y: 34
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center
+    USED:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 716
+        Y: 65
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center

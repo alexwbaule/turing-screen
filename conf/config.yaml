@@ -1,7 +1,8 @@
 device:
   port: AUTO
-  theme: Bilibili
+  theme: Technology_theme
   log: debug
+  turn_off_on_exit: false
   sensors:
     network:
       eth: "enp3s0"
@@ -22,24 +23,46 @@ device:
     reverse: false
     brightness: 20
 
-#3.5inchTheme2
-#5inchTheme2
-#5inchTheme2Radial
-#bash-dark-green
-#bash-dark-green-gpu
-#BigClock
-#CyanTheme
-#Cyberpunk
-#Cyberpunk-net
-#DragonBall5inch
-#Landscape15Grid
-#Landscape6Grid
-#LandscapeEarth
-#LandscapeMagicBlue
+#Arknights
+#Blue
+#Blue_vertical
+#Colorful_UI_theme
+#Cyan_Theme
+#Cyberpunk_2077
+#Dataization
+#Dragon_Ball
+#Dragon_Ball_vertical
+#EVANGELION-01
+#GIGABYTE
+#Genshin
+#Gundam
+#Horizontal_screen_6_grid
+#MIKU
+#MIKU_Color_change
+#Marvels_Spider-man
 #NZXT_B
-#NZXT_BLUR
 #NZXT_C
 #NZXT_color
 #NZXT_dynamic
-#PurpleTheme
-#Terminal
+#Pikachu_theme
+#RAZER
+#ROG
+#ROG2
+#ROG_starry_sky
+#Red_Dead_Redemption_2
+#Simple_future_purple_horizontal
+#Simple_futuristic_purple
+#Simplicity
+#TaskManager
+#Technology_horizontal_screen
+#Technology_theme
+#Techwaer
+#VIPER
+#White_UI_Theme
+#bilibili_2233
+#kiana
+#purple_theme
+#race_car
+#sci-fi_deep_space
+#starry_sky
+#tide

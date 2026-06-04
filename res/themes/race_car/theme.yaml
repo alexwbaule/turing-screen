@@ -1,0 +1,102 @@
+# Auto-converted from .turtheme
+# Source: race car
+# Resolution: 480x800 (portrait)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: portrait
+  RGB_LED: 255, 255, 255
+static_images:
+  BACKGROUND:
+    PATH: assets/image_4.png
+    X: 0
+    Y: 0
+    WIDTH: 1001
+    HEIGHT: 1668
+static_texts:
+  GPUMODEL:
+    TEXT: '{{GPU_MODEL}}'
+    X: 120
+    Y: 148
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 30
+    FONT_COLOR: 255, 255, 255
+STATS:
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 29
+        Y: 52
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 62
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 340
+        Y: 253
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: medium
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 92
+        Y: 177
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+    MEMORY:
+      TEXT:
+        SHOW: true
+        X: 181
+        Y: 177
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        X: 283
+        Y: 177
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+  VOLUME:
+    TEXT:
+      SHOW: true
+      X: 182
+      Y: 253
+      FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+      FONT_SIZE: 21
+      FONT_COLOR: 255, 255, 255
+      SHOW_UNIT: true
+      ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 37
+        Y: 253
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center

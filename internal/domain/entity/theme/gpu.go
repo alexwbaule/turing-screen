@@ -10,4 +10,5 @@ type GPU struct {
 	Power       *Mesurement   `mapstructure:"POWER"`
 	Frequency   *Mesurement   `mapstructure:"FREQUENCY"`
 	Voltage     *Mesurement   `mapstructure:"VOLTAGE"`
+	Fan         *Mesurement   `mapstructure:"FAN"`
 }

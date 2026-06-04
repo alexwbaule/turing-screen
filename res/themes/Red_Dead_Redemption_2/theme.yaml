@@ -1,0 +1,132 @@
+# Auto-converted from .turtheme
+# Source: Red Dead Redemption 2
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 801
+    HEIGHT: 481
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+static_texts:
+  GPUMODEL:
+    TEXT: '{{GPU_MODEL}}'
+    X: 423
+    Y: 212
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: 255, 255, 255
+  CPUMODEL:
+    TEXT: '{{CPU_MODEL}}'
+    X: 613
+    Y: 212
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: 255, 255, 255
+  RAMMODEL:
+    TEXT: '{{MEM_TOTAL}}'
+    X: 423
+    Y: 287
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: 255, 255, 255
+STATS:
+  DISK:
+    INTERVAL: 10
+    USED:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 612
+        Y: 285
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 762
+        Y: 282
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 572
+        Y: 209
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  CPU:
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 762
+        Y: 209
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 573
+        Y: 282
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 87
+        Y: 439
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: short
+  VOLUME:
+    TEXT:
+      SHOW: true
+      X: 283
+      Y: 439
+      FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+      FONT_SIZE: 20
+      FONT_COLOR: 255, 255, 255
+      SHOW_UNIT: true
+      ALIGN: center
+  WEATHER:
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 460
+        Y: 437
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 18
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center

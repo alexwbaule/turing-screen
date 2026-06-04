@@ -58,3 +58,6 @@ func (c *Config) GetGPUSensorConfig() device.GPUSensorConfig {
 func (c *Config) GetWeatherConfig() *device.WeatherConfig {
 	return &c.device.Sensors.Weather
 }
+func (c *Config) GetTurnOffOnExit() bool {
+	return c.device.TurnOffOnExit
+}

@@ -1,0 +1,107 @@
+# Auto-converted from .turtheme
+# Source: Marvel’s Spider-man
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 199, 199
+video:
+  PATH: video/SpiderMan.mp4
+  X: 0
+  Y: 0
+  WIDTH: 800
+  HEIGHT: 480
+static_images:
+  BACKGROUND:
+    PATH: assets/image_4.png
+    X: 0
+    Y: 0
+    WIDTH: 3334
+    HEIGHT: 2000
+STATS:
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        X: 215
+        Y: 37
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 52
+        FONT_COLOR: 255, 199, 199
+        SHOW_UNIT: true
+        ALIGN: center
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 99
+        Y: 95
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 199, 199
+        SHOW_UNIT: true
+        ALIGN: center
+    MEMORY:
+      TEXT:
+        SHOW: true
+        X: 99
+        Y: 118
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 199, 199
+        ALIGN: center
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 215
+        Y: 175
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 52
+        FONT_COLOR: 255, 199, 199
+        SHOW_UNIT: true
+        ALIGN: center
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 100
+        Y: 233
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 199, 199
+        SHOW_UNIT: true
+        ALIGN: center
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 100
+        Y: 255
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 199, 199
+        ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 215
+        Y: 314
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 52
+        FONT_COLOR: 255, 199, 199
+        SHOW_UNIT: true
+        ALIGN: center
+      USED:
+        SHOW: true
+        X: 120
+        Y: 372
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 199, 199
+        SHOW_UNIT: true
+        ALIGN: center

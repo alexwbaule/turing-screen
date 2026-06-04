@@ -80,6 +80,7 @@ func (s *Serial) Execute(cmd command.Command) ([]byte, error) {
 	// 2. Check if the command expects a response
 	validation := cmd.ValidateWrite()
 	if validation.Size == 0 {
+		s.log.Debug("oneway command, without response...")
 		return nil, nil // No response expected
 	}
 
@@ -91,6 +92,7 @@ func (s *Serial) Execute(cmd command.Command) ([]byte, error) {
 	}
 
 	response := responseBuf[:n]
+	s.log.Debugf("Readed: %s", string(bytes.Trim(response, "\x00")))
 
 	// 4. Validate the response using the command's own logic
 	if err := cmd.ValidateCommand(response, n); err != nil {
@@ -133,48 +135,28 @@ func (s *Serial) Write(data []byte) (int, error) {
 
 // Read reads from the serial port with retry logic for empty reads.
 func (s *Serial) Read(p []byte) (int, error) {
-	var totalRead int
-	var attemptsMade int
-
 	if s.port == nil {
 		return 0, fmt.Errorf("port is closed")
 	}
-	err := s.port.Flush()
-	if err != nil {
-		return 0, err
-	}
 
-	for totalRead < len(p) && attemptsMade < attempts {
-		if s.port == nil {
-			return 0, fmt.Errorf("port is closed")
-		}
-		n, err := s.port.Read(p[totalRead:])
+	for attempt := 0; attempt < attempts; attempt++ {
+		n, err := s.port.Read(p)
 		if err != nil {
 			if err == io.EOF {
 				s.log.Warnf("Read EOF, trying again")
-				attemptsMade++
-				time.Sleep(100 * time.Millisecond) // Small delay before retry
+				time.Sleep(100 * time.Millisecond)
 				continue
 			}
-			return totalRead, fmt.Errorf("read serial error: %w", err)
+			return 0, fmt.Errorf("read serial error: %w", err)
 		}
-
-		if n == 0 {
-			attemptsMade++
-			s.log.Warnf("Read zero bytes, attempt %d/%d", attemptsMade, attempts)
-			time.Sleep(100 * time.Millisecond) // Small delay before retry
-			continue
+		if n > 0 {
+			return n, nil
 		}
-
-		totalRead += n
-		attemptsMade = 0 // Reset attempts on successful read
+		// Zero bytes read, retry
+		time.Sleep(100 * time.Millisecond)
 	}
 
-	if totalRead == 0 {
-		return 0, fmt.Errorf("read serial error: no response after %d attempts", attempts)
-	}
-
-	return totalRead, nil
+	return 0, fmt.Errorf("read serial error: no response after %d attempts", attempts)
 }
 
 func (s *Serial) ReopenPort() error {

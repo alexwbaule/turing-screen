@@ -1,0 +1,177 @@
+# Auto-converted from .turtheme
+# Source: MIKU_Color change
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 74, 129, 144
+video:
+  PATH: video/MIKU.mp4
+  X: 0
+  Y: 0
+  WIDTH: 800
+  HEIGHT: 480
+static_images:
+  BACKGROUND:
+    PATH: assets/image_4.png
+    X: 0
+    Y: 0
+    WIDTH: 801
+    HEIGHT: 481
+  LAYER_2:
+    PATH: assets/image_6.png
+    X: 0
+    Y: 0
+    WIDTH: 1667
+    HEIGHT: 1001
+static_texts:
+  HATSUNE_MIKU:
+    TEXT: HATSUNE MIKU
+    X: 768
+    Y: 186
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 0, 0, 0
+  MIKU:
+    TEXT: MIKU
+    X: 36
+    Y: 319
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 52
+    FONT_COLOR: 0, 0, 0
+  初音ミク:
+    TEXT: 初音ミク
+    X: 46
+    Y: 80
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 20
+    FONT_COLOR: 0, 0, 0
+STATS:
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          X: 69
+          Y: 10
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 16
+          FONT_COLOR: 74, 129, 144
+          SHOW_UNIT: true
+          ALIGN: center
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          X: 220
+          Y: 10
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 16
+          FONT_COLOR: 74, 129, 144
+          SHOW_UNIT: true
+          ALIGN: center
+  WEATHER:
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 400
+        Y: 8
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 15
+        FONT_COLOR: 74, 129, 144
+        SHOW_UNIT: true
+        ALIGN: center
+  CPU:
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 610
+        Y: 10
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 74, 129, 144
+        SHOW_UNIT: true
+        ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 741
+        Y: 283
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 15
+        FONT_COLOR: 211, 148, 253
+        SHOW_UNIT: true
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 677
+        Y: 10
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 74, 129, 144
+        SHOW_UNIT: true
+        ALIGN: center
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        X: 741
+        Y: 244
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 15
+        FONT_COLOR: 211, 148, 253
+        SHOW_UNIT: true
+        ALIGN: center
+  DISK:
+    INTERVAL: 10
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 746
+        Y: 10
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 74, 129, 144
+        SHOW_UNIT: true
+        ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 741
+        Y: 323
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 15
+        FONT_COLOR: 211, 148, 253
+        SHOW_UNIT: true
+        ALIGN: center
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 607
+        Y: 149
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 28
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 773
+        Y: 149
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 28
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: medium

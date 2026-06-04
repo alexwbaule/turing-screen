@@ -6,9 +6,10 @@ type Config struct {
 	Device
 }
 type Device struct {
-	Port     string `mapstructure:"port"`
-	Theme    string `mapstructure:"theme"`
-	LogLevel string `mapstructure:"log"`
+	Port          string `mapstructure:"port"`
+	Theme         string `mapstructure:"theme"`
+	LogLevel      string `mapstructure:"log"`
+	TurnOffOnExit bool   `mapstructure:"turn_off_on_exit"`
 	Sensors
 	Display
 }

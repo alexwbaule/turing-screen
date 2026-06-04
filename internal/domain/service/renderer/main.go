@@ -17,49 +17,49 @@ import (
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
 
 type Builder struct {
-	log    *logger.Logger
-	device *device.Display
-	theme  *theme.Display
+	log        *logger.Logger
+	device     *device.Display
+	theme      *theme.Display
+	background *image.NRGBA // Composed background (static_images + static_texts)
 }
 
 func NewBuilder(l *logger.Logger, v *device.Display, d *theme.Display) *Builder {
+	var numb *image.NRGBA
+
+	if d.Orientation == theme.PORTRAIT || d.Orientation == theme.REVERSE_PORTRAIT {
+		numb = image.NewNRGBA(image.Rect(0, 0, v.Height, v.Width))
+	} else {
+		numb = image.NewNRGBA(image.Rect(0, 0, v.Width, v.Height))
+	}
 	return &Builder{
-		log:    l,
-		device: v,
-		theme:  d,
+		log:        l,
+		device:     v,
+		theme:      d,
+		background: numb,
 	}
 }
 
 const tolerance = float64(2)
 
-func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) image.Image {
-	var numb *image.NRGBA
-
-	if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
-		numb = image.NewNRGBA(image.Rect(0, 0, b.device.Height, b.device.Width))
-	} else {
-		numb = image.NewNRGBA(image.Rect(0, 0, b.device.Width, b.device.Height))
-	}
-
+func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) {
 	keys := maps.Keys(images)
 	slices.Sort(keys)
 	for _, name := range keys {
 		img := images[name]
 		r := image.Rect(img.X, img.Y, img.X+img.BackgroundImage.Bounds().Dx(), img.Y+img.BackgroundImage.Bounds().Dy())
-		draw.Draw(numb, r, img.BackgroundImage, img.BackgroundImage.Bounds().Min, draw.Over)
+		draw.Draw(b.background, r, img.BackgroundImage, img.BackgroundImage.Bounds().Min, draw.Over)
 	}
-
-	return numb
 }
 
-func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string]theme.StaticText) image.Image {
-	dst := imageToNRGBA(background)
+func (b *Builder) GetBackground() *image.NRGBA {
+	return b.background
+}
 
+func (b *Builder) BuildBackgroundTexts(images map[string]theme.StaticText) {
 	keys := maps.Keys(images)
 	slices.Sort(keys)
 	for _, name := range keys {
@@ -75,7 +75,7 @@ func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string
 		y := float64(text.Y)
 
 		if text.BackgroundColor != nil && text.BackgroundColor != color.Transparent {
-			fillRect(dst, int(x), int(y), int(w+tolerance+tolerance), int(h), text.BackgroundColor)
+			fillRect(b.background, int(x), int(y), int(w+tolerance+tolerance), int(h), text.BackgroundColor)
 		}
 
 		dot := fixed.Point26_6{
@@ -84,29 +84,18 @@ func (b *Builder) BuildBackgroundTexts(background image.Image, images map[string
 		}
 
 		d := &font.Drawer{
-			Dst:  dst,
+			Dst:  b.background,
 			Src:  image.NewUniform(text.FontColor),
 			Face: text.Font,
 			Dot:  dot,
 		}
 		d.DrawString(text.Text)
 	}
-
-	return dst
 }
 
-func (b *Builder) DrawText(text string, stat *theme.Text, defaultSize int) image.Image {
-	var numb *image.NRGBA
+func (b *Builder) DrawText(text string, stat *theme.Text, defaultSize int) (image.Image, int, int) {
 
-	if stat.BackgroundImage == nil {
-		if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
-			numb = imageToNRGBA(utils.CreateImage(b.device.Height, b.device.Width, stat.BackgroundColor))
-		} else {
-			numb = imageToNRGBA(utils.CreateImage(b.device.Width, b.device.Height, stat.BackgroundColor))
-		}
-	} else {
-		numb = imageToNRGBA(stat.BackgroundImage)
-	}
+	numb := imageToNRGBA(b.background)
 
 	// Determine crop size using a reference measure string
 	// Priority: theme SIZE > sensor default > text length
@@ -141,13 +130,25 @@ func (b *Builder) DrawText(text string, stat *theme.Text, defaultSize int) image
 	textWidth := d.MeasureString(text)
 	cropWidthFixed := fixed.I(cropWidth)
 
-	// Calculate X position within crop region based on alignment
+	// Calculate crop origin and text position based on alignment
 	var dotX fixed.Int26_6
+	cropX := stat.X // left edge of crop region
+
 	switch stat.Align {
 	case theme.CENTER:
-		dotX = fixed.I(stat.X) + (cropWidthFixed-textWidth)/2
+		// X is the CENTER point — crop starts at X - cropWidth/2
+		cropX = stat.X - cropWidth/2
+		if cropX < 0 {
+			cropX = 0
+		}
+		dotX = fixed.I(cropX) + (cropWidthFixed-textWidth)/2
 	case theme.RIGHT:
-		dotX = fixed.I(stat.X) + cropWidthFixed - textWidth
+		// X is the RIGHT edge — crop starts at X - cropWidth
+		cropX = stat.X - cropWidth
+		if cropX < 0 {
+			cropX = 0
+		}
+		dotX = fixed.I(cropX) + cropWidthFixed - textWidth
 	default: // LEFT
 		dotX = fixed.I(stat.X)
 	}
@@ -160,25 +161,16 @@ func (b *Builder) DrawText(text string, stat *theme.Text, defaultSize int) image
 	d.DrawString(text)
 
 	// Crop the region
-	crp := image.Rect(stat.X, stat.Y, stat.X+cropWidth, stat.Y+cropHeight)
+	crp := image.Rect(cropX, stat.Y, cropX+cropWidth, stat.Y+cropHeight)
 	dst := image.NewRGBA(image.Rect(0, 0, cropWidth, cropHeight))
 	drawCrop(dst, numb, crp)
 
-	return dst
+	return dst, cropX, stat.Y
 }
 
 func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image {
-	var numb *image.NRGBA
 
-	if stat.BackgroundImage == nil {
-		if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
-			numb = imageToNRGBA(utils.CreateImage(b.device.Height, b.device.Width, color.Transparent))
-		} else {
-			numb = imageToNRGBA(utils.CreateImage(b.device.Width, b.device.Height, color.Transparent))
-		}
-	} else {
-		numb = imageToNRGBA(stat.BackgroundImage)
-	}
+	numb := imageToNRGBA(b.background)
 
 	barFilledWidth := int(math.Round(value / float64(stat.MaxValue-stat.MinValue) * float64(stat.Width)))
 
@@ -199,17 +191,8 @@ func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image 
 }
 
 func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image.Image {
-	var numb *image.NRGBA
 
-	if stat.BackgroundImage == nil {
-		if b.theme.Orientation == theme.PORTRAIT || b.theme.Orientation == theme.REVERSE_PORTRAIT {
-			numb = imageToNRGBA(utils.CreateImage(b.device.Height, b.device.Width, stat.BackgroundColor))
-		} else {
-			numb = imageToNRGBA(utils.CreateImage(b.device.Width, b.device.Height, stat.BackgroundColor))
-		}
-	} else {
-		numb = imageToNRGBA(stat.BackgroundImage)
-	}
+	numb := imageToNRGBA(b.background)
 
 	diameter := 2 * stat.Radius
 	x, y := float64(stat.X), float64(stat.Y)
@@ -260,101 +243,6 @@ func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image
 	drawCrop(dst, numb, crp)
 
 	return dst
-}
-
-func drawRadialBar(radius, barWidth, minValue, maxValue, angleStart, angleEnd, angleSep, angleSteps int,
-	clockwise bool, value int, text string, withText bool,
-	fontName string, fontSize int, fontColor color.Color, barColor color.Color) image.Image {
-
-	if value < minValue {
-		value = minValue
-	} else if value > maxValue {
-		value = maxValue
-	}
-
-	pct := float64(value-minValue) / float64(maxValue-minValue)
-	rad := func(deg float64) float64 { return deg * math.Pi / 180.0 }
-
-	diameter := 2 * radius
-	barImage := image.NewNRGBA(image.Rect(0, 0, diameter, diameter))
-
-	rCenter := float64(radius)
-	arcRadius := rCenter - float64(barWidth)/2.0
-	angleStartMod := float64(angleStart % 361)
-	angleEndMod := float64(angleEnd % 361)
-
-	if clockwise {
-		ecart := 0.0
-		if angleEndMod < angleStartMod {
-			ecart = 360 - angleStartMod + angleEndMod
-		} else {
-			ecart = angleEndMod - angleStartMod
-		}
-		if angleSep == 0 {
-			aE := angleStartMod + pct*ecart
-			drawArc(barImage, rCenter, rCenter, arcRadius, rad(angleStartMod), rad(aE), barWidth, barColor)
-		} else {
-			aE := angleStartMod + pct*ecart
-			angleComplet := ecart / float64(angleSteps)
-			etapes := int((aE - angleStartMod) / angleComplet)
-			for i := 0; i < etapes; i++ {
-				s := angleStartMod + float64(i)*angleComplet
-				e := angleStartMod + float64(i+1)*angleComplet - float64(angleSep)
-				drawArc(barImage, rCenter, rCenter, arcRadius, rad(s), rad(e), barWidth, barColor)
-			}
-			s := angleStartMod + float64(etapes)*angleComplet
-			drawArc(barImage, rCenter, rCenter, arcRadius, rad(s), rad(aE), barWidth, barColor)
-		}
-	} else {
-		ecart := 0.0
-		if angleEndMod < angleStartMod {
-			ecart = angleStartMod - angleEndMod
-		} else {
-			ecart = 360 - angleEndMod + angleStartMod
-		}
-		if angleSep == 0 {
-			aS := angleStartMod - pct*ecart
-			drawArc(barImage, rCenter, rCenter, arcRadius, rad(aS), rad(angleStartMod), barWidth, barColor)
-		} else {
-			aS := angleStartMod - pct*ecart
-			angleComplet := ecart / float64(angleSteps)
-			etapes := int((angleStartMod - aS) / angleComplet)
-			for i := 0; i < etapes; i++ {
-				e := angleStartMod - float64(i)*angleComplet
-				s := angleStartMod - float64(i+1)*angleComplet + float64(angleSep)
-				drawArc(barImage, rCenter, rCenter, arcRadius, rad(s), rad(e), barWidth, barColor)
-			}
-			e := angleStartMod - float64(etapes)*angleComplet
-			drawArc(barImage, rCenter, rCenter, arcRadius, rad(aS), rad(e), barWidth, barColor)
-		}
-	}
-
-	if withText {
-		if text == "" {
-			text = fmt.Sprintf("%d%%", int(pct*100+0.5))
-		}
-		fontBytes, _ := os.ReadFile("./res/fonts/" + fontName)
-		f, _ := opentype.Parse(fontBytes)
-		face, _ := opentype.NewFace(f, &opentype.FaceOptions{Size: float64(fontSize), DPI: 72})
-
-		w := measureString(face, text)
-		ascent := fixedAscent(face)
-		descent := fixedDescent(face)
-		totalH := ascent + descent
-
-		drawX := fixed.Int26_6(int((float64(radius) - w/2) * 64))
-		drawY := fixed.I(radius) + totalH/2 - descent
-
-		d := &font.Drawer{
-			Dst:  barImage,
-			Src:  image.NewUniform(fontColor),
-			Face: face,
-			Dot:  fixed.Point26_6{X: drawX, Y: drawY},
-		}
-		d.DrawString(text)
-	}
-
-	return barImage
 }
 
 func (b *Builder) saveImage(img image.Image, file string) {

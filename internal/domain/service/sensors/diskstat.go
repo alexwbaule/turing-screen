@@ -6,7 +6,6 @@ import (
 
 	"github.com/alexwbaule/gopsutil/v3/disk"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
@@ -62,79 +61,18 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 		return err
 	}
 	if e.Free != nil {
-		if e.Free.Percent != nil && e.Free.Percent.Show {
-			img, x, y := BuildText(g.builder, 100-disks.UsedPercent, "%3.f", "%", e.Free.Percent, SizePercent)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Free.Text != nil && e.Free.Text.Show {
-			img, x, y := BuildTextUint(g.builder, disks.Free, utils.Bytes, e.Free.Text, SizeBytes)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Free.Radial != nil && e.Free.Radial.Show {
-			img, x, y := BuildRadial(g.builder, 100-disks.UsedPercent, e.Free.Radial)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Free.Graph != nil && e.Free.Graph.Show {
-			img, x, y := BuildGraph(g.builder, 100-disks.UsedPercent, e.Free.Graph)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
+		payloads = append(payloads, BuildMesurement(g.builder, 100-disks.UsedPercent, "%3.f", "%", SizePercent, e.Free, g.p)...)
 	}
 	if e.Used != nil {
-		if e.Used.Percent != nil && e.Used.Percent.Show {
-			img, x, y := BuildText(g.builder, disks.UsedPercent, "%3.f", "%", e.Used.Percent, SizePercent)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Used.Text != nil && e.Used.Text.Show {
-			img, x, y := BuildTextUint(g.builder, disks.Used, utils.Bytes, e.Used.Text, SizeBytes)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Used.Radial != nil && e.Used.Radial.Show {
-			img, x, y := BuildRadial(g.builder, disks.UsedPercent, e.Used.Radial)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Used.Graph != nil && e.Used.Graph.Show {
-			img, x, y := BuildGraph(g.builder, disks.UsedPercent, e.Used.Graph)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
+		payloads = append(payloads, BuildMesurement(g.builder, disks.UsedPercent, "%3.f", "%", SizePercent, e.Used, g.p)...)
 	}
 	if e.Total != nil {
-		if e.Total.Percent != nil && e.Total.Percent.Show {
-			img, x, y := BuildText(g.builder, 100, "%3.f", "%", e.Total.Percent, SizePercent)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Total.Text != nil && e.Total.Text.Show {
-			img, x, y := BuildTextUint(g.builder, disks.Total, utils.Bytes, e.Total.Text, SizeBytes)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Total.Radial != nil && e.Total.Radial.Show {
-			img, x, y := BuildRadial(g.builder, 100, e.Total.Radial)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Total.Graph != nil && e.Total.Graph.Show {
-			img, x, y := BuildGraph(g.builder, 100, e.Total.Graph)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
+		payloads = append(payloads, BuildMesurement(g.builder, 100, "%3.f", "%", SizePercent, e.Total, g.p)...)
 	}
 	if e.Temperature != nil {
 		diskPatterns := []string{"nvme", "disk", "nvme_composite"}
-		temperature, percent := findSensorTemperature(ctx, g.temperatureSensor, diskPatterns, g.log)
-
-		if e.Temperature.Percent != nil && e.Temperature.Percent.Show {
-			img, x, y := BuildText(g.builder, percent, "%3.0f", "%", e.Temperature.Percent, SizePercent)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Temperature.Text != nil && e.Temperature.Text.Show {
-			img, x, y := BuildText(g.builder, temperature, "%3.0f", "°C", e.Temperature.Text, SizeTemp)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Temperature.Radial != nil && e.Temperature.Radial.Show {
-			img, x, y := BuildRadial(g.builder, temperature, e.Temperature.Radial)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
-		if e.Temperature.Graph != nil && e.Temperature.Graph.Show {
-			img, x, y := BuildGraph(g.builder, temperature, e.Temperature.Graph)
-			payloads = append(payloads, g.p.SendPayload(img, x, y))
-		}
+		temperature, _ := findSensorTemperature(ctx, g.temperatureSensor, diskPatterns, g.log)
+		payloads = append(payloads, BuildMesurement(g.builder, temperature, "%3.0f", "°C", SizeTemp, e.Temperature, g.p)...)
 	}
 
 	for _, payload := range payloads {

@@ -3,7 +3,7 @@ module github.com/alexwbaule/turing-screen
 go 1.25.0
 
 require (
-	github.com/alexwbaule/gopsutil/v3 v3.30.0
+	github.com/alexwbaule/gopsutil/v3 v3.32.0
 	github.com/alexwbaule/serial v1.0.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-viper/mapstructure/v2 v2.5.0
@@ -34,4 +34,5 @@ require (
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	mrogalski.eu/go/pulseaudio v0.0.0-20240327130323-384e01075e6e // indirect
 )

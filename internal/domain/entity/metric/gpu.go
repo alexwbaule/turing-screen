@@ -9,4 +9,5 @@ type GPU struct {
 	Voltage     uint64 // mV
 	VRAMUsage   uint64 // bytes
 	VRAMSize    uint64 // bytes
+	Fan         uint64 // RPM
 }

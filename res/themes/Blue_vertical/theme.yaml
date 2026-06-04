@@ -1,0 +1,154 @@
+# Auto-converted from .turtheme
+# Source: Blue vertical
+# Resolution: 480x800 (portrait)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: portrait
+  RGB_LED: 84, 241, 255
+video:
+  PATH: video/meilan2.mp4
+  X: 0
+  Y: 0
+  WIDTH: 480
+  HEIGHT: 800
+static_images:
+  BACKGROUND:
+    PATH: assets/image_4.png
+    X: 0
+    Y: 0
+    WIDTH: 480
+    HEIGHT: 800
+static_texts:
+  CPUMODEL:
+    TEXT: '{{CPU_MODEL}}'
+    X: 243
+    Y: 501
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 27
+    FONT_COLOR: 84, 241, 255
+  RAMMODEL:
+    TEXT: '{{MEM_TOTAL}}'
+    X: 126
+    Y: 697
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 84, 241, 255
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 241
+        Y: 254
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 52
+        FONT_COLOR: 253, 0, 143
+        ALIGN: center
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 101
+        Y: 452
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 45
+        FONT_COLOR: 84, 241, 255
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    MEMORY:
+      TEXT:
+        SHOW: true
+        X: 423
+        Y: 384
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 22
+        FONT_COLOR: 84, 241, 255
+        ALIGN: center
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 385
+        Y: 452
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 45
+        FONT_COLOR: 84, 241, 255
+        ALIGN: center
+  DISK:
+    INTERVAL: 10
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 88
+        Y: 600
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 22
+        FONT_COLOR: 84, 241, 255
+        ALIGN: center
+  VOLUME:
+    TEXT:
+      SHOW: true
+      X: 392
+      Y: 600
+      FONT: geforce/GeForce-Bold.ttf
+      FONT_SIZE: 22
+      FONT_COLOR: 84, 241, 255
+      ALIGN: center
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          X: 188
+          Y: 596
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 15
+          FONT_COLOR: 84, 241, 255
+          ALIGN: center
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          X: 264
+          Y: 596
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 15
+          FONT_COLOR: 84, 241, 255
+          ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      USED:
+        SHOW: true
+        X: 189
+        Y: 722
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 15
+        FONT_COLOR: 84, 241, 255
+        SHOW_UNIT: true
+        ALIGN: center
+  DATE:
+    INTERVAL: 1
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 438
+        Y: 695
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 36
+        FONT_COLOR: 84, 241, 255
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: medium
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 302
+        Y: 731
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 36
+        FONT_COLOR: 84, 241, 255
+        ALIGN: center
+        FORMAT: short

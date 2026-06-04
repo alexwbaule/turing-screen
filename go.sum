@@ -1,5 +1,7 @@
-github.com/alexwbaule/gopsutil/v3 v3.30.0 h1:NSydbtdFmPQxNj0m/PJUZak/8eqRfRU7jCh97UaMljc=
-github.com/alexwbaule/gopsutil/v3 v3.30.0/go.mod h1:7RubFRgyGU5vOFlEfwt5792xiOfVaW1Tu+Xx3/AjhPU=
+github.com/alexwbaule/gopsutil/v3 v3.31.0 h1:4lRj1KfvugsJabeHJ3OXbFu7dIncYW88RrB+TVs5DOE=
+github.com/alexwbaule/gopsutil/v3 v3.31.0/go.mod h1:7RubFRgyGU5vOFlEfwt5792xiOfVaW1Tu+Xx3/AjhPU=
+github.com/alexwbaule/gopsutil/v3 v3.32.0 h1:Gz49XBaK4eWHP2xw+9aFNbiu0DX217fkKiazqraW++E=
+github.com/alexwbaule/gopsutil/v3 v3.32.0/go.mod h1:7RubFRgyGU5vOFlEfwt5792xiOfVaW1Tu+Xx3/AjhPU=
 github.com/alexwbaule/serial v1.0.0 h1:R0tiv3lKH2thqoW0qU4Npnf7BnGc9I0sH+S4J2gi8kY=
 github.com/alexwbaule/serial v1.0.0/go.mod h1:ye69w0wkh+hJCPkC4jV0/Tj6SCMGTt6YhAujj/LKcf8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -101,3 +103,5 @@ gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+mrogalski.eu/go/pulseaudio v0.0.0-20240327130323-384e01075e6e h1:SQSUCiMUx1MukBgCf+pYWTOCoV0Y2YbQ0y2vqBvCY50=
+mrogalski.eu/go/pulseaudio v0.0.0-20240327130323-384e01075e6e/go.mod h1:C3V0v+gsiHHbMtFJvwozjNVdPJZw9oUxlRTVc619wSU=

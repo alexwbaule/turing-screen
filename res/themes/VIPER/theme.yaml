@@ -5,7 +5,7 @@
 display:
   SIZE: 5"
   ORIENTATION: landscape
-  RGB_LED: 0, 0, 0
+  RGB_LED: 255, 255, 255
 video:
   PATH: video/VIPER.mp4
   X: 0
@@ -14,60 +14,40 @@ video:
   HEIGHT: 480
 static_images:
   BACKGROUND:
-    PATH: background.png
+    PATH: assets/image_4.png
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    WIDTH: 801
+    HEIGHT: 481
 static_texts:
-  HDDTEMP_LABEL:
-    TEXT: 硬盘温度_1
-    X: 295
-    Y: 330
-    FONT: turtheme/Motorblock.ttf
-    FONT_SIZE: 18
-    FONT_COLOR: 0, 0, 0
-    BACKGROUND_IMAGE: background.png
-  GPUCLOCK_LABEL:
-    TEXT: 显卡频率
-    X: 718
-    Y: 40
-    FONT: turtheme/Source-San-Hans-BLOD.ttf
-    FONT_SIZE: 10
-    FONT_COLOR: 137, 137, 137
-    BACKGROUND_IMAGE: background.png
-  TEXT_2:
+  TEXT_0:
     TEXT: .
     X: 597
     Y: 433
     FONT: turtheme/Motorblock.ttf
-    FONT_SIZE: 12
-    FONT_COLOR: 0, 0, 0
-    BACKGROUND_IMAGE: background.png
-  TEXT_3:
+    FONT_SIZE: 18
+    FONT_COLOR: 255, 255, 255
+  TEXT_1:
     TEXT: .
     X: 639
     Y: 433
     FONT: turtheme/Motorblock.ttf
-    FONT_SIZE: 12
-    FONT_COLOR: 0, 0, 0
-    BACKGROUND_IMAGE: background.png
+    FONT_SIZE: 18
+    FONT_COLOR: 255, 255, 255
   SSD:
     TEXT: SSD
     X: 647
     Y: 303
     FONT: turtheme/Source-San-Hans-BLOD.ttf
-    FONT_SIZE: 10
-    FONT_COLOR: 0, 0, 0
-    BACKGROUND_IMAGE: background.png
+    FONT_SIZE: 15
+    FONT_COLOR: 255, 255, 255
   VOL:
     TEXT: VOL
     X: 700
     Y: 303
     FONT: turtheme/Source-San-Hans-BLOD.ttf
-    FONT_SIZE: 10
-    FONT_COLOR: 0, 0, 0
-    BACKGROUND_IMAGE: background.png
+    FONT_SIZE: 15
+    FONT_COLOR: 255, 255, 255
 STATS:
   CPU:
     TEMPERATURE:
@@ -77,10 +57,10 @@ STATS:
         X: 295
         Y: 170
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 18
-        FONT_COLOR: 0, 0, 0
-        BACKGROUND_IMAGE: background.png
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        ALIGN: center
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -88,10 +68,10 @@ STATS:
         X: 646
         Y: 40
         FONT: turtheme/Source-San-Hans-BLOD.ttf
-        FONT_SIZE: 10
+        FONT_SIZE: 15
         FONT_COLOR: 137, 137, 137
-        BACKGROUND_IMAGE: background.png
         SHOW_UNIT: true
+        ALIGN: center
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -100,10 +80,32 @@ STATS:
         X: 457
         Y: 255
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 18
-        FONT_COLOR: 0, 0, 0
-        BACKGROUND_IMAGE: background.png
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        ALIGN: center
+    FREQUENCY:
+      TEXT:
+        SHOW: true
+        X: 718
+        Y: 40
+        FONT: turtheme/Source-San-Hans-BLOD.ttf
+        FONT_SIZE: 15
+        FONT_COLOR: 137, 137, 137
+        SHOW_UNIT: true
+        ALIGN: center
+  DISK:
+    INTERVAL: 10
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 295
+        Y: 330
+        FONT: turtheme/Motorblock.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
   DATE:
     INTERVAL: 1
     DAY:
@@ -112,10 +114,10 @@ STATS:
         X: 525
         Y: 430
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 14
-        FONT_COLOR: 0, 0, 0
-        BACKGROUND_IMAGE: background.png
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -123,8 +125,8 @@ STATS:
         X: 702
         Y: 430
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 14
-        FONT_COLOR: 0, 0, 0
-        BACKGROUND_IMAGE: background.png
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        ALIGN: center
         FORMAT: short

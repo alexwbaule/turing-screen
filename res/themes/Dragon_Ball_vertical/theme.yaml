@@ -1,0 +1,99 @@
+# Auto-converted from .turtheme
+# Source: Dragon Ball_vertical
+# Resolution: 480x800 (portrait)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: portrait
+  RGB_LED: 0, 0, 0
+video:
+  PATH: video/doragon_ball_en.mp4
+  X: 0
+  Y: 0
+  WIDTH: 480
+  HEIGHT: 800
+static_images:
+  BACKGROUND:
+    PATH: background.png
+    X: 0
+    Y: 0
+    WIDTH: 480
+    HEIGHT: 800
+STATS:
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 194
+        Y: 84
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 78
+        FONT_COLOR: 0, 0, 0
+        ALIGN: right
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 27
+        Y: 408
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 78
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+  VOLUME:
+    TEXT:
+      SHOW: true
+      X: 21
+      Y: 213
+      FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+      FONT_SIZE: 54
+      FONT_COLOR: 255, 224, 139
+      ALIGN: center
+  DISK:
+    INTERVAL: 10
+    USED:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 89
+        Y: 301
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 51
+        FONT_COLOR: 255, 224, 139
+        ALIGN: center
+  CPU:
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 290
+        Y: 640
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 78
+        FONT_COLOR: 0, 0, 0
+        ALIGN: center
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 466
+        Y: 275
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 45
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: right
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 463
+        Y: 319
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 26
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        ALIGN: right
+        FORMAT: medium

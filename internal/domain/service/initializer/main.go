@@ -82,29 +82,34 @@ func (i *Initializer) Run(background device.ImageBackground) error {
 
 // commonInit runs the shared initialization steps for both modes.
 func (i *Initializer) commonInit() error {
+	// 1. HELLO + read(23)
 	if _, err := i.sender.Execute(i.cmdDevice.Hello()); err != nil {
 		return fmt.Errorf("HELLO failed: %w", err)
 	}
 	i.log.Info("init: HELLO ok")
 
-	i.cmdOption.SetOptions(command.Default, command.NoFlip, command.Disabled)
-	if _, err := i.sender.Execute(i.cmdOption); err != nil {
-		return fmt.Errorf("OPTIONS failed: %w", err)
-	}
-	i.log.Info("init: OPTIONS ok")
-
+	// 2. STOP_VIDEO (no response)
 	if _, err := i.sender.Execute(i.cmdMedia.StopVideo()); err != nil {
 		return fmt.Errorf("STOP_VIDEO failed: %w", err)
 	}
+
+	// 3. STOP_MEDIA + read(1024) — single response for both stops
 	if _, err := i.sender.Execute(i.cmdMedia.StopMedia()); err != nil {
-		return fmt.Errorf("STOP_MEDIA failed: %w", err)
+		i.log.Warnf("STOP_MEDIA read failed (non-fatal): %v", err)
 	}
 
+	// 4. SET_BRIGHTNESS (no response)
 	brightness := i.cfg.GetDeviceDisplay().Brightness
 	if _, err := i.sender.Execute(i.cmdBright.SetBrightness(brightness)); err != nil {
 		return fmt.Errorf("SET_BRIGHTNESS failed: %w", err)
 	}
-	i.log.Info("init: media stopped, brightness set")
 
+	// 5. OPTIONS with orientation (no response)
+	i.cmdOption.SetOptions(command.Default, command.NoFlip, command.Disabled)
+	if _, err := i.sender.Execute(i.cmdOption); err != nil {
+		return fmt.Errorf("OPTIONS failed: %w", err)
+	}
+
+	i.log.Info("init: media stopped, brightness set")
 	return nil
 }

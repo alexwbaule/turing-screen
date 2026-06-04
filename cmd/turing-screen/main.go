@@ -49,9 +49,9 @@ func main() {
 
 		builder := renderer.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
 
-		bg := builder.BuildBackgroundImage(statsTheme.GetStaticImages())
-		fbg := builder.BuildBackgroundTexts(bg, statsTheme.GetStaticTexts())
-		background := device.NewImageProcess(fbg)
+		builder.BuildBackgroundImage(statsTheme.GetStaticImages())
+		builder.BuildBackgroundTexts(statsTheme.GetStaticTexts())
+		background := device.NewImageProcess(builder.GetBackground())
 
 		cmdDevice := command.NewDevice(app.Log)
 		cmdMedia := command.NewMedia(app.Log)
@@ -85,8 +85,11 @@ func main() {
 		// Goroutine to handle graceful shutdown
 		g.Go(func() error {
 			<-ctx.Done()
-			app.Log.Info("shutdown signal received. turning off device.")
-			_ = worker.OffChannel(cmdDevice.TurnOff())
+			app.Log.Info("shutdown signal received.")
+			if app.Config.GetTurnOffOnExit() {
+				app.Log.Info("turning off device.")
+				_ = worker.OffChannel(cmdDevice.TurnOff())
+			}
 			app.Log.Infof("cleaning queue with %d entries", len(jobs))
 			// Drain the jobs channel for a short period
 			timeout := time.After(500 * time.Millisecond)
@@ -167,6 +170,24 @@ func main() {
 				return cpu.RunLoad(ctx, stats.CPU.Load)
 			})
 		}
+		if stats.CPU.Fan != nil {
+			g.Go(func() error {
+				app.Log.Info("starting worker CPU Fan")
+				return cpu.RunFan(ctx, stats.CPU.Fan)
+			})
+		}
+		if stats.CPU.Power != nil {
+			g.Go(func() error {
+				app.Log.Info("starting worker CPU Power")
+				return cpu.RunPower(ctx, stats.CPU.Power)
+			})
+		}
+		if stats.CPU.Voltage != nil {
+			g.Go(func() error {
+				app.Log.Info("starting worker CPU Voltage")
+				return cpu.RunVoltage(ctx, stats.CPU.Voltage)
+			})
+		}
 		if stats.Memory != nil {
 			g.Go(func() error {
 				app.Log.Info("starting worker Memory")
@@ -195,6 +216,13 @@ func main() {
 			g.Go(func() error {
 				app.Log.Info("starting worker GPU")
 				return gpu.RunGpuStat(ctx, stats.GPU)
+			})
+		}
+		if stats.Volume != nil {
+			vol := sensors.NewVolumeStat(app.Log, jobs, builder, cmdUpdate)
+			g.Go(func() error {
+				app.Log.Info("starting worker Volume")
+				return vol.RunVolume(ctx, stats.Volume)
 			})
 		}
 

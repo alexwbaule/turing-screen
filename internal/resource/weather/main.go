@@ -11,8 +11,9 @@ import (
 // Forecast contém os dados de previsão do tempo
 type Forecast struct {
 	Temperature float64
-	Condition   string // Ex: "Clouds", "Rain", "Clear"
-	Description string // Ex: "partly cloudy"
+	Condition   string  // Ex: "Clouds", "Rain", "Clear"
+	Description string  // Ex: "partly cloudy"
+	WindSpeed   float64 // km/h
 }
 
 // Estruturas para decodificar a resposta de geocoding do Open-Meteo
@@ -83,6 +84,7 @@ func (c *Client) GetCurrentWeather(city string) (*Forecast, error) {
 		Temperature: data.CurrentWeather.Temperature,
 		Condition:   condition,
 		Description: description,
+		WindSpeed:   data.CurrentWeather.WindSpeed,
 	}, nil
 }
 

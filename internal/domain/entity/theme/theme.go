@@ -201,6 +201,7 @@ type Stats struct {
 	Net     *Network  `mapstructure:"NET"`
 	Date    *DateTime `mapstructure:"DATE"`
 	Weather *Weather  `mapstructure:"WEATHER"`
+	Volume  *Volume   `mapstructure:"VOLUME"`
 }
 
 type Mesurement struct {

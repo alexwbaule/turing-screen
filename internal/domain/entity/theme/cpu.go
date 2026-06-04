@@ -8,6 +8,9 @@ type CPU struct {
 	Frequency   *Mesurement   `mapstructure:"FREQUENCY"`
 	Load        *Load         `mapstructure:"LOAD"`
 	Temperature *Mesurement   `mapstructure:"TEMPERATURE"`
+	Fan         *Mesurement   `mapstructure:"FAN"`
+	Power       *Mesurement   `mapstructure:"POWER"`
+	Voltage     *Mesurement   `mapstructure:"VOLTAGE"`
 }
 
 type LoadOne struct {

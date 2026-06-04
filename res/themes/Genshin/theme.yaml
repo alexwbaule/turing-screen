@@ -1,0 +1,119 @@
+# Auto-converted from .turtheme
+# Source: Genshin
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 202, 148, 111
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 801
+    HEIGHT: 481
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 801
+    HEIGHT: 481
+static_texts:
+  VOL:
+    TEXT: VOL
+    X: 56
+    Y: 395
+    FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 202, 148, 111
+  SSD:
+    TEXT: SSD
+    X: 128
+    Y: 395
+    FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 202, 148, 111
+  TEMP:
+    TEXT: TEMP
+    X: 198
+    Y: 395
+    FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 202, 148, 111
+STATS:
+  VOLUME:
+    TEXT:
+      SHOW: true
+      X: 57
+      Y: 349
+      FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+      FONT_SIZE: 30
+      FONT_COLOR: 255, 255, 255
+      ALIGN: center
+  DISK:
+    INTERVAL: 10
+    USED:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 126
+        Y: 349
+        FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+        FONT_SIZE: 30
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 198
+        Y: 349
+        FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+        FONT_SIZE: 30
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+    MEMORY:
+      TEXT:
+        SHOW: true
+        X: 212
+        Y: 212
+        FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+        FONT_SIZE: 46
+        FONT_COLOR: 225, 204, 151
+        ALIGN: center
+  DATE:
+    INTERVAL: 1
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 3
+        Y: 441
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 18
+        FONT_COLOR: 202, 148, 111
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: medium
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 21
+        Y: 212
+        FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+        FONT_SIZE: 46
+        FONT_COLOR: 225, 204, 151
+        ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 116
+        Y: 212
+        FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+        FONT_SIZE: 46
+        FONT_COLOR: 225, 204, 151
+        ALIGN: center

@@ -2,6 +2,7 @@ package sensors
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
@@ -75,9 +76,11 @@ func (g *WeatherSensor) getWeather(ctx context.Context, e *theme.Weather) error 
 		}
 	}
 
-	// Exibe a condição do tempo (se configurado no tema)
+	// Exibe a condição completa (se configurado no tema)
+	// Formato: "Partly Cloudy, 25°C, Wind 15km/h"
 	if e.Condition != nil && e.Condition.Show {
-		img, x, y := BuildText(g.builder, forecast.Description, "", "", e.Condition, SizeDefault)
+		condStr := fmt.Sprintf("%s, %.0f°C, Wind %.0fkm/h", forecast.Description, forecast.Temperature, forecast.WindSpeed)
+		img, x, y := buildText(g.builder, condStr, e.Condition, SizeDefault)
 		payloads = append(payloads, g.p.SendPayload(img, x, y))
 	}
 

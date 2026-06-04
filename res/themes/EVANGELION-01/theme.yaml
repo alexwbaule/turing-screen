@@ -1,0 +1,158 @@
+# Auto-converted from .turtheme
+# Source: EVANGELION-01
+# Resolution: 480x800 (portrait)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: portrait
+  RGB_LED: 255, 255, 255
+video:
+  PATH: video/EVANGELION01.mp4
+  X: 0
+  Y: 0
+  WIDTH: 480
+  HEIGHT: 800
+static_images:
+  BACKGROUND:
+    PATH: assets/image_4.png
+    X: 0
+    Y: 0
+    WIDTH: 481
+    HEIGHT: 801
+static_texts:
+  GPU:
+    TEXT: GPU
+    X: 160
+    Y: 701
+    FONT: turtheme/LiquidCrystal-Normal.otf
+    FONT_SIZE: 38
+    FONT_COLOR: 255, 255, 255
+STATS:
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        X: 10
+        Y: 62
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 94
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        X: 352
+        Y: 164
+        FONT: turtheme/Source-San-Hans-BLOD.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+        FORMAT: medium
+  CPU:
+    POWER:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 436
+        Y: 58
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+    VOLTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 436
+        Y: 114
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        X: 408
+        Y: 463
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 38
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    MEMORY:
+      TEXT:
+        SHOW: true
+        X: 75
+        Y: 638
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 38
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        X: 409
+        Y: 552
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 38
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+    VOLTAGE:
+      TEXT:
+        SHOW: true
+        X: 316
+        Y: 700
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 39
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
+  VOLUME:
+    TEXT:
+      SHOW: true
+      X: 75
+      Y: 726
+      FONT: turtheme/LiquidCrystal-Normal.otf
+      FONT_SIZE: 38
+      FONT_COLOR: 255, 255, 255
+      ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 409
+        Y: 638
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 38
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  DISK:
+    INTERVAL: 10
+    USED:
+      PERCENT_TEXT:
+        SHOW: true
+        X: 409
+        Y: 726
+        FONT: turtheme/LiquidCrystal-Normal.otf
+        FONT_SIZE: 38
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  WEATHER:
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        X: 32
+        Y: 160
+        FONT: turtheme/Source-San-Hans-BLOD.ttf
+        FONT_SIZE: 22
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        ALIGN: center
