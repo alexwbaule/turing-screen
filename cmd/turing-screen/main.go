@@ -11,10 +11,10 @@ import (
 	appTheme "github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/api"
+	"github.com/alexwbaule/turing-screen/internal/domain/service/compositor"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/initializer"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/sender"
-	"github.com/alexwbaule/turing-screen/internal/domain/service/sensors"
 	gpuProvider "github.com/alexwbaule/turing-screen/internal/resource/gpu"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
@@ -133,81 +133,59 @@ func main() {
 				}()
 			}
 
-			// Start sensor goroutines
-			stats := statsTheme.GetStats()
+			// Start compositor: collectors + render loop that feeds jobs
 			cpuCfg := app.Config.GetCPUSensorConfig()
 			gpuCfg := app.Config.GetGPUSensorConfig()
 			netCfg := app.Config.GetNetworkConfig()
 			diskCfg := app.Config.GetDiskSensorConfig()
 			memCfg := app.Config.GetMemoryConfig()
-
-			cpuStat := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate.WithSource("CPU"), cpuCfg.TemperatureSensor, cpuCfg.GetInterval())
-			memStat := sensors.NewMemStat(app.Log, jobs, builder, cmdUpdate.WithSource("Memory"), memCfg.GetInterval())
-			dtStat := sensors.NewDateTimeStat(app.Log, jobs, builder, cmdUpdate.WithSource("DateTime"))
-			netStat := sensors.NewDNetStat(app.Log, jobs, builder, cmdUpdate.WithSource("Network"), netCfg, netCfg.GetInterval())
-			dskStat := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate.WithSource("Disk"), diskCfg.TemperatureSensor, diskCfg.GetInterval())
-			gpuStat := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate.WithSource("GPU"), gpuProvider.NewGPUProvider(gpuCfg.Provider, app.Log), gpuCfg.GetInterval())
-
-			startSensor := func(name string, fn func(context.Context) error) {
-				sensorWg.Add(1)
-				go func() {
-					defer sensorWg.Done()
-					app.Log.Infof("starting worker %s", name)
-					if err := fn(sensorCtx); err != nil && sensorCtx.Err() == nil {
-						app.Log.Errorf("worker %s error: %v", name, err)
-					}
-				}()
-			}
-
-			if stats.CPU != nil {
-				if stats.CPU.Percentage != nil {
-					startSensor("CPU.Percentage", func(c context.Context) error { return cpuStat.RunPercentage(c, stats.CPU.Percentage) })
-				}
-				if stats.CPU.Frequency != nil {
-					startSensor("CPU.Frequency", func(c context.Context) error { return cpuStat.RunFrequency(c, stats.CPU.Frequency) })
-				}
-				if stats.CPU.Temperature != nil {
-					startSensor("CPU.Temperature", func(c context.Context) error { return cpuStat.RunTemperature(c, stats.CPU.Temperature) })
-				}
-				if stats.CPU.Load != nil {
-					startSensor("CPU.Load", func(c context.Context) error { return cpuStat.RunLoad(c, stats.CPU.Load) })
-				}
-				if stats.CPU.Fan != nil {
-					startSensor("CPU.Fan", func(c context.Context) error { return cpuStat.RunFan(c, stats.CPU.Fan) })
-				}
-				if stats.CPU.Power != nil {
-					startSensor("CPU.Power", func(c context.Context) error { return cpuStat.RunPower(c, stats.CPU.Power) })
-				}
-				if stats.CPU.Voltage != nil {
-					startSensor("CPU.Voltage", func(c context.Context) error { return cpuStat.RunVoltage(c, stats.CPU.Voltage) })
-				}
-			}
-			if stats.GPU != nil {
-				startSensor("GPU", func(c context.Context) error { return gpuStat.RunGpuStat(c, stats.GPU) })
-			}
-			if stats.Memory != nil {
-				startSensor("Memory", func(c context.Context) error { return memStat.RunMemStat(c, stats.Memory) })
-			}
-			if stats.Date != nil {
-				startSensor("DateTime", func(c context.Context) error { return dtStat.RunDateTime(c, stats.Date) })
-			}
-			if stats.Net != nil {
-				startSensor("Network", func(c context.Context) error { return netStat.RunNetStat(c, stats.Net) })
-			}
-			if stats.Disk != nil {
-				startSensor("Disk", func(c context.Context) error { return dskStat.RunDiskStat(c, stats.Disk) })
-			}
-			if stats.Volume != nil {
-				volStat := sensors.NewVolumeStat(app.Log, jobs, builder, cmdUpdate.WithSource("Volume"))
-				startSensor("Volume", func(c context.Context) error { return volStat.RunVolume(c, stats.Volume) })
-			}
-
 			weatherConfig := app.Config.GetWeatherConfig()
-			if weatherConfig.Enabled && stats.Weather != nil {
-				weatherClient := weather.NewClient()
-				weatherSensor := sensors.NewWeatherSensor(app.Log, jobs, builder, cmdUpdate.WithSource("Weather"), weatherClient, weatherConfig.City)
-				startSensor("Weather", func(c context.Context) error { return weatherSensor.Run(c, stats.Weather, weatherConfig.GetInterval()) })
+
+			values := &compositor.SensorValues{}
+
+			var weatherClient *weather.Client
+			if weatherConfig.Enabled {
+				weatherClient = weather.NewClient()
 			}
+
+			compositor.StartCollectors(
+				sensorCtx, app.Log, values,
+				cpuCfg.TemperatureSensor,
+				diskCfg.TemperatureSensor,
+				netCfg,
+				gpuProvider.NewGPUProvider(gpuCfg.Provider, app.Log),
+				weatherClient,
+				weatherConfig.City,
+				struct {
+					CPU, GPU, Memory, Disk, Network time.Duration
+					Weather                         time.Duration
+				}{
+					CPU:     cpuCfg.GetInterval(),
+					GPU:     gpuCfg.GetInterval(),
+					Memory:  memCfg.GetInterval(),
+					Disk:    diskCfg.GetInterval(),
+					Network: netCfg.GetInterval(),
+					Weather: weatherConfig.GetInterval(),
+				},
+			)
+
+			comp := compositor.New(
+				app.Log, devSerial, builder,
+				statsTheme.GetStats(), values,
+				cmdUpdate.WithSource("compositor"),
+				statsTheme.GetDisplay(),
+				200*time.Millisecond,
+			)
+			comp.SetJobs(jobs)
+
+			sensorWg.Add(1)
+			go func() {
+				defer sensorWg.Done()
+				app.Log.Info("compositor render loop started")
+				if err := comp.Run(sensorCtx); err != nil && sensorCtx.Err() == nil {
+					app.Log.Errorf("compositor error: %v", err)
+				}
+			}()
 
 			sensorsRunning = true
 			app.Log.Info("all sensors started")
