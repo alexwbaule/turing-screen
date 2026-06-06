@@ -97,26 +97,26 @@ func (b *Builder) DrawText(text string, stat *theme.Text, defaultSize int) (imag
 
 	numb := imageToNRGBA(b.background)
 
-	// Determine crop size using a reference measure string
-	// Priority: PLACEHOLDER > theme SIZE > sensor default > text length
-	charCount := utils.CountStr(text)
-	if stat.Placeholder != "" {
-		charCount = utils.CountStr(stat.Placeholder)
-	} else if stat.Size > 0 {
-		charCount = stat.Size
-	} else if defaultSize > charCount {
-		charCount = defaultSize
-	}
-
 	d := &font.Drawer{
 		Dst:  numb,
 		Src:  image.NewUniform(stat.FontColor),
 		Face: stat.Font,
 	}
 
-	// Measure crop dimensions using reference string of "8"s
-	measure := strings.Repeat("8", charCount)
-	cropWidth := d.MeasureString(measure).Ceil()
+	// Measure crop width: use the larger of placeholder or actual text
+	var cropWidth int
+	if stat.Placeholder != "" {
+		placeholderWidth := d.MeasureString(stat.Placeholder).Ceil()
+		textWidth := d.MeasureString(text).Ceil()
+		if placeholderWidth > textWidth {
+			cropWidth = placeholderWidth
+		} else {
+			cropWidth = textWidth
+		}
+	} else {
+		cropWidth = d.MeasureString(text).Ceil()
+	}
+
 	metrics := stat.Font.Metrics()
 	cropHeight := (metrics.Ascent + metrics.Descent).Ceil()
 

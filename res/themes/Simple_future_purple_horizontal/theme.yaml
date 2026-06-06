@@ -156,12 +156,12 @@ STATS:
         SHOW: true
         SHOW_UNIT: true
         INDEX: 11
-        X: 778
-        Y: 325
+        X: 758
+        Y: 328
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
-        ALIGN: RIGHT
+        ALIGN: LEFT
     VOLTAGE:
       SHOW: false
       TEXT:
@@ -169,12 +169,12 @@ STATS:
         SHOW: true
         SHOW_UNIT: true
         INDEX: 12
-        X: 778
-        Y: 362
+        X: 722
+        Y: 363
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
-        ALIGN: RIGHT
+        ALIGN: LEFT
   GPU:
     PERCENTAGE:
       SHOW: false
@@ -234,20 +234,20 @@ STATS:
       SHOW: false
       TEXT:
         PLACEHOLDER: 0W
-        SHOW: true
+        SHOW: false
         SHOW_UNIT: true
         INDEX: 17
-        X: 778
-        Y: 398
+        X: 756
+        Y: 396
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
-        ALIGN: RIGHT
+        ALIGN: LEFT
     FREQUENCY:
       SHOW: false
       GRAPH:
         SHOW: true
-        INDEX: 19
+        INDEX: 18
         X: 604
         Y: 142
         WIDTH: 169
@@ -260,7 +260,7 @@ STATS:
         PLACEHOLDER: 0M
         SHOW: true
         SHOW_UNIT: true
-        INDEX: 18
+        INDEX: 17
         X: 778
         Y: 161
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -273,19 +273,19 @@ STATS:
         PLACEHOLDER: 0.00V
         SHOW: true
         SHOW_UNIT: true
-        INDEX: 20
-        X: 778
-        Y: 434
+        INDEX: 19
+        X: 722
+        Y: 426
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
-        ALIGN: RIGHT
+        ALIGN: LEFT
     FAN:
       SHOW: true
       TEXT:
         SHOW: true
         SHOW_UNIT: true
-        INDEX: 21
+        INDEX: 20
         X: 727
         Y: 215
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -296,7 +296,7 @@ STATS:
       SHOW: false
       GRAPH:
         SHOW: true
-        INDEX: 24
+        INDEX: 23
         X: 159
         Y: 333
         WIDTH: 116
@@ -307,7 +307,7 @@ STATS:
         BAR_OUTLINE: false
       RADIAL:
         SHOW: true
-        INDEX: 25
+        INDEX: 24
         X: 81
         Y: 390
         RADIUS: 53
@@ -326,7 +326,7 @@ STATS:
         PLACEHOLDER: "3433"
         SHOW: true
         SHOW_UNIT: false
-        INDEX: 23
+        INDEX: 22
         X: 176
         Y: 300
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -337,7 +337,7 @@ STATS:
         PLACEHOLDER: "78"
         SHOW: true
         SHOW_UNIT: false
-        INDEX: 22
+        INDEX: 21
         X: 83
         Y: 359
         FONT: geforce/GeForce-Bold.ttf
@@ -351,7 +351,7 @@ STATS:
         PLACEHOLDER: 77%
         SHOW: true
         SHOW_UNIT: true
-        INDEX: 26
+        INDEX: 25
         X: 429
         Y: 326
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -364,7 +364,7 @@ STATS:
         PLACEHOLDER: 36°
         SHOW: true
         SHOW_UNIT: true
-        INDEX: 27
+        INDEX: 26
         X: 505
         Y: 326
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -379,7 +379,7 @@ STATS:
           PLACEHOLDER: 0KB/s
           SHOW: true
           SHOW_UNIT: true
-          INDEX: 28
+          INDEX: 27
           X: 392
           Y: 405
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -392,7 +392,7 @@ STATS:
           PLACEHOLDER: 0KB/s
           SHOW: true
           SHOW_UNIT: true
-          INDEX: 29
+          INDEX: 28
           X: 391
           Y: 432
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf

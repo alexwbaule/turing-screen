@@ -50,6 +50,18 @@ func NewUpdatePayload(log *logger.Logger, o theme.Orientation, t *tdevice.Displa
 	}
 }
 
+// WithSource returns a shallow copy of the UpdatePayload with a source label set.
+// Used by sensors to tag their payloads for debug logging.
+func (m *UpdatePayload) WithSource(source string) *UpdatePayload {
+	return &UpdatePayload{
+		log:         m.log,
+		orientation: m.orientation,
+		device:      m.device,
+		overlay:     m.overlay,
+		source:      source,
+	}
+}
+
 // SetOverlay activates video mode.
 func (m *UpdatePayload) SetOverlay(overlay OverlayWriter) {
 	m.overlay = overlay
@@ -63,7 +75,7 @@ func (m *UpdatePayload) IsVideoMode() bool {
 // SendPayload creates an UPDATE_BITMAP command for static mode,
 // or draws on the overlay buffer for video mode (returning NoOp).
 func (m *UpdatePayload) SendPayload(partial device.ImagePartial, x, y int) *UpdatePayload {
-	return m.SendPayloadFrom(partial, x, y, "")
+	return m.SendPayloadFrom(partial, x, y, m.source)
 }
 
 // SendPayloadFrom creates an UPDATE_BITMAP with a source label for debug logging.

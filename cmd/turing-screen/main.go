@@ -141,12 +141,12 @@ func main() {
 			diskCfg := app.Config.GetDiskSensorConfig()
 			memCfg := app.Config.GetMemoryConfig()
 
-			cpuStat := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate, cpuCfg.TemperatureSensor, cpuCfg.GetInterval())
-			memStat := sensors.NewMemStat(app.Log, jobs, builder, cmdUpdate, memCfg.GetInterval())
-			dtStat := sensors.NewDateTimeStat(app.Log, jobs, builder, cmdUpdate)
-			netStat := sensors.NewDNetStat(app.Log, jobs, builder, cmdUpdate, netCfg, netCfg.GetInterval())
-			dskStat := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate, diskCfg.TemperatureSensor, diskCfg.GetInterval())
-			gpuStat := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate, gpuProvider.NewGPUProvider(gpuCfg.Provider, app.Log), gpuCfg.GetInterval())
+			cpuStat := sensors.NewCpuStat(app.Log, jobs, builder, cmdUpdate.WithSource("CPU"), cpuCfg.TemperatureSensor, cpuCfg.GetInterval())
+			memStat := sensors.NewMemStat(app.Log, jobs, builder, cmdUpdate.WithSource("Memory"), memCfg.GetInterval())
+			dtStat := sensors.NewDateTimeStat(app.Log, jobs, builder, cmdUpdate.WithSource("DateTime"))
+			netStat := sensors.NewDNetStat(app.Log, jobs, builder, cmdUpdate.WithSource("Network"), netCfg, netCfg.GetInterval())
+			dskStat := sensors.NewDiskStat(app.Log, jobs, builder, cmdUpdate.WithSource("Disk"), diskCfg.TemperatureSensor, diskCfg.GetInterval())
+			gpuStat := sensors.NewGpuStat(app.Log, jobs, builder, cmdUpdate.WithSource("GPU"), gpuProvider.NewGPUProvider(gpuCfg.Provider, app.Log), gpuCfg.GetInterval())
 
 			startSensor := func(name string, fn func(context.Context) error) {
 				sensorWg.Add(1)
@@ -198,14 +198,14 @@ func main() {
 				startSensor("Disk", func(c context.Context) error { return dskStat.RunDiskStat(c, stats.Disk) })
 			}
 			if stats.Volume != nil {
-				volStat := sensors.NewVolumeStat(app.Log, jobs, builder, cmdUpdate)
+				volStat := sensors.NewVolumeStat(app.Log, jobs, builder, cmdUpdate.WithSource("Volume"))
 				startSensor("Volume", func(c context.Context) error { return volStat.RunVolume(c, stats.Volume) })
 			}
 
 			weatherConfig := app.Config.GetWeatherConfig()
 			if weatherConfig.Enabled && stats.Weather != nil {
 				weatherClient := weather.NewClient()
-				weatherSensor := sensors.NewWeatherSensor(app.Log, jobs, builder, cmdUpdate, weatherClient, weatherConfig.City)
+				weatherSensor := sensors.NewWeatherSensor(app.Log, jobs, builder, cmdUpdate.WithSource("Weather"), weatherClient, weatherConfig.City)
 				startSensor("Weather", func(c context.Context) error { return weatherSensor.Run(c, stats.Weather, weatherConfig.GetInterval()) })
 			}
 

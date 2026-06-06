@@ -2,7 +2,6 @@ package sensors
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
@@ -126,20 +125,24 @@ func BuildGraphWithText(builder *renderer.Builder, value float64, graph *theme.G
 
 // textCropRect computes the crop rectangle for a text element (for overlap detection).
 func textCropRect(builder *renderer.Builder, text string, stat *theme.Text, defaultSize int) utils.Rect {
-	charCount := utils.CountStr(text)
+	d := &font.Drawer{Face: stat.Font}
+
+	// Crop width: larger of placeholder or actual text
+	var cropWidth int
 	if stat.Placeholder != "" {
-		charCount = utils.CountStr(stat.Placeholder)
-	} else if stat.Size > 0 {
-		charCount = stat.Size
-	} else if defaultSize > charCount {
-		charCount = defaultSize
+		placeholderWidth := d.MeasureString(stat.Placeholder).Ceil()
+		textWidth := d.MeasureString(text).Ceil()
+		if placeholderWidth > textWidth {
+			cropWidth = placeholderWidth
+		} else {
+			cropWidth = textWidth
+		}
+	} else {
+		cropWidth = d.MeasureString(text).Ceil()
 	}
 
 	metrics := stat.Font.Metrics()
 	cropHeight := (metrics.Ascent + metrics.Descent).Ceil()
-	measure := strings.Repeat("8", charCount)
-	d := &font.Drawer{Face: stat.Font}
-	cropWidth := d.MeasureString(measure).Ceil()
 
 	if stat.Width > 0 {
 		cropWidth = stat.Width
