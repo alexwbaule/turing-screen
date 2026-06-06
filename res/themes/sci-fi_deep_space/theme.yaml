@@ -1,7 +1,3 @@
-# Auto-converted from .turtheme
-# Source: sci-fi deep space
-# Resolution: 800x480 (landscape)
----
 display:
   SIZE: 5"
   ORIENTATION: landscape
@@ -9,48 +5,23 @@ display:
 static_images:
   BACKGROUND:
     PATH: assets/image_1.png
+    HEIGHT: 480
+    WIDTH: 800
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
   LAYER_2:
     PATH: assets/image_3.png
+    HEIGHT: 480
+    WIDTH: 800
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
 STATS:
-  WEATHER:
-    TEMPERATURE:
-      TEXT:
-        SHOW: true
-        INDEX: 2
-        X: 398
-        Y: 6
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 27
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: Sunny N2Level  34°
-        ALIGN: center
   CPU:
-    FREQUENCY:
-      INTERVAL: 1
-      TEXT:
-        SHOW: true
-        INDEX: 3
-        X: 343
-        Y: 57
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 22
-        FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '3069'
-        ALIGN: center
     PERCENTAGE:
-      INTERVAL: 1
+      SHOW: false
       RADIAL:
         SHOW: true
-        INDEX: 6
+        INDEX: 4
         X: 141
         Y: 160
         RADIUS: 62
@@ -66,45 +37,48 @@ STATS:
         SHOW_TEXT: false
         SHOW_UNIT: false
       TEXT:
+        PLACEHOLDER: "9"
         SHOW: true
-        INDEX: 14
+        SHOW_UNIT: false
+        INDEX: 11
         X: 142
         Y: 135
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 45
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '9'
         ALIGN: center
-    TEMPERATURE:
-      INTERVAL: 1
+    FREQUENCY:
+      SHOW: false
       TEXT:
+        PLACEHOLDER: "3069"
         SHOW: true
-        INDEX: 19
-        X: 261
-        Y: 206
+        SHOW_UNIT: false
+        INDEX: 1
+        X: 316
+        Y: 56
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 22
+        FONT_COLOR: 255, 255, 255
+        ALIGN: CENTER
+    TEMPERATURE:
+      SHOW: false
+      TEXT:
+        PLACEHOLDER: "59"
+        SHOW: true
+        SHOW_UNIT: false
+        INDEX: 16
+        X: 238
+        Y: 204
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '59'
-        ALIGN: center
+        ALIGN: CENTER
   GPU:
-    INTERVAL: 1
-    MEMORY:
-      TEXT:
-        SHOW: true
-        INDEX: 4
-        X: 620
-        Y: 54
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: 0M
-        ALIGN: center
     PERCENTAGE:
+      SHOW: false
       RADIAL:
         SHOW: true
-        INDEX: 7
+        INDEX: 5
         X: 656
         Y: 160
         RADIUS: 62
@@ -120,60 +94,48 @@ STATS:
         SHOW_TEXT: false
         SHOW_UNIT: false
       TEXT:
+        PLACEHOLDER: "0"
         SHOW: true
-        INDEX: 15
+        SHOW_UNIT: false
+        INDEX: 12
         X: 658
         Y: 134
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 45
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '0'
         ALIGN: center
-    TEMPERATURE:
+    MEMORY:
+      SHOW: false
       TEXT:
+        PLACEHOLDER: 0M
         SHOW: true
-        INDEX: 20
-        X: 564
-        Y: 206
+        SHOW_UNIT: true
+        INDEX: 2
+        X: 612
+        Y: 54
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        ALIGN: CENTER
+    TEMPERATURE:
+      SHOW: false
+      TEXT:
+        PLACEHOLDER: "0"
+        SHOW: true
+        SHOW_UNIT: false
+        INDEX: 17
+        X: 542
+        Y: 204
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '0'
-        ALIGN: center
-  DATE:
-    INTERVAL: 1
-    DAY:
-      TEXT:
-        SHOW: true
-        INDEX: 5
-        X: 402
-        Y: 103
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 60
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: '2022-08-15'
-        ALIGN: center
-        FORMAT: medium
-    HOUR:
-      TEXT:
-        SHOW: true
-        INDEX: 11
-        X: 394
-        Y: 168
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 36
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: '16:10:26'
-        ALIGN: center
-        FORMAT: short
+        ALIGN: CENTER
   MEMORY:
-    INTERVAL: 5
     VIRTUAL:
+      SHOW: false
       RADIAL:
         SHOW: true
-        INDEX: 8
+        INDEX: 6
         X: 199
         Y: 327
         RADIUS: 62
@@ -189,21 +151,22 @@ STATS:
         SHOW_TEXT: false
         SHOW_UNIT: false
       PERCENT_TEXT:
+        PLACEHOLDER: "58"
         SHOW: true
-        INDEX: 16
+        SHOW_UNIT: false
+        INDEX: 13
         X: 200
         Y: 306
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 42
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '58'
         ALIGN: center
   DISK:
-    INTERVAL: 10
     USED:
+      SHOW: false
       RADIAL:
         SHOW: true
-        INDEX: 9
+        INDEX: 7
         X: 391
         Y: 391
         RADIUS: 62
@@ -219,78 +182,108 @@ STATS:
         SHOW_TEXT: false
         SHOW_UNIT: false
       PERCENT_TEXT:
+        PLACEHOLDER: "93"
         SHOW: true
-        INDEX: 17
+        SHOW_UNIT: false
+        INDEX: 14
         X: 390
         Y: 366
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 42
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '93'
         ALIGN: center
     TEMPERATURE:
+      SHOW: false
       TEXT:
+        PLACEHOLDER: "42"
         SHOW: true
-        INDEX: 21
+        SHOW_UNIT: false
+        INDEX: 18
         X: 400
         Y: 280
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '42'
+        ALIGN: center
+  NET:
+    ETH:
+      UPLOAD:
+        SHOW: false
+        TEXT:
+          PLACEHOLDER: 0KB/s
+          SHOW: true
+          SHOW_UNIT: true
+          INDEX: 9
+          X: 260
+          Y: 405
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 27
+          FONT_COLOR: 255, 255, 255
+          ALIGN: CENTER
+      DOWNLOAD:
+        SHOW: false
+        TEXT:
+          PLACEHOLDER: 0KB/s
+          SHOW: true
+          SHOW_UNIT: true
+          INDEX: 10
+          X: 686
+          Y: 403
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 27
+          FONT_COLOR: 255, 255, 255
+          ALIGN: CENTER
+  DATE:
+    DAY:
+      SHOW: false
+      TEXT:
+        PLACEHOLDER: "2022-08-15"
+        SHOW: true
+        SHOW_UNIT: true
+        FORMAT: medium
+        INDEX: 3
+        X: 402
+        Y: 103
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 60
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+    HOUR:
+      SHOW: false
+      TEXT:
+        PLACEHOLDER: "16:10:26"
+        SHOW: true
+        SHOW_UNIT: true
+        FORMAT: short
+        INDEX: 8
+        X: 394
+        Y: 168
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 36
+        FONT_COLOR: 255, 255, 255
+        ALIGN: center
+  WEATHER:
+    TEMPERATURE:
+      SHOW: false
+      TEXT:
+        PLACEHOLDER: Sunny N2Level  34°
+        SHOW: true
+        SHOW_UNIT: true
+        X: 398
+        Y: 6
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
         ALIGN: center
   VOLUME:
-    RADIAL:
-      SHOW: true
-      INDEX: 10
-      X: 605
-      Y: 327
-      RADIUS: 62
-      WIDTH: 10
-      MIN_VALUE: 0
-      MAX_VALUE: 100
-      ANGLE_START: 36
-      ANGLE_END: 60
-      ANGLE_STEPS: 1
-      ANGLE_SEP: 0
-      CLOCKWISE: true
-      BAR_COLOR: 255, 0, 255
-      SHOW_TEXT: false
-      SHOW_UNIT: false
     TEXT:
+      PLACEHOLDER: "100"
       SHOW: true
-      INDEX: 18
+      SHOW_UNIT: false
+      INDEX: 15
       X: 605
       Y: 306
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
       FONT_SIZE: 42
       FONT_COLOR: 255, 255, 255
-      PLACEHOLDER: '100'
       ALIGN: center
-  NET:
-    INTERVAL: 1
-    ETH:
-      UPLOAD:
-        TEXT:
-          SHOW: true
-          INDEX: 12
-          X: 280
-          Y: 406
-          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 27
-          FONT_COLOR: 255, 255, 255
-          SHOW_UNIT: true
-          PLACEHOLDER: 0KB/s
-          ALIGN: center
-      DOWNLOAD:
-        TEXT:
-          SHOW: true
-          INDEX: 13
-          X: 706
-          Y: 405
-          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 27
-          FONT_COLOR: 255, 255, 255
-          SHOW_UNIT: true
-          PLACEHOLDER: 0KB/s
-          ALIGN: center

@@ -53,6 +53,7 @@ type EditorApp struct {
 	canvasWidth        int    // current canvas width based on orientation
 	canvasHeight       int    // current canvas height based on orientation
 	statusLabel        *widget.Label
+	wsClient           *WSClient
 }
 
 // activeWindow returns the editor window if open, otherwise the main window.
@@ -659,6 +660,48 @@ func (e *EditorApp) selectWidgetByPath(path string) {
 				return
 			}
 		}
+	}
+}
+
+// showLayerProperties updates the properties panel to show layer/video info.
+func (e *EditorApp) showLayerProperties(layerKey string) {
+	if layerKey == "__VIDEO__" && e.currentTheme.VideoPlay != nil {
+		e.propertiesPanel.ShowLayerInfo("VIDEO", e.currentTheme.VideoPlay.Path, func() {
+			// Change video file
+			fileDialog := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
+				if err != nil || reader == nil {
+					return
+				}
+				path := reader.URI().Path()
+				reader.Close()
+				e.currentTheme.VideoPlay.Path = filepath.Base(path)
+				e.videoPath = path
+				e.loadVideoAsBackground(path)
+				e.layersPanel.Refresh()
+			}, e.activeWindow())
+			fileDialog.Resize(fyne.NewSize(900, 600))
+			fileDialog.Show()
+		})
+	} else if img, ok := e.currentTheme.StaticImages[layerKey]; ok {
+		e.propertiesPanel.ShowLayerInfo(layerKey, img.Path, func() {
+			// Change image file
+			fileDialog := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
+				if err != nil || reader == nil {
+					return
+				}
+				path := reader.URI().Path()
+				reader.Close()
+				imgData := e.currentTheme.StaticImages[layerKey]
+				imgData.Path = filepath.Base(path)
+				e.currentTheme.StaticImages[layerKey] = imgData
+				if e.themeDir != "" {
+					e.LoadBackgroundLayersOrdered(e.themeDir, e.layersPanel.layerOrder)
+				}
+				e.layersPanel.Refresh()
+			}, e.activeWindow())
+			fileDialog.Resize(fyne.NewSize(900, 600))
+			fileDialog.Show()
+		})
 	}
 }
 

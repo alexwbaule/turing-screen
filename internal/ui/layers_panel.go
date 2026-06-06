@@ -64,6 +64,10 @@ func NewLayersPanel(app *EditorApp) *LayersPanel {
 			entry := lp.entries[id]
 			if !entry.isLayer && entry.widget != nil {
 				lp.app.selectWidget(entry.widget)
+			} else if entry.isLayer {
+				// Show layer properties (allow changing file)
+				lp.app.selectWidget(nil)
+				lp.app.showLayerProperties(entry.layerKey)
 			}
 		}
 	}
@@ -99,6 +103,15 @@ func NewLayersPanel(app *EditorApp) *LayersPanel {
 // Refresh rebuilds the entries list from layerOrder + canvas widgets.
 func (lp *LayersPanel) Refresh() {
 	lp.entries = nil
+
+	// 0. Video (if present, always first/bottom)
+	if lp.app.currentTheme.VideoPlay != nil {
+		lp.entries = append(lp.entries, layerEntry{
+			label:    fmt.Sprintf("🎬 VIDEO (%s)", filepath.Base(lp.app.currentTheme.VideoPlay.Path)),
+			isLayer:  true,
+			layerKey: "__VIDEO__",
+		})
+	}
 
 	// 1. Background layers in display order
 	for _, key := range lp.layerOrder {

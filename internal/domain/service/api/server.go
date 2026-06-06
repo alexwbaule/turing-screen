@@ -2,12 +2,15 @@ package api
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"nhooyr.io/websocket"
 )
 
 // Controller provides actions the API can trigger on the daemon.
@@ -47,11 +50,22 @@ type StorageInfo struct {
 	Free  int64 `json:"free"`
 }
 
+// Message is the generic WebSocket message format.
+type Message struct {
+	ID      string          `json:"id"`
+	Action  string          `json:"action"`
+	Status  string          `json:"status,omitempty"`
+	Payload json.RawMessage `json:"payload,omitempty"`
+	Error   string          `json:"error,omitempty"`
+}
+
 type Server struct {
 	log        *logger.Logger
 	controller Controller
 	port       int
 	server     *http.Server
+	clients    map[*websocket.Conn]bool
+	clientsMu  sync.Mutex
 }
 
 func NewServer(log *logger.Logger, controller Controller, port int) *Server {
@@ -59,47 +73,22 @@ func NewServer(log *logger.Logger, controller Controller, port int) *Server {
 		log:        log,
 		controller: controller,
 		port:       port,
+		clients:    make(map[*websocket.Conn]bool),
 	}
 }
 
 func (s *Server) Start(ctx context.Context) error {
 	mux := http.NewServeMux()
-
-	// Status & Control
-	mux.HandleFunc("GET /status", s.handleStatus)
-	mux.HandleFunc("POST /mode/editor", s.handleModeEditor)
-	mux.HandleFunc("POST /mode/normal", s.handleModeNormal)
-
-	// Device
-	mux.HandleFunc("POST /device/brightness", s.handleBrightness)
-	mux.HandleFunc("POST /device/restart", s.handleRestart)
-	mux.HandleFunc("POST /device/reboot", s.handleReboot)
-	mux.HandleFunc("POST /device/reset", s.handleReset)
-	mux.HandleFunc("POST /device/turnoff", s.handleTurnOff)
-
-	// Theme
-	mux.HandleFunc("GET /theme/current", s.handleThemeCurrent)
-	mux.HandleFunc("GET /theme/list", s.handleThemeList)
-	mux.HandleFunc("POST /theme/preview", s.handleThemePreview)
-	mux.HandleFunc("POST /theme/apply", s.handleThemeApply)
-	mux.HandleFunc("POST /theme/video/start", s.handleVideoStart)
-	mux.HandleFunc("POST /theme/video/stop", s.handleVideoStop)
-
-	// Storage
-	mux.HandleFunc("GET /storage/info", s.handleStorageInfo)
-	mux.HandleFunc("GET /storage/files", s.handleStorageFiles)
-	mux.HandleFunc("POST /storage/upload", s.handleStorageUpload)
-	mux.HandleFunc("DELETE /storage/file", s.handleStorageDelete)
-
-	// Sensors
-	mux.HandleFunc("GET /sensors/values", s.handleSensorValues)
+	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		s.handleWebSocket(w, r, ctx)
+	})
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", s.port),
 		Handler: mux,
 	}
 
-	s.log.Infof("API server starting on port %d", s.port)
+	s.log.Infof("WebSocket server starting on ws://localhost:%d/ws", s.port)
 
 	go func() {
 		<-ctx.Done()
@@ -108,232 +97,262 @@ func (s *Server) Start(ctx context.Context) error {
 		s.server.Shutdown(shutdownCtx)
 	}()
 
+	// Start status broadcast goroutine
+	go s.broadcastStatusLoop(ctx)
+
 	if err := s.server.ListenAndServe(); err != http.ErrServerClosed {
-		return fmt.Errorf("API server error: %w", err)
+		return fmt.Errorf("WebSocket server error: %w", err)
 	}
 	return nil
 }
 
-// --- Handlers ---
-
-func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
-	s.jsonResponse(w, s.controller.GetStatus())
-}
-
-func (s *Server) handleModeEditor(w http.ResponseWriter, r *http.Request) {
-	if err := s.controller.SetModeEditor(); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"mode": "editor"})
-}
-
-func (s *Server) handleModeNormal(w http.ResponseWriter, r *http.Request) {
-	if err := s.controller.SetModeNormal(); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"mode": "normal"})
-}
-
-func (s *Server) handleBrightness(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Value int `json:"value"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.errorResponse(w, http.StatusBadRequest, "invalid JSON")
-		return
-	}
-	if err := s.controller.SetBrightness(req.Value); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "ok"})
-}
-
-func (s *Server) handleRestart(w http.ResponseWriter, r *http.Request) {
-	if err := s.controller.RestartDevice(); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "restarted"})
-}
-
-func (s *Server) handleReboot(w http.ResponseWriter, r *http.Request) {
-	if err := s.controller.RebootDevice(); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "rebooted"})
-}
-
-func (s *Server) handleReset(w http.ResponseWriter, r *http.Request) {
-	if err := s.controller.ResetUSB(); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "reset"})
-}
-
-func (s *Server) handleTurnOff(w http.ResponseWriter, r *http.Request) {
-	if err := s.controller.TurnOff(); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "off"})
-}
-
-func (s *Server) handleThemeCurrent(w http.ResponseWriter, r *http.Request) {
-	s.jsonResponse(w, map[string]string{"theme": s.controller.GetCurrentTheme()})
-}
-
-func (s *Server) handleThemeList(w http.ResponseWriter, r *http.Request) {
-	s.jsonResponse(w, map[string]interface{}{"themes": s.controller.GetThemeList()})
-}
-
-func (s *Server) handleThemePreview(w http.ResponseWriter, r *http.Request) {
-	data, err := readBody(r, 10*1024*1024) // 10MB max
+func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request, ctx context.Context) {
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		InsecureSkipVerify: true,
+	})
 	if err != nil {
-		s.errorResponse(w, http.StatusBadRequest, err.Error())
+		s.log.Warnf("WebSocket accept failed: %v", err)
 		return
 	}
-	if err := s.controller.PreviewImage(data); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "ok"})
-}
+	defer conn.Close(websocket.StatusNormalClosure, "bye")
 
-func (s *Server) handleThemeApply(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Name string `json:"name"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.errorResponse(w, http.StatusBadRequest, "invalid JSON")
-		return
-	}
-	if req.Name == "" {
-		s.errorResponse(w, http.StatusBadRequest, "name is required")
-		return
-	}
-	if err := s.controller.ApplyTheme(req.Name); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "applied", "theme": req.Name})
-}
+	s.clientsMu.Lock()
+	s.clients[conn] = true
+	s.clientsMu.Unlock()
 
-func (s *Server) handleStorageInfo(w http.ResponseWriter, r *http.Request) {
-	info, err := s.controller.GetStorageInfo()
-	if err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, info)
-}
+	defer func() {
+		s.clientsMu.Lock()
+		delete(s.clients, conn)
+		s.clientsMu.Unlock()
+	}()
 
-func (s *Server) handleStorageFiles(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	if path == "" {
-		path = "/root/video/"
-	}
-	files, err := s.controller.GetStorageFiles(path)
-	if err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]interface{}{"files": files})
-}
+	s.log.Info("WebSocket client connected")
 
-func (s *Server) handleStorageUpload(w http.ResponseWriter, r *http.Request) {
-	r.ParseMultipartForm(20 * 1024 * 1024) // 20MB max
-	file, header, err := r.FormFile("file")
-	if err != nil {
-		s.errorResponse(w, http.StatusBadRequest, "file field required")
-		return
-	}
-	defer file.Close()
-
-	data := make([]byte, header.Size)
-	if _, err := file.Read(data); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, "failed to read file")
-		return
-	}
-
-	if err := s.controller.UploadFile(header.Filename, data); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "uploaded", "file": header.Filename})
-}
-
-func (s *Server) handleStorageDelete(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Path string `json:"path"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.errorResponse(w, http.StatusBadRequest, "invalid JSON")
-		return
-	}
-	if err := s.controller.DeleteFile(req.Path); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "deleted"})
-}
-
-func (s *Server) handleSensorValues(w http.ResponseWriter, r *http.Request) {
-	s.jsonResponse(w, s.controller.GetSensorValues())
-}
-
-func (s *Server) handleVideoStart(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Path string `json:"path"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.errorResponse(w, http.StatusBadRequest, "invalid JSON")
-		return
-	}
-	if err := s.controller.PlayVideo(req.Path); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "playing"})
-}
-
-func (s *Server) handleVideoStop(w http.ResponseWriter, r *http.Request) {
-	if err := s.controller.StopVideo(); err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	s.jsonResponse(w, map[string]string{"status": "stopped"})
-}
-
-// --- Helpers ---
-
-func (s *Server) jsonResponse(w http.ResponseWriter, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-}
-
-func (s *Server) errorResponse(w http.ResponseWriter, code int, msg string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(map[string]string{"error": msg})
-}
-
-func readBody(r *http.Request, maxSize int64) ([]byte, error) {
-	r.Body = http.MaxBytesReader(nil, r.Body, maxSize)
-	data := make([]byte, 0, 1024)
-	buf := make([]byte, 4096)
 	for {
-		n, err := r.Body.Read(buf)
-		if n > 0 {
-			data = append(data, buf[:n]...)
-		}
+		_, data, err := conn.Read(ctx)
 		if err != nil {
-			break
+			s.log.Debugf("WebSocket read error: %v", err)
+			return
+		}
+
+		var msg Message
+		if err := json.Unmarshal(data, &msg); err != nil {
+			s.sendError(ctx, conn, "", "invalid JSON: "+err.Error())
+			continue
+		}
+
+		response := s.handleMessage(msg)
+		respData, _ := json.Marshal(response)
+		conn.Write(ctx, websocket.MessageText, respData)
+	}
+}
+
+func (s *Server) handleMessage(msg Message) Message {
+	switch msg.Action {
+
+	// --- Status & Control ---
+	case "status.get":
+		return s.respond(msg.ID, msg.Action, s.controller.GetStatus())
+
+	case "mode.editor":
+		if err := s.controller.SetModeEditor(); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respond(msg.ID, msg.Action, map[string]string{"mode": "editor"})
+
+	case "mode.normal":
+		if err := s.controller.SetModeNormal(); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respond(msg.ID, msg.Action, map[string]string{"mode": "normal"})
+
+	// --- Device ---
+	case "device.brightness":
+		var p struct {
+			Value int `json:"value"`
+		}
+		json.Unmarshal(msg.Payload, &p)
+		if err := s.controller.SetBrightness(p.Value); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
+	case "device.restart":
+		s.controller.RestartDevice()
+		return s.respondOK(msg.ID, msg.Action)
+
+	case "device.reboot":
+		s.controller.RebootDevice()
+		return s.respondOK(msg.ID, msg.Action)
+
+	case "device.reset":
+		if err := s.controller.ResetUSB(); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
+	case "device.turnoff":
+		s.controller.TurnOff()
+		return s.respondOK(msg.ID, msg.Action)
+
+	// --- Theme ---
+	case "theme.current":
+		return s.respond(msg.ID, msg.Action, map[string]string{"theme": s.controller.GetCurrentTheme()})
+
+	case "theme.list":
+		return s.respond(msg.ID, msg.Action, map[string]interface{}{"themes": s.controller.GetThemeList()})
+
+	case "theme.apply":
+		var p struct {
+			Name string `json:"name"`
+		}
+		json.Unmarshal(msg.Payload, &p)
+		if p.Name == "" {
+			return s.respondError(msg.ID, msg.Action, "name is required")
+		}
+		if err := s.controller.ApplyTheme(p.Name); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respond(msg.ID, msg.Action, map[string]string{"status": "ok", "theme": p.Name})
+
+	case "theme.preview":
+		var p struct {
+			Image string `json:"image"`
+		}
+		json.Unmarshal(msg.Payload, &p)
+		imgData, err := base64.StdEncoding.DecodeString(p.Image)
+		if err != nil {
+			return s.respondError(msg.ID, msg.Action, "invalid base64")
+		}
+		if err := s.controller.PreviewImage(imgData); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
+	case "theme.video.start":
+		var p struct {
+			Path string `json:"path"`
+		}
+		json.Unmarshal(msg.Payload, &p)
+		if err := s.controller.PlayVideo(p.Path); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
+	case "theme.video.stop":
+		if err := s.controller.StopVideo(); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
+	// --- Storage ---
+	case "storage.info":
+		info, err := s.controller.GetStorageInfo()
+		if err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respond(msg.ID, msg.Action, info)
+
+	case "storage.files":
+		var p struct {
+			Path string `json:"path"`
+		}
+		json.Unmarshal(msg.Payload, &p)
+		if p.Path == "" {
+			p.Path = "/root/video/"
+		}
+		files, err := s.controller.GetStorageFiles(p.Path)
+		if err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respond(msg.ID, msg.Action, map[string]interface{}{"files": files})
+
+	case "storage.upload":
+		var p struct {
+			Name string `json:"name"`
+			Data string `json:"data"`
+		}
+		json.Unmarshal(msg.Payload, &p)
+		data, err := base64.StdEncoding.DecodeString(p.Data)
+		if err != nil {
+			return s.respondError(msg.ID, msg.Action, "invalid base64")
+		}
+		if err := s.controller.UploadFile(p.Name, data); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
+	case "storage.delete":
+		var p struct {
+			Path string `json:"path"`
+		}
+		json.Unmarshal(msg.Payload, &p)
+		if err := s.controller.DeleteFile(p.Path); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
+	// --- Sensors ---
+	case "sensors.values":
+		return s.respond(msg.ID, msg.Action, s.controller.GetSensorValues())
+
+	default:
+		return s.respondError(msg.ID, msg.Action, "unknown action: "+msg.Action)
+	}
+}
+
+// broadcastStatusLoop sends status events to all connected clients every 2 seconds.
+func (s *Server) broadcastStatusLoop(ctx context.Context) {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			status := s.controller.GetStatus()
+			s.broadcast(ctx, "event.status", status)
 		}
 	}
-	return data, nil
+}
+
+// broadcast sends a push event to all connected clients.
+func (s *Server) broadcast(ctx context.Context, action string, payload interface{}) {
+	payloadData, _ := json.Marshal(payload)
+	msg := Message{
+		Action:  action,
+		Status:  "ok",
+		Payload: payloadData,
+	}
+	data, _ := json.Marshal(msg)
+
+	s.clientsMu.Lock()
+	defer s.clientsMu.Unlock()
+
+	for conn := range s.clients {
+		conn.Write(ctx, websocket.MessageText, data)
+	}
+}
+
+// --- Response helpers ---
+
+func (s *Server) respond(id, action string, payload interface{}) Message {
+	data, _ := json.Marshal(payload)
+	return Message{ID: id, Action: action, Status: "ok", Payload: data}
+}
+
+func (s *Server) respondOK(id, action string) Message {
+	data, _ := json.Marshal(map[string]string{"status": "ok"})
+	return Message{ID: id, Action: action, Status: "ok", Payload: data}
+}
+
+func (s *Server) respondError(id, action, errMsg string) Message {
+	return Message{ID: id, Action: action, Status: "error", Error: errMsg}
+}
+
+func (s *Server) sendError(ctx context.Context, conn *websocket.Conn, id, errMsg string) {
+	msg := Message{ID: id, Status: "error", Error: errMsg}
+	data, _ := json.Marshal(msg)
+	conn.Write(ctx, websocket.MessageText, data)
 }

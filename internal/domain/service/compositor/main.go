@@ -125,9 +125,52 @@ func (c *Compositor) Run(ctx context.Context) error {
 }
 
 func (c *Compositor) renderAndSend() {
-	// 1. Read all current values
+	// 1. Read all current values (snapshot without mutex copy)
 	c.values.mu.RLock()
-	vals := *c.values // snapshot
+	vals := SensorValues{
+		CPUPercent:   c.values.CPUPercent,
+		CPUTemp:      c.values.CPUTemp,
+		CPUFrequency: c.values.CPUFrequency,
+		CPUFan:       c.values.CPUFan,
+		CPUPower:     c.values.CPUPower,
+		CPUVoltage:   c.values.CPUVoltage,
+		CPULoad1:     c.values.CPULoad1,
+		CPULoad5:     c.values.CPULoad5,
+		CPULoad15:    c.values.CPULoad15,
+
+		GPUPercent:   c.values.GPUPercent,
+		GPUTemp:      c.values.GPUTemp,
+		GPUMemory:    c.values.GPUMemory,
+		GPUPower:     c.values.GPUPower,
+		GPUFrequency: c.values.GPUFrequency,
+		GPUVoltage:   c.values.GPUVoltage,
+		GPUFan:       c.values.GPUFan,
+
+		MemPercent:  c.values.MemPercent,
+		MemUsed:     c.values.MemUsed,
+		MemFree:     c.values.MemFree,
+		SwapPercent: c.values.SwapPercent,
+
+		DiskPercent: c.values.DiskPercent,
+		DiskFree:    c.values.DiskFree,
+		DiskTemp:    c.values.DiskTemp,
+
+		NetUpSpeed:    c.values.NetUpSpeed,
+		NetDownSpeed:  c.values.NetDownSpeed,
+		NetUploaded:   c.values.NetUploaded,
+		NetDownloaded: c.values.NetDownloaded,
+		WifiUpSpeed:   c.values.WifiUpSpeed,
+		WifiDownSpeed: c.values.WifiDownSpeed,
+
+		DateHour: c.values.DateHour,
+		DateDay:  c.values.DateDay,
+
+		WeatherTemp: c.values.WeatherTemp,
+		WeatherDesc: c.values.WeatherDesc,
+		WeatherWind: c.values.WeatherWind,
+
+		Volume: c.values.Volume,
+	}
 	c.values.mu.RUnlock()
 
 	// 2. Render everything on top of background

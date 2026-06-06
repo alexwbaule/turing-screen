@@ -7,11 +7,9 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -40,14 +38,9 @@ type HomeScreen struct {
 }
 
 func NewHomeScreen(app *EditorApp) *HomeScreen {
-	hs := &HomeScreen{
-		app:          app,
-		currentIndex: 0,
-	}
-
+	hs := &HomeScreen{app: app, currentIndex: 0}
 	hs.loadThemeList()
 
-	// Find active theme
 	activeTheme := app.currentActiveTheme()
 	for i, t := range hs.themes {
 		if t == activeTheme {
@@ -56,66 +49,26 @@ func NewHomeScreen(app *EditorApp) *HomeScreen {
 		}
 	}
 
-	// Preview image
 	hs.previewImage = canvas.NewImageFromImage(nil)
 	hs.previewImage.FillMode = canvas.ImageFillContain
 	hs.previewImage.SetMinSize(fyne.NewSize(400, 240))
-
-	// Theme name
 	hs.themeLabel = widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	// Navigation
-	prevBtn := widget.NewButtonWithIcon("", fyneTheme.NavigateBackIcon(), func() {
-		hs.navigate(-1)
-	})
-	nextBtn := widget.NewButtonWithIcon("", fyneTheme.NavigateNextIcon(), func() {
-		hs.navigate(1)
-	})
-
-	// Activate / Edit buttons
-	hs.activateBtn = widget.NewButton("Ativar", func() {
-		hs.applyTheme()
-	})
-	hs.editBtn = widget.NewButton("Editar Tema", func() {
-		hs.openEditor()
-	})
-
-	// Play / Stop / Storage
-	hs.playBtn = widget.NewButtonWithIcon("Play", fyneTheme.MediaPlayIcon(), func() {
-		hs.playTheme()
-	})
-	hs.stopBtn = widget.NewButtonWithIcon("Stop", fyneTheme.MediaStopIcon(), func() {
-		hs.stopTheme()
-	})
-	hs.storageBtn = widget.NewButtonWithIcon("Storage", fyneTheme.StorageIcon(), func() {
-		hs.showStorage()
-	})
-
-	// Status
+	prevBtn := widget.NewButtonWithIcon("", fyneTheme.NavigateBackIcon(), func() { hs.navigate(-1) })
+	nextBtn := widget.NewButtonWithIcon("", fyneTheme.NavigateNextIcon(), func() { hs.navigate(1) })
+	hs.activateBtn = widget.NewButton("Ativar", func() { hs.applyTheme() })
+	hs.editBtn = widget.NewButton("Editar Tema", func() { hs.openEditor() })
+	hs.playBtn = widget.NewButtonWithIcon("Play", fyneTheme.MediaPlayIcon(), func() { hs.playTheme() })
+	hs.stopBtn = widget.NewButtonWithIcon("Stop", fyneTheme.MediaStopIcon(), func() { hs.stopTheme() })
+	hs.storageBtn = widget.NewButtonWithIcon("Storage", fyneTheme.StorageIcon(), func() { hs.showStorage() })
 	hs.statusLabel = widget.NewLabel("Verificando...")
 
-	// Start polling
 	go hs.pollStatus()
 
-	// --- Layout ---
+	navRow := container.NewHBox(layout.NewSpacer(), prevBtn, hs.themeLabel, nextBtn, layout.NewSpacer())
 	previewContainer := container.NewCenter(hs.previewImage)
-
-	navRow := container.NewHBox(
-		layout.NewSpacer(),
-		prevBtn,
-		hs.themeLabel,
-		nextBtn,
-		layout.NewSpacer(),
-	)
-
-	actionRow := container.NewHBox(
-		layout.NewSpacer(),
-		hs.activateBtn, hs.editBtn,
-		layout.NewSpacer(),
-	)
-
-	footer := container.NewBorder(
-		nil, nil,
+	themeActions := container.NewHBox(layout.NewSpacer(), hs.activateBtn, hs.editBtn, layout.NewSpacer())
+	footer := container.NewBorder(nil, nil,
 		container.NewHBox(hs.playBtn, hs.stopBtn, hs.storageBtn),
 		hs.statusLabel,
 	)
@@ -124,67 +77,47 @@ func NewHomeScreen(app *EditorApp) *HomeScreen {
 		nil,
 		container.NewVBox(widget.NewSeparator(), footer),
 		nil, nil,
-		container.NewVBox(
-			previewContainer,
-			navRow,
-			actionRow,
-		),
+		container.NewVBox(previewContainer, navRow, themeActions),
 	)
-
 	hs.updateDisplay()
 	return hs
 }
 
-// buildHomeMenu creates the menu bar for the home window.
 func buildHomeMenu(app *EditorApp) *fyne.MainMenu {
-	// Arquivo
 	quitOffItem := fyne.NewMenuItem("Sair e Desligar", func() {
-		go func() {
-			client := &http.Client{Timeout: 5 * time.Second}
-			client.Post(daemonURL+"/device/turnoff", "application/json", nil)
-		}()
+		if app.wsClient != nil && app.wsClient.IsConnected() {
+			app.wsClient.SendFire("device.turnoff", nil)
+		}
 		app.fyneApp.Quit()
 	})
-	quitItem := fyne.NewMenuItem("Sair", func() {
-		app.fyneApp.Quit()
-	})
+	quitItem := fyne.NewMenuItem("Sair", func() { app.fyneApp.Quit() })
 	fileMenu := fyne.NewMenu("Arquivo", quitOffItem, quitItem)
 
-	// Device
-	restartItem := fyne.NewMenuItem("Reiniciar (soft)", func() {
-		go deviceCommand("/device/restart")
-	})
-	rebootItem := fyne.NewMenuItem("Reboot (hard)", func() {
-		go deviceCommand("/device/reboot")
-	})
-	resetItem := fyne.NewMenuItem("Reset USB", func() {
-		go deviceCommand("/device/reset")
-	})
-	turnoffItem := fyne.NewMenuItem("Desligar", func() {
-		go deviceCommand("/device/turnoff")
-	})
+	restartItem := fyne.NewMenuItem("Reiniciar (soft)", func() { go wsDeviceCmd(app, "device.restart") })
+	rebootItem := fyne.NewMenuItem("Reboot (hard)", func() { go wsDeviceCmd(app, "device.reboot") })
+	resetItem := fyne.NewMenuItem("Reset USB", func() { go wsDeviceCmd(app, "device.reset") })
+	turnoffItem := fyne.NewMenuItem("Desligar", func() { go wsDeviceCmd(app, "device.turnoff") })
 	deviceMenu := fyne.NewMenu("Device", restartItem, rebootItem, resetItem, fyne.NewMenuItemSeparator(), turnoffItem)
 
 	return fyne.NewMainMenu(fileMenu, deviceMenu)
 }
 
-func deviceCommand(endpoint string) {
-	client := &http.Client{Timeout: 10 * time.Second}
-	client.Post(daemonURL+endpoint, "application/json", nil)
+func wsDeviceCmd(app *EditorApp, action string) {
+	if app.wsClient != nil && app.wsClient.IsConnected() {
+		app.wsClient.Send(action, nil)
+	}
 }
 
 func (hs *HomeScreen) loadThemeList() {
 	themesDir := "res/themes"
 	entries, err := os.ReadDir(themesDir)
 	if err != nil {
-		log.Printf("[HomeScreen] Failed to read themes dir: %v", err)
 		return
 	}
 	hs.themes = nil
 	for _, e := range entries {
 		if e.IsDir() {
-			yamlPath := filepath.Join(themesDir, e.Name(), "theme.yaml")
-			if _, err := os.Stat(yamlPath); err == nil {
+			if _, err := os.Stat(filepath.Join(themesDir, e.Name(), "theme.yaml")); err == nil {
 				hs.themes = append(hs.themes, e.Name())
 			}
 		}
@@ -211,17 +144,14 @@ func (hs *HomeScreen) updateDisplay() {
 		hs.themeLabel.SetText("Nenhum tema encontrado")
 		return
 	}
-
 	themeName := hs.themes[hs.currentIndex]
 	hs.themeLabel.SetText(fmt.Sprintf("  %s  ", themeName))
 
-	// Load preview
 	themesDir := "res/themes"
 	previewPaths := []string{
 		filepath.Join(themesDir, themeName, "assets", "image_0.png"),
 		filepath.Join(themesDir, themeName, "background.png"),
 	}
-
 	var img image.Image
 	for _, path := range previewPaths {
 		f, err := os.Open(path)
@@ -236,7 +166,6 @@ func (hs *HomeScreen) updateDisplay() {
 		img = decoded
 		break
 	}
-
 	if img != nil {
 		hs.previewImage.Image = img
 	} else {
@@ -244,7 +173,6 @@ func (hs *HomeScreen) updateDisplay() {
 	}
 	hs.previewImage.Refresh()
 
-	// Update activate button state
 	activeTheme := hs.app.currentActiveTheme()
 	if themeName == activeTheme {
 		hs.activateBtn.SetText("Ativo")
@@ -261,7 +189,6 @@ func (hs *HomeScreen) applyTheme() {
 	}
 	themeName := hs.themes[hs.currentIndex]
 
-	// Write to config.yaml
 	v := viper.New()
 	v.SetConfigType("yaml")
 	v.SetConfigFile("conf/config.yaml")
@@ -275,23 +202,20 @@ func (hs *HomeScreen) applyTheme() {
 		return
 	}
 
-	// Tell daemon
-	client := &http.Client{Timeout: 10 * time.Second}
-	body := fmt.Sprintf(`{"name":"%s"}`, themeName)
-	client.Post(daemonURL+"/theme/apply", "application/json", strings.NewReader(body))
-
-	log.Printf("[HomeScreen] Theme applied: %s", themeName)
+	log.Printf("[HomeScreen] Theme set: %s", themeName)
 	hs.updateDisplay()
 }
 
 func (hs *HomeScreen) playTheme() {
-	client := &http.Client{Timeout: 10 * time.Second}
-	client.Post(daemonURL+"/mode/normal", "application/json", nil)
+	if hs.app.wsClient != nil && hs.app.wsClient.IsConnected() {
+		hs.app.wsClient.Send("mode.normal", nil)
+	}
 }
 
 func (hs *HomeScreen) stopTheme() {
-	client := &http.Client{Timeout: 5 * time.Second}
-	client.Post(daemonURL+"/mode/editor", "application/json", nil)
+	if hs.app.wsClient != nil && hs.app.wsClient.IsConnected() {
+		hs.app.wsClient.Send("mode.editor", nil)
+	}
 }
 
 func (hs *HomeScreen) openEditor() {
@@ -312,57 +236,58 @@ func (hs *HomeScreen) GetContainer() *fyne.Container {
 	return hs.container
 }
 
-const daemonURL = "http://localhost:9120"
+// --- WebSocket connection ---
+
+const daemonWSURL = "ws://localhost:9120/ws"
 
 func (hs *HomeScreen) pollStatus() {
-	hs.checkDaemonStatus()
-	ticker := time.NewTicker(2 * time.Second)
-	defer ticker.Stop()
-	for range ticker.C {
-		hs.checkDaemonStatus()
-	}
-}
+	hs.app.wsClient = NewWSClient(daemonWSURL)
+	hs.app.wsClient.SetEventHandler(func(msg WSMessage) {
+		if msg.Action == "event.status" {
+			var status struct {
+				Mode   string `json:"mode"`
+				Theme  string `json:"theme"`
+				Uptime string `json:"uptime"`
+			}
+			json.Unmarshal(msg.Payload, &status)
+			fyne.Do(func() {
+				hs.updateFromStatus(status.Mode, status.Theme, status.Uptime)
+			})
+		}
+	})
 
-func (hs *HomeScreen) checkDaemonStatus() {
-	client := &http.Client{Timeout: 2 * time.Second}
-	resp, err := client.Get(daemonURL + "/status")
-	if err != nil {
+	for {
+		if err := hs.app.wsClient.Connect(); err != nil {
+			fyne.Do(func() {
+				hs.statusLabel.SetText("⚫ Desconectado")
+				hs.setButtonsDisconnected()
+			})
+			time.Sleep(3 * time.Second)
+			continue
+		}
+		fyne.Do(func() { hs.statusLabel.SetText("🟢 Conectado") })
+		for hs.app.wsClient.IsConnected() {
+			time.Sleep(1 * time.Second)
+		}
 		fyne.Do(func() {
 			hs.statusLabel.SetText("⚫ Desconectado")
 			hs.setButtonsDisconnected()
 		})
-		return
+		time.Sleep(3 * time.Second)
 	}
-	defer resp.Body.Close()
+}
 
-	var status struct {
-		Mode     string `json:"mode"`
-		Theme    string `json:"theme"`
-		Firmware string `json:"firmware"`
-		Uptime   string `json:"uptime"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
-		fyne.Do(func() {
-			hs.statusLabel.SetText("⚫ Erro")
-			hs.setButtonsDisconnected()
-		})
-		return
-	}
-
+func (hs *HomeScreen) updateFromStatus(mode, theme, uptime string) {
 	modeLabel := "▶"
-	if status.Mode == "editor" {
+	if mode == "editor" {
 		modeLabel = "⏸"
 	}
-
-	fyne.Do(func() {
-		hs.statusLabel.SetText(fmt.Sprintf("🟢 %s %s | %s", modeLabel, status.Theme, status.Uptime))
-
-		if status.Mode == "editor" {
-			hs.setButtonsPaused()
-		} else {
-			hs.setButtonsRunning()
-		}
-	})
+	hs.statusLabel.SetText(fmt.Sprintf("🟢 %s %s | %s", modeLabel, theme, uptime))
+	if mode == "editor" {
+		hs.setButtonsPaused()
+	} else {
+		hs.setButtonsRunning()
+	}
 }
 
 func (hs *HomeScreen) setButtonsRunning() {

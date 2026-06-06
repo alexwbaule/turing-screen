@@ -211,8 +211,13 @@ func main() {
 				}
 			}
 		drained:
+			// Flush serial buffer to discard any pending responses
+			time.Sleep(100 * time.Millisecond)
+			flushBuf := make([]byte, 1024)
+			devSerial.Read(flushBuf)
+
 			sensorsRunning = false
-			app.Log.Info("all sensors stopped, jobs drained")
+			app.Log.Info("all sensors stopped, serial flushed")
 		}
 
 		// --- API Server (always runs) ---

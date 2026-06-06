@@ -3,13 +3,14 @@ package application
 import (
 	"context"
 	"errors"
-	"github.com/alexwbaule/turing-screen/internal/application/config"
-	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/alexwbaule/turing-screen/internal/application/config"
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -29,7 +30,7 @@ func NewApplication() *Application {
 
 	cfg, err := config.NewDefaultConfig()
 	if err != nil {
-		log.Errorf("error opening config (%s): %s", err)
+		log.Errorf("error opening config: %s", err)
 		os.Exit(-1)
 	}
 	log.SetLevel(cfg.GetLogLevel())

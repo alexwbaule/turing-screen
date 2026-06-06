@@ -27,5 +27,5 @@ device:
             city: Sao Paulo,BR
             enabled: true
             interval: 30m
-    theme: NZXT_color
+    theme: sci-fi_deep_space
     turn_off_on_exit: false

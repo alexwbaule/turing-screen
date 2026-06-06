@@ -936,3 +936,35 @@ func clearWidgetType(m *theme.Measurement, widgetType string) {
 		m.Gauge = nil
 	}
 }
+
+// ShowLayerInfo shows properties for a background layer or video.
+func (p *PropertiesPanel) ShowLayerInfo(name, path string, onChange func()) {
+	p.selectedWidget = nil
+	p.textFields.Hide()
+	p.graphFields.Hide()
+	p.radialFields.Hide()
+	p.chartFields.Hide()
+	p.sensorSelect.Hide()
+	p.typeSelect.Hide()
+
+	p.headerLabel.SetText("Layer: " + name)
+	p.yamlPathLabel.SetText(path)
+	p.xEntry.SetText("")
+	p.yEntry.SetText("")
+
+	p.commonFields.Show()
+	p.deleteButton.Hide()
+
+	// Replace scroll content with layer-specific UI
+	changeBtn := widget.NewButton("Trocar Arquivo...", func() {
+		onChange()
+	})
+	layerContent := container.NewVBox(
+		widget.NewLabel("Arquivo:"),
+		widget.NewLabel(path),
+		widget.NewSeparator(),
+		changeBtn,
+	)
+	p.scroll.Content = layerContent
+	p.scroll.Refresh()
+}

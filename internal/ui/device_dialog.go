@@ -1,13 +1,9 @@
 package ui
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"mime/multipart"
-	"net/http"
-	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -17,7 +13,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// DeviceDialog manages the device management dialog.
 type DeviceDialog struct {
 	app          *EditorApp
 	win          fyne.Window
@@ -30,7 +25,6 @@ type DeviceDialog struct {
 	currentDir   string
 }
 
-// ShowDeviceDialog creates and shows the device management dialog.
 func ShowDeviceDialog(app *EditorApp) {
 	dd := &DeviceDialog{
 		app:          app,
@@ -43,7 +37,6 @@ func ShowDeviceDialog(app *EditorApp) {
 	dd.statusLabel = widget.NewLabel("Verificando...")
 	dd.storageLabel = widget.NewLabel("Storage: --")
 
-	// Directory selector
 	dirs := []string{"/root/video/", "/root/image/", "/root/font/", "/root/"}
 	dd.dirSelect = widget.NewSelect(dirs, func(s string) {
 		dd.currentDir = s
@@ -51,106 +44,65 @@ func ShowDeviceDialog(app *EditorApp) {
 	dd.dirSelect.SetSelected(dd.currentDir)
 
 	dd.fileList = &widget.List{
-		Length: func() int { return len(dd.files) },
-		CreateItem: func() fyne.CanvasObject {
-			return widget.NewLabel("")
-		},
+		Length:     func() int { return len(dd.files) },
+		CreateItem: func() fyne.CanvasObject { return widget.NewLabel("") },
 		UpdateItem: func(i widget.ListItemID, obj fyne.CanvasObject) {
 			if i < len(dd.files) {
 				obj.(*widget.Label).SetText(dd.files[i])
 			}
 		},
-		OnSelected: func(id widget.ListItemID) {
-			dd.selectedFile = id
-		},
+		OnSelected: func(id widget.ListItemID) { dd.selectedFile = id },
 	}
 
-	refreshStorageBtn := widget.NewButton("Refresh Storage", func() {
-		go dd.refreshStorage()
-	})
-
-	refreshFilesBtn := widget.NewButton("Refresh Arquivos", func() {
-		go dd.refreshFiles()
-	})
-
-	uploadBtn := widget.NewButton("Upload", func() {
-		dd.uploadFile()
-	})
-
-	deleteBtn := widget.NewButton("Deletar", func() {
-		go dd.deleteFile()
-	})
-
-	playBtn := widget.NewButton("Play Video", func() {
-		go dd.playSelected()
-	})
-
-	stopBtn := widget.NewButton("Stop Video", func() {
-		go dd.stopPlayback()
-	})
+	refreshStorageBtn := widget.NewButton("Refresh Storage", func() { go dd.refreshStorage() })
+	refreshFilesBtn := widget.NewButton("Refresh Arquivos", func() { go dd.refreshFiles() })
+	restartBtn := widget.NewButton("Reiniciar Device", func() { go dd.restartDevice() })
+	uploadBtn := widget.NewButton("Upload", func() { dd.uploadFile() })
+	deleteBtn := widget.NewButton("Deletar", func() { go dd.deleteFile() })
+	playBtn := widget.NewButton("Play Video", func() { go dd.playSelected() })
+	stopBtn := widget.NewButton("Stop Video", func() { go dd.stopPlayback() })
 
 	leftPanel := container.NewVBox(
 		widget.NewLabelWithStyle("Storage", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		dd.storageLabel,
 		refreshStorageBtn,
 		widget.NewSeparator(),
+		restartBtn,
+		widget.NewSeparator(),
 		dd.statusLabel,
 	)
 
-	// Right panel: file list with actions as column on the right
 	fileActions := container.NewVBox(
 		refreshFilesBtn,
 		widget.NewSeparator(),
-		uploadBtn,
-		deleteBtn,
+		uploadBtn, deleteBtn,
 		widget.NewSeparator(),
-		playBtn,
-		stopBtn,
+		playBtn, stopBtn,
 	)
 
-	rightPanel := container.NewBorder(
-		dd.dirSelect,
-		nil,
-		nil,
-		fileActions,
-		dd.fileList,
-	)
-
+	rightPanel := container.NewBorder(dd.dirSelect, nil, nil, fileActions, dd.fileList)
 	content := container.NewBorder(nil, nil, leftPanel, nil, rightPanel)
 
 	d := dialog.NewCustom("Device Storage", "Fechar", content, dd.win)
 	d.Resize(fyne.NewSize(700, 400))
 	d.Show()
 
-	// Load data
-	go dd.refresh()
-}
-
-func (dd *DeviceDialog) refresh() {
-	dd.refreshStorage()
+	go dd.refreshStorage()
 }
 
 func (dd *DeviceDialog) refreshStorage() {
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get(daemonURL + "/storage/info")
-	if err != nil {
+	ws := dd.app.wsClient
+	if ws == nil || !ws.IsConnected() {
 		fyne.Do(func() {
 			dd.statusLabel.SetText("⚫ Não conectado")
 			dd.storageLabel.SetText("Storage: indisponível")
 		})
 		return
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		var errResp struct {
-			Error string `json:"error"`
-		}
-		json.NewDecoder(resp.Body).Decode(&errResp)
-		fyne.Do(func() {
-			dd.storageLabel.SetText("Storage: " + errResp.Error)
-			dd.statusLabel.SetText("🟢 Conectado")
-		})
+	resp, err := ws.Send("storage.info", nil)
+	if err != nil {
+		fyne.Do(func() { dd.storageLabel.SetText("Storage: " + err.Error()) })
 		return
 	}
 
@@ -159,10 +111,7 @@ func (dd *DeviceDialog) refreshStorage() {
 		Used  int64 `json:"used"`
 		Free  int64 `json:"free"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
-		fyne.Do(func() { dd.storageLabel.SetText("Storage: erro ao ler") })
-		return
-	}
+	json.Unmarshal(resp.Payload, &info)
 
 	fyne.Do(func() {
 		dd.storageLabel.SetText(fmt.Sprintf("Total: %s | Usado: %s | Livre: %s",
@@ -172,23 +121,20 @@ func (dd *DeviceDialog) refreshStorage() {
 }
 
 func (dd *DeviceDialog) refreshFiles() {
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get(daemonURL + "/storage/files?path=" + dd.currentDir)
-	if err != nil {
+	ws := dd.app.wsClient
+	if ws == nil || !ws.IsConnected() {
 		return
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	resp, err := ws.Send("storage.files", map[string]string{"path": dd.currentDir})
+	if err != nil {
 		return
 	}
 
 	var result struct {
 		Files []string `json:"files"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return
-	}
+	json.Unmarshal(resp.Payload, &result)
 
 	fyne.Do(func() {
 		dd.files = result.Files
@@ -197,19 +143,26 @@ func (dd *DeviceDialog) refreshFiles() {
 	})
 }
 
+func (dd *DeviceDialog) restartDevice() {
+	ws := dd.app.wsClient
+	if ws == nil || !ws.IsConnected() {
+		return
+	}
+	ws.Send("device.restart", nil)
+	fyne.Do(func() { dd.statusLabel.SetText("Device reiniciado") })
+}
+
 func (dd *DeviceDialog) uploadFile() {
 	fileDialog := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
 		if err != nil || reader == nil {
 			return
 		}
 		defer reader.Close()
-
 		data, err := io.ReadAll(reader)
 		if err != nil {
 			dialog.ShowError(fmt.Errorf("erro ao ler arquivo: %w", err), dd.win)
 			return
 		}
-
 		filename := reader.URI().Name()
 		go dd.doUpload(filename, data)
 	}, dd.win)
@@ -221,30 +174,23 @@ func (dd *DeviceDialog) uploadFile() {
 func (dd *DeviceDialog) doUpload(filename string, data []byte) {
 	fyne.Do(func() { dd.statusLabel.SetText("Enviando " + filename + "...") })
 
-	var buf bytes.Buffer
-	writer := multipart.NewWriter(&buf)
-	part, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		fyne.Do(func() { dd.statusLabel.SetText("Erro ao criar form") })
+	ws := dd.app.wsClient
+	if ws == nil || !ws.IsConnected() {
+		fyne.Do(func() { dd.statusLabel.SetText("⚫ Não conectado") })
 		return
 	}
-	part.Write(data)
-	writer.Close()
 
-	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Post(daemonURL+"/storage/upload", writer.FormDataContentType(), &buf)
+	// For large files, upload via base64 (not ideal but works)
+	// TODO: implement chunked upload for large files
+	_, err := ws.Send("storage.upload", map[string]interface{}{
+		"name": filename,
+		"data": data, // will be base64 encoded by json.Marshal
+	})
 	if err != nil {
-		fyne.Do(func() { dd.statusLabel.SetText("Erro ao enviar: " + err.Error()) })
+		fyne.Do(func() { dd.statusLabel.SetText("Erro: " + err.Error()) })
 		return
 	}
-	resp.Body.Close()
-
-	if resp.StatusCode == http.StatusOK {
-		fyne.Do(func() { dd.statusLabel.SetText("✓ " + filename + " enviado") })
-		dd.refreshFiles()
-	} else {
-		fyne.Do(func() { dd.statusLabel.SetText("Erro ao enviar") })
-	}
+	fyne.Do(func() { dd.statusLabel.SetText("✓ " + filename + " enviado") })
 }
 
 func (dd *DeviceDialog) deleteFile() {
@@ -254,22 +200,19 @@ func (dd *DeviceDialog) deleteFile() {
 	fileName := dd.files[dd.selectedFile]
 	fullPath := dd.currentDir + fileName
 
-	client := &http.Client{Timeout: 5 * time.Second}
-	body := fmt.Sprintf(`{"path":"%s"}`, fullPath)
-	req, _ := http.NewRequest("DELETE", daemonURL+"/storage/file", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := client.Do(req)
+	ws := dd.app.wsClient
+	if ws == nil || !ws.IsConnected() {
+		return
+	}
+
+	_, err := ws.Send("storage.delete", map[string]string{"path": fullPath})
 	if err != nil {
 		fyne.Do(func() { dd.statusLabel.SetText("Erro: " + err.Error()) })
 		return
 	}
-	resp.Body.Close()
+	fyne.Do(func() { dd.statusLabel.SetText("✓ Deletado: " + fileName + " (clique Refresh)") })
 
-	if resp.StatusCode == http.StatusOK {
-		fyne.Do(func() { dd.statusLabel.SetText("✓ Deletado: " + fileName + " (clique Refresh)") })
-	} else {
-		fyne.Do(func() { dd.statusLabel.SetText("Erro ao deletar") })
-	}
+	time.Sleep(2 * time.Second)
 }
 
 func (dd *DeviceDialog) playSelected() {
@@ -279,36 +222,31 @@ func (dd *DeviceDialog) playSelected() {
 	fileName := dd.files[dd.selectedFile]
 	fullPath := dd.currentDir + fileName
 
-	client := &http.Client{Timeout: 5 * time.Second}
-	body := fmt.Sprintf(`{"path":"%s"}`, fullPath)
-	resp, err := client.Post(daemonURL+"/theme/video/start", "application/json", strings.NewReader(body))
+	ws := dd.app.wsClient
+	if ws == nil || !ws.IsConnected() {
+		return
+	}
+
+	_, err := ws.Send("theme.video.start", map[string]string{"path": fullPath})
 	if err != nil {
 		fyne.Do(func() { dd.statusLabel.SetText("Erro: " + err.Error()) })
 		return
 	}
-	resp.Body.Close()
-
-	if resp.StatusCode == http.StatusOK {
-		fyne.Do(func() { dd.statusLabel.SetText("▶ Playing: " + fileName) })
-	} else {
-		fyne.Do(func() { dd.statusLabel.SetText("Erro ao reproduzir") })
-	}
+	fyne.Do(func() { dd.statusLabel.SetText("▶ Playing: " + fileName) })
 }
 
 func (dd *DeviceDialog) stopPlayback() {
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Post(daemonURL+"/theme/video/stop", "application/json", nil)
+	ws := dd.app.wsClient
+	if ws == nil || !ws.IsConnected() {
+		return
+	}
+
+	_, err := ws.Send("theme.video.stop", nil)
 	if err != nil {
 		fyne.Do(func() { dd.statusLabel.SetText("Erro: " + err.Error()) })
 		return
 	}
-	resp.Body.Close()
-
-	if resp.StatusCode == http.StatusOK {
-		fyne.Do(func() { dd.statusLabel.SetText("⏹ Vídeo parado") })
-	} else {
-		fyne.Do(func() { dd.statusLabel.SetText("Erro ao parar") })
-	}
+	fyne.Do(func() { dd.statusLabel.SetText("⏹ Vídeo parado") })
 }
 
 func formatBytes(b int64) string {
