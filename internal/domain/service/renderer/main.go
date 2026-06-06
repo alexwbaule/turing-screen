@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"golang.org/x/image/font"
@@ -98,9 +98,11 @@ func (b *Builder) DrawText(text string, stat *theme.Text, defaultSize int) (imag
 	numb := imageToNRGBA(b.background)
 
 	// Determine crop size using a reference measure string
-	// Priority: theme SIZE > sensor default > text length
+	// Priority: PLACEHOLDER > theme SIZE > sensor default > text length
 	charCount := utils.CountStr(text)
-	if stat.Size > 0 {
+	if stat.Placeholder != "" {
+		charCount = utils.CountStr(stat.Placeholder)
+	} else if stat.Size > 0 {
 		charCount = stat.Size
 	} else if defaultSize > charCount {
 		charCount = defaultSize
@@ -172,10 +174,45 @@ func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image 
 
 	numb := imageToNRGBA(b.background)
 
-	barFilledWidth := int(math.Round(value / float64(stat.MaxValue-stat.MinValue) * float64(stat.Width)))
+	ratio := value / float64(stat.MaxValue-stat.MinValue)
+	if ratio > 1 {
+		ratio = 1
+	}
+	if ratio < 0 {
+		ratio = 0
+	}
 
-	// Fill the bar
-	fillRect(numb, stat.X, stat.Y, barFilledWidth, stat.Height, stat.BarColor)
+	direction := strings.ToLower(stat.Direction)
+	if direction == "" {
+		direction = "left" // default: fill left to right
+	}
+
+	// Calculate filled dimension based on direction
+	var filledSize int
+	switch direction {
+	case "left", "right":
+		filledSize = int(math.Round(ratio * float64(stat.Width)))
+	case "up", "down":
+		filledSize = int(math.Round(ratio * float64(stat.Height)))
+	}
+
+	// Draw the bar (segmented or continuous)
+	if stat.Steps > 0 && stat.StepGap > 0 {
+		// Segmented mode
+		b.drawSegmentedBar(numb, stat, direction, filledSize)
+	} else {
+		// Continuous mode
+		switch direction {
+		case "left": // fill from left to right
+			fillRect(numb, stat.X, stat.Y, filledSize, stat.Height, stat.BarColor)
+		case "right": // fill from right to left
+			fillRect(numb, stat.X+stat.Width-filledSize, stat.Y, filledSize, stat.Height, stat.BarColor)
+		case "up": // fill from bottom to top
+			fillRect(numb, stat.X, stat.Y+stat.Height-filledSize, stat.Width, filledSize, stat.BarColor)
+		case "down": // fill from top to bottom
+			fillRect(numb, stat.X, stat.Y, stat.Width, filledSize, stat.BarColor)
+		}
+	}
 
 	// Draw outline if requested
 	if stat.BarOutline {
@@ -188,6 +225,248 @@ func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image 
 	drawCrop(dst, numb, crp)
 
 	return dst
+}
+
+// drawSegmentedBar draws a bar divided into segments with gaps.
+func (b *Builder) drawSegmentedBar(numb *image.NRGBA, stat *theme.Graph, direction string, filledSize int) {
+	steps := stat.Steps
+	gap := stat.StepGap
+
+	switch direction {
+	case "left", "right":
+		segW := (stat.Width - (steps-1)*gap) / steps
+		if segW < 1 {
+			segW = 1
+		}
+		filledSteps := int(math.Round(float64(filledSize) / float64(stat.Width) * float64(steps)))
+		for i := 0; i < filledSteps && i < steps; i++ {
+			var sx int
+			if direction == "left" {
+				sx = stat.X + i*(segW+gap)
+			} else {
+				sx = stat.X + stat.Width - (i+1)*(segW+gap) + gap
+			}
+			fillRect(numb, sx, stat.Y, segW, stat.Height, stat.BarColor)
+		}
+	case "up", "down":
+		segH := (stat.Height - (steps-1)*gap) / steps
+		if segH < 1 {
+			segH = 1
+		}
+		filledSteps := int(math.Round(float64(filledSize) / float64(stat.Height) * float64(steps)))
+		for i := 0; i < filledSteps && i < steps; i++ {
+			var sy int
+			if direction == "up" {
+				sy = stat.Y + stat.Height - (i+1)*(segH+gap) + gap
+			} else {
+				sy = stat.Y + i*(segH+gap)
+			}
+			fillRect(numb, stat.X, sy, stat.Width, segH, stat.BarColor)
+		}
+	}
+}
+
+// DrawGraphAndText draws both a progress bar and text on the same background copy,
+// then crops the union of both regions. This avoids black gaps from separate crops.
+func (b *Builder) DrawGraphAndText(value float64, graph *theme.Graph, text string, stat *theme.Text, defaultSize int) (image.Image, int, int) {
+	numb := imageToNRGBA(b.background)
+
+	// --- Draw progress bar ---
+	barFilledWidth := int(math.Round(value / float64(graph.MaxValue-graph.MinValue) * float64(graph.Width)))
+	if barFilledWidth > graph.Width {
+		barFilledWidth = graph.Width
+	}
+	if barFilledWidth < 0 {
+		barFilledWidth = 0
+	}
+	fillRect(numb, graph.X, graph.Y, barFilledWidth, graph.Height, graph.BarColor)
+	if graph.BarOutline {
+		strokeRect(numb, graph.X, graph.Y, graph.Width, graph.Height, graph.BarColor)
+	}
+
+	// --- Draw text ---
+	charCount := utils.CountStr(text)
+	if stat.Placeholder != "" {
+		charCount = utils.CountStr(stat.Placeholder)
+	} else if stat.Size > 0 {
+		charCount = stat.Size
+	} else if defaultSize > charCount {
+		charCount = defaultSize
+	}
+
+	d := &font.Drawer{
+		Dst:  numb,
+		Src:  image.NewUniform(stat.FontColor),
+		Face: stat.Font,
+	}
+	measure := strings.Repeat("8", charCount)
+	cropWidth := d.MeasureString(measure).Ceil()
+	metrics := stat.Font.Metrics()
+	cropHeight := (metrics.Ascent + metrics.Descent).Ceil()
+	if stat.Width > 0 {
+		cropWidth = stat.Width
+	}
+	if stat.Height > 0 {
+		cropHeight = stat.Height
+	}
+
+	textWidth := d.MeasureString(text)
+	cropWidthFixed := fixed.I(cropWidth)
+	var dotX fixed.Int26_6
+	cropX := stat.X
+
+	switch stat.Align {
+	case theme.CENTER:
+		cropX = stat.X - cropWidth/2
+		if cropX < 0 {
+			cropX = 0
+		}
+		dotX = fixed.I(cropX) + (cropWidthFixed-textWidth)/2
+	case theme.RIGHT:
+		cropX = stat.X - cropWidth
+		if cropX < 0 {
+			cropX = 0
+		}
+		dotX = fixed.I(cropX) + cropWidthFixed - textWidth
+	default:
+		dotX = fixed.I(stat.X)
+	}
+
+	dotY := fixed.I(stat.Y) + metrics.Ascent
+	d.Dot = fixed.Point26_6{X: dotX, Y: dotY}
+	d.DrawString(text)
+
+	// --- Crop the union of both regions ---
+	graphRect := utils.Rect{X: graph.X, Y: graph.Y, W: graph.Width, H: graph.Height}
+	textRect := utils.Rect{X: cropX, Y: stat.Y, W: cropWidth, H: cropHeight}
+	union := graphRect.Union(textRect)
+
+	crp := image.Rect(union.X, union.Y, union.X+union.W, union.Y+union.H)
+	dst := image.NewRGBA(image.Rect(0, 0, union.W, union.H))
+	drawCrop(dst, numb, crp)
+
+	return dst, union.X, union.Y
+}
+
+// DrawRadialAndText draws both a radial arc and text on the same background copy,
+// then crops the union of both regions. This avoids black gaps from separate crops.
+func (b *Builder) DrawRadialAndText(value float64, radial *theme.Radial, text string, stat *theme.Text, defaultSize int) (image.Image, int, int) {
+	numb := imageToNRGBA(b.background)
+
+	// --- Draw radial ---
+	x, y := float64(radial.X), float64(radial.Y)
+	amin := utils.Radians(radial.AngleStart)
+	amax := utils.Radians(180 + radial.AngleStart + radial.AngleEnd)
+	total := (value * float64(180+radial.AngleStart+radial.AngleEnd)) / 100
+	cur := utils.Radians(int(total) + radial.AngleStart)
+	if cur > amax {
+		cur = amax
+	}
+
+	if radial.ShowText {
+		measure := fmt.Sprintf("%3.f", value)
+		if radial.ShowUnit {
+			measure = fmt.Sprintf("%3.f%%", value)
+		}
+		w := measureString(radial.Font, measure)
+		ascent := fixedAscent(radial.Font)
+		descent := fixedDescent(radial.Font)
+		totalH := ascent + descent
+		drawX := fixed.Int26_6(int((x - w/2) * 64))
+		drawY := fixed.I(int(y)) + totalH/2 - descent + fixed.I(1)
+		rd := &font.Drawer{
+			Dst:  numb,
+			Src:  image.NewUniform(radial.FontColor),
+			Face: radial.Font,
+			Dot:  fixed.Point26_6{X: drawX, Y: drawY},
+		}
+		rd.DrawString(measure)
+	}
+
+	arcRadius := float64(radial.Radius - (radial.Width / 2))
+	if radial.AngleSteps > 1 && radial.AngleSep > 0 {
+		totalAngle := cur - amin
+		segAngle := totalAngle / float64(radial.AngleSteps)
+		sepAngle := utils.Radians(radial.AngleSep)
+		for i := 0; i < radial.AngleSteps; i++ {
+			segStart := amin + float64(i)*segAngle
+			segEnd := segStart + segAngle - sepAngle
+			if segEnd > cur {
+				segEnd = cur
+			}
+			if segEnd > segStart {
+				drawArc(numb, x, y, arcRadius, segStart, segEnd, radial.Width, radial.BarColor)
+			}
+		}
+	} else {
+		drawArc(numb, x, y, arcRadius, amin, cur, radial.Width, radial.BarColor)
+	}
+
+	// --- Draw text ---
+	charCount := utils.CountStr(text)
+	if stat.Placeholder != "" {
+		charCount = utils.CountStr(stat.Placeholder)
+	} else if stat.Size > 0 {
+		charCount = stat.Size
+	} else if defaultSize > charCount {
+		charCount = defaultSize
+	}
+
+	d := &font.Drawer{
+		Dst:  numb,
+		Src:  image.NewUniform(stat.FontColor),
+		Face: stat.Font,
+	}
+	measure := strings.Repeat("8", charCount)
+	cropWidth := d.MeasureString(measure).Ceil()
+	metrics := stat.Font.Metrics()
+	cropHeight := (metrics.Ascent + metrics.Descent).Ceil()
+	if stat.Width > 0 {
+		cropWidth = stat.Width
+	}
+	if stat.Height > 0 {
+		cropHeight = stat.Height
+	}
+
+	textWidth := d.MeasureString(text)
+	cropWidthFixed := fixed.I(cropWidth)
+	var dotX fixed.Int26_6
+	cropX := stat.X
+
+	switch stat.Align {
+	case theme.CENTER:
+		cropX = stat.X - cropWidth/2
+		if cropX < 0 {
+			cropX = 0
+		}
+		dotX = fixed.I(cropX) + (cropWidthFixed-textWidth)/2
+	case theme.RIGHT:
+		cropX = stat.X - cropWidth
+		if cropX < 0 {
+			cropX = 0
+		}
+		dotX = fixed.I(cropX) + cropWidthFixed - textWidth
+	default:
+		dotX = fixed.I(stat.X)
+	}
+
+	dotY := fixed.I(stat.Y) + metrics.Ascent
+	d.Dot = fixed.Point26_6{X: dotX, Y: dotY}
+	d.DrawString(text)
+
+	// --- Crop the union of both regions ---
+	radialX := radial.X - radial.Radius
+	radialY := radial.Y - radial.Radius
+	diameter := radial.Radius * 2
+	radialRect := utils.Rect{X: radialX, Y: radialY, W: diameter, H: diameter}
+	textRect := utils.Rect{X: cropX, Y: stat.Y, W: cropWidth, H: cropHeight}
+	union := radialRect.Union(textRect)
+
+	crp := image.Rect(union.X, union.Y, union.X+union.W, union.Y+union.H)
+	dst := image.NewRGBA(image.Rect(0, 0, union.W, union.H))
+	drawCrop(dst, numb, crp)
+
+	return dst, union.X, union.Y
 }
 
 func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image.Image {
@@ -233,13 +512,247 @@ func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image
 		d.DrawString(measure)
 	}
 
-	// Draw arc
+	// Draw arc (segmented or continuous)
 	arcRadius := float64(stat.Radius - (stat.Width / 2))
-	drawArc(numb, x, y, arcRadius, amin, cur, stat.Width, stat.BarColor)
+	if stat.AngleSteps > 1 && stat.AngleSep > 0 {
+		// Segmented arc: draw individual segments with gaps
+		totalAngle := cur - amin
+		segAngle := totalAngle / float64(stat.AngleSteps)
+		sepAngle := utils.Radians(stat.AngleSep)
+		for i := 0; i < stat.AngleSteps; i++ {
+			segStart := amin + float64(i)*segAngle
+			segEnd := segStart + segAngle - sepAngle
+			if segEnd > cur {
+				segEnd = cur
+			}
+			if segEnd > segStart {
+				drawArc(numb, x, y, arcRadius, segStart, segEnd, stat.Width, stat.BarColor)
+			}
+		}
+	} else {
+		drawArc(numb, x, y, arcRadius, amin, cur, stat.Width, stat.BarColor)
+	}
 
 	// Crop the region
 	crp := image.Rect(stat.X-stat.Radius, stat.Y-stat.Radius, stat.X+stat.Radius, stat.Y+stat.Radius)
 	dst := image.NewRGBA(image.Rect(0, 0, diameter, diameter))
+	drawCrop(dst, numb, crp)
+
+	return dst
+}
+
+// DrawStatusBar draws a progress bar with a circular indicator at the current value position.
+func (b *Builder) DrawStatusBar(value float64, stat *theme.StatusBar) image.Image {
+	numb := imageToNRGBA(b.background)
+
+	barHeight := stat.Height
+	barY := stat.Y + (stat.Height-barHeight)/2
+
+	// Calculate filled position
+	ratio := value / float64(stat.MaxValue-stat.MinValue)
+	if ratio > 1 {
+		ratio = 1
+	}
+	if ratio < 0 {
+		ratio = 0
+	}
+	filledWidth := int(math.Round(ratio * float64(stat.Width)))
+
+	// Draw bar background (optional)
+	// Draw filled portion
+	fillRect(numb, stat.X, barY, filledWidth, barHeight, stat.BarColor)
+
+	// Draw indicator circle at the position
+	indicatorR := stat.IndicatorRadius
+	if indicatorR <= 0 {
+		indicatorR = barHeight // default: same as bar height
+	}
+	cx := float64(stat.X + filledWidth)
+	cy := float64(stat.Y + stat.Height/2)
+	drawFilledCircle(numb, cx, cy, float64(indicatorR), stat.IndicatorColor)
+
+	// Crop region (account for indicator extending beyond bar)
+	cropX := stat.X - indicatorR
+	cropY := stat.Y - indicatorR
+	cropW := stat.Width + indicatorR*2
+	cropH := stat.Height + indicatorR*2
+	if cropX < 0 {
+		cropX = 0
+	}
+	if cropY < 0 {
+		cropY = 0
+	}
+
+	crp := image.Rect(cropX, cropY, cropX+cropW, cropY+cropH)
+	dst := image.NewRGBA(image.Rect(0, 0, cropW, cropH))
+	drawCrop(dst, numb, crp)
+
+	return dst
+}
+
+// DrawGauge draws a needle/pointer at an angle proportional to the value.
+func (b *Builder) DrawGauge(value float64, stat *theme.Gauge) image.Image {
+	numb := imageToNRGBA(b.background)
+
+	diameter := 2 * stat.Radius
+	x, y := float64(stat.X), float64(stat.Y)
+
+	// Calculate needle angle
+	ratio := value / float64(stat.MaxValue-stat.MinValue)
+	if ratio > 1 {
+		ratio = 1
+	}
+	if ratio < 0 {
+		ratio = 0
+	}
+	totalAngle := float64(180 + stat.AngleStart + stat.AngleEnd)
+	needleAngle := utils.Radians(stat.AngleStart) + ratio*utils.Radians(int(totalAngle))
+
+	// Draw needle (line from center to edge)
+	needleLen := float64(stat.Radius) * 0.85
+	needleWidth := stat.NeedleWidth
+	if needleWidth <= 0 {
+		needleWidth = 2
+	}
+
+	endX := x + needleLen*math.Cos(needleAngle)
+	endY := y + needleLen*math.Sin(needleAngle)
+	drawLine(numb, x, y, endX, endY, needleWidth, stat.NeedleColor)
+
+	// Draw center dot
+	drawFilledCircle(numb, x, y, float64(needleWidth+1), stat.NeedleColor)
+
+	// Draw text in center if ShowText
+	if stat.ShowText {
+		fontSize := stat.Radius / 3
+		if fontSize <= 0 {
+			fontSize = 10
+		}
+		measure := fmt.Sprintf("%3.f", value)
+		if stat.ShowUnit {
+			measure = fmt.Sprintf("%3.f%%", value)
+		}
+
+		w := measureString(stat.Font, measure)
+		ascent := fixedAscent(stat.Font)
+		descent := fixedDescent(stat.Font)
+		totalH := ascent + descent
+
+		drawDotX := fixed.Int26_6(int((x - w/2) * 64))
+		drawDotY := fixed.I(int(y)) + totalH/2 - descent + fixed.I(int(float64(stat.Radius)*0.35))
+
+		d := &font.Drawer{
+			Dst:  numb,
+			Src:  image.NewUniform(stat.FontColor),
+			Face: stat.Font,
+			Dot:  fixed.Point26_6{X: drawDotX, Y: drawDotY},
+		}
+		d.DrawString(measure)
+	}
+
+	// Crop
+	crp := image.Rect(stat.X-stat.Radius, stat.Y-stat.Radius, stat.X+stat.Radius, stat.Y+stat.Radius)
+	dst := image.NewRGBA(image.Rect(0, 0, diameter, diameter))
+	drawCrop(dst, numb, crp)
+
+	return dst
+}
+
+// DrawChart draws a time-series chart from the Chart's ring buffer.
+// Style "line" draws connected line segments; "bar" (default) draws vertical bars.
+func (b *Builder) DrawChart(stat *theme.Chart) image.Image {
+	numb := imageToNRGBA(b.background)
+
+	samples := stat.GetSamples()
+	colStep := stat.ColumnWidth + stat.ColumnGap
+	if colStep <= 0 {
+		colStep = 2
+	}
+
+	valueRange := float64(stat.MaxValue - stat.MinValue)
+	if valueRange <= 0 {
+		valueRange = 100
+	}
+
+	// Draw border
+	if stat.BorderWidth > 0 {
+		strokeRect(numb, stat.X, stat.Y, stat.Width, stat.Height, stat.LineColor)
+	}
+
+	style := strings.ToLower(stat.Style)
+
+	if style == "line" {
+		// Line chart: connect points with lines, fill below
+		if len(samples) >= 2 {
+			// Calculate X spacing to fill the chart width
+			spacing := float64(stat.Width) / float64(len(samples)-1)
+			if spacing < 1 {
+				spacing = 1
+			}
+
+			// Draw filled area below the line
+			for i := 0; i < len(samples)-1; i++ {
+				r1 := samples[i] / valueRange
+				r2 := samples[i+1] / valueRange
+				if r1 > 1 {
+					r1 = 1
+				}
+				if r2 > 1 {
+					r2 = 1
+				}
+				if r1 < 0 {
+					r1 = 0
+				}
+				if r2 < 0 {
+					r2 = 0
+				}
+
+				x1 := float64(stat.X) + float64(i)*spacing
+				x2 := float64(stat.X) + float64(i+1)*spacing
+				y1 := float64(stat.Y+stat.Height) - r1*float64(stat.Height)
+				y2 := float64(stat.Y+stat.Height) - r2*float64(stat.Height)
+
+				// Fill below the line segment
+				for px := int(x1); px < int(x2) && px < stat.X+stat.Width; px++ {
+					t := (float64(px) - x1) / (x2 - x1)
+					lineY := y1 + t*(y2-y1)
+					for py := int(lineY); py < stat.Y+stat.Height; py++ {
+						if px >= stat.X && py >= stat.Y {
+							numb.Set(px, py, stat.FillColor)
+						}
+					}
+				}
+
+				// Draw line segment on top
+				drawLine(numb, x1, y1, x2, y2, 1, stat.LineColor)
+			}
+		}
+	} else {
+		// Bar chart (default): draw columns right-to-left (newest on right)
+		for i := len(samples) - 1; i >= 0; i-- {
+			colIndex := len(samples) - 1 - i
+			colX := stat.X + stat.Width - (colIndex+1)*colStep
+			if colX < stat.X {
+				break
+			}
+
+			ratio := samples[i] / valueRange
+			if ratio > 1 {
+				ratio = 1
+			}
+			if ratio < 0 {
+				ratio = 0
+			}
+			barH := int(math.Round(ratio * float64(stat.Height)))
+			barY := stat.Y + stat.Height - barH
+
+			fillRect(numb, colX, barY, stat.ColumnWidth, barH, stat.FillColor)
+		}
+	}
+
+	// Crop
+	crp := image.Rect(stat.X, stat.Y, stat.X+stat.Width, stat.Y+stat.Height)
+	dst := image.NewRGBA(image.Rect(0, 0, stat.Width, stat.Height))
 	drawCrop(dst, numb, crp)
 
 	return dst
@@ -399,6 +912,61 @@ func isAngleInRange(angle, start, end float64) bool {
 // drawCrop copies the region `crp` from src into dst (which should be sized to crp dimensions).
 func drawCrop(dst *image.RGBA, src image.Image, crp image.Rectangle) {
 	draw.Draw(dst, dst.Bounds(), src, crp.Min, draw.Src)
+}
+
+// drawFilledCircle draws a solid circle on dst.
+func drawFilledCircle(dst *image.NRGBA, cx, cy, radius float64, c color.Color) {
+	r, g, b, a := c.RGBA()
+	nc := color.NRGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
+	rSq := radius * radius
+	for py := int(cy - radius); py <= int(cy+radius); py++ {
+		for px := int(cx - radius); px <= int(cx+radius); px++ {
+			dx := float64(px) + 0.5 - cx
+			dy := float64(py) + 0.5 - cy
+			if dx*dx+dy*dy <= rSq {
+				if px >= 0 && py >= 0 && px < dst.Bounds().Dx() && py < dst.Bounds().Dy() {
+					dst.SetNRGBA(px, py, nc)
+				}
+			}
+		}
+	}
+}
+
+// drawLine draws a thick line from (x1,y1) to (x2,y2) on dst.
+func drawLine(dst *image.NRGBA, x1, y1, x2, y2 float64, width int, c color.Color) {
+	r, g, b, a := c.RGBA()
+	nc := color.NRGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
+
+	dx := x2 - x1
+	dy := y2 - y1
+	length := math.Sqrt(dx*dx + dy*dy)
+	if length == 0 {
+		return
+	}
+
+	halfW := float64(width) / 2.0
+	steps := int(length * 2)
+	if steps < 10 {
+		steps = 10
+	}
+
+	for i := 0; i <= steps; i++ {
+		t := float64(i) / float64(steps)
+		px := x1 + dx*t
+		py := y1 + dy*t
+
+		for wy := -halfW; wy <= halfW; wy++ {
+			for wx := -halfW; wx <= halfW; wx++ {
+				if wx*wx+wy*wy <= halfW*halfW {
+					ix := int(math.Round(px + wx))
+					iy := int(math.Round(py + wy))
+					if ix >= 0 && iy >= 0 && ix < dst.Bounds().Dx() && iy < dst.Bounds().Dy() {
+						dst.SetNRGBA(ix, iy, nc)
+					}
+				}
+			}
+		}
+	}
 }
 
 // measureString returns the width of the string in float64 pixels.

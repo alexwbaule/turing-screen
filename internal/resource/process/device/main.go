@@ -7,9 +7,9 @@ import (
 	"image/draw"
 	"math/big"
 
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 	"github.com/disintegration/imaging"
 )
 

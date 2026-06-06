@@ -31,6 +31,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 4018M
         ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
@@ -42,6 +43,7 @@ STATS:
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 31°
         ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
@@ -53,6 +55,7 @@ STATS:
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 3%
         ALIGN: center
     FAN:
       INTERVAL: 1
@@ -64,6 +67,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 1099R
         ALIGN: center
     POWER:
       INTERVAL: 1
@@ -75,6 +79,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 4W
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -87,6 +92,7 @@ STATS:
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 2%
         ALIGN: center
     FREQUENCY:
       TEXT:
@@ -97,6 +103,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 400M
         ALIGN: center
     TEMPERATURE:
       TEXT:
@@ -107,6 +114,7 @@ STATS:
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 26°
         ALIGN: center
     FAN:
       TEXT:
@@ -117,6 +125,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 0R
         ALIGN: center
     MEMORY:
       TEXT:
@@ -127,4 +136,5 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 437M
         ALIGN: center

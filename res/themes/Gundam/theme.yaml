@@ -58,6 +58,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 21
         FONT_COLOR: 34, 54, 104
+        PLACEHOLDER: '3812'
         ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
@@ -69,7 +70,20 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
+        PLACEHOLDER: 65°
         ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      GRAPH:
+        SHOW: true
+        X: 117
+        Y: 68
+        WIDTH: 220
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 107, 245, 248
+        BAR_OUTLINE: false
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -81,6 +95,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
+        PLACEHOLDER: 54°
         ALIGN: center
     MEMORY:
       TEXT:
@@ -91,7 +106,19 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
+        PLACEHOLDER: 134M
         ALIGN: center
+    PERCENTAGE:
+      GRAPH:
+        SHOW: true
+        X: 117
+        Y: 185
+        WIDTH: 220
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 107, 245, 248
+        BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -103,6 +130,7 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
+        PLACEHOLDER: 89%
         ALIGN: center
       USED:
         SHOW: true
@@ -112,7 +140,18 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
+        PLACEHOLDER: 14106M
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 117
+        Y: 297
+        WIDTH: 220
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 107, 245, 248
+        BAR_OUTLINE: false
   NET:
     INTERVAL: 1
     ETH:
@@ -125,6 +164,7 @@ STATS:
           FONT_SIZE: 26
           FONT_COLOR: 34, 54, 104
           SHOW_UNIT: true
+          PLACEHOLDER: 6KB/s
           ALIGN: center
       UPLOAD:
         TEXT:
@@ -135,6 +175,7 @@ STATS:
           FONT_SIZE: 26
           FONT_COLOR: 34, 54, 104
           SHOW_UNIT: true
+          PLACEHOLDER: 65KB/s
           ALIGN: center
   DATE:
     INTERVAL: 1
@@ -147,6 +188,7 @@ STATS:
         FONT_SIZE: 26
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
+        PLACEHOLDER: '17:42:04'
         ALIGN: center
         FORMAT: short
     DAY:
@@ -158,5 +200,6 @@ STATS:
         FONT_SIZE: 26
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
+        PLACEHOLDER: '2022-06-22'
         ALIGN: center
         FORMAT: medium

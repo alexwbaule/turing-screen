@@ -10,9 +10,14 @@ build:
 	mkdir -p bin/
 	CGO_ENABLED=1 go build $(LDFLAGS) -o bin/$(BINARY) -v cmd/$(BINARY)/main.go
 
-build-my:
+build-sensors-test:
 	mkdir -p bin/
-	CGO_ENABLED=1 go build $(LDFLAGS) -o bin/turing-my -v cmd/turing-my/main.go
+	CGO_ENABLED=1 go build $(LDFLAGS) -o bin/turing-test-sensors -v cmd/turing-test-sensors/main.go
+
+build-editor:
+	mkdir -p bin/
+	CGO_ENABLED=1 go build $(LDFLAGS) -o bin/turing-interface -v cmd/turing-interface/main.go
+
 
 build-test:
 	mkdir -p bin/
@@ -27,3 +32,5 @@ $(PLATFORMS): build
 
 .PHONY: release
 release: windows linux darwin
+
+build-all: build build-editor build-test build-sensors-test

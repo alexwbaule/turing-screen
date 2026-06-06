@@ -7,11 +7,11 @@ import (
 
 	"github.com/alexwbaule/gopsutil/v3/host"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 	"github.com/alexwbaule/turing-screen/internal/resource/interfaces"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 type GpuStat struct {
@@ -20,20 +20,22 @@ type GpuStat struct {
 	builder  *renderer.Builder
 	p        *command.UpdatePayload
 	provider interfaces.Provider
+	interval time.Duration
 }
 
-func NewGpuStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, provider interfaces.Provider) *GpuStat {
+func NewGpuStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, provider interfaces.Provider, interval time.Duration) *GpuStat {
 	return &GpuStat{
 		log:      l.With("runner", "gpu_stats"),
 		jobs:     j,
 		builder:  b,
 		p:        p,
 		provider: provider,
+		interval: interval,
 	}
 }
 
 func (g *GpuStat) RunGpuStat(ctx context.Context, e *theme.GPU) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	err := g.getGpuStat(ctx, e)
@@ -85,22 +87,22 @@ func (g *GpuStat) getGpuStat(ctx context.Context, e *theme.GPU) error {
 		if vramSize > 0 && vranUsage > 0 {
 			perc = float64(vranUsage) / float64(vramSize) * 100
 		}
-		payloads = append(payloads, BuildMesurement(g.builder, perc, "%3.f", "%", SizePercent, e.Memory, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, perc, "%3.f", "%", SizePercent, e.Memory, g.p, "GPU.Memory")...)
 	}
 	if e.Temperature != nil {
-		payloads = append(payloads, BuildMesurement(g.builder, float64(gpuTemp), "%3.f", "°C", SizeTemp, e.Temperature, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, float64(gpuTemp), "%3.f", "°C", SizeTemp, e.Temperature, g.p, "GPU.Temperature")...)
 	}
 	if e.Percentage != nil {
-		payloads = append(payloads, BuildMesurement(g.builder, float64(gpuLoad), "%3.f", "%", SizePercent, e.Percentage, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, float64(gpuLoad), "%3.f", "%", SizePercent, e.Percentage, g.p, "GPU.Percentage")...)
 	}
 	if e.Power != nil {
-		payloads = append(payloads, BuildMesurement(g.builder, float64(gpuAvgPower), "%3.f", "W", SizePower, e.Power, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, float64(gpuAvgPower), "%3.f", "W", SizePower, e.Power, g.p, "GPU.Power")...)
 	}
 	if e.Frequency != nil {
-		payloads = append(payloads, BuildMesurementFloat(g.builder, float64(gpuFrequency), utils.Hertz, SizeHertz, e.Frequency, g.p)...)
+		payloads = append(payloads, BuildMesurementFloat(g.builder, float64(gpuFrequency), utils.Hertz, SizeHertz, e.Frequency, g.p, "GPU.Frequency")...)
 	}
 	if e.Voltage != nil {
-		payloads = append(payloads, BuildMesurement(g.builder, float64(gpuVoltage), "%4.f", "mV", 6, e.Voltage, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, float64(gpuVoltage), "%4.f", "mV", 6, e.Voltage, g.p, "GPU.Voltage")...)
 	}
 	if e.Fan != nil {
 		// Read GPU fan from hwmon
@@ -114,7 +116,7 @@ func (g *GpuStat) getGpuStat(ctx context.Context, e *theme.GPU) error {
 				}
 			}
 		}
-		payloads = append(payloads, BuildMesurement(g.builder, gpuFan, "%.0f", " RPM", SizeDefault, e.Fan, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, gpuFan, "%.0f", " RPM", SizeDefault, e.Fan, g.p, "GPU.Fan")...)
 	}
 
 	for _, payload := range payloads {

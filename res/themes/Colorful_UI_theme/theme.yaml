@@ -53,6 +53,7 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: 3723MHZ
         ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
@@ -64,7 +65,18 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: 15%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 223
+        Y: 122
+        WIDTH: 240
+        HEIGHT: 20
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -75,6 +87,7 @@ STATS:
         FONT_SIZE: 30
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: 60°
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -87,7 +100,18 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: 491M
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 223
+        Y: 304
+        WIDTH: 240
+        HEIGHT: 20
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     PERCENTAGE:
       TEXT:
         SHOW: true
@@ -97,6 +121,7 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: 7%
         ALIGN: center
     TEMPERATURE:
       TEXT:
@@ -107,6 +132,7 @@ STATS:
         FONT_SIZE: 30
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: 50°
         ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -119,6 +145,7 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: 13873M
         ALIGN: center
       PERCENT_TEXT:
         SHOW: true
@@ -128,7 +155,18 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: 88%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 223
+        Y: 486
+        WIDTH: 240
+        HEIGHT: 20
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
   NET:
     INTERVAL: 1
     ETH:
@@ -141,6 +179,7 @@ STATS:
           FONT_SIZE: 28
           FONT_COLOR: 79, 79, 79
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -151,6 +190,7 @@ STATS:
           FONT_SIZE: 28
           FONT_COLOR: 79, 79, 79
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
   DATE:
     INTERVAL: 1
@@ -163,6 +203,7 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: '2022-06-07'
         ALIGN: center
         FORMAT: medium
     HOUR:
@@ -174,6 +215,7 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: '12:22:57'
         ALIGN: center
         FORMAT: short
   WEATHER:
@@ -186,4 +228,5 @@ STATS:
         FONT_SIZE: 27
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
+        PLACEHOLDER: Cloudy S3Level  24°
         ALIGN: center

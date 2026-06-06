@@ -53,6 +53,7 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 54°
         ALIGN: center
     PERCENTAGE:
       TEXT:
@@ -63,7 +64,18 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 0%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 269
+        Y: 212
+        WIDTH: 145
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     MEMORY:
       TEXT:
         SHOW: true
@@ -73,6 +85,7 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 3%
         ALIGN: center
   CPU:
     TEMPERATURE:
@@ -85,6 +98,7 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 65°
         ALIGN: center
     FREQUENCY:
       INTERVAL: 1
@@ -95,6 +109,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '2458'
         ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
@@ -106,7 +121,18 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 19%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 269
+        Y: 378
+        WIDTH: 145
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -118,6 +144,7 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 14153M
         ALIGN: center
       PERCENT_TEXT:
         SHOW: true
@@ -127,7 +154,18 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 90%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 269
+        Y: 553
+        WIDTH: 145
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
   WEATHER:
     TEMPERATURE:
       TEXT:
@@ -138,6 +176,7 @@ STATS:
         FONT_SIZE: 26
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: Light Rain NE2Level  25°
         ALIGN: center
   DATE:
     INTERVAL: 1
@@ -150,6 +189,7 @@ STATS:
         FONT_SIZE: 30
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '17:41:57'
         ALIGN: center
         FORMAT: short
   NET:
@@ -164,6 +204,7 @@ STATS:
           FONT_SIZE: 22
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       UPLOAD:
         TEXT:
@@ -174,4 +215,5 @@ STATS:
           FONT_SIZE: 22
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center

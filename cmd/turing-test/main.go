@@ -14,12 +14,12 @@ import (
 
 	"github.com/alexwbaule/turing-screen/internal/application"
 	appTheme "github.com/alexwbaule/turing-screen/internal/application/theme"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/video"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 // =====================================================================
@@ -118,10 +118,6 @@ func main() {
 	fmt.Println("\n--- INITIALIZE VIDEO OVERLAY ---")
 
 	var initImg *image.NRGBA
-	if statsTheme.GetVideoPlay().ForegroundImage != nil {
-		initImg = convertToNRGBA(statsTheme.GetVideoPlay().ForegroundImage)
-		fmt.Printf("  Loaded background: %s\n", statsTheme.GetVideoPlay().Path)
-	}
 	if initImg == nil {
 		initImg = image.NewNRGBA(image.Rect(0, 0, 800, 480))
 	}
@@ -152,6 +148,10 @@ func main() {
 	txt := buildText(&tttt)
 	bar := buildProgressBar(&tttt)
 	rbar := buildRadialBar(&tttt)
+	sbar := buildStatusBar(&tttt)
+	gauge := buildGauge(&tttt)
+	chart := buildChart(&tttt)
+	chartLine := buildChartLine(&tttt)
 
 	fmt.Println("\n=== STARTING MAIN LOOP ===")
 
@@ -190,6 +190,25 @@ func main() {
 		// --- Draw radial progress bar (green, small) ---
 		radialBar := builder.DrawRadialProgressBar(float64(barValue), rbar)
 		overlay.Draw(radialBar, rbar.X, rbar.Y)
+
+		// --- Draw StatusBar ---
+		statusImg := builder.DrawStatusBar(float64(barValue), sbar)
+		ir := sbar.IndicatorRadius
+		overlay.Draw(statusImg, sbar.X-ir, sbar.Y-ir)
+
+		// --- Draw Gauge ---
+		gaugeImg := builder.DrawGauge(float64(barValue), gauge)
+		overlay.Draw(gaugeImg, gauge.X-gauge.Radius, gauge.Y-gauge.Radius)
+
+		// --- Draw Chart (bar) ---
+		chart.AddSample(float64(barValue))
+		chartImg := builder.DrawChart(chart)
+		overlay.Draw(chartImg, chart.X, chart.Y)
+
+		// --- Draw Chart (line) ---
+		chartLine.AddSample(float64(barValue))
+		chartLineImg := builder.DrawChart(chartLine)
+		overlay.Draw(chartLineImg, chartLine.X, chartLine.Y)
 
 		// --- REFRESH (one single refresh per cycle, matching reference) ---
 		refreshCmd := overlay.Refresh()
@@ -288,5 +307,104 @@ func buildRadialBar(background *theme.BackgroundStyle) *theme.Radial {
 		BarColor:   color.RGBA{0, 128, 255, 255},
 		ShowText:   false,
 		ShowUnit:   true,
+	}
+}
+
+func buildStatusBar(background *theme.BackgroundStyle) *theme.StatusBar {
+	return &theme.StatusBar{
+		Layout: theme.Layout{
+			X:      400,
+			Y:      40,
+			Width:  150,
+			Height: 8,
+		},
+		BackgroundStyle: theme.BackgroundStyle{
+			BackgroundImagePath: background.BackgroundImagePath,
+			BackgroundImage:     background.BackgroundImage,
+		},
+		Show:            true,
+		MinValue:        0,
+		MaxValue:        100,
+		BarColor:        color.NRGBA{0, 200, 255, 255},
+		IndicatorColor:  color.White,
+		IndicatorRadius: 6,
+	}
+}
+
+func buildGauge(background *theme.BackgroundStyle) *theme.Gauge {
+	return &theme.Gauge{
+		Layout: theme.Layout{
+			X:      500,
+			Y:      300,
+			Width:  80,
+			Height: 80,
+		},
+		BackgroundStyle: theme.BackgroundStyle{
+			BackgroundImagePath: background.BackgroundImagePath,
+			BackgroundImage:     background.BackgroundImage,
+		},
+		TextStyle: theme.TextStyle{
+			Font:      utils.DefaultFont,
+			FontColor: color.White,
+			Align:     theme.CENTER,
+		},
+		Show:        true,
+		Radius:      35,
+		NeedleWidth: 2,
+		MinValue:    0,
+		MaxValue:    100,
+		AngleStart:  36,
+		AngleEnd:    60,
+		NeedleColor: color.NRGBA{255, 50, 50, 255},
+		ShowText:    true,
+		ShowUnit:    true,
+	}
+}
+
+func buildChart(background *theme.BackgroundStyle) *theme.Chart {
+	return &theme.Chart{
+		Layout: theme.Layout{
+			X:      400,
+			Y:      80,
+			Width:  150,
+			Height: 60,
+		},
+		BackgroundStyle: theme.BackgroundStyle{
+			BackgroundImagePath: background.BackgroundImagePath,
+			BackgroundImage:     background.BackgroundImage,
+		},
+		Show:        true,
+		Style:       "bar",
+		MinValue:    0,
+		MaxValue:    100,
+		ColumnWidth: 3,
+		ColumnGap:   1,
+		FillColor:   color.NRGBA{0, 200, 100, 255},
+		LineColor:   color.NRGBA{100, 100, 100, 255},
+		BorderWidth: 1,
+	}
+}
+
+func buildChartLine(background *theme.BackgroundStyle) *theme.Chart {
+	return &theme.Chart{
+		Layout: theme.Layout{
+			X:      400,
+			Y:      160,
+			Width:  150,
+			Height: 60,
+		},
+		BackgroundStyle: theme.BackgroundStyle{
+			BackgroundImagePath: background.BackgroundImagePath,
+			BackgroundImage:     background.BackgroundImage,
+		},
+		Show:        true,
+		Style:       "line",
+		MinValue:    0,
+		MaxValue:    100,
+		ColumnWidth: 3,
+		ColumnGap:   1,
+		FillColor:   color.NRGBA{50, 100, 200, 128},
+		LineColor:   color.NRGBA{100, 200, 255, 255},
+		BorderWidth: 1,
 	}
 }

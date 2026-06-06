@@ -6,21 +6,22 @@ import (
 
 	"github.com/alexwbaule/gopsutil/v3/net"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	edevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 type NetStat struct {
-	log     *logger.Logger
-	jobs    chan<- command.Command
-	builder *renderer.Builder
-	p       *command.UpdatePayload
-	names   edevice.Net
-	wifi    lastValues
-	wired   lastValues
+	log      *logger.Logger
+	jobs     chan<- command.Command
+	builder  *renderer.Builder
+	p        *command.UpdatePayload
+	names    edevice.Net
+	interval time.Duration
+	wifi     lastValues
+	wired    lastValues
 }
 
 type lastValues struct {
@@ -28,13 +29,14 @@ type lastValues struct {
 	recv uint64
 }
 
-func NewDNetStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, m edevice.Net) *NetStat {
+func NewDNetStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, m edevice.Net, interval time.Duration) *NetStat {
 	return &NetStat{
-		log:     l.With("runner", "net_stats"),
-		jobs:    j,
-		builder: b,
-		p:       p,
-		names:   m,
+		log:      l.With("runner", "net_stats"),
+		jobs:     j,
+		builder:  b,
+		p:        p,
+		names:    m,
+		interval: interval,
 		wifi: lastValues{
 			sent: 0,
 			recv: 0,
@@ -47,7 +49,7 @@ func NewDNetStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder
 }
 
 func (g *NetStat) RunNetStat(ctx context.Context, e *theme.Network) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	err := g.getNetStat(ctx, e)
@@ -88,7 +90,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 
 				if e.Wired.Download != nil && e.Wired.Download.Text.Show {
 					e.Wired.Download.Text.ShowUnit = true
-					v := float64(recvtx) / e.Interval.Seconds()
+					v := float64(recvtx) / g.interval.Seconds()
 					img, x, y := BuildTextFloat(g.builder, v, utils.NetSpeed, e.Wired.Download.Text, SizeSpeed)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
@@ -99,7 +101,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 				}
 				if e.Wired.Upload != nil && e.Wired.Upload.Text.Show {
 					e.Wired.Upload.Text.ShowUnit = true
-					v := float64(senttx) / e.Interval.Seconds()
+					v := float64(senttx) / g.interval.Seconds()
 					img, x, y := BuildTextFloat(g.builder, v, utils.NetSpeed, e.Wired.Upload.Text, SizeSpeed)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
@@ -121,7 +123,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 
 				if e.Wifi.Download != nil && e.Wifi.Download.Text.Show {
 					e.Wifi.Download.Text.ShowUnit = true
-					v := float64(recvtx) / e.Interval.Seconds()
+					v := float64(recvtx) / g.interval.Seconds()
 					img, x, y := BuildTextFloat(g.builder, v, utils.NetSpeed, e.Wifi.Download.Text, SizeSpeed)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}
@@ -132,7 +134,7 @@ func (g *NetStat) getNetStat(ctx context.Context, e *theme.Network) error {
 				}
 				if e.Wifi.Upload != nil && e.Wifi.Upload.Text.Show {
 					e.Wifi.Upload.Text.ShowUnit = true
-					v := float64(senttx) / e.Interval.Seconds()
+					v := float64(senttx) / g.interval.Seconds()
 					img, x, y := BuildTextFloat(g.builder, v, utils.NetSpeed, e.Wifi.Upload.Text, SizeSpeed)
 					payloads = append(payloads, g.p.SendPayload(img, x, y))
 				}

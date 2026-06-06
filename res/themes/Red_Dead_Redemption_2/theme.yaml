@@ -53,6 +53,7 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 88%
         ALIGN: center
     TEMPERATURE:
       TEXT:
@@ -62,6 +63,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '43'
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -73,7 +75,52 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '55'
         ALIGN: center
+    PERCENTAGE:
+      GRAPH:
+        SHOW: true
+        X: 469
+        Y: 233
+        WIDTH: 118
+        HEIGHT: 8
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+      RADIAL:
+        SHOW: true
+        X: 458
+        Y: 371
+        RADIUS: 35
+        WIDTH: 5
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 0, 0
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+    MEMORY:
+      RADIAL:
+        SHOW: true
+        X: 552
+        Y: 371
+        RADIUS: 35
+        WIDTH: 5
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 0, 0
+        SHOW_TEXT: false
+        SHOW_UNIT: false
   CPU:
     TEMPERATURE:
       INTERVAL: 1
@@ -84,7 +131,36 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '66'
         ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      GRAPH:
+        SHOW: true
+        X: 658
+        Y: 233
+        WIDTH: 118
+        HEIGHT: 8
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+      RADIAL:
+        SHOW: true
+        X: 647
+        Y: 371
+        RADIUS: 35
+        WIDTH: 5
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 0, 0
+        SHOW_TEXT: false
+        SHOW_UNIT: false
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -95,7 +171,34 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '85'
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 469
+        Y: 308
+        WIDTH: 118
+        HEIGHT: 8
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+      RADIAL:
+        SHOW: true
+        X: 741
+        Y: 371
+        RADIUS: 35
+        WIDTH: 5
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 0, 0
+        SHOW_TEXT: false
+        SHOW_UNIT: false
   DATE:
     INTERVAL: 1
     HOUR:
@@ -107,6 +210,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '18:10:12'
         ALIGN: center
         FORMAT: short
   VOLUME:
@@ -118,6 +222,7 @@ STATS:
       FONT_SIZE: 20
       FONT_COLOR: 255, 255, 255
       SHOW_UNIT: true
+      PLACEHOLDER: 10%
       ALIGN: center
   WEATHER:
     TEMPERATURE:
@@ -129,4 +234,5 @@ STATS:
         FONT_SIZE: 18
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: Sunny SW4Level  34°
         ALIGN: center

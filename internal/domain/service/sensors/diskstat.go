@@ -17,20 +17,22 @@ type DiskStat struct {
 	builder           *renderer.Builder
 	p                 *command.UpdatePayload
 	temperatureSensor string
+	interval          time.Duration
 }
 
-func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, temperatureSensor string) *DiskStat {
+func NewDiskStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, temperatureSensor string, interval time.Duration) *DiskStat {
 	return &DiskStat{
 		log:               l.With("runner", "disk_stats"),
 		jobs:              j,
 		builder:           b,
 		p:                 p,
 		temperatureSensor: temperatureSensor,
+		interval:          interval,
 	}
 }
 
 func (g *DiskStat) RunDiskStat(ctx context.Context, e *theme.Disk) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	err := g.getDiskStat(ctx, e)
@@ -61,18 +63,18 @@ func (g *DiskStat) getDiskStat(ctx context.Context, e *theme.Disk) error {
 		return err
 	}
 	if e.Free != nil {
-		payloads = append(payloads, BuildMesurement(g.builder, 100-disks.UsedPercent, "%3.f", "%", SizePercent, e.Free, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, 100-disks.UsedPercent, "%3.f", "%", SizePercent, e.Free, g.p, "Disk.Free")...)
 	}
 	if e.Used != nil {
-		payloads = append(payloads, BuildMesurement(g.builder, disks.UsedPercent, "%3.f", "%", SizePercent, e.Used, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, disks.UsedPercent, "%3.f", "%", SizePercent, e.Used, g.p, "Disk.Used")...)
 	}
 	if e.Total != nil {
-		payloads = append(payloads, BuildMesurement(g.builder, 100, "%3.f", "%", SizePercent, e.Total, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, 100, "%3.f", "%", SizePercent, e.Total, g.p, "Disk.Total")...)
 	}
 	if e.Temperature != nil {
 		diskPatterns := []string{"nvme", "disk", "nvme_composite"}
 		temperature, _ := findSensorTemperature(ctx, g.temperatureSensor, diskPatterns, g.log)
-		payloads = append(payloads, BuildMesurement(g.builder, temperature, "%3.0f", "°C", SizeTemp, e.Temperature, g.p)...)
+		payloads = append(payloads, BuildMesurement(g.builder, temperature, "%3.0f", "°C", SizeTemp, e.Temperature, g.p, "Disk.Temperature")...)
 	}
 
 	for _, payload := range payloads {

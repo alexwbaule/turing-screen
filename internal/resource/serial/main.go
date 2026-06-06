@@ -68,6 +68,9 @@ func NewSerial(portName string, l *logger.Logger) (SerialSender, error) {
 
 // Execute performs a synchronous command execution.
 func (s *Serial) Execute(cmd command.Command) ([]byte, error) {
+	if s.port == nil {
+		return nil, fmt.Errorf("serial port is closed")
+	}
 	s.log.Debugf("executing sync command: %s", cmd.GetName())
 
 	// 1. Write all command packets
@@ -81,10 +84,10 @@ func (s *Serial) Execute(cmd command.Command) ([]byte, error) {
 	validation := cmd.ValidateWrite()
 	if validation.Size == 0 {
 		s.log.Debug("oneway command, without response...")
-		return nil, nil // No response expected
+		return nil, nil
 	}
 
-	// 3. Read the expected number of bytes
+	// 3. Read the response
 	responseBuf := make([]byte, validation.Size)
 	n, err := s.Read(responseBuf)
 	if err != nil {
@@ -94,14 +97,13 @@ func (s *Serial) Execute(cmd command.Command) ([]byte, error) {
 	response := responseBuf[:n]
 	s.log.Debugf("Readed: %s", string(bytes.Trim(response, "\x00")))
 
-	// 4. Validate the response using the command's own logic
+	// 4. Validate the response
 	if err := cmd.ValidateCommand(response, n); err != nil {
-		return nil, fmt.Errorf("invalid response for sync command %s: %w", cmd.GetName(), err)
+		s.log.Infof("Command %s failed: %v", cmd.GetName(), err)
+		return nil, err
 	}
 
 	s.log.Debugf("Sync command %s successful, response: %s", cmd.GetName(), string(bytes.Trim(response, "\x00")))
-
-	// 5. Return the raw response
 	return response, nil
 }
 

@@ -46,7 +46,34 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 3%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 259
+        Y: 112
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+      RADIAL:
+        SHOW: true
+        X: 110
+        Y: 135
+        RADIUS: 78
+        WIDTH: 10
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 49, 233, 255
+        SHOW_TEXT: false
+        SHOW_UNIT: false
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -57,7 +84,18 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 4070M
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 434
+        Y: 112
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -68,7 +106,18 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 30°
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 609
+        Y: 112
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     POWER:
       INTERVAL: 1
       TEXT:
@@ -79,7 +128,18 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 4W
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 434
+        Y: 161
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     FAN:
       INTERVAL: 1
       TEXT:
@@ -90,7 +150,18 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 1078R
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 609
+        Y: 161
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
   DISK:
     INTERVAL: 10
     USED:
@@ -102,7 +173,18 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 98%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 259
+        Y: 161
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
   GPU:
     INTERVAL: 1
     PERCENTAGE:
@@ -114,7 +196,18 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 2%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 259
+        Y: 330
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     MEMORY:
       TEXT:
         SHOW: true
@@ -124,7 +217,18 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 85%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 434
+        Y: 330
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -134,6 +238,7 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 26°
         ALIGN: center
     FREQUENCY:
       TEXT:
@@ -144,7 +249,18 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 400M
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 259
+        Y: 379
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     POWER:
       TEXT:
         SHOW: true
@@ -154,7 +270,18 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 12W
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 434
+        Y: 379
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
     FAN:
       TEXT:
         SHOW: true
@@ -164,7 +291,18 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 0R
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 609
+        Y: 330
+        WIDTH: 129
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -175,4 +313,21 @@ STATS:
         FONT: geforce/GeForce-Bold.ttf
         FONT_SIZE: 57
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '45'
         ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 110
+        Y: 353
+        RADIUS: 78
+        WIDTH: 10
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 49, 233, 255
+        SHOW_TEXT: false
+        SHOW_UNIT: false

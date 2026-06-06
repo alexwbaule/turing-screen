@@ -48,6 +48,18 @@ static_texts:
     FONT_COLOR: 0, 0, 0
 STATS:
   CPU:
+    FREQUENCY:
+      INTERVAL: 1
+      GRAPH:
+        SHOW: true
+        X: 711
+        Y: 212
+        WIDTH: 65
+        HEIGHT: 32
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 254, 213, 63
+        BAR_OUTLINE: false
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -58,7 +70,85 @@ STATS:
         FONT_SIZE: 54
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 3%
         ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 48
+        Y: 372
+        RADIUS: 16
+        WIDTH: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 356
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 228, 169, 49
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+  DISK:
+    INTERVAL: 10
+    USED:
+      GRAPH:
+        SHOW: true
+        X: 63
+        Y: 144
+        WIDTH: 135
+        HEIGHT: 21
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 254, 213, 63
+        BAR_OUTLINE: false
+      PERCENT_TEXT:
+        SHOW: true
+        X: 673
+        Y: 401
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 54
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        PLACEHOLDER: 95%
+        ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 626
+        Y: 432
+        RADIUS: 16
+        WIDTH: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 356
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 228, 169, 49
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+    TEMPERATURE:
+      GRAPH:
+        SHOW: true
+        X: 104
+        Y: 144
+        WIDTH: 135
+        HEIGHT: 21
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 254, 213, 63
+        BAR_OUTLINE: false
+  VOLUME:
+    GRAPH:
+      SHOW: true
+      X: 145
+      Y: 144
+      WIDTH: 135
+      HEIGHT: 21
+      MIN_VALUE: 0
+      MAX_VALUE: 100
+      BAR_COLOR: 254, 213, 63
+      BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -70,7 +160,24 @@ STATS:
         FONT_SIZE: 54
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 50%
         ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 48
+        Y: 432
+        RADIUS: 16
+        WIDTH: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 356
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 228, 169, 49
+        SHOW_TEXT: false
+        SHOW_UNIT: false
   GPU:
     INTERVAL: 1
     PERCENTAGE:
@@ -82,19 +189,24 @@ STATS:
         FONT_SIZE: 54
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 1%
         ALIGN: center
-  DISK:
-    INTERVAL: 10
-    USED:
-      PERCENT_TEXT:
+      RADIAL:
         SHOW: true
-        X: 673
-        Y: 401
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 54
-        FONT_COLOR: 0, 0, 0
-        SHOW_UNIT: true
-        ALIGN: center
+        X: 626
+        Y: 372
+        RADIUS: 16
+        WIDTH: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 356
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 228, 169, 49
+        SHOW_TEXT: false
+        SHOW_UNIT: false
   DATE:
     INTERVAL: 1
     DAY:
@@ -106,6 +218,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '2022'
         ALIGN: center
         FORMAT: medium
     HOUR:
@@ -117,5 +230,6 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '13:47'
         ALIGN: center
         FORMAT: short

@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	themeEntity "github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/video"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 // initVideo handles the video mode: check/upload file, start playback, init overlay.

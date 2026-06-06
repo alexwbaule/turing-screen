@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -12,7 +14,7 @@ import (
 type Forecast struct {
 	Temperature float64
 	Condition   string  // Ex: "Clouds", "Rain", "Clear"
-	Description string  // Ex: "partly cloudy"
+	Description string  // Ex: "partly cloudy" / "parcialmente nublado"
 	WindSpeed   float64 // km/h
 }
 
@@ -130,38 +132,109 @@ func (c *Client) resolveCity(city string) error {
 }
 
 // weatherCodeToCondition maps WMO weather codes to condition strings
-// https://open-meteo.com/en/docs (WMO Weather interpretation codes)
+// Uses system LANG to translate descriptions.
 func weatherCodeToCondition(code int) (condition, description string) {
+	lang := detectLanguage()
 	switch {
 	case code == 0:
-		return "Clear", "clear sky"
+		return "Clear", translate(lang, "clear sky")
 	case code == 1:
-		return "Clear", "mainly clear"
+		return "Clear", translate(lang, "mainly clear")
 	case code == 2:
-		return "Clouds", "partly cloudy"
+		return "Clouds", translate(lang, "partly cloudy")
 	case code == 3:
-		return "Clouds", "overcast"
+		return "Clouds", translate(lang, "overcast")
 	case code >= 45 && code <= 48:
-		return "Fog", "fog"
+		return "Fog", translate(lang, "fog")
 	case code >= 51 && code <= 55:
-		return "Drizzle", "drizzle"
+		return "Drizzle", translate(lang, "drizzle")
 	case code >= 56 && code <= 57:
-		return "Drizzle", "freezing drizzle"
+		return "Drizzle", translate(lang, "freezing drizzle")
 	case code >= 61 && code <= 65:
-		return "Rain", "rain"
+		return "Rain", translate(lang, "rain")
 	case code >= 66 && code <= 67:
-		return "Rain", "freezing rain"
+		return "Rain", translate(lang, "freezing rain")
 	case code >= 71 && code <= 77:
-		return "Snow", "snow"
+		return "Snow", translate(lang, "snow")
 	case code >= 80 && code <= 82:
-		return "Rain", "rain showers"
+		return "Rain", translate(lang, "rain showers")
 	case code >= 85 && code <= 86:
-		return "Snow", "snow showers"
+		return "Snow", translate(lang, "snow showers")
 	case code == 95:
-		return "Thunderstorm", "thunderstorm"
+		return "Thunderstorm", translate(lang, "thunderstorm")
 	case code >= 96 && code <= 99:
-		return "Thunderstorm", "thunderstorm with hail"
+		return "Thunderstorm", translate(lang, "thunderstorm with hail")
 	default:
-		return "Unknown", "unknown"
+		return "Unknown", translate(lang, "unknown")
 	}
+}
+
+// detectLanguage returns the 2-letter language code from system locale.
+func detectLanguage() string {
+	lang := os.Getenv("LANG")
+	if lang == "" {
+		lang = os.Getenv("LC_ALL")
+	}
+	if lang == "" {
+		lang = os.Getenv("LANGUAGE")
+	}
+	if lang == "" {
+		return "en"
+	}
+	// LANG format: "pt_BR.UTF-8" -> "pt"
+	lang = strings.ToLower(lang)
+	if idx := strings.IndexAny(lang, "_."); idx > 0 {
+		lang = lang[:idx]
+	}
+	return lang
+}
+
+// translate returns the localized version of a weather description.
+func translate(lang, english string) string {
+	if lang == "en" {
+		return english
+	}
+	if translations, ok := weatherTranslations[lang]; ok {
+		if t, ok := translations[english]; ok {
+			return t
+		}
+	}
+	return english
+}
+
+var weatherTranslations = map[string]map[string]string{
+	"pt": {
+		"clear sky":              "céu limpo",
+		"mainly clear":           "predominantemente limpo",
+		"partly cloudy":          "parcialmente nublado",
+		"overcast":               "nublado",
+		"fog":                    "neblina",
+		"drizzle":                "garoa",
+		"freezing drizzle":       "garoa congelante",
+		"rain":                   "chuva",
+		"freezing rain":          "chuva congelante",
+		"snow":                   "neve",
+		"rain showers":           "pancadas de chuva",
+		"snow showers":           "pancadas de neve",
+		"thunderstorm":           "tempestade",
+		"thunderstorm with hail": "tempestade com granizo",
+		"unknown":                "desconhecido",
+	},
+	"es": {
+		"clear sky":              "cielo despejado",
+		"mainly clear":           "mayormente despejado",
+		"partly cloudy":          "parcialmente nublado",
+		"overcast":               "nublado",
+		"fog":                    "niebla",
+		"drizzle":                "llovizna",
+		"freezing drizzle":       "llovizna helada",
+		"rain":                   "lluvia",
+		"freezing rain":          "lluvia helada",
+		"snow":                   "nieve",
+		"rain showers":           "chubascos",
+		"snow showers":           "chubascos de nieve",
+		"thunderstorm":           "tormenta",
+		"thunderstorm with hail": "tormenta con granizo",
+		"unknown":                "desconocido",
+	},
 }

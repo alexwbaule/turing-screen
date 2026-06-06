@@ -52,6 +52,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '50'
         ALIGN: center
     FREQUENCY:
       INTERVAL: 1
@@ -62,6 +63,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '3161'
         ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
@@ -72,6 +74,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '4'
         ALIGN: center
     FAN:
       INTERVAL: 1
@@ -82,6 +85,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '0'
         ALIGN: center
     POWER:
       INTERVAL: 1
@@ -92,6 +96,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '8'
         ALIGN: center
     VOLTAGE:
       INTERVAL: 1
@@ -102,6 +107,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '1.38'
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -113,6 +119,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '49'
         ALIGN: center
     MEMORY:
       TEXT:
@@ -122,6 +129,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '996'
         ALIGN: center
     PERCENTAGE:
       TEXT:
@@ -131,6 +139,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '0'
         ALIGN: center
     FREQUENCY:
       TEXT:
@@ -140,6 +149,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '318'
         ALIGN: center
     POWER:
       TEXT:
@@ -149,6 +159,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '10'
         ALIGN: center
     VOLTAGE:
       TEXT:
@@ -158,6 +169,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '0.70'
         ALIGN: center
     FAN:
       TEXT:
@@ -167,6 +179,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '0'
         ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -179,6 +192,7 @@ STATS:
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 10056M
         ALIGN: center
       PERCENT_TEXT:
         SHOW: true
@@ -188,6 +202,7 @@ STATS:
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 35%
         ALIGN: center
   NET:
     INTERVAL: 1
@@ -201,6 +216,7 @@ STATS:
           FONT_SIZE: 27
           FONT_COLOR: 0, 0, 0
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -211,6 +227,7 @@ STATS:
           FONT_SIZE: 27
           FONT_COLOR: 0, 0, 0
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
   VOLUME:
     TEXT:
@@ -221,6 +238,7 @@ STATS:
       FONT_SIZE: 27
       FONT_COLOR: 0, 0, 0
       SHOW_UNIT: true
+      PLACEHOLDER: 34%
       ALIGN: center
   DATE:
     INTERVAL: 1
@@ -233,6 +251,7 @@ STATS:
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '2023-04-30'
         ALIGN: center
         FORMAT: medium
     HOUR:
@@ -244,6 +263,7 @@ STATS:
         FONT_SIZE: 42
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '14:13:37'
         ALIGN: center
         FORMAT: short
   WEATHER:
@@ -268,6 +288,7 @@ STATS:
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 41°
         ALIGN: center
     USED:
       PERCENT_TEXT:
@@ -278,4 +299,5 @@ STATS:
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 40%
         ALIGN: center

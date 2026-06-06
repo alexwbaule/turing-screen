@@ -58,6 +58,30 @@ func (c *Config) GetGPUSensorConfig() device.GPUSensorConfig {
 func (c *Config) GetWeatherConfig() *device.WeatherConfig {
 	return &c.device.Sensors.Weather
 }
+func (c *Config) GetMemoryConfig() device.MemoryConfig {
+	return c.device.Sensors.Memory
+}
 func (c *Config) GetTurnOffOnExit() bool {
 	return c.device.TurnOffOnExit
+}
+func (c *Config) GetAPIPort() int {
+	if c.device.APIPort <= 0 {
+		return 9120
+	}
+	return c.device.APIPort
+}
+
+// Reload re-reads the config file from disk.
+func (c *Config) Reload() error {
+	var config device.Config
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(defaultConfig)
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("error reading config file: %w", err)
+	}
+	if err := viper.Unmarshal(&config); err != nil {
+		return fmt.Errorf("error unmarshalling config file: %w", err)
+	}
+	c.device = &config
+	return nil
 }

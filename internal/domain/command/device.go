@@ -3,9 +3,10 @@ package command
 import (
 	"bytes"
 	"fmt"
-	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"regexp"
+
+	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 var (

@@ -39,6 +39,7 @@ STATS:
         FONT_SIZE: 94
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '14:38:08'
         ALIGN: center
         FORMAT: short
     DAY:
@@ -50,6 +51,7 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '2022-12-07'
         ALIGN: center
         FORMAT: medium
   CPU:
@@ -63,6 +65,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 10W
         ALIGN: center
     VOLTAGE:
       INTERVAL: 1
@@ -73,6 +76,7 @@ STATS:
         FONT: turtheme/LiquidCrystal-Normal.otf
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '1.25'
         ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
@@ -83,6 +87,7 @@ STATS:
         FONT: turtheme/LiquidCrystal-Normal.otf
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '5'
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -94,6 +99,7 @@ STATS:
         FONT: turtheme/LiquidCrystal-Normal.otf
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '77'
         ALIGN: center
     PERCENTAGE:
       TEXT:
@@ -103,6 +109,7 @@ STATS:
         FONT: turtheme/LiquidCrystal-Normal.otf
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '24'
         ALIGN: center
     VOLTAGE:
       TEXT:
@@ -113,6 +120,7 @@ STATS:
         FONT_SIZE: 39
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 0.84V
         ALIGN: center
   VOLUME:
     TEXT:
@@ -122,6 +130,7 @@ STATS:
       FONT: turtheme/LiquidCrystal-Normal.otf
       FONT_SIZE: 38
       FONT_COLOR: 255, 255, 255
+      PLACEHOLDER: '58'
       ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -133,6 +142,7 @@ STATS:
         FONT: turtheme/LiquidCrystal-Normal.otf
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '58'
         ALIGN: center
   DISK:
     INTERVAL: 10
@@ -144,6 +154,7 @@ STATS:
         FONT: turtheme/LiquidCrystal-Normal.otf
         FONT_SIZE: 38
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '97'
         ALIGN: center
   WEATHER:
     TEMPERATURE:
@@ -155,4 +166,5 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: Cloudy SW1Level  12°
         ALIGN: center

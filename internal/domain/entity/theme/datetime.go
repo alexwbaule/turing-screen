@@ -1,9 +1,7 @@
 package theme
 
-import "time"
 
 type DateTime struct {
-	Interval time.Duration `mapstructure:"INTERVAL"`
 	Day      *Day          `mapstructure:"DAY"`
 	Hour     *Hour         `mapstructure:"HOUR"`
 }

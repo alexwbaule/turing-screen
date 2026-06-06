@@ -30,7 +30,20 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 78
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '61'
         ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      GRAPH:
+        SHOW: true
+        X: 23
+        Y: 184
+        WIDTH: 172
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 14, 170, 129
+        BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -41,7 +54,18 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 78
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '87'
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 278
+        Y: 451
+        WIDTH: 161
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 252, 60, 13
+        BAR_OUTLINE: false
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -52,6 +76,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 78
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '49'
         ALIGN: center
   VOLUME:
     TEXT:
@@ -61,6 +86,7 @@ STATS:
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
       FONT_SIZE: 63
       FONT_COLOR: 255, 224, 139
+      PLACEHOLDER: '19'
       ALIGN: center
   DISK:
     INTERVAL: 10
@@ -72,6 +98,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 63
         FONT_COLOR: 255, 224, 139
+        PLACEHOLDER: '94'
         ALIGN: center
   DATE:
     INTERVAL: 1
@@ -84,6 +111,7 @@ STATS:
         FONT_SIZE: 39
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '14:03:46'
         ALIGN: center
         FORMAT: short
     DAY:
@@ -95,5 +123,6 @@ STATS:
         FONT_SIZE: 27
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '2022-07-08'
         ALIGN: center
         FORMAT: medium

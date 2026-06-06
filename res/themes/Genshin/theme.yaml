@@ -42,7 +42,45 @@ static_texts:
     FONT_SIZE: 15
     FONT_COLOR: 202, 148, 111
 STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      GRAPH:
+        SHOW: true
+        X: 55
+        Y: 287
+        WIDTH: 221
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 225, 204, 151
+        BAR_OUTLINE: false
+      TEXT:
+        SHOW: true
+        X: 21
+        Y: 212
+        FONT: turtheme/Futura LT Condensed Extra Bold.ttf
+        FONT_SIZE: 46
+        FONT_COLOR: 225, 204, 151
+        PLACEHOLDER: '15'
+        ALIGN: center
   VOLUME:
+    RADIAL:
+      SHOW: true
+      X: 57
+      Y: 364
+      RADIUS: 26
+      WIDTH: 3
+      MIN_VALUE: 0
+      MAX_VALUE: 100
+      ANGLE_START: 120
+      ANGLE_END: 60
+      ANGLE_STEPS: 1
+      ANGLE_SEP: 0
+      CLOCKWISE: true
+      BAR_COLOR: 202, 148, 111
+      SHOW_TEXT: false
+      SHOW_UNIT: false
     TEXT:
       SHOW: true
       X: 57
@@ -50,10 +88,27 @@ STATS:
       FONT: turtheme/Futura LT Condensed Extra Bold.ttf
       FONT_SIZE: 30
       FONT_COLOR: 255, 255, 255
+      PLACEHOLDER: '58'
       ALIGN: center
   DISK:
     INTERVAL: 10
     USED:
+      RADIAL:
+        SHOW: true
+        X: 127
+        Y: 364
+        RADIUS: 26
+        WIDTH: 3
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 202, 148, 111
+        SHOW_TEXT: false
+        SHOW_UNIT: false
       PERCENT_TEXT:
         SHOW: true
         X: 126
@@ -61,10 +116,27 @@ STATS:
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
         FONT_SIZE: 30
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '97'
         ALIGN: center
   GPU:
     INTERVAL: 1
     TEMPERATURE:
+      RADIAL:
+        SHOW: true
+        X: 197
+        Y: 364
+        RADIUS: 26
+        WIDTH: 3
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 202, 148, 111
+        SHOW_TEXT: false
+        SHOW_UNIT: false
       TEXT:
         SHOW: true
         X: 198
@@ -72,6 +144,7 @@ STATS:
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
         FONT_SIZE: 30
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '30'
         ALIGN: center
     MEMORY:
       TEXT:
@@ -81,6 +154,7 @@ STATS:
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
         FONT_SIZE: 46
         FONT_COLOR: 225, 204, 151
+        PLACEHOLDER: '82'
         ALIGN: center
   DATE:
     INTERVAL: 1
@@ -93,19 +167,9 @@ STATS:
         FONT_SIZE: 18
         FONT_COLOR: 202, 148, 111
         SHOW_UNIT: true
+        PLACEHOLDER: '12'
         ALIGN: center
         FORMAT: medium
-  CPU:
-    PERCENTAGE:
-      INTERVAL: 1
-      TEXT:
-        SHOW: true
-        X: 21
-        Y: 212
-        FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-        FONT_SIZE: 46
-        FONT_COLOR: 225, 204, 151
-        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -116,4 +180,5 @@ STATS:
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
         FONT_SIZE: 46
         FONT_COLOR: 225, 204, 151
+        PLACEHOLDER: '58'
         ALIGN: center

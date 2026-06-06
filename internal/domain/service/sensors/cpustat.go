@@ -9,10 +9,10 @@ import (
 	"github.com/alexwbaule/gopsutil/v3/host"
 	"github.com/alexwbaule/gopsutil/v3/load"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/renderer"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 type CpuStat struct {
@@ -21,20 +21,22 @@ type CpuStat struct {
 	builder           *renderer.Builder
 	p                 *command.UpdatePayload
 	temperatureSensor string
+	interval          time.Duration
 }
 
-func NewCpuStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, temperatureSensor string) *CpuStat {
+func NewCpuStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload, temperatureSensor string, interval time.Duration) *CpuStat {
 	return &CpuStat{
 		log:               l.With("runner", "cpu_stats"),
 		jobs:              j,
 		builder:           b,
 		p:                 p,
 		temperatureSensor: temperatureSensor,
+		interval:          interval,
 	}
 }
 
 func (g *CpuStat) RunPercentage(ctx context.Context, e *theme.Mesurement) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	err := g.getPercentageStat(ctx, e)
@@ -60,14 +62,14 @@ func (g *CpuStat) getPercentageStat(ctx context.Context, e *theme.Mesurement) er
 	var value float64 = 0
 	var payloads []*command.UpdatePayload
 
-	percent, err := cpu.PercentWithContext(ctx, e.Interval, false)
+	percent, err := cpu.PercentWithContext(ctx, g.interval, false)
 	if err != nil {
 		return err
 	}
 
 	if len(percent) == 1 {
 		value = percent[0]
-		payloads = BuildMesurement(g.builder, value, "%3.0f", "%", SizePercent, e, g.p)
+		payloads = BuildMesurement(g.builder, value, "%3.0f", "%", SizePercent, e, g.p, "CPU.Percentage")
 	}
 
 	for _, payload := range payloads {
@@ -84,7 +86,7 @@ func (g *CpuStat) getPercentageStat(ctx context.Context, e *theme.Mesurement) er
 }
 
 func (g *CpuStat) RunFrequency(ctx context.Context, e *theme.Mesurement) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	err := g.getFrequencyStat(ctx, e)
@@ -122,7 +124,7 @@ func (g *CpuStat) getFrequencyStat(ctx context.Context, e *theme.Mesurement) err
 	}
 	speed := vcpu / float64(s)
 
-	payloads = BuildMesurementFloat(g.builder, speed, utils.Hertz, SizeHertz, e, g.p)
+	payloads = BuildMesurementFloat(g.builder, speed, utils.Hertz, SizeHertz, e, g.p, "CPU.Frequency")
 
 	for _, payload := range payloads {
 		select {
@@ -138,7 +140,7 @@ func (g *CpuStat) getFrequencyStat(ctx context.Context, e *theme.Mesurement) err
 }
 
 func (g *CpuStat) RunTemperature(ctx context.Context, e *theme.Mesurement) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	err := g.getTemperatureStat(ctx, e)
@@ -166,7 +168,7 @@ func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) e
 	cpuPatterns := []string{"cpu", "tdie", "zenpower_tdie"}
 	temperature, _ := findSensorTemperature(ctx, g.temperatureSensor, cpuPatterns, g.log)
 
-	payloads = BuildMesurement(g.builder, temperature, "%3.0f", "°C", SizeTemp, e, g.p)
+	payloads = BuildMesurement(g.builder, temperature, "%3.0f", "°C", SizeTemp, e, g.p, "CPU.Temperature")
 
 	for _, payload := range payloads {
 		select {
@@ -181,7 +183,7 @@ func (g *CpuStat) getTemperatureStat(ctx context.Context, e *theme.Mesurement) e
 }
 
 func (g *CpuStat) RunLoad(ctx context.Context, e *theme.Load) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	err := g.getLoadStat(ctx, e)
@@ -237,7 +239,7 @@ func (g *CpuStat) getLoadStat(ctx context.Context, e *theme.Load) error {
 }
 
 func (g *CpuStat) RunFan(ctx context.Context, e *theme.Mesurement) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	if err := g.getFanStat(ctx, e); err != nil {
@@ -293,7 +295,7 @@ func (g *CpuStat) getFanStat(ctx context.Context, e *theme.Mesurement) error {
 }
 
 func (g *CpuStat) RunPower(ctx context.Context, e *theme.Mesurement) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	if err := g.getPowerStat(ctx, e); err != nil {
@@ -347,7 +349,7 @@ func (g *CpuStat) getPowerStat(ctx context.Context, e *theme.Mesurement) error {
 }
 
 func (g *CpuStat) RunVoltage(ctx context.Context, e *theme.Mesurement) error {
-	ticker := time.NewTicker(e.Interval)
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	if err := g.getVoltageStat(ctx, e); err != nil {

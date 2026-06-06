@@ -60,6 +60,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 32, 203, 32
         SHOW_UNIT: true
+        PLACEHOLDER: 8%
         ALIGN: center
     MEMORY:
       TEXT:
@@ -70,6 +71,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 32, 203, 32
         SHOW_UNIT: true
+        PLACEHOLDER: 436M
         ALIGN: center
     FAN:
       TEXT:
@@ -79,6 +81,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 21
         FONT_COLOR: 32, 203, 32
+        PLACEHOLDER: '0'
         ALIGN: center
   CPU:
     PERCENTAGE:
@@ -91,6 +94,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 32, 203, 32
         SHOW_UNIT: true
+        PLACEHOLDER: 3%
         ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -103,6 +107,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 32, 203, 32
         SHOW_UNIT: true
+        PLACEHOLDER: 46%
         ALIGN: center
   NET:
     INTERVAL: 1
@@ -116,6 +121,7 @@ STATS:
           FONT_SIZE: 21
           FONT_COLOR: 32, 203, 32
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -126,4 +132,5 @@ STATS:
           FONT_SIZE: 21
           FONT_COLOR: 32, 203, 32
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center

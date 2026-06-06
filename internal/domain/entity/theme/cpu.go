@@ -1,9 +1,7 @@
 package theme
 
-import "time"
 
 type CPU struct {
-	Interval    time.Duration `mapstructure:"INTERVAL"`
 	Percentage  *Mesurement   `mapstructure:"PERCENTAGE"`
 	Frequency   *Mesurement   `mapstructure:"FREQUENCY"`
 	Load        *Load         `mapstructure:"LOAD"`
@@ -23,7 +21,6 @@ type LoadFifteen struct {
 	Text *Text `mapstructure:"TEXT"`
 }
 type Load struct {
-	Interval time.Duration `mapstructure:"INTERVAL"`
 	One      *LoadOne      `mapstructure:"ONE"`
 	Five     *LoadFive     `mapstructure:"FIVE"`
 	Fifteen  *LoadFifteen  `mapstructure:"FIFTEEN"`

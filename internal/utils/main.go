@@ -392,3 +392,56 @@ func humanateFloatBytes(s float64, base float64, sizes []string, showUnit bool) 
 func logn(n, b float64) float64 {
 	return math.Log(n) / math.Log(b)
 }
+
+// CopyFile copia um arquivo do source para o destination.
+func CopyFile(src, dst string) error {
+	// If src and dst refer to the same file, skip to avoid truncating
+	if src == dst {
+		return nil
+	}
+
+	srcStat, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	dstStat, err := os.Stat(dst)
+	if err == nil && os.SameFile(srcStat, dstStat) {
+		return nil
+	}
+
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	return err
+}
+
+// ParseColor converte uma string "r,g,b" para um objeto color.Color
+func ParseColor(colorStr string) color.Color {
+	if colorStr == "" {
+		return color.White // Retorna branco se a cor não estiver definida
+	}
+	parts := strings.Split(colorStr, ",")
+	if len(parts) != 3 {
+		return color.White
+	}
+	r, _ := strconv.Atoi(strings.TrimSpace(parts[0]))
+	g, _ := strconv.Atoi(strings.TrimSpace(parts[1]))
+	b, _ := strconv.Atoi(strings.TrimSpace(parts[2]))
+	return color.NRGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: 255}
+}
+
+// FormatColor converte um objeto color.Color para nossa string "r,g,b"
+func FormatColor(c color.Color) string {
+	r, g, b, _ := c.RGBA()
+	return fmt.Sprintf("%d,%d,%d", uint8(r), uint8(g), uint8(b))
+}

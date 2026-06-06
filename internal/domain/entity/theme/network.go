@@ -1,9 +1,7 @@
 package theme
 
-import "time"
 
 type Network struct {
-	Interval time.Duration      `mapstructure:"INTERVAL"`
 	Wifi     *NetworkMesurement `mapstructure:"WLO"`
 	Wired    *NetworkMesurement `mapstructure:"ETH"`
 }

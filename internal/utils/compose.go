@@ -15,12 +15,14 @@ func (r Rect) ToImageRect() image.Rectangle {
 	return image.Rect(r.X, r.Y, r.X+r.W, r.Y+r.H)
 }
 
-// Intersects returns true if two rects overlap.
+// Intersects returns true if two rects have significant overlap (at least minOverlap pixels in both axes).
 func (r Rect) Intersects(other Rect) bool {
-	return r.X < other.X+other.W &&
-		r.X+r.W > other.X &&
-		r.Y < other.Y+other.H &&
-		r.Y+r.H > other.Y
+	const minOverlap = 3 // minimum overlap in pixels to consider "intersecting"
+
+	overlapX := min(r.X+r.W, other.X+other.W) - max(r.X, other.X)
+	overlapY := min(r.Y+r.H, other.Y+other.H) - max(r.Y, other.Y)
+
+	return overlapX >= minOverlap && overlapY >= minOverlap
 }
 
 // Union returns the smallest rect that contains both rects.

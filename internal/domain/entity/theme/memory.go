@@ -1,9 +1,7 @@
 package theme
 
-import "time"
 
 type Memory struct {
-	Interval time.Duration  `mapstructure:"INTERVAL"`
 	Swap     *MemMesurement `mapstructure:"SWAP"`
 	Virtual  *MemMesurement `mapstructure:"VIRTUAL"`
 }

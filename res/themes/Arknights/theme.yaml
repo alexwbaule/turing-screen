@@ -31,7 +31,18 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 4%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 16
+        Y: 126
+        WIDTH: 150
+        HEIGHT: 30
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 0, 0, 0
+        BAR_OUTLINE: false
     POWER:
       INTERVAL: 1
       TEXT:
@@ -42,6 +53,7 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 9W
         ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
@@ -53,6 +65,7 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 36°
         ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -65,7 +78,18 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 57%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 220
+        Y: 126
+        WIDTH: 150
+        HEIGHT: 30
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 0, 0, 0
+        BAR_OUTLINE: false
   NET:
     INTERVAL: 1
     ETH:
@@ -78,6 +102,7 @@ STATS:
           FONT_SIZE: 21
           FONT_COLOR: 0, 0, 0
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -88,6 +113,7 @@ STATS:
           FONT_SIZE: 21
           FONT_COLOR: 0, 0, 0
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
   DISK:
     INTERVAL: 10
@@ -100,6 +126,7 @@ STATS:
         FONT_SIZE: 18
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: 32°
         ALIGN: center
   DATE:
     INTERVAL: 1
@@ -112,6 +139,7 @@ STATS:
         FONT_SIZE: 30
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '14:40'
         ALIGN: center
         FORMAT: short
     DAY:
@@ -123,6 +151,7 @@ STATS:
         FONT_SIZE: 30
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '07'
         ALIGN: center
         FORMAT: medium
   WEATHER:
@@ -135,4 +164,5 @@ STATS:
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: Cloudy SW1Level  12°
         ALIGN: center

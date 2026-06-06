@@ -74,6 +74,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 40
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '56'
         ALIGN: center
     FAN:
       INTERVAL: 1
@@ -84,6 +85,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 28
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '0'
         ALIGN: center
     FREQUENCY:
       INTERVAL: 1
@@ -94,6 +96,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 21
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '1962'
         ALIGN: center
     POWER:
       INTERVAL: 1
@@ -104,7 +107,18 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 21
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '12'
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 216
+        Y: 98
+        WIDTH: 135
+        HEIGHT: 7
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 230, 0, 18
+        BAR_OUTLINE: false
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -114,6 +128,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 20
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '28'
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -125,6 +140,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 40
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '55'
         ALIGN: center
     FAN:
       TEXT:
@@ -134,6 +150,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 28
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '0'
         ALIGN: center
     FREQUENCY:
       TEXT:
@@ -143,7 +160,18 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 21
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '300'
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 10
+        Y: 458
+        WIDTH: 176
+        HEIGHT: 8
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 230, 0, 18
+        BAR_OUTLINE: false
     MEMORY:
       TEXT:
         SHOW: true
@@ -152,6 +180,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 40
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '23'
         ALIGN: center
     POWER:
       TEXT:
@@ -161,10 +190,21 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 28
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '1'
         ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
+      GRAPH:
+        SHOW: true
+        X: 207
+        Y: 420
+        WIDTH: 133
+        HEIGHT: 7
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 230, 0, 18
+        BAR_OUTLINE: false
       USED:
         SHOW: true
         X: 317
@@ -172,8 +212,8 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 16
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '13914'
         ALIGN: center
-        SHOW_UNIT: true
       PERCENT_TEXT:
         SHOW: true
         X: 278
@@ -181,6 +221,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 20
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '88'
         ALIGN: center
   DISK:
     INTERVAL: 10
@@ -192,6 +233,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 48
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '45'
         ALIGN: center
     USED:
       PERCENT_TEXT:
@@ -201,6 +243,7 @@ STATS:
         FONT: turtheme/RACESPACEREGULAR.otf
         FONT_SIZE: 20
         FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '96'
         ALIGN: center
   DATE:
     INTERVAL: 1
@@ -213,6 +256,7 @@ STATS:
         FONT_SIZE: 26
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '2022-06-30'
         ALIGN: center
         FORMAT: medium
     HOUR:
@@ -224,5 +268,6 @@ STATS:
         FONT_SIZE: 26
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '16:57:53'
         ALIGN: center
         FORMAT: short

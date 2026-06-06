@@ -12,21 +12,23 @@ import (
 )
 
 type VolumeStat struct {
-	log     *logger.Logger
-	jobs    chan<- command.Command
-	builder *renderer.Builder
-	p       *command.UpdatePayload
-	client  *volume.Client
-	lastVol int
+	log      *logger.Logger
+	jobs     chan<- command.Command
+	builder  *renderer.Builder
+	p        *command.UpdatePayload
+	client   *volume.Client
+	interval time.Duration
+	lastVol  int
 }
 
 func NewVolumeStat(l *logger.Logger, j chan<- command.Command, b *renderer.Builder, p *command.UpdatePayload) *VolumeStat {
 	return &VolumeStat{
-		log:     l.With("runner", "volume_stats"),
-		jobs:    j,
-		builder: b,
-		p:       p,
-		lastVol: -1, // force first update
+		log:      l.With("runner", "volume_stats"),
+		jobs:     j,
+		builder:  b,
+		p:        p,
+		interval: 500 * time.Millisecond,
+		lastVol:  -1, // force first update
 	}
 }
 
@@ -40,8 +42,8 @@ func (g *VolumeStat) RunVolume(ctx context.Context, e *theme.Volume) error {
 	g.client = client
 	defer g.client.Close()
 
-	// Poll every 500ms, only send update if changed
-	ticker := time.NewTicker(500 * time.Millisecond)
+	// Poll using configured interval, only send update if changed
+	ticker := time.NewTicker(g.interval)
 	defer ticker.Stop()
 
 	for {

@@ -2,7 +2,7 @@ package command
 
 import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 // InitVideoOverlay represents the full video overlay initialization sequence.

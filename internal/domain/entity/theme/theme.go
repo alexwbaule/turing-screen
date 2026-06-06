@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 	"strings"
-	"time"
 
 	"golang.org/x/image/font"
 )
@@ -41,6 +40,7 @@ type Layout struct {
 	Y      int `mapstructure:"Y"`
 	Width  int `mapstructure:"WIDTH"`
 	Height int `mapstructure:"HEIGHT"`
+	Index  int `mapstructure:"INDEX"`
 }
 
 // BackgroundStyle define o fundo de um componente.
@@ -205,31 +205,37 @@ type Stats struct {
 }
 
 type Mesurement struct {
-	Interval time.Duration `mapstructure:"INTERVAL"`
-	Graph    *Graph        `mapstructure:"GRAPH"`
-	Radial   *Radial       `mapstructure:"RADIAL"`
-	Text     *Text         `mapstructure:"TEXT"`
-	Percent  *Text         `mapstructure:"PERCENT_TEXT"`
+	Graph     *Graph     `mapstructure:"GRAPH"`
+	Radial    *Radial    `mapstructure:"RADIAL"`
+	Gauge     *Gauge     `mapstructure:"GAUGE"`
+	StatusBar *StatusBar `mapstructure:"STATUS_BAR"`
+	Chart     *Chart     `mapstructure:"CHART"`
+	Text      *Text      `mapstructure:"TEXT"`
+	Percent   *Text      `mapstructure:"PERCENT_TEXT"`
 }
 
 type Text struct {
 	Layout
 	BackgroundStyle
 	TextStyle
-	Show     bool `mapstructure:"SHOW"`
-	ShowUnit bool `mapstructure:"SHOW_UNIT"`
-	Format   Format
-	Size     int
+	Show        bool   `mapstructure:"SHOW"`
+	ShowUnit    bool   `mapstructure:"SHOW_UNIT"`
+	Placeholder string `mapstructure:"PLACEHOLDER"`
+	Format      Format
+	Size        int
 }
 
 type Graph struct {
 	Layout
 	BackgroundStyle
-	Show       bool `mapstructure:"SHOW"`
-	MinValue   int  `mapstructure:"MIN_VALUE"`
-	MaxValue   int  `mapstructure:"MAX_VALUE"`
+	Show       bool   `mapstructure:"SHOW"`
+	Direction  string `mapstructure:"DIRECTION"` // left (default), right, up, down
+	MinValue   int    `mapstructure:"MIN_VALUE"`
+	MaxValue   int    `mapstructure:"MAX_VALUE"`
 	BarColor   color.Color
 	BarOutline bool `mapstructure:"BAR_OUTLINE"`
+	Steps      int  `mapstructure:"STEPS"`    // number of segments (0 = continuous)
+	StepGap    int  `mapstructure:"STEP_GAP"` // gap between segments in pixels
 }
 
 type Radial struct {
@@ -248,4 +254,89 @@ type Radial struct {
 	BarColor   color.Color
 	ShowText   bool `mapstructure:"SHOW_TEXT"`
 	ShowUnit   bool `mapstructure:"SHOW_UNIT"`
+}
+
+// Gauge draws a needle/pointer at an angle (like a speedometer).
+// Uses the same angle logic as Radial but renders a line from center.
+type Gauge struct {
+	Layout
+	BackgroundStyle
+	TextStyle
+	Show        bool `mapstructure:"SHOW"`
+	Radius      int  `mapstructure:"RADIUS"`
+	NeedleWidth int  `mapstructure:"NEEDLE_WIDTH"`
+	MinValue    int  `mapstructure:"MIN_VALUE"`
+	MaxValue    int  `mapstructure:"MAX_VALUE"`
+	AngleStart  int  `mapstructure:"ANGLE_START"`
+	AngleEnd    int  `mapstructure:"ANGLE_END"`
+	NeedleColor color.Color
+	ShowText    bool `mapstructure:"SHOW_TEXT"`
+	ShowUnit    bool `mapstructure:"SHOW_UNIT"`
+}
+
+// StatusBar draws a progress bar with an indicator (circle) at the current position.
+type StatusBar struct {
+	Layout
+	BackgroundStyle
+	Show            bool `mapstructure:"SHOW"`
+	MinValue        int  `mapstructure:"MIN_VALUE"`
+	MaxValue        int  `mapstructure:"MAX_VALUE"`
+	BarColor        color.Color
+	IndicatorColor  color.Color
+	IndicatorRadius int `mapstructure:"INDICATOR_RADIUS"`
+}
+
+// Chart draws a time-series line/bar chart with a ring buffer of historical values.
+type Chart struct {
+	Layout
+	BackgroundStyle
+	Show        bool   `mapstructure:"SHOW"`
+	Style       string `mapstructure:"STYLE"` // "bar" (default) or "line"
+	MinValue    int    `mapstructure:"MIN_VALUE"`
+	MaxValue    int    `mapstructure:"MAX_VALUE"`
+	ColumnWidth int    `mapstructure:"COLUMN_WIDTH"`
+	ColumnGap   int    `mapstructure:"COLUMN_GAP"`
+	FillColor   color.Color
+	LineColor   color.Color
+	BorderWidth int `mapstructure:"BORDER_WIDTH"`
+	MaxSamples  int `mapstructure:"MAX_SAMPLES"`
+	// Runtime: ring buffer of values (not persisted)
+	samples []float64
+	pos     int
+	full    bool
+}
+
+// AddSample adds a value to the chart ring buffer.
+func (c *Chart) AddSample(value float64) {
+	if c.MaxSamples <= 0 {
+		// Calculate from dimensions
+		step := c.ColumnWidth + c.ColumnGap
+		if step <= 0 {
+			step = 2
+		}
+		c.MaxSamples = c.Width / step
+	}
+	if c.samples == nil {
+		c.samples = make([]float64, c.MaxSamples)
+	}
+	c.samples[c.pos] = value
+	c.pos = (c.pos + 1) % c.MaxSamples
+	if c.pos == 0 {
+		c.full = true
+	}
+}
+
+// GetSamples returns the samples in chronological order (oldest first).
+func (c *Chart) GetSamples() []float64 {
+	if c.samples == nil {
+		return nil
+	}
+	if !c.full {
+		return c.samples[:c.pos]
+	}
+	// Ring buffer: from pos to end, then from 0 to pos
+	result := make([]float64, c.MaxSamples)
+	copy(result, c.samples[c.pos:])
+	copy(result[c.MaxSamples-c.pos:], c.samples[:c.pos])
+	return result
 }

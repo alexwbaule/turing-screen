@@ -9,8 +9,8 @@ import (
 
 	"github.com/alexwbaule/turing-screen/internal/application/config"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/viper"
 	"golang.org/x/image/font"
@@ -100,6 +100,15 @@ func Hook(file string, reverse bool) mapstructure.DecodeHookFunc {
 		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Radial{}) || t == reflect.TypeOf(&theme.Radial{})) {
 			return translateRadial(file, data.(map[string]interface{}))
 		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Gauge{}) || t == reflect.TypeOf(&theme.Gauge{})) {
+			return translateGauge(file, data.(map[string]interface{}))
+		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.StatusBar{}) || t == reflect.TypeOf(&theme.StatusBar{})) {
+			return translateStatusBar(file, data.(map[string]interface{}))
+		}
+		if f.Kind() == reflect.Map && (t == reflect.TypeOf(theme.Chart{}) || t == reflect.TypeOf(&theme.Chart{})) {
+			return translateChart(file, data.(map[string]interface{}))
+		}
 		return data, nil
 	}
 }
@@ -125,11 +134,17 @@ func parseLayout(data map[string]interface{}) theme.Layout {
 		height = val
 	}
 
+	index := 0
+	if val, ok := data["index"].(int); ok {
+		index = val
+	}
+
 	return theme.Layout{
 		X:      x,
 		Y:      y,
 		Width:  width,
 		Height: height,
+		Index:  index,
 	}
 }
 
@@ -414,6 +429,165 @@ func translateText(file string, data map[string]interface{}) (interface{}, error
 		ShowUnit:        showUnit,
 		Format:          format,
 		Size:            size,
+	}
+	return v, nil
+}
+
+func translateGauge(file string, data map[string]interface{}) (interface{}, error) {
+	layout := parseLayout(data)
+	bgStyle, err := parseBackgroundStyle(data, file)
+	if err != nil {
+		return nil, err
+	}
+	textStyle := parseTextStyle(data)
+
+	var needleColor color.Color
+	if val, ok := data["needle_color"].(string); ok {
+		needleColor = utils.ConvertToColor(val, color.White)
+	} else {
+		needleColor = color.White
+	}
+
+	show := false
+	if val, ok := data["show"].(bool); ok {
+		show = val
+	}
+	showText := false
+	if val, ok := data["show_text"].(bool); ok {
+		showText = val
+	}
+	showUnit := false
+	if val, ok := data["show_unit"].(bool); ok {
+		showUnit = val
+	}
+	needleWidth := 2
+	if val, ok := data["needle_width"].(int); ok {
+		needleWidth = val
+	}
+
+	v := theme.Gauge{
+		Layout:          layout,
+		BackgroundStyle: bgStyle,
+		TextStyle:       textStyle,
+		Show:            show,
+		Radius:          data["radius"].(int),
+		NeedleWidth:     needleWidth,
+		MinValue:        data["min_value"].(int),
+		MaxValue:        data["max_value"].(int),
+		AngleStart:      data["angle_start"].(int),
+		AngleEnd:        data["angle_end"].(int),
+		NeedleColor:     needleColor,
+		ShowText:        showText,
+		ShowUnit:        showUnit,
+	}
+	return v, nil
+}
+
+func translateStatusBar(file string, data map[string]interface{}) (interface{}, error) {
+	layout := parseLayout(data)
+	bgStyle, err := parseBackgroundStyle(data, file)
+	if err != nil {
+		return nil, err
+	}
+
+	var barColor color.Color
+	if val, ok := data["bar_color"].(string); ok {
+		barColor = utils.ConvertToColor(val, color.White)
+	} else {
+		barColor = color.White
+	}
+
+	var indicatorColor color.Color
+	if val, ok := data["indicator_color"].(string); ok {
+		indicatorColor = utils.ConvertToColor(val, color.White)
+	} else {
+		indicatorColor = color.White
+	}
+
+	show := false
+	if val, ok := data["show"].(bool); ok {
+		show = val
+	}
+
+	indicatorRadius := 5
+	if val, ok := data["indicator_radius"].(int); ok {
+		indicatorRadius = val
+	}
+
+	v := theme.StatusBar{
+		Layout:          layout,
+		BackgroundStyle: bgStyle,
+		Show:            show,
+		MinValue:        data["min_value"].(int),
+		MaxValue:        data["max_value"].(int),
+		BarColor:        barColor,
+		IndicatorColor:  indicatorColor,
+		IndicatorRadius: indicatorRadius,
+	}
+	return v, nil
+}
+
+func translateChart(file string, data map[string]interface{}) (interface{}, error) {
+	layout := parseLayout(data)
+	bgStyle, err := parseBackgroundStyle(data, file)
+	if err != nil {
+		return nil, err
+	}
+
+	var fillColor color.Color
+	if val, ok := data["fill_color"].(string); ok {
+		fillColor = utils.ConvertToColor(val, color.White)
+	} else {
+		fillColor = color.White
+	}
+
+	var lineColor color.Color
+	if val, ok := data["line_color"].(string); ok {
+		lineColor = utils.ConvertToColor(val, color.White)
+	} else {
+		lineColor = color.White
+	}
+
+	show := false
+	if val, ok := data["show"].(bool); ok {
+		show = val
+	}
+
+	columnWidth := 3
+	if val, ok := data["column_width"].(int); ok {
+		columnWidth = val
+	}
+	columnGap := 1
+	if val, ok := data["column_gap"].(int); ok {
+		columnGap = val
+	}
+	borderWidth := 0
+	if val, ok := data["border_width"].(int); ok {
+		borderWidth = val
+	}
+	maxSamples := 0
+	if val, ok := data["max_samples"].(int); ok {
+		maxSamples = val
+	}
+
+	style := "bar"
+	if val, ok := data["style"].(string); ok {
+		style = val
+	}
+
+	v := theme.Chart{
+		Layout:          layout,
+		BackgroundStyle: bgStyle,
+		Show:            show,
+		Style:           style,
+		MinValue:        data["min_value"].(int),
+		MaxValue:        data["max_value"].(int),
+		ColumnWidth:     columnWidth,
+		ColumnGap:       columnGap,
+		FillColor:       fillColor,
+		LineColor:       lineColor,
+		BorderWidth:     borderWidth,
+		MaxSamples:      maxSamples,
 	}
 	return v, nil
 }

@@ -7,10 +7,10 @@ import (
 	"regexp"
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	tdevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 var (
@@ -30,6 +30,7 @@ type UpdatePayload struct {
 	bytes       []byte
 	payload     []byte
 	name        string
+	source      string
 	padding     byte
 	size        int
 	count       int64
@@ -62,10 +63,17 @@ func (m *UpdatePayload) IsVideoMode() bool {
 // SendPayload creates an UPDATE_BITMAP command for static mode,
 // or draws on the overlay buffer for video mode (returning NoOp).
 func (m *UpdatePayload) SendPayload(partial device.ImagePartial, x, y int) *UpdatePayload {
+	return m.SendPayloadFrom(partial, x, y, "")
+}
+
+// SendPayloadFrom creates an UPDATE_BITMAP with a source label for debug logging.
+func (m *UpdatePayload) SendPayloadFrom(partial device.ImagePartial, x, y int, source string) *UpdatePayload {
 	if m.overlay != nil {
 		return m.drawOnOverlay(partial, x, y)
 	}
-	return m.sendStaticUpdate(partial, x, y)
+	up := m.sendStaticUpdate(partial, x, y)
+	up.source = source
+	return up
 }
 
 // drawOnOverlay draws the partial image on the video overlay buffer.
@@ -136,6 +144,9 @@ func (m *UpdatePayload) SetCount(count int64) {
 func (m *UpdatePayload) GetName() string {
 	if m.inner != nil {
 		return m.inner.GetName()
+	}
+	if m.source != "" {
+		return m.name + " [" + m.source + "]"
 	}
 	return m.name
 }

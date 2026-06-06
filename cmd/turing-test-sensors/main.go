@@ -10,10 +10,10 @@ import (
 	"github.com/alexwbaule/gopsutil/v3/host"
 	"github.com/alexwbaule/gopsutil/v3/mem"
 	gnet "github.com/alexwbaule/gopsutil/v3/net"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
 	"github.com/alexwbaule/turing-screen/internal/resource/gpu/amd"
 	"github.com/alexwbaule/turing-screen/internal/resource/volume"
 	"github.com/alexwbaule/turing-screen/internal/resource/weather"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 func main() {

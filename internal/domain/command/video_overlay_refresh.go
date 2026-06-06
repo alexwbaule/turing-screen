@@ -2,7 +2,7 @@ package command
 
 import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 // VideoOverlayRefresh represents an UPDATE_BITMAP command with diff payload.

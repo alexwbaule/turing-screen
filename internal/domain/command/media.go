@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
-	"github.com/alexwbaule/turing-screen/internal/application/utils"
+	"github.com/alexwbaule/turing-screen/internal/utils"
 )
 
 var (

@@ -52,6 +52,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '20'
         ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
@@ -62,6 +63,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '51'
         ALIGN: center
     FREQUENCY:
       INTERVAL: 1
@@ -72,6 +74,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '3370'
         ALIGN: center
     POWER:
       INTERVAL: 1
@@ -82,6 +85,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '4'
         ALIGN: center
     FAN:
       INTERVAL: 1
@@ -92,6 +96,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0'
         ALIGN: center
     VOLTAGE:
       INTERVAL: 1
@@ -102,6 +107,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0.93'
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -113,6 +119,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0'
         ALIGN: center
     POWER:
       TEXT:
@@ -122,6 +129,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0'
         ALIGN: center
     TEMPERATURE:
       TEXT:
@@ -131,6 +139,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0'
         ALIGN: center
     MEMORY:
       TEXT:
@@ -140,6 +149,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0'
         ALIGN: center
     FREQUENCY:
       TEXT:
@@ -149,6 +159,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0'
         ALIGN: center
     FAN:
       TEXT:
@@ -158,6 +169,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0'
         ALIGN: center
     VOLTAGE:
       TEXT:
@@ -167,6 +179,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '0.00'
         ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -178,6 +191,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '61'
         ALIGN: center
       USED:
         SHOW: true
@@ -186,8 +200,8 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '6120'
         ALIGN: center
-        SHOW_UNIT: true
   DISK:
     INTERVAL: 10
     USED:
@@ -198,6 +212,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '81'
         ALIGN: center
     TEMPERATURE:
       TEXT:
@@ -207,6 +222,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 22
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '40'
         ALIGN: center
   NET:
     INTERVAL: 1
@@ -219,6 +235,7 @@ STATS:
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
           FONT_SIZE: 22
           FONT_COLOR: 67, 182, 221
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -228,6 +245,7 @@ STATS:
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
           FONT_SIZE: 22
           FONT_COLOR: 67, 182, 221
+          PLACEHOLDER: 0KB/s
           ALIGN: center
   WEATHER:
     TEMPERATURE:
@@ -239,6 +257,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 67, 182, 221
         SHOW_UNIT: true
+        PLACEHOLDER: Sunny N0Level  11°
         ALIGN: center
   DATE:
     INTERVAL: 1
@@ -251,6 +270,7 @@ STATS:
         FONT_SIZE: 45
         FONT_COLOR: 67, 182, 221
         SHOW_UNIT: true
+        PLACEHOLDER: '15:36:54'
         ALIGN: center
         FORMAT: short
     DAY:
@@ -262,5 +282,6 @@ STATS:
         FONT_SIZE: 26
         FONT_COLOR: 67, 182, 221
         SHOW_UNIT: true
+        PLACEHOLDER: '2022-12-13'
         ALIGN: center
         FORMAT: medium

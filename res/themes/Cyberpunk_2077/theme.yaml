@@ -52,7 +52,18 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 50
         FONT_COLOR: 2, 216, 243
+        PLACEHOLDER: '13'
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 112
+        Y: 143
+        WIDTH: 170
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 2, 216, 243
+        BAR_OUTLINE: false
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -63,6 +74,7 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 2, 216, 243
         SHOW_UNIT: true
+        PLACEHOLDER: 2811M
         ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
@@ -73,6 +85,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 24
         FONT_COLOR: 2, 216, 243
+        PLACEHOLDER: '46'
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -84,6 +97,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 50
         FONT_COLOR: 2, 216, 243
+        PLACEHOLDER: '3'
         ALIGN: center
     TEMPERATURE:
       TEXT:
@@ -93,6 +107,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 24
         FONT_COLOR: 2, 216, 243
+        PLACEHOLDER: '46'
         ALIGN: center
     VOLTAGE:
       TEXT:
@@ -103,7 +118,19 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 254, 237, 10
         SHOW_UNIT: true
+        PLACEHOLDER: 0.60V
         ALIGN: center
+    PERCENTAGE:
+      GRAPH:
+        SHOW: true
+        X: 112
+        Y: 273
+        WIDTH: 170
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 2, 216, 243
+        BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -114,7 +141,18 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 50
         FONT_COLOR: 2, 216, 243
+        PLACEHOLDER: '61'
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 112
+        Y: 408
+        WIDTH: 170
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 2, 216, 243
+        BAR_OUTLINE: false
       USED:
         SHOW: true
         X: 200
@@ -122,8 +160,8 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 39
         FONT_COLOR: 2, 216, 243
+        PLACEHOLDER: '9583'
         ALIGN: center
-        SHOW_UNIT: true
   NET:
     INTERVAL: 1
     ETH:
@@ -136,6 +174,7 @@ STATS:
           FONT_SIZE: 30
           FONT_COLOR: 2, 216, 243
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       UPLOAD:
         TEXT:
@@ -146,6 +185,7 @@ STATS:
           FONT_SIZE: 30
           FONT_COLOR: 2, 216, 243
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
   WEATHER:
     TEMPERATURE:
@@ -169,6 +209,7 @@ STATS:
         FONT_SIZE: 38
         FONT_COLOR: 254, 237, 10
         SHOW_UNIT: true
+        PLACEHOLDER: '2023-03-31'
         ALIGN: center
         FORMAT: medium
     HOUR:
@@ -180,5 +221,6 @@ STATS:
         FONT_SIZE: 38
         FONT_COLOR: 254, 237, 10
         SHOW_UNIT: true
+        PLACEHOLDER: '12:48:17'
         ALIGN: center
         FORMAT: short

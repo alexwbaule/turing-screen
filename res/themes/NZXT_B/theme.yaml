@@ -46,6 +46,7 @@ STATS:
         FONT_SIZE: 52
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 70°
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -58,6 +59,7 @@ STATS:
         FONT_SIZE: 52
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 62°
         ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -70,6 +72,7 @@ STATS:
         FONT_SIZE: 50
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 85%
         ALIGN: center
   DISK:
     INTERVAL: 10
@@ -82,6 +85,7 @@ STATS:
         FONT_SIZE: 52
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 49°
         ALIGN: center
   NET:
     INTERVAL: 1
@@ -94,6 +98,7 @@ STATS:
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
           FONT_SIZE: 30
           FONT_COLOR: 255, 255, 255
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -103,4 +108,5 @@ STATS:
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
           FONT_SIZE: 30
           FONT_COLOR: 255, 255, 255
+          PLACEHOLDER: 0KB/s
           ALIGN: center

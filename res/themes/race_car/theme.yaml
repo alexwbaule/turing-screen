@@ -33,6 +33,7 @@ STATS:
         FONT_SIZE: 62
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '18:27:35'
         ALIGN: center
         FORMAT: short
     DAY:
@@ -44,6 +45,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '2022-06-02'
         ALIGN: center
         FORMAT: medium
   GPU:
@@ -57,6 +59,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 61°
         ALIGN: center
     MEMORY:
       TEXT:
@@ -67,6 +70,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 69%
         ALIGN: center
     PERCENTAGE:
       TEXT:
@@ -77,6 +81,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 39%
         ALIGN: center
   VOLUME:
     TEXT:
@@ -87,6 +92,7 @@ STATS:
       FONT_SIZE: 21
       FONT_COLOR: 255, 255, 255
       SHOW_UNIT: true
+      PLACEHOLDER: 10%
       ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -99,4 +105,24 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 85%
         ALIGN: center
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      RADIAL:
+        SHOW: true
+        X: 381
+        Y: 116
+        RADIUS: 70
+        WIDTH: 8
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 223
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 255, 255
+        SHOW_TEXT: false
+        SHOW_UNIT: false

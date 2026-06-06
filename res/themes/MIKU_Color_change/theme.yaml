@@ -60,6 +60,7 @@ STATS:
           FONT_SIZE: 16
           FONT_COLOR: 74, 129, 144
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -70,6 +71,7 @@ STATS:
           FONT_SIZE: 16
           FONT_COLOR: 74, 129, 144
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
   WEATHER:
     TEMPERATURE:
@@ -81,6 +83,7 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 74, 129, 144
         SHOW_UNIT: true
+        PLACEHOLDER: Cloudy N0Level  12°
         ALIGN: center
   CPU:
     TEMPERATURE:
@@ -93,6 +96,7 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 74, 129, 144
         SHOW_UNIT: true
+        PLACEHOLDER: 36°
         ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
@@ -104,7 +108,18 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 211, 148, 253
         SHOW_UNIT: true
+        PLACEHOLDER: 14%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 609
+        Y: 303
+        WIDTH: 158
+        HEIGHT: 10
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 211, 148, 253
+        BAR_OUTLINE: false
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -116,6 +131,7 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 74, 129, 144
         SHOW_UNIT: true
+        PLACEHOLDER: 29°
         ALIGN: center
     PERCENTAGE:
       TEXT:
@@ -126,7 +142,18 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 211, 148, 253
         SHOW_UNIT: true
+        PLACEHOLDER: 3%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 609
+        Y: 265
+        WIDTH: 158
+        HEIGHT: 10
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 211, 148, 253
+        BAR_OUTLINE: false
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -138,6 +165,7 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 74, 129, 144
         SHOW_UNIT: true
+        PLACEHOLDER: 32°
         ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -150,7 +178,18 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 211, 148, 253
         SHOW_UNIT: true
+        PLACEHOLDER: 49%
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 609
+        Y: 343
+        WIDTH: 158
+        HEIGHT: 10
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 211, 148, 253
+        BAR_OUTLINE: false
   DATE:
     INTERVAL: 1
     HOUR:
@@ -162,6 +201,7 @@ STATS:
         FONT_SIZE: 28
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '17:05:21'
         ALIGN: center
         FORMAT: short
     DAY:
@@ -173,5 +213,6 @@ STATS:
         FONT_SIZE: 28
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: Wed
         ALIGN: center
         FORMAT: medium

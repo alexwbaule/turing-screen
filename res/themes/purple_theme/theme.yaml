@@ -30,7 +30,19 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 26
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '60'
         ALIGN: center
+    PERCENTAGE:
+      GRAPH:
+        SHOW: true
+        X: 56
+        Y: 164
+        WIDTH: 220
+        HEIGHT: 4
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 226, 175, 255
+        BAR_OUTLINE: false
   CPU:
     TEMPERATURE:
       INTERVAL: 1
@@ -41,7 +53,20 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 26
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '66'
         ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      GRAPH:
+        SHOW: true
+        X: 56
+        Y: 224
+        WIDTH: 220
+        HEIGHT: 4
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 183, 175, 255
+        BAR_OUTLINE: false
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -52,7 +77,19 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 26
         FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '48'
         ALIGN: center
+    USED:
+      GRAPH:
+        SHOW: true
+        X: 56
+        Y: 343
+        WIDTH: 220
+        HEIGHT: 4
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 236, 130
+        BAR_OUTLINE: false
   WEATHER:
     TEMPERATURE:
       TEXT:
@@ -63,6 +100,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: Cloudy SW4Level  33°
         ALIGN: center
   DATE:
     INTERVAL: 1
@@ -75,6 +113,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '18:29:12'
         ALIGN: center
         FORMAT: short
   NET:
@@ -89,6 +128,7 @@ STATS:
           FONT_SIZE: 21
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -99,4 +139,18 @@ STATS:
           FONT_SIZE: 21
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      GRAPH:
+        SHOW: true
+        X: 56
+        Y: 283
+        WIDTH: 220
+        HEIGHT: 4
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 211, 173
+        BAR_OUTLINE: false

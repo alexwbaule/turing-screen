@@ -75,6 +75,7 @@ STATS:
           FONT_SIZE: 18
           FONT_COLOR: 63, 238, 255
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
       DOWNLOAD:
         TEXT:
@@ -85,6 +86,7 @@ STATS:
           FONT_SIZE: 18
           FONT_COLOR: 63, 238, 255
           SHOW_UNIT: true
+          PLACEHOLDER: 0KB/s
           ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -97,6 +99,7 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 15573M
         ALIGN: right
       PERCENT_TEXT:
         SHOW: true
@@ -105,7 +108,18 @@ STATS:
         FONT: geforce/GeForce-Bold.ttf
         FONT_SIZE: 18
         FONT_COLOR: 63, 238, 255
+        PLACEHOLDER: '54'
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 48
+        Y: 401
+        WIDTH: 145
+        HEIGHT: 5
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 107, 245, 248
+        BAR_OUTLINE: false
   CPU:
     TEMPERATURE:
       INTERVAL: 1
@@ -116,7 +130,24 @@ STATS:
         FONT: geforce/GeForce-Bold.ttf
         FONT_SIZE: 36
         FONT_COLOR: 63, 238, 255
+        PLACEHOLDER: '58'
         ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 220
+        Y: 243
+        RADIUS: 47
+        WIDTH: 5
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 140
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 253, 0, 143
+        SHOW_TEXT: false
+        SHOW_UNIT: false
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -126,7 +157,24 @@ STATS:
         FONT: geforce/GeForce-Bold.ttf
         FONT_SIZE: 39
         FONT_COLOR: 253, 0, 143
+        PLACEHOLDER: '12'
         ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 400
+        Y: 243
+        RADIUS: 98
+        WIDTH: 10
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 36
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 253, 0, 143
+        SHOW_TEXT: false
+        SHOW_UNIT: false
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -136,7 +184,24 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 18
         FONT_COLOR: 63, 238, 255
+        PLACEHOLDER: '3648'
         ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 220
+        Y: 243
+        RADIUS: 47
+        WIDTH: 5
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 140
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 253, 0, 143
+        SHOW_TEXT: false
+        SHOW_UNIT: false
     VOLTAGE:
       INTERVAL: 1
       TEXT:
@@ -147,6 +212,7 @@ STATS:
         FONT_SIZE: 18
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 1.35V
         ALIGN: center
     POWER:
       INTERVAL: 1
@@ -158,6 +224,7 @@ STATS:
         FONT_SIZE: 18
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 15W
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -169,6 +236,7 @@ STATS:
         FONT: geforce/GeForce-Bold.ttf
         FONT_SIZE: 21
         FONT_COLOR: 63, 238, 255
+        PLACEHOLDER: '56'
         ALIGN: center
     PERCENTAGE:
       TEXT:
@@ -178,7 +246,24 @@ STATS:
         FONT: geforce/GeForce-Bold.ttf
         FONT_SIZE: 36
         FONT_COLOR: 63, 238, 255
+        PLACEHOLDER: '0'
         ALIGN: center
+      RADIAL:
+        SHOW: true
+        X: 579
+        Y: 244
+        RADIUS: 47
+        WIDTH: 5
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 43
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 253, 0, 143
+        SHOW_TEXT: false
+        SHOW_UNIT: false
     FREQUENCY:
       TEXT:
         SHOW: true
@@ -187,6 +272,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 20
         FONT_COLOR: 63, 238, 255
+        PLACEHOLDER: '1755'
         ALIGN: center
     VOLTAGE:
       TEXT:
@@ -197,6 +283,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 0.68V
         ALIGN: center
   VOLUME:
     TEXT:
@@ -206,6 +293,7 @@ STATS:
       FONT: geforce/GeForce-Bold.ttf
       FONT_SIZE: 18
       FONT_COLOR: 63, 238, 255
+      PLACEHOLDER: '16'
       ALIGN: center
   DATE:
     INTERVAL: 1
@@ -218,6 +306,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '2023-06-27'
         ALIGN: center
         FORMAT: medium
     HOUR:
@@ -229,6 +318,7 @@ STATS:
         FONT_SIZE: 39
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
+        PLACEHOLDER: '15:10:53'
         ALIGN: center
         FORMAT: short
   WEATHER:

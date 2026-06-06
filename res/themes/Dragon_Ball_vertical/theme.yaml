@@ -30,7 +30,19 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 78
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '88'
         ALIGN: right
+    PERCENTAGE:
+      GRAPH:
+        SHOW: true
+        X: 65
+        Y: 61
+        WIDTH: 142
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 14, 170, 129
+        BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -41,7 +53,18 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 78
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '88'
         ALIGN: center
+      GRAPH:
+        SHOW: true
+        X: 20
+        Y: 517
+        WIDTH: 161
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 252, 60, 13
+        BAR_OUTLINE: false
   VOLUME:
     TEXT:
       SHOW: true
@@ -50,6 +73,7 @@ STATS:
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
       FONT_SIZE: 54
       FONT_COLOR: 255, 224, 139
+      PLACEHOLDER: '100'
       ALIGN: center
   DISK:
     INTERVAL: 10
@@ -61,6 +85,7 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 51
         FONT_COLOR: 255, 224, 139
+        PLACEHOLDER: '88'
         ALIGN: center
   CPU:
     TEMPERATURE:
@@ -72,7 +97,20 @@ STATS:
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 78
         FONT_COLOR: 0, 0, 0
+        PLACEHOLDER: '88'
         ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      GRAPH:
+        SHOW: true
+        X: 275
+        Y: 760
+        WIDTH: 142
+        HEIGHT: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 14, 170, 129
+        BAR_OUTLINE: false
   DATE:
     INTERVAL: 1
     HOUR:
@@ -84,6 +122,7 @@ STATS:
         FONT_SIZE: 45
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '12:00:00'
         ALIGN: right
         FORMAT: short
     DAY:
@@ -95,5 +134,6 @@ STATS:
         FONT_SIZE: 26
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
+        PLACEHOLDER: '2020-12-31'
         ALIGN: right
         FORMAT: medium
