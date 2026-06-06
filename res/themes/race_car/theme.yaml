@@ -27,6 +27,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 2
         X: 29
         Y: 52
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -39,6 +40,7 @@ STATS:
     DAY:
       TEXT:
         SHOW: true
+        INDEX: 9
         X: 340
         Y: 253
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -53,6 +55,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 4
         X: 92
         Y: 177
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -64,6 +67,7 @@ STATS:
     MEMORY:
       TEXT:
         SHOW: true
+        INDEX: 5
         X: 181
         Y: 177
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -75,6 +79,7 @@ STATS:
     PERCENTAGE:
       TEXT:
         SHOW: true
+        INDEX: 6
         X: 283
         Y: 177
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -86,6 +91,7 @@ STATS:
   VOLUME:
     TEXT:
       SHOW: true
+      INDEX: 7
       X: 182
       Y: 253
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -99,6 +105,7 @@ STATS:
     VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 8
         X: 37
         Y: 253
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -112,6 +119,7 @@ STATS:
       INTERVAL: 1
       RADIAL:
         SHOW: true
+        INDEX: 10
         X: 381
         Y: 116
         RADIUS: 70

@@ -167,6 +167,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 7
         X: 160
         Y: 60
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -179,6 +180,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 8
         X: 210
         Y: 60
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -190,6 +192,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 32
         X: 770
         Y: 354
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -202,6 +205,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 35
         X: 771
         Y: 388
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -214,6 +218,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 36
         X: 768
         Y: 424
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -227,6 +232,7 @@ STATS:
     VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 15
         X: 296
         Y: 150
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -241,6 +247,7 @@ STATS:
       UPLOAD:
         TEXT:
           SHOW: true
+          INDEX: 16
           X: 160
           Y: 330
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -252,6 +259,7 @@ STATS:
       DOWNLOAD:
         TEXT:
           SHOW: true
+          INDEX: 17
           X: 250
           Y: 330
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -265,6 +273,7 @@ STATS:
     PERCENTAGE:
       TEXT:
         SHOW: true
+        INDEX: 20
         X: 160
         Y: 430
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -278,6 +287,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 30
         X: 380
         Y: 426
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf

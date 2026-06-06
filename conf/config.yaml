@@ -5,7 +5,7 @@ device:
         height: 480
         reverse: false
         width: 800
-    log: debug
+    log: info
     port: AUTO
     sensors:
         cpu:

@@ -47,6 +47,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 2
         X: 249
         Y: 14
         FONT: geforce/GeForce-Bold.ttf
@@ -58,6 +59,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 5
         X: 94
         Y: 111
         FONT: geforce/GeForce-Bold.ttf
@@ -69,6 +71,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 7
         X: 221
         Y: 96
         FONT: geforce/GeForce-Bold.ttf
@@ -78,6 +81,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 18
         X: 529
         Y: 364
         WIDTH: 217
@@ -88,6 +92,7 @@ STATS:
         BAR_OUTLINE: false
       RADIAL:
         SHOW: true
+        INDEX: 21
         X: 219
         Y: 127
         RADIUS: 60
@@ -107,6 +112,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 3
         X: 720
         Y: 14
         FONT: geforce/GeForce-Bold.ttf
@@ -117,6 +123,7 @@ STATS:
     MEMORY:
       TEXT:
         SHOW: true
+        INDEX: 6
         X: 715
         Y: 111
         FONT: geforce/GeForce-Bold.ttf
@@ -127,6 +134,7 @@ STATS:
     PERCENTAGE:
       TEXT:
         SHOW: true
+        INDEX: 8
         X: 589
         Y: 96
         FONT: geforce/GeForce-Bold.ttf
@@ -136,6 +144,7 @@ STATS:
         ALIGN: center
       RADIAL:
         SHOW: true
+        INDEX: 22
         X: 586
         Y: 127
         RADIUS: 60
@@ -153,6 +162,7 @@ STATS:
   VOLUME:
     TEXT:
       SHOW: true
+      INDEX: 4
       X: 380
       Y: 14
       FONT: geforce/GeForce-Bold.ttf
@@ -166,6 +176,7 @@ STATS:
     VIRTUAL:
       USED:
         SHOW: true
+        INDEX: 11
         X: 146
         Y: 256
         FONT: geforce/GeForce-Bold.ttf
@@ -176,6 +187,7 @@ STATS:
         ALIGN: center
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 12
         X: 146
         Y: 301
         FONT: geforce/GeForce-Bold.ttf
@@ -190,6 +202,7 @@ STATS:
       UPLOAD:
         TEXT:
           SHOW: true
+          INDEX: 13
           X: 589
           Y: 294
           FONT: geforce/GeForce-Bold.ttf
@@ -201,6 +214,7 @@ STATS:
       DOWNLOAD:
         TEXT:
           SHOW: true
+          INDEX: 14
           X: 649
           Y: 294
           FONT: geforce/GeForce-Bold.ttf
@@ -214,6 +228,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 15
         X: 150
         Y: 368
         FONT: geforce/GeForce-Bold.ttf
@@ -226,6 +241,7 @@ STATS:
     DAY:
       TEXT:
         SHOW: true
+        INDEX: 16
         X: 150
         Y: 413
         FONT: geforce/GeForce-Bold.ttf
@@ -240,6 +256,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 19
         X: 574
         Y: 418
         FONT: geforce/GeForce-Bold.ttf
@@ -251,6 +268,7 @@ STATS:
     USED:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 20
         X: 709
         Y: 418
         FONT: geforce/GeForce-Bold.ttf

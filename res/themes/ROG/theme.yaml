@@ -69,6 +69,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 1
         X: 62
         Y: 64
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -80,6 +81,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 3
         X: 4
         Y: 126
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -91,6 +93,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 5
         X: 384
         Y: 43
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -102,6 +105,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 6
         X: 350
         Y: 70
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -109,8 +113,9 @@ STATS:
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '12'
         ALIGN: center
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
+        INDEX: 8
         X: 216
         Y: 98
         WIDTH: 135
@@ -118,11 +123,13 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 230, 0, 18
+        INDICATOR_RADIUS: 9
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 24
         X: 157
         Y: 96
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -135,6 +142,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 2
         X: 62
         Y: 227
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -145,6 +153,7 @@ STATS:
     FAN:
       TEXT:
         SHOW: true
+        INDEX: 4
         X: 4
         Y: 290
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -155,6 +164,7 @@ STATS:
     FREQUENCY:
       TEXT:
         SHOW: true
+        INDEX: 7
         X: 143
         Y: 437
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -162,8 +172,9 @@ STATS:
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '300'
         ALIGN: center
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
+        INDEX: 9
         X: 10
         Y: 458
         WIDTH: 176
@@ -171,10 +182,12 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 230, 0, 18
+        INDICATOR_RADIUS: 10
     MEMORY:
       TEXT:
         SHOW: true
+        INDEX: 18
         X: 156
         Y: 227
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -185,6 +198,7 @@ STATS:
     POWER:
       TEXT:
         SHOW: true
+        INDEX: 19
         X: 94
         Y: 323
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -195,8 +209,9 @@ STATS:
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
+        INDEX: 10
         X: 207
         Y: 420
         WIDTH: 133
@@ -204,9 +219,11 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 230, 0, 18
+        INDICATOR_RADIUS: 9
       USED:
         SHOW: true
+        INDEX: 12
         X: 317
         Y: 403
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -216,6 +233,7 @@ STATS:
         ALIGN: center
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 25
         X: 278
         Y: 342
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -228,6 +246,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 14
         X: 522
         Y: 429
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -238,6 +257,7 @@ STATS:
     USED:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 26
         X: 402
         Y: 426
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -250,6 +270,7 @@ STATS:
     DAY:
       TEXT:
         SHOW: true
+        INDEX: 22
         X: 213
         Y: 10
         FONT: turtheme/RACESPACEREGULAR.otf
@@ -262,6 +283,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 23
         X: 358
         Y: 10
         FONT: turtheme/RACESPACEREGULAR.otf

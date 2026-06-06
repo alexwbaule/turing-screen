@@ -54,6 +54,7 @@ STATS:
       UPLOAD:
         TEXT:
           SHOW: true
+          INDEX: 1
           X: 69
           Y: 10
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -65,6 +66,7 @@ STATS:
       DOWNLOAD:
         TEXT:
           SHOW: true
+          INDEX: 2
           X: 220
           Y: 10
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -77,6 +79,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 3
         X: 400
         Y: 8
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -90,6 +93,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 4
         X: 610
         Y: 10
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -102,6 +106,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 8
         X: 741
         Y: 283
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -112,6 +117,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 17
         X: 609
         Y: 303
         WIDTH: 158
@@ -125,6 +131,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 5
         X: 677
         Y: 10
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -136,6 +143,7 @@ STATS:
     PERCENTAGE:
       TEXT:
         SHOW: true
+        INDEX: 7
         X: 741
         Y: 244
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -146,6 +154,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 16
         X: 609
         Y: 265
         WIDTH: 158
@@ -159,6 +168,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 6
         X: 746
         Y: 10
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -172,6 +182,7 @@ STATS:
     VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 9
         X: 741
         Y: 323
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -182,6 +193,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 18
         X: 609
         Y: 343
         WIDTH: 158
@@ -195,6 +207,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 10
         X: 607
         Y: 149
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -207,6 +220,7 @@ STATS:
     DAY:
       TEXT:
         SHOW: true
+        INDEX: 11
         X: 773
         Y: 149
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf

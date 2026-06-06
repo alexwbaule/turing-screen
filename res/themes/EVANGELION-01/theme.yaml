@@ -33,6 +33,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 1
         X: 10
         Y: 62
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -45,6 +46,7 @@ STATS:
     DAY:
       TEXT:
         SHOW: true
+        INDEX: 13
         X: 352
         Y: 164
         FONT: turtheme/Source-San-Hans-BLOD.ttf
@@ -59,6 +61,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 2
         X: 436
         Y: 58
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -71,6 +74,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 3
         X: 436
         Y: 114
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -82,6 +86,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 9
         X: 408
         Y: 463
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -94,6 +99,7 @@ STATS:
     MEMORY:
       TEXT:
         SHOW: true
+        INDEX: 4
         X: 75
         Y: 638
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -104,6 +110,7 @@ STATS:
     PERCENTAGE:
       TEXT:
         SHOW: true
+        INDEX: 8
         X: 409
         Y: 552
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -114,6 +121,7 @@ STATS:
     VOLTAGE:
       TEXT:
         SHOW: true
+        INDEX: 11
         X: 316
         Y: 700
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -125,6 +133,7 @@ STATS:
   VOLUME:
     TEXT:
       SHOW: true
+      INDEX: 5
       X: 75
       Y: 726
       FONT: turtheme/LiquidCrystal-Normal.otf
@@ -137,6 +146,7 @@ STATS:
     VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 6
         X: 409
         Y: 638
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -149,6 +159,7 @@ STATS:
     USED:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 7
         X: 409
         Y: 726
         FONT: turtheme/LiquidCrystal-Normal.otf
@@ -160,6 +171,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 12
         X: 32
         Y: 160
         FONT: turtheme/Source-San-Hans-BLOD.ttf

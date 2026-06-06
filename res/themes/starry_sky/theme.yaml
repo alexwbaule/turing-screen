@@ -40,6 +40,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 2
         X: 392
         Y: 125
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -50,6 +51,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 14
         X: 259
         Y: 112
         WIDTH: 129
@@ -60,6 +62,7 @@ STATS:
         BAR_OUTLINE: false
       RADIAL:
         SHOW: true
+        INDEX: 28
         X: 110
         Y: 135
         RADIUS: 78
@@ -78,6 +81,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 3
         X: 566
         Y: 126
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -88,6 +92,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 15
         X: 434
         Y: 112
         WIDTH: 129
@@ -100,6 +105,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 4
         X: 742
         Y: 125
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -110,6 +116,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 16
         X: 609
         Y: 112
         WIDTH: 129
@@ -122,6 +129,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 6
         X: 567
         Y: 174
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -132,6 +140,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 18
         X: 434
         Y: 161
         WIDTH: 129
@@ -144,6 +153,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 7
         X: 742
         Y: 175
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -154,6 +164,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 19
         X: 609
         Y: 161
         WIDTH: 129
@@ -167,6 +178,7 @@ STATS:
     USED:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 5
         X: 392
         Y: 174
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -177,6 +189,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 17
         X: 259
         Y: 161
         WIDTH: 129
@@ -190,6 +203,7 @@ STATS:
     PERCENTAGE:
       TEXT:
         SHOW: true
+        INDEX: 8
         X: 392
         Y: 343
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -200,6 +214,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 20
         X: 259
         Y: 330
         WIDTH: 129
@@ -211,6 +226,7 @@ STATS:
     MEMORY:
       TEXT:
         SHOW: true
+        INDEX: 9
         X: 567
         Y: 343
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -221,6 +237,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 21
         X: 434
         Y: 330
         WIDTH: 129
@@ -232,6 +249,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 10
         X: 742
         Y: 343
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -243,6 +261,7 @@ STATS:
     FREQUENCY:
       TEXT:
         SHOW: true
+        INDEX: 11
         X: 392
         Y: 393
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -253,6 +272,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 23
         X: 259
         Y: 379
         WIDTH: 129
@@ -264,6 +284,7 @@ STATS:
     POWER:
       TEXT:
         SHOW: true
+        INDEX: 12
         X: 567
         Y: 392
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -274,6 +295,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 24
         X: 434
         Y: 379
         WIDTH: 129
@@ -285,6 +307,7 @@ STATS:
     FAN:
       TEXT:
         SHOW: true
+        INDEX: 13
         X: 743
         Y: 393
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -295,6 +318,7 @@ STATS:
         ALIGN: center
       GRAPH:
         SHOW: true
+        INDEX: 22
         X: 609
         Y: 330
         WIDTH: 129
@@ -308,6 +332,7 @@ STATS:
     VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 27
         X: 113
         Y: 330
         FONT: geforce/GeForce-Bold.ttf
@@ -317,6 +342,7 @@ STATS:
         ALIGN: center
       RADIAL:
         SHOW: true
+        INDEX: 29
         X: 110
         Y: 353
         RADIUS: 78

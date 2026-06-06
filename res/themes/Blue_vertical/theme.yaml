@@ -40,6 +40,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 1
         X: 241
         Y: 254
         FONT: geforce/GeForce-Bold.ttf
@@ -49,6 +50,7 @@ STATS:
         ALIGN: center
       RADIAL:
         SHOW: true
+        INDEX: 8
         X: 241
         Y: 283
         RADIUS: 125
@@ -63,8 +65,9 @@ STATS:
         BAR_COLOR: 253, 0, 143
         SHOW_TEXT: false
         SHOW_UNIT: false
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
+        INDEX: 17
         X: 55
         Y: 750
         WIDTH: 128
@@ -72,11 +75,13 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 107, 245, 248
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 107, 245, 248
+        INDICATOR_RADIUS: 6
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 4
         X: 101
         Y: 452
         FONT: geforce/GeForce-Bold.ttf
@@ -86,6 +91,7 @@ STATS:
         ALIGN: center
       RADIAL:
         SHOW: true
+        INDEX: 10
         X: 100
         Y: 480
         RADIUS: 49
@@ -105,6 +111,7 @@ STATS:
     MEMORY:
       TEXT:
         SHOW: true
+        INDEX: 3
         X: 423
         Y: 384
         FONT: geforce/GeForce-Bold.ttf
@@ -115,6 +122,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 5
         X: 385
         Y: 452
         FONT: geforce/GeForce-Bold.ttf
@@ -125,6 +133,7 @@ STATS:
     PERCENTAGE:
       RADIAL:
         SHOW: true
+        INDEX: 9
         X: 383
         Y: 477
         RADIUS: 49
@@ -144,6 +153,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 6
         X: 88
         Y: 600
         FONT: geforce/GeForce-Bold.ttf
@@ -154,6 +164,7 @@ STATS:
   VOLUME:
     TEXT:
       SHOW: true
+      INDEX: 7
       X: 392
       Y: 600
       FONT: geforce/GeForce-Bold.ttf
@@ -167,6 +178,7 @@ STATS:
       UPLOAD:
         TEXT:
           SHOW: true
+          INDEX: 12
           X: 188
           Y: 596
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -177,6 +189,7 @@ STATS:
       DOWNLOAD:
         TEXT:
           SHOW: true
+          INDEX: 13
           X: 264
           Y: 596
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -189,6 +202,7 @@ STATS:
     VIRTUAL:
       USED:
         SHOW: true
+        INDEX: 14
         X: 189
         Y: 722
         FONT: geforce/GeForce-Bold.ttf
@@ -202,6 +216,7 @@ STATS:
     DAY:
       TEXT:
         SHOW: true
+        INDEX: 15
         X: 438
         Y: 695
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -214,6 +229,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 16
         X: 302
         Y: 731
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf

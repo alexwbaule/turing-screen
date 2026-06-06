@@ -1,67 +1,86 @@
+# Auto-converted from .turtheme
+# Source: VIPER
+# Resolution: 800x480 (landscape)
+---
 display:
   SIZE: 5"
   ORIENTATION: landscape
   RGB_LED: 255, 255, 255
+video:
+  PATH: video/VIPER.mp4
+  X: 0
+  Y: 0
+  WIDTH: 800
+  HEIGHT: 480
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png
-    HEIGHT: 481
-    WIDTH: 801
     X: 0
     Y: 0
-video:
-  PATH: video/VIPER.mp4
-  HEIGHT: 480
-  WIDTH: 800
-  X: 0
-  Y: 0
+    WIDTH: 801
+    HEIGHT: 481
 static_texts:
-  custom_text_0:
+  TEXT_0:
     TEXT: .
-    SHOW: true
-    SHOW_UNIT: false
-    INDEX: 3
-    X: 639
-    Y: 433
-    FONT: turtheme/Motorblock.ttf
-    FONT_SIZE: 18
-    FONT_COLOR: 255, 255, 255
-  custom_text_1:
-    TEXT: SSD
-    SHOW: true
-    SHOW_UNIT: false
-    X: 647
-    Y: 303
-    FONT: turtheme/Source-San-Hans-BLOD.ttf
-    FONT_SIZE: 15
-    FONT_COLOR: 255, 255, 255
-  custom_text_2:
-    TEXT: VOL
-    SHOW: true
-    SHOW_UNIT: false
-    INDEX: 1
-    X: 700
-    Y: 303
-    FONT: turtheme/Source-San-Hans-BLOD.ttf
-    FONT_SIZE: 15
-    FONT_COLOR: 255, 255, 255
-  custom_text_3:
-    TEXT: .
-    SHOW: true
-    SHOW_UNIT: false
-    INDEX: 2
     X: 597
     Y: 433
     FONT: turtheme/Motorblock.ttf
     FONT_SIZE: 18
     FONT_COLOR: 255, 255, 255
+  TEXT_1:
+    TEXT: .
+    X: 639
+    Y: 433
+    FONT: turtheme/Motorblock.ttf
+    FONT_SIZE: 18
+    FONT_COLOR: 255, 255, 255
+  SSD:
+    TEXT: SSD
+    X: 647
+    Y: 303
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 255, 255, 255
+  VOL:
+    TEXT: VOL
+    X: 700
+    Y: 303
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 255, 255, 255
 STATS:
   CPU:
-    PERCENTAGE:
-      SHOW: false
-      GRAPH:
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 1
+        X: 295
+        Y: 170
+        FONT: turtheme/Motorblock.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 36°
+        ALIGN: center
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
         SHOW: true
         INDEX: 4
+        X: 646
+        Y: 40
+        FONT: turtheme/Source-San-Hans-BLOD.ttf
+        FONT_SIZE: 15
+        FONT_COLOR: 137, 137, 137
+        SHOW_UNIT: true
+        PLACEHOLDER: 4054M
+        ALIGN: center
+    PERCENTAGE:
+      INTERVAL: 1
+      STATUS_BAR:
+        SHOW: true
+        INDEX: 12
         X: 663
         Y: 164
         WIDTH: 94
@@ -69,39 +88,38 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 100, 170, 85
-        BAR_OUTLINE: false
-    FREQUENCY:
-      SHOW: false
+        INDICATOR_COLOR: 100, 170, 85
+        INDICATOR_RADIUS: 10
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
       TEXT:
-        PLACEHOLDER: 4054M
         SHOW: true
+        INDEX: 2
+        X: 457
+        Y: 255
+        FONT: turtheme/Motorblock.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
+        PLACEHOLDER: 29°
+        ALIGN: center
+    FREQUENCY:
+      TEXT:
+        SHOW: true
         INDEX: 5
-        X: 646
+        X: 718
         Y: 40
         FONT: turtheme/Source-San-Hans-BLOD.ttf
         FONT_SIZE: 15
         FONT_COLOR: 137, 137, 137
-        ALIGN: CENTER
-    TEMPERATURE:
-      SHOW: false
-      TEXT:
-        PLACEHOLDER: 36°
-        SHOW: true
         SHOW_UNIT: true
-        INDEX: 6
-        X: 339
-        Y: 173
-        FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 27
-        FONT_COLOR: 255, 255, 255
-        ALIGN: CENTER
-  GPU:
+        PLACEHOLDER: 1012M
+        ALIGN: center
     PERCENTAGE:
-      SHOW: false
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
-        INDEX: 7
+        INDEX: 13
         X: 663
         Y: 183
         WIDTH: 94
@@ -109,53 +127,26 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 100, 170, 85
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 100, 170, 85
+        INDICATOR_RADIUS: 10
+  DISK:
+    INTERVAL: 10
     TEMPERATURE:
-      SHOW: false
       TEXT:
-        PLACEHOLDER: 29°
         SHOW: true
-        SHOW_UNIT: true
-        INDEX: 8
-        X: 505
-        Y: 260
+        INDEX: 3
+        X: 295
+        Y: 330
         FONT: turtheme/Motorblock.ttf
         FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
-        ALIGN: CENTER
-    FREQUENCY:
-      SHOW: false
-      TEXT:
-        PLACEHOLDER: 1012M
-        SHOW: true
         SHOW_UNIT: true
-        INDEX: 9
-        X: 718
-        Y: 40
-        FONT: turtheme/Source-San-Hans-BLOD.ttf
-        FONT_SIZE: 15
-        FONT_COLOR: 137, 137, 137
-        ALIGN: CENTER
-  MEMORY:
-    VIRTUAL:
-      SHOW: false
-      GRAPH:
-        SHOW: true
-        INDEX: 10
-        X: 663
-        Y: 202
-        WIDTH: 94
-        HEIGHT: 8
-        MIN_VALUE: 0
-        MAX_VALUE: 100
-        BAR_COLOR: 100, 170, 85
-        BAR_OUTLINE: false
-  DISK:
+        PLACEHOLDER: 32°
+        ALIGN: center
     USED:
-      SHOW: false
       RADIAL:
         SHOW: true
-        INDEX: 11
+        INDEX: 15
         X: 646
         Y: 310
         RADIUS: 20
@@ -170,56 +161,64 @@ STATS:
         BAR_COLOR: 100, 170, 85
         SHOW_TEXT: false
         SHOW_UNIT: false
-    TEMPERATURE:
-      SHOW: false
-      TEXT:
-        PLACEHOLDER: 32°
-        SHOW: true
-        SHOW_UNIT: true
-        INDEX: 12
-        X: 343
-        Y: 334
-        FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 27
-        FONT_COLOR: 255, 255, 255
-        ALIGN: CENTER
-  NET: {}
   DATE:
+    INTERVAL: 1
     DAY:
-      SHOW: false
       TEXT:
-        PLACEHOLDER: "2022"
         SHOW: true
-        SHOW_UNIT: true
-        FORMAT: MEDIUM
-        INDEX: 13
+        INDEX: 6
         X: 525
         Y: 430
         FONT: turtheme/Motorblock.ttf
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
-        ALIGN: CENTER
-    HOUR:
-      SHOW: false
-      TEXT:
-        PLACEHOLDER: "14:37"
-        SHOW: true
         SHOW_UNIT: true
-        FORMAT: short
-        INDEX: 14
+        PLACEHOLDER: '2022'
+        ALIGN: center
+        FORMAT: medium
+    HOUR:
+      TEXT:
+        SHOW: true
+        INDEX: 11
         X: 702
         Y: 430
         FONT: turtheme/Motorblock.ttf
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '14:37'
         ALIGN: center
+        FORMAT: short
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      STATUS_BAR:
+        SHOW: true
+        INDEX: 14
+        X: 663
+        Y: 202
+        WIDTH: 94
+        HEIGHT: 8
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 100, 170, 85
+        INDICATOR_COLOR: 100, 170, 85
+        INDICATOR_RADIUS: 10
   VOLUME:
-    TEXT:
+    RADIAL:
       SHOW: true
+      INDEX: 16
+      X: 699
+      Y: 310
+      RADIUS: 20
+      WIDTH: 2
+      MIN_VALUE: 0
+      MAX_VALUE: 100
+      ANGLE_START: 120
+      ANGLE_END: 60
+      ANGLE_STEPS: 1
+      ANGLE_SEP: 0
+      CLOCKWISE: true
+      BAR_COLOR: 100, 170, 85
+      SHOW_TEXT: false
       SHOW_UNIT: false
-      INDEX: 15
-      X: 707
-      Y: 263
-      FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-      FONT_SIZE: 22
-      FONT_COLOR: 255,255,255

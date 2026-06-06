@@ -4,8 +4,6 @@ import (
 	"context"
 	"image"
 	"image/draw"
-	"image/png"
-	"os"
 	"sync"
 	"time"
 
@@ -135,13 +133,10 @@ func (c *Compositor) renderAndSend() {
 	// 2. Render everything on top of background
 	frame := c.renderFrame(&vals)
 
-	// 3. First frame: just store as reference (device already has the background)
+	// 3. First frame: store the BACKGROUND as reference (what's on the device)
 	if c.prevFrame == nil {
-		c.prevFrame = frame
-		c.log.Debug("compositor: first frame stored as reference")
-		// Save debug image
-		c.saveDebugImage(frame, "compositor_frame0.png")
-		return
+		c.prevFrame = imageToNRGBA(c.builder.GetBackground())
+		c.log.Debug("compositor: background stored as reference")
 	}
 
 	// 4. Diff with previous frame and send dirty regions
@@ -163,17 +158,17 @@ func (c *Compositor) renderAndSend() {
 		select {
 		case c.jobs <- cmd:
 		default:
-			c.log.Warn("compositor: jobs channel full, dropping frame")
+			// Channel full — DON'T update prevFrame so we retry next tick
+			c.log.Warn("compositor: jobs channel full, will retry next tick")
 			return
 		}
 	}
 
-	// 5. Store current frame as previous (only after all jobs queued)
+	// 5. Store current frame as previous (ALL jobs were queued successfully)
 	c.prevFrame = frame
 }
 
-// findDirtyRects compares two frames and returns small blocks that changed.
-// Returns individual blocks (max 32x32 pixels each) for the device protocol.
+// findDirtyRects compares two frames and returns blocks that changed.
 func (c *Compositor) findDirtyRects(prev, curr *image.NRGBA) []image.Rectangle {
 	const blockSize = 32
 	bounds := prev.Bounds()
@@ -219,16 +214,4 @@ func imageToNRGBA(src image.Image) *image.NRGBA {
 	dst := image.NewNRGBA(bounds)
 	draw.Draw(dst, bounds, src, bounds.Min, draw.Src)
 	return dst
-}
-
-// saveDebugImage saves an image to disk for debugging.
-func (c *Compositor) saveDebugImage(img image.Image, path string) {
-	f, err := os.Create(path)
-	if err != nil {
-		c.log.Warnf("compositor: failed to save debug image: %v", err)
-		return
-	}
-	defer f.Close()
-	png.Encode(f, img)
-	c.log.Infof("compositor: debug image saved to %s", path)
 }

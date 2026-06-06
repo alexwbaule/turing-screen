@@ -47,6 +47,7 @@ STATS:
     USED:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 5
         X: 612
         Y: 285
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -58,6 +59,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 9
         X: 762
         Y: 282
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -70,6 +72,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 6
         X: 572
         Y: 209
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -78,8 +81,9 @@ STATS:
         PLACEHOLDER: '55'
         ALIGN: center
     PERCENTAGE:
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
+        INDEX: 10
         X: 469
         Y: 233
         WIDTH: 118
@@ -87,9 +91,11 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 255, 255, 255
+        INDICATOR_RADIUS: 10
       RADIAL:
         SHOW: true
+        INDEX: 14
         X: 458
         Y: 371
         RADIUS: 35
@@ -107,6 +113,7 @@ STATS:
     MEMORY:
       RADIAL:
         SHOW: true
+        INDEX: 15
         X: 552
         Y: 371
         RADIUS: 35
@@ -126,6 +133,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 7
         X: 762
         Y: 209
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -135,8 +143,9 @@ STATS:
         ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
+        INDEX: 11
         X: 658
         Y: 233
         WIDTH: 118
@@ -144,9 +153,11 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 255, 255, 255
+        INDICATOR_RADIUS: 10
       RADIAL:
         SHOW: true
+        INDEX: 16
         X: 647
         Y: 371
         RADIUS: 35
@@ -166,6 +177,7 @@ STATS:
     VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 8
         X: 573
         Y: 282
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -173,8 +185,9 @@ STATS:
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '85'
         ALIGN: center
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
+        INDEX: 12
         X: 469
         Y: 308
         WIDTH: 118
@@ -182,9 +195,11 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 255, 255, 255
+        INDICATOR_RADIUS: 10
       RADIAL:
         SHOW: true
+        INDEX: 17
         X: 741
         Y: 371
         RADIUS: 35
@@ -204,6 +219,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 18
         X: 87
         Y: 439
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -216,6 +232,7 @@ STATS:
   VOLUME:
     TEXT:
       SHOW: true
+      INDEX: 19
       X: 283
       Y: 439
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -228,6 +245,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 20
         X: 460
         Y: 437
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf

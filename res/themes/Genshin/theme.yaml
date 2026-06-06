@@ -47,6 +47,7 @@ STATS:
       INTERVAL: 1
       GRAPH:
         SHOW: true
+        INDEX: 2
         X: 55
         Y: 287
         WIDTH: 221
@@ -57,6 +58,7 @@ STATS:
         BAR_OUTLINE: false
       TEXT:
         SHOW: true
+        INDEX: 14
         X: 21
         Y: 212
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
@@ -67,6 +69,7 @@ STATS:
   VOLUME:
     RADIAL:
       SHOW: true
+      INDEX: 3
       X: 57
       Y: 364
       RADIUS: 26
@@ -83,6 +86,7 @@ STATS:
       SHOW_UNIT: false
     TEXT:
       SHOW: true
+      INDEX: 6
       X: 57
       Y: 349
       FONT: turtheme/Futura LT Condensed Extra Bold.ttf
@@ -95,6 +99,7 @@ STATS:
     USED:
       RADIAL:
         SHOW: true
+        INDEX: 4
         X: 127
         Y: 364
         RADIUS: 26
@@ -111,6 +116,7 @@ STATS:
         SHOW_UNIT: false
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 7
         X: 126
         Y: 349
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
@@ -123,6 +129,7 @@ STATS:
     TEMPERATURE:
       RADIAL:
         SHOW: true
+        INDEX: 5
         X: 197
         Y: 364
         RADIUS: 26
@@ -139,6 +146,7 @@ STATS:
         SHOW_UNIT: false
       TEXT:
         SHOW: true
+        INDEX: 8
         X: 198
         Y: 349
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
@@ -149,6 +157,7 @@ STATS:
     MEMORY:
       TEXT:
         SHOW: true
+        INDEX: 16
         X: 212
         Y: 212
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
@@ -161,6 +170,7 @@ STATS:
     DAY:
       TEXT:
         SHOW: true
+        INDEX: 9
         X: 3
         Y: 441
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -175,6 +185,7 @@ STATS:
     VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 15
         X: 116
         Y: 212
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf

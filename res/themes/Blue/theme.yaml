@@ -69,6 +69,7 @@ STATS:
       UPLOAD:
         TEXT:
           SHOW: true
+          INDEX: 0
           X: 384
           Y: 396
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -80,6 +81,7 @@ STATS:
       DOWNLOAD:
         TEXT:
           SHOW: true
+          INDEX: 1
           X: 384
           Y: 420
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -93,6 +95,7 @@ STATS:
     VIRTUAL:
       USED:
         SHOW: true
+        INDEX: 2
         X: 195
         Y: 372
         FONT: geforce/GeForce-Bold.ttf
@@ -103,6 +106,7 @@ STATS:
         ALIGN: right
       PERCENT_TEXT:
         SHOW: true
+        INDEX: 5
         X: 248
         Y: 371
         FONT: geforce/GeForce-Bold.ttf
@@ -110,8 +114,9 @@ STATS:
         FONT_COLOR: 63, 238, 255
         PLACEHOLDER: '54'
         ALIGN: center
-      GRAPH:
+      STATUS_BAR:
         SHOW: true
+        INDEX: 23
         X: 48
         Y: 401
         WIDTH: 145
@@ -119,12 +124,14 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 107, 245, 248
-        BAR_OUTLINE: false
+        INDICATOR_COLOR: 107, 245, 248
+        INDICATOR_RADIUS: 7
   CPU:
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 3
         X: 222
         Y: 222
         FONT: geforce/GeForce-Bold.ttf
@@ -134,6 +141,7 @@ STATS:
         ALIGN: center
       RADIAL:
         SHOW: true
+        INDEX: 25
         X: 220
         Y: 243
         RADIUS: 47
@@ -152,6 +160,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 8
         X: 400
         Y: 223
         FONT: geforce/GeForce-Bold.ttf
@@ -161,6 +170,7 @@ STATS:
         ALIGN: center
       RADIAL:
         SHOW: true
+        INDEX: 24
         X: 400
         Y: 243
         RADIUS: 98
@@ -179,6 +189,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 11
         X: 64
         Y: 261
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -188,6 +199,7 @@ STATS:
         ALIGN: center
       RADIAL:
         SHOW: true
+        INDEX: 26
         X: 220
         Y: 243
         RADIUS: 47
@@ -206,6 +218,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 12
         X: 106
         Y: 275
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -218,6 +231,7 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
+        INDEX: 13
         X: 106
         Y: 220
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -231,6 +245,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 4
         X: 740
         Y: 259
         FONT: geforce/GeForce-Bold.ttf
@@ -241,6 +256,7 @@ STATS:
     PERCENTAGE:
       TEXT:
         SHOW: true
+        INDEX: 7
         X: 581
         Y: 223
         FONT: geforce/GeForce-Bold.ttf
@@ -250,6 +266,7 @@ STATS:
         ALIGN: center
       RADIAL:
         SHOW: true
+        INDEX: 27
         X: 579
         Y: 244
         RADIUS: 47
@@ -267,6 +284,7 @@ STATS:
     FREQUENCY:
       TEXT:
         SHOW: true
+        INDEX: 20
         X: 640
         Y: 220
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -277,6 +295,7 @@ STATS:
     VOLTAGE:
       TEXT:
         SHOW: true
+        INDEX: 21
         X: 640
         Y: 275
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -288,6 +307,7 @@ STATS:
   VOLUME:
     TEXT:
       SHOW: true
+      INDEX: 6
       X: 552
       Y: 370
       FONT: geforce/GeForce-Bold.ttf
@@ -300,6 +320,7 @@ STATS:
     DAY:
       TEXT:
         SHOW: true
+        INDEX: 9
         X: 683
         Y: 387
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -312,6 +333,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: true
+        INDEX: 10
         X: 683
         Y: 347
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
@@ -325,6 +347,7 @@ STATS:
     TEMPERATURE:
       TEXT:
         SHOW: true
+        INDEX: 22
         X: 53
         Y: 61
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
