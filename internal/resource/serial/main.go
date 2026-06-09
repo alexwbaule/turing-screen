@@ -38,9 +38,10 @@ type SerialSender interface {
 
 // Serial implements the SerialSender interface.
 type Serial struct {
-	device *usb.UsbDevice
-	port   *serial.Port
-	log    *logger.Logger
+	device     *usb.UsbDevice
+	port       *serial.Port
+	log        *logger.Logger
+	configPort string // original value from config ("AUTO" or explicit path)
 }
 
 // NewSerial creates and opens a new serial port connection.
@@ -64,9 +65,10 @@ func NewSerial(portName string, l *logger.Logger) (SerialSender, error) {
 	}
 
 	return &Serial{
-		device: device,
-		port:   port,
-		log:    l,
+		device:     device,
+		port:       port,
+		log:        l,
+		configPort: portName,
 	}, nil
 }
 
@@ -173,7 +175,7 @@ func (s *Serial) ReopenPort() error {
 	s.log.Infof("Reopening serial port connection on %s", s.device.Name)
 	time.Sleep(time.Second * 5)
 
-	newSerial, err := NewSerial(s.device.Name, s.log)
+	newSerial, err := NewSerial(s.configPort, s.log)
 	if err != nil {
 		return err
 	}

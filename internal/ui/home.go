@@ -281,14 +281,15 @@ func (hs *HomeScreen) pollStatus() {
 }
 
 func (hs *HomeScreen) updateFromStatus(mode, theme, uptime string) {
-	modeLabel := "▶"
-	if mode == "editor" {
-		modeLabel = "⏸"
-	}
-	hs.statusLabel.SetText(fmt.Sprintf("🟢 %s %s | %s", modeLabel, theme, uptime))
-	if mode == "editor" {
+	switch mode {
+	case "editor":
+		hs.statusLabel.SetText(fmt.Sprintf("🟢 ⏸ %s | %s", theme, uptime))
 		hs.setButtonsPaused()
-	} else {
+	case "starting":
+		hs.statusLabel.SetText(fmt.Sprintf("🟢 ⏳ Aguardando device... | %s", uptime))
+		hs.setButtonsStarting()
+	default: // "normal"
+		hs.statusLabel.SetText(fmt.Sprintf("🟢 ▶ %s | %s", theme, uptime))
 		hs.setButtonsRunning()
 	}
 }
@@ -303,6 +304,12 @@ func (hs *HomeScreen) setButtonsPaused() {
 	hs.playBtn.Enable()
 	hs.stopBtn.Disable()
 	hs.storageBtn.Enable()
+}
+
+func (hs *HomeScreen) setButtonsStarting() {
+	hs.playBtn.Disable()
+	hs.stopBtn.Disable()
+	hs.storageBtn.Disable()
 }
 
 func (hs *HomeScreen) setButtonsDisconnected() {

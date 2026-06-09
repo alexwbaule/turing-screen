@@ -163,50 +163,53 @@ func ShowConfigDialog(app *EditorApp) {
 	)
 	tabs.SetTabLocation(container.TabLocationTop)
 
-	content := container.NewPadded(tabs)
-	content.Resize(fyne.NewSize(500, 420))
+	// --- Window ---
+	win := app.fyneApp.NewWindow("Configurações")
 
-	dlg := dialog.NewCustomConfirm("Configurações", "Salvar", "Cancelar", content,
-		func(save bool) {
-			if !save {
-				return
-			}
+	saveBtn := widget.NewButton("Salvar", func() {
+		apiPort, _ := strconv.Atoi(apiPortEntry.Text)
+		width, _ := strconv.Atoi(widthEntry.Text)
+		height, _ := strconv.Atoi(heightEntry.Text)
 
-			apiPort, _ := strconv.Atoi(apiPortEntry.Text)
-			width, _ := strconv.Atoi(widthEntry.Text)
-			height, _ := strconv.Atoi(heightEntry.Text)
+		v.Set("device.port", portEntry.Text)
+		v.Set("device.api_port", apiPort)
+		v.Set("device.log", logSelect.Selected)
+		v.Set("device.turn_off_on_exit", turnOffCheck.Checked)
 
-			v.Set("device.port", portEntry.Text)
-			v.Set("device.api_port", apiPort)
-			v.Set("device.log", logSelect.Selected)
-			v.Set("device.turn_off_on_exit", turnOffCheck.Checked)
+		v.Set("device.display.brightness", int(brightnessSlider.Value))
+		v.Set("device.display.width", width)
+		v.Set("device.display.height", height)
+		v.Set("device.display.reverse", reverseCheck.Checked)
 
-			v.Set("device.display.brightness", int(brightnessSlider.Value))
-			v.Set("device.display.width", width)
-			v.Set("device.display.height", height)
-			v.Set("device.display.reverse", reverseCheck.Checked)
+		v.Set("device.sensors.cpu.interval", cpuIntervalEntry.Text)
+		v.Set("device.sensors.cpu.temperature_sensor", cpuTempEntry.Text)
+		v.Set("device.sensors.gpu.interval", gpuIntervalEntry.Text)
+		v.Set("device.sensors.gpu.provider", gpuProviderSelect.Selected)
+		v.Set("device.sensors.memory.interval", memIntervalEntry.Text)
+		v.Set("device.sensors.disk.interval", diskIntervalEntry.Text)
+		v.Set("device.sensors.disk.temperature_sensor", diskTempEntry.Text)
+		v.Set("device.sensors.network.eth", ethEntry.Text)
+		v.Set("device.sensors.network.wlo", wifiEntry.Text)
+		v.Set("device.sensors.network.interval", netIntervalEntry.Text)
+		v.Set("device.sensors.weather.enabled", weatherEnabledCheck.Checked)
+		v.Set("device.sensors.weather.city", weatherCityEntry.Text)
+		v.Set("device.sensors.weather.interval", weatherIntervalEntry.Text)
 
-			v.Set("device.sensors.cpu.interval", cpuIntervalEntry.Text)
-			v.Set("device.sensors.cpu.temperature_sensor", cpuTempEntry.Text)
-			v.Set("device.sensors.gpu.interval", gpuIntervalEntry.Text)
-			v.Set("device.sensors.gpu.provider", gpuProviderSelect.Selected)
-			v.Set("device.sensors.memory.interval", memIntervalEntry.Text)
-			v.Set("device.sensors.disk.interval", diskIntervalEntry.Text)
-			v.Set("device.sensors.disk.temperature_sensor", diskTempEntry.Text)
-			v.Set("device.sensors.network.eth", ethEntry.Text)
-			v.Set("device.sensors.network.wlo", wifiEntry.Text)
-			v.Set("device.sensors.network.interval", netIntervalEntry.Text)
-			v.Set("device.sensors.weather.enabled", weatherEnabledCheck.Checked)
-			v.Set("device.sensors.weather.city", weatherCityEntry.Text)
-			v.Set("device.sensors.weather.interval", weatherIntervalEntry.Text)
+		if err := v.WriteConfig(); err != nil {
+			dialog.ShowError(fmt.Errorf("erro ao salvar config: %w", err), win)
+			return
+		}
+		dialog.ShowInformation("Configurações", "Salvo. Reinicie o daemon para aplicar as alterações.", win)
+	})
+	saveBtn.Importance = widget.HighImportance
 
-			if err := v.WriteConfig(); err != nil {
-				dialog.ShowError(fmt.Errorf("erro ao salvar config: %w", err), app.activeWindow())
-				return
-			}
-			dialog.ShowInformation("Configurações", "Salvo. Reinicie o daemon para aplicar as alterações.", app.activeWindow())
-		}, app.activeWindow())
+	cancelBtn := widget.NewButton("Fechar", func() { win.Close() })
 
-	dlg.Resize(fyne.NewSize(520, 460))
-	dlg.Show()
+	buttons := container.NewHBox(saveBtn, cancelBtn)
+	content := container.NewBorder(nil, container.NewPadded(buttons), nil, nil, container.NewPadded(tabs))
+
+	win.SetContent(content)
+	win.Resize(fyne.NewSize(520, 480))
+	win.SetFixedSize(false)
+	win.Show()
 }

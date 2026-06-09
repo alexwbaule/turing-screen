@@ -51,8 +51,26 @@ func main() {
 		var sensorMu sync.Mutex
 		sensorsRunning := false
 
-		// startSensors initializes theme + sensors and runs them in background goroutines
-		startSensors := func() {
+		// Forward-declare so startSensors can reference apiController (defined below).
+		var startSensors func()
+		var stopSensors func()
+
+		// --- API Server (always runs) ---
+		apiController := api.NewDaemonController(
+			app.Log, devSerial, cmdDevice, cmdBright, cmdPayload,
+			app.Config.GetThemeName(), "chs_5inch",
+		)
+		apiController.SetSensorControl(func() { stopSensors() }, func() { startSensors() })
+		apiController.SetSensorFunc(func() map[string]interface{} {
+			v := currentValues.Load()
+			if v == nil {
+				return map[string]interface{}{}
+			}
+			return v.Snapshot()
+		})
+
+		// startSensors initializes theme + sensors and runs them in background goroutines.
+		startSensors = func() {
 			sensorMu.Lock()
 			defer sensorMu.Unlock()
 			if sensorsRunning {
@@ -67,6 +85,7 @@ func main() {
 			statsTheme, err := appTheme.NewTheme(app.Config, app.Log)
 			if err != nil {
 				app.Log.Errorf("failed to load theme: %v", err)
+				apiController.NotifySensorsFailed()
 				return
 			}
 
@@ -91,11 +110,21 @@ func main() {
 			cmdOption := command.NewOption(app.Log)
 			cmdUpdate := command.NewUpdatePayload(app.Log, orientation, app.Config.GetDeviceDisplay())
 
-			// Initialize device
+			// Initialize device — if it fails the device may be sleeping after a TurnOff.
+			// Reconnect (triggers wakeup via NewUsbDevice AUTO logic) and retry once.
 			initService := initializer.New(devSerial, app.Log, app.Config, statsTheme, cmdDevice, cmdMedia, cmdOption, cmdStorage, cmdBright, cmdPayload)
 			if err := initService.Run(background); err != nil {
-				app.Log.Errorf("device initialization failed: %v", err)
-				return
+				app.Log.Warnf("device initialization failed, attempting reconnect (device may be sleeping): %v", err)
+				if rerr := devSerial.ResetDevice(); rerr != nil {
+					app.Log.Errorf("device reconnect failed: %v", rerr)
+					apiController.NotifySensorsFailed()
+					return
+				}
+				if err := initService.Run(background); err != nil {
+					app.Log.Errorf("device initialization failed after reconnect: %v", err)
+					apiController.NotifySensorsFailed()
+					return
+				}
 			}
 
 			if overlay := initService.Overlay(); overlay != nil {
@@ -193,11 +222,12 @@ func main() {
 			}()
 
 			sensorsRunning = true
+			apiController.NotifySensorsStarted()
 			app.Log.Info("all sensors started")
 		}
 
-		// stopSensors cancels the sensor context and waits for goroutines to finish
-		stopSensors := func() {
+		// stopSensors cancels the sensor context and waits for goroutines to finish.
+		stopSensors = func() {
 			sensorMu.Lock()
 			defer sensorMu.Unlock()
 			if !sensorsRunning {
@@ -225,20 +255,6 @@ func main() {
 			sensorsRunning = false
 			app.Log.Info("all sensors stopped, serial flushed")
 		}
-
-		// --- API Server (always runs) ---
-		apiController := api.NewDaemonController(
-			app.Log, devSerial, cmdDevice, cmdBright, cmdPayload,
-			app.Config.GetThemeName(), "chs_5inch",
-		)
-		apiController.SetSensorControl(func() { stopSensors() }, func() { startSensors() })
-		apiController.SetSensorFunc(func() map[string]interface{} {
-			v := currentValues.Load()
-			if v == nil {
-				return map[string]interface{}{}
-			}
-			return v.Snapshot()
-		})
 
 		g, ctx := errgroup.WithContext(ctx)
 

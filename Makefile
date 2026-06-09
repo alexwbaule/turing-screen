@@ -57,12 +57,14 @@ install: build-all
 	find $(INSTALL_DIR)/res -type f -exec chmod 664 {} +
 	@# Default config — skip if already present (preserve user edits on reinstall)
 	@if [ ! -f $(INSTALL_DIR)/conf/config.yaml ]; then \
-		install -m 664 -g $(GROUP) conf/config.yaml $(INSTALL_DIR)/conf/config.yaml; \
+		install -m 664 conf/config.yaml $(INSTALL_DIR)/conf/config.yaml; \
 		echo "  Installed default config.yaml"; \
 	else \
 		echo "  Keeping existing conf/config.yaml"; \
 	fi
 	chown root:$(GROUP) $(INSTALL_DIR)/conf
+	chown root:$(GROUP) $(INSTALL_DIR)/conf/config.yaml
+	chmod 664 $(INSTALL_DIR)/conf/config.yaml
 	@echo "==> Installing systemd services"
 	install -m 644 scripts/smart-screen-go.service          $(SYSTEMD_DIR)/smart-screen-go.service
 	install -m 644 scripts/sleep@smart-screen-go.service    $(SYSTEMD_DIR)/sleep@smart-screen-go.service

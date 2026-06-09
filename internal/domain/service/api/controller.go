@@ -21,7 +21,7 @@ import (
 type DaemonController struct {
 	log       *logger.Logger
 	mu        sync.Mutex
-	mode      string // "normal" or "editor"
+	mode      string // "starting", "normal", or "editor"
 	themeName string
 	firmware  string
 	startTime time.Time
@@ -53,7 +53,7 @@ func NewDaemonController(
 ) *DaemonController {
 	return &DaemonController{
 		log:        log,
-		mode:       "normal",
+		mode:       "starting",
 		themeName:  themeName,
 		firmware:   firmware,
 		startTime:  time.Now(),
@@ -116,16 +116,31 @@ func (dc *DaemonController) SetModeEditor() error {
 func (dc *DaemonController) SetModeNormal() error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	if dc.mode == "normal" {
+	if dc.mode == "normal" || dc.mode == "starting" {
 		return nil
 	}
-	dc.mode = "normal"
-	// Restart sensors
+	dc.mode = "starting"
 	if dc.restartFunc != nil {
 		go dc.restartFunc()
 	}
-	dc.log.Info("API: switched to normal mode (sensors resumed)")
+	dc.log.Info("API: switched to starting mode (sensors resuming)")
 	return nil
+}
+
+// NotifySensorsStarted is called by startSensors when sensors come online successfully.
+func (dc *DaemonController) NotifySensorsStarted() {
+	dc.mu.Lock()
+	dc.mode = "normal"
+	dc.mu.Unlock()
+	dc.log.Info("API: sensors started, mode normal")
+}
+
+// NotifySensorsFailed is called by startSensors when device init fails.
+func (dc *DaemonController) NotifySensorsFailed() {
+	dc.mu.Lock()
+	dc.mode = "editor"
+	dc.mu.Unlock()
+	dc.log.Warn("API: sensors failed to start, reverted to editor mode")
 }
 
 func (dc *DaemonController) SetBrightness(value int) error {
@@ -195,6 +210,15 @@ func (dc *DaemonController) ResetUSB() error {
 }
 
 func (dc *DaemonController) TurnOff() error {
+	// Stop sensors before turning off so the worker doesn't keep writing to the
+	// serial port after the device shuts down (would trigger retry/wakeup logic).
+	dc.mu.Lock()
+	stop := dc.stopFunc
+	dc.mode = "editor"
+	dc.mu.Unlock()
+	if stop != nil {
+		stop()
+	}
 	_, err := dc.serial.Execute(dc.cmdDevice.TurnOff())
 	return err
 }
