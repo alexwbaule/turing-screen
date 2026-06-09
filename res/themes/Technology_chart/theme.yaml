@@ -21,8 +21,8 @@ static_texts:
     SHOW: true
     SHOW_UNIT: false
     INDEX: 2
-    X: 92
-    Y: 230
+    X: 100
+    Y: 227
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 26
     FONT_COLOR: 255, 255, 255
@@ -30,8 +30,8 @@ static_texts:
     TEXT: '{{CPU_MODEL}}'
     SHOW: true
     SHOW_UNIT: false
-    X: 97
-    Y: 19
+    X: 99
+    Y: 16
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 30
     FONT_COLOR: 255, 255, 255
@@ -40,16 +40,14 @@ static_texts:
     SHOW: true
     SHOW_UNIT: false
     INDEX: 1
-    X: 490
-    Y: 20
+    X: 495
+    Y: 17
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 30
     FONT_COLOR: 255, 255, 255
 STATS:
   CPU:
-    INTERVAL: 0
     PERCENTAGE:
-      INTERVAL: 1
       SHOW: false
       RADIAL:
         SHOW: true
@@ -94,7 +92,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: CENTER
     FREQUENCY:
-      INTERVAL: 1
       SHOW: false
       GRAPH:
         SHOW: true
@@ -119,7 +116,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: CENTER
     TEMPERATURE:
-      INTERVAL: 1
       SHOW: false
       CHART:
         SHOW: true
@@ -147,9 +143,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: CENTER
   GPU:
-    INTERVAL: 1
     PERCENTAGE:
-      INTERVAL: 0
       SHOW: false
       RADIAL:
         SHOW: true
@@ -180,7 +174,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: CENTER
     MEMORY:
-      INTERVAL: 0
       SHOW: false
       GRAPH:
         SHOW: true
@@ -205,7 +198,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: CENTER
     TEMPERATURE:
-      INTERVAL: 0
       SHOW: false
       GRAPH:
         SHOW: true
@@ -230,7 +222,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: center
   MEMORY:
-    INTERVAL: 5
     VIRTUAL:
       SHOW: false
       RADIAL:
@@ -262,9 +253,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: CENTER
   DISK:
-    INTERVAL: 10
     USED:
-      INTERVAL: 0
       SHOW: false
       GRAPH:
         SHOW: true
@@ -289,7 +278,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: center
     TEMPERATURE:
-      INTERVAL: 0
       SHOW: false
       TEXT:
         PLACEHOLDER: "44"
@@ -303,10 +291,8 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: CENTER
   NET:
-    INTERVAL: 1
     ETH:
       UPLOAD:
-        INTERVAL: 0
         SHOW: false
         TEXT:
           PLACEHOLDER: 0KB/s
@@ -320,7 +306,6 @@ STATS:
           FONT_COLOR: 255, 255, 255
           ALIGN: CENTER
       DOWNLOAD:
-        INTERVAL: 0
         SHOW: false
         TEXT:
           PLACEHOLDER: 0KB/s
@@ -334,9 +319,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           ALIGN: CENTER
   DATE:
-    INTERVAL: 1
     DAY:
-      INTERVAL: 0
       SHOW: false
       TEXT:
         PLACEHOLDER: "2022-06-02"
@@ -351,7 +334,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         ALIGN: CENTER
     HOUR:
-      INTERVAL: 0
       SHOW: false
       TEXT:
         PLACEHOLDER: "17:43:42"
@@ -367,7 +349,6 @@ STATS:
         ALIGN: CENTER
   WEATHER:
     TEMPERATURE:
-      INTERVAL: 0
       SHOW: false
       TEXT:
         PLACEHOLDER: Sunny SW4Level  34°
@@ -385,8 +366,8 @@ STATS:
       SHOW: true
       SHOW_UNIT: false
       INDEX: 26
-      X: 206
-      Y: 437
+      X: 223
+      Y: 434
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
       FONT_SIZE: 22
       FONT_COLOR: 255,255,255

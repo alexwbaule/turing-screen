@@ -25,21 +25,21 @@ static_texts:
     X: 56
     Y: 395
     FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 202, 148, 111
   SSD:
     TEXT: SSD
     X: 128
     Y: 395
     FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 202, 148, 111
   TEMP:
     TEXT: TEMP
     X: 198
     Y: 395
     FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 202, 148, 111
 STATS:
   CPU:
@@ -62,10 +62,9 @@ STATS:
         X: 21
         Y: 212
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-        FONT_SIZE: 46
+        FONT_SIZE: 41
         FONT_COLOR: 225, 204, 151
         PLACEHOLDER: '15'
-        ALIGN: center
   VOLUME:
     RADIAL:
       SHOW: true
@@ -90,10 +89,9 @@ STATS:
       X: 57
       Y: 349
       FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-      FONT_SIZE: 30
+      FONT_SIZE: 27
       FONT_COLOR: 255, 255, 255
       PLACEHOLDER: '58'
-      ALIGN: center
   DISK:
     INTERVAL: 10
     USED:
@@ -120,10 +118,9 @@ STATS:
         X: 126
         Y: 349
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-        FONT_SIZE: 30
+        FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '97'
-        ALIGN: center
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -150,10 +147,9 @@ STATS:
         X: 198
         Y: 349
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-        FONT_SIZE: 30
+        FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '30'
-        ALIGN: center
     MEMORY:
       TEXT:
         SHOW: true
@@ -161,10 +157,9 @@ STATS:
         X: 212
         Y: 212
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-        FONT_SIZE: 46
+        FONT_SIZE: 41
         FONT_COLOR: 225, 204, 151
         PLACEHOLDER: '82'
-        ALIGN: center
   DATE:
     INTERVAL: 1
     DAY:
@@ -174,11 +169,10 @@ STATS:
         X: 3
         Y: 441
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 18
+        FONT_SIZE: 16
         FONT_COLOR: 202, 148, 111
         SHOW_UNIT: true
         PLACEHOLDER: '12'
-        ALIGN: center
         FORMAT: medium
   MEMORY:
     INTERVAL: 5
@@ -189,7 +183,6 @@ STATS:
         X: 116
         Y: 212
         FONT: turtheme/Futura LT Condensed Extra Bold.ttf
-        FONT_SIZE: 46
+        FONT_SIZE: 41
         FONT_COLOR: 225, 204, 151
         PLACEHOLDER: '58'
-        ALIGN: center

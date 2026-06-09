@@ -5,9 +5,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"image/png"
 	"math"
-	"os"
 	"strings"
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
@@ -264,209 +262,6 @@ func (b *Builder) drawSegmentedBar(numb *image.NRGBA, stat *theme.Graph, directi
 			fillRect(numb, stat.X, sy, stat.Width, segH, stat.BarColor)
 		}
 	}
-}
-
-// DrawGraphAndText draws both a progress bar and text on the same background copy,
-// then crops the union of both regions. This avoids black gaps from separate crops.
-func (b *Builder) DrawGraphAndText(value float64, graph *theme.Graph, text string, stat *theme.Text, defaultSize int) (image.Image, int, int) {
-	numb := imageToNRGBA(b.background)
-
-	// --- Draw progress bar ---
-	barFilledWidth := int(math.Round(value / float64(graph.MaxValue-graph.MinValue) * float64(graph.Width)))
-	if barFilledWidth > graph.Width {
-		barFilledWidth = graph.Width
-	}
-	if barFilledWidth < 0 {
-		barFilledWidth = 0
-	}
-	fillRect(numb, graph.X, graph.Y, barFilledWidth, graph.Height, graph.BarColor)
-	if graph.BarOutline {
-		strokeRect(numb, graph.X, graph.Y, graph.Width, graph.Height, graph.BarColor)
-	}
-
-	// --- Draw text ---
-	charCount := utils.CountStr(text)
-	if stat.Placeholder != "" {
-		charCount = utils.CountStr(stat.Placeholder)
-	} else if stat.Size > 0 {
-		charCount = stat.Size
-	} else if defaultSize > charCount {
-		charCount = defaultSize
-	}
-
-	d := &font.Drawer{
-		Dst:  numb,
-		Src:  image.NewUniform(stat.FontColor),
-		Face: stat.Font,
-	}
-	measure := strings.Repeat("8", charCount)
-	cropWidth := d.MeasureString(measure).Ceil()
-	metrics := stat.Font.Metrics()
-	cropHeight := (metrics.Ascent + metrics.Descent).Ceil()
-	if stat.Width > 0 {
-		cropWidth = stat.Width
-	}
-	if stat.Height > 0 {
-		cropHeight = stat.Height
-	}
-
-	textWidth := d.MeasureString(text)
-	cropWidthFixed := fixed.I(cropWidth)
-	var dotX fixed.Int26_6
-	cropX := stat.X
-
-	switch stat.Align {
-	case theme.CENTER:
-		cropX = stat.X - cropWidth/2
-		if cropX < 0 {
-			cropX = 0
-		}
-		dotX = fixed.I(cropX) + (cropWidthFixed-textWidth)/2
-	case theme.RIGHT:
-		cropX = stat.X - cropWidth
-		if cropX < 0 {
-			cropX = 0
-		}
-		dotX = fixed.I(cropX) + cropWidthFixed - textWidth
-	default:
-		dotX = fixed.I(stat.X)
-	}
-
-	dotY := fixed.I(stat.Y) + metrics.Ascent
-	d.Dot = fixed.Point26_6{X: dotX, Y: dotY}
-	d.DrawString(text)
-
-	// --- Crop the union of both regions ---
-	graphRect := utils.Rect{X: graph.X, Y: graph.Y, W: graph.Width, H: graph.Height}
-	textRect := utils.Rect{X: cropX, Y: stat.Y, W: cropWidth, H: cropHeight}
-	union := graphRect.Union(textRect)
-
-	crp := image.Rect(union.X, union.Y, union.X+union.W, union.Y+union.H)
-	dst := image.NewRGBA(image.Rect(0, 0, union.W, union.H))
-	drawCrop(dst, numb, crp)
-
-	return dst, union.X, union.Y
-}
-
-// DrawRadialAndText draws both a radial arc and text on the same background copy,
-// then crops the union of both regions. This avoids black gaps from separate crops.
-func (b *Builder) DrawRadialAndText(value float64, radial *theme.Radial, text string, stat *theme.Text, defaultSize int) (image.Image, int, int) {
-	numb := imageToNRGBA(b.background)
-
-	// --- Draw radial ---
-	x, y := float64(radial.X), float64(radial.Y)
-	amin := utils.Radians(radial.AngleStart)
-	amax := utils.Radians(180 + radial.AngleStart + radial.AngleEnd)
-	total := (value * float64(180+radial.AngleStart+radial.AngleEnd)) / 100
-	cur := utils.Radians(int(total) + radial.AngleStart)
-	if cur > amax {
-		cur = amax
-	}
-
-	if radial.ShowText {
-		measure := fmt.Sprintf("%3.f", value)
-		if radial.ShowUnit {
-			measure = fmt.Sprintf("%3.f%%", value)
-		}
-		w := measureString(radial.Font, measure)
-		ascent := fixedAscent(radial.Font)
-		descent := fixedDescent(radial.Font)
-		totalH := ascent + descent
-		drawX := fixed.Int26_6(int((x - w/2) * 64))
-		drawY := fixed.I(int(y)) + totalH/2 - descent + fixed.I(1)
-		rd := &font.Drawer{
-			Dst:  numb,
-			Src:  image.NewUniform(radial.FontColor),
-			Face: radial.Font,
-			Dot:  fixed.Point26_6{X: drawX, Y: drawY},
-		}
-		rd.DrawString(measure)
-	}
-
-	arcRadius := float64(radial.Radius - (radial.Width / 2))
-	if radial.AngleSteps > 1 && radial.AngleSep > 0 {
-		totalAngle := cur - amin
-		segAngle := totalAngle / float64(radial.AngleSteps)
-		sepAngle := utils.Radians(radial.AngleSep)
-		for i := 0; i < radial.AngleSteps; i++ {
-			segStart := amin + float64(i)*segAngle
-			segEnd := segStart + segAngle - sepAngle
-			if segEnd > cur {
-				segEnd = cur
-			}
-			if segEnd > segStart {
-				drawArc(numb, x, y, arcRadius, segStart, segEnd, radial.Width, radial.BarColor)
-			}
-		}
-	} else {
-		drawArc(numb, x, y, arcRadius, amin, cur, radial.Width, radial.BarColor)
-	}
-
-	// --- Draw text ---
-	charCount := utils.CountStr(text)
-	if stat.Placeholder != "" {
-		charCount = utils.CountStr(stat.Placeholder)
-	} else if stat.Size > 0 {
-		charCount = stat.Size
-	} else if defaultSize > charCount {
-		charCount = defaultSize
-	}
-
-	d := &font.Drawer{
-		Dst:  numb,
-		Src:  image.NewUniform(stat.FontColor),
-		Face: stat.Font,
-	}
-	measure := strings.Repeat("8", charCount)
-	cropWidth := d.MeasureString(measure).Ceil()
-	metrics := stat.Font.Metrics()
-	cropHeight := (metrics.Ascent + metrics.Descent).Ceil()
-	if stat.Width > 0 {
-		cropWidth = stat.Width
-	}
-	if stat.Height > 0 {
-		cropHeight = stat.Height
-	}
-
-	textWidth := d.MeasureString(text)
-	cropWidthFixed := fixed.I(cropWidth)
-	var dotX fixed.Int26_6
-	cropX := stat.X
-
-	switch stat.Align {
-	case theme.CENTER:
-		cropX = stat.X - cropWidth/2
-		if cropX < 0 {
-			cropX = 0
-		}
-		dotX = fixed.I(cropX) + (cropWidthFixed-textWidth)/2
-	case theme.RIGHT:
-		cropX = stat.X - cropWidth
-		if cropX < 0 {
-			cropX = 0
-		}
-		dotX = fixed.I(cropX) + cropWidthFixed - textWidth
-	default:
-		dotX = fixed.I(stat.X)
-	}
-
-	dotY := fixed.I(stat.Y) + metrics.Ascent
-	d.Dot = fixed.Point26_6{X: dotX, Y: dotY}
-	d.DrawString(text)
-
-	// --- Crop the union of both regions ---
-	radialX := radial.X - radial.Radius
-	radialY := radial.Y - radial.Radius
-	diameter := radial.Radius * 2
-	radialRect := utils.Rect{X: radialX, Y: radialY, W: diameter, H: diameter}
-	textRect := utils.Rect{X: cropX, Y: stat.Y, W: cropWidth, H: cropHeight}
-	union := radialRect.Union(textRect)
-
-	crp := image.Rect(union.X, union.Y, union.X+union.W, union.Y+union.H)
-	dst := image.NewRGBA(image.Rect(0, 0, union.W, union.H))
-	drawCrop(dst, numb, crp)
-
-	return dst, union.X, union.Y
 }
 
 func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image.Image {
@@ -758,19 +553,6 @@ func (b *Builder) DrawChart(stat *theme.Chart) image.Image {
 	return dst
 }
 
-func (b *Builder) saveImage(img image.Image, file string) {
-	f, err := os.Create(file)
-	if err != nil {
-		b.log.Infof("error creating file: %s\n", err)
-		return
-	}
-	defer f.Close()
-	err = png.Encode(f, img)
-	if err != nil {
-		b.log.Infof("error saving file: %s\n", err)
-	}
-}
-
 // =====================================================================
 // Helper functions (pure Go, no CGO)
 // =====================================================================
@@ -973,12 +755,6 @@ func drawLine(dst *image.NRGBA, x1, y1, x2, y2 float64, width int, c color.Color
 func measureString(face font.Face, s string) float64 {
 	advance := font.MeasureString(face, s)
 	return fixedToFloat(advance)
-}
-
-// measureHeight returns the line height (ascent + descent) in float64.
-func measureHeight(face font.Face) float64 {
-	m := face.Metrics()
-	return fixedToFloat(m.Ascent + m.Descent)
 }
 
 // fixedAscent returns the ascent as fixed.Int26_6.

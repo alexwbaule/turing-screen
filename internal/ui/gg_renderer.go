@@ -282,32 +282,6 @@ func drawRectOutline(img *image.RGBA, x, y, w, h int, c color.Color) {
 	}
 }
 
-func drawArcStdlib(img *image.RGBA, cx, cy, radius, startAngle, endAngle float64, width int, c color.Color) {
-	steps := int(math.Abs(endAngle-startAngle) * radius * 2)
-	if steps < 100 {
-		steps = 100
-	}
-	halfW := float64(width) / 2.0
-
-	for i := 0; i <= steps; i++ {
-		t := startAngle + (endAngle-startAngle)*float64(i)/float64(steps)
-		px := cx + radius*math.Cos(t)
-		py := cy + radius*math.Sin(t)
-
-		for dy := -halfW; dy <= halfW; dy++ {
-			for dx := -halfW; dx <= halfW; dx++ {
-				if dx*dx+dy*dy <= halfW*halfW {
-					ix := int(math.Round(px + dx))
-					iy := int(math.Round(py + dy))
-					if ix >= 0 && iy >= 0 && ix < img.Bounds().Dx() && iy < img.Bounds().Dy() {
-						img.Set(ix, iy, c)
-					}
-				}
-			}
-		}
-	}
-}
-
 func drawArcOnNRGBA(img *image.NRGBA, cx, cy, radius, startAngle, endAngle float64, width int, c color.Color) {
 	steps := int(math.Abs(endAngle-startAngle) * radius * 2)
 	if steps < 100 {

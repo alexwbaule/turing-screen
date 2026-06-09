@@ -37,14 +37,14 @@ static_texts:
     X: 654
     Y: 316
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 24
+    FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
   TEXT_1:
     TEXT: .
     X: 681
     Y: 316
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 24
+    FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
 STATS:
   CPU:
@@ -69,11 +69,10 @@ STATS:
         X: 95
         Y: 341
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 54
+        FONT_SIZE: 48
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 3%
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 18
@@ -111,11 +110,10 @@ STATS:
         X: 673
         Y: 401
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 54
+        FONT_SIZE: 48
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 95%
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 21
@@ -166,11 +164,10 @@ STATS:
         X: 95
         Y: 401
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 54
+        FONT_SIZE: 48
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 50%
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 19
@@ -197,11 +194,10 @@ STATS:
         X: 673
         Y: 341
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 54
+        FONT_SIZE: 48
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 1%
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 20
@@ -228,11 +224,10 @@ STATS:
         X: 611
         Y: 316
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
+        FONT_SIZE: 21
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: '2022'
-        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -241,9 +236,8 @@ STATS:
         X: 725
         Y: 316
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
+        FONT_SIZE: 21
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: '13:47'
-        ALIGN: center
         FORMAT: short

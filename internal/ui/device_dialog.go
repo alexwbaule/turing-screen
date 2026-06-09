@@ -16,7 +16,9 @@ import (
 type DeviceDialog struct {
 	app          *EditorApp
 	win          fyne.Window
-	storageLabel *widget.Label
+	totalLabel   *widget.Label
+	usedLabel    *widget.Label
+	freeLabel    *widget.Label
 	fileList     *widget.List
 	files        []string
 	selectedFile int
@@ -35,7 +37,9 @@ func ShowDeviceDialog(app *EditorApp) {
 
 	dd.win = app.mainWindow
 	dd.statusLabel = widget.NewLabel("Verificando...")
-	dd.storageLabel = widget.NewLabel("Storage: --")
+	dd.totalLabel = widget.NewLabel("Total:  --")
+	dd.usedLabel = widget.NewLabel("Usado: --")
+	dd.freeLabel = widget.NewLabel("Livre:  --")
 
 	dirs := []string{"/root/video/", "/root/image/", "/root/font/", "/root/"}
 	dd.dirSelect = widget.NewSelect(dirs, func(s string) {
@@ -62,9 +66,15 @@ func ShowDeviceDialog(app *EditorApp) {
 	playBtn := widget.NewButton("Play Video", func() { go dd.playSelected() })
 	stopBtn := widget.NewButton("Stop Video", func() { go dd.stopPlayback() })
 
+	storageInfo := container.NewVBox(
+		dd.totalLabel,
+		dd.usedLabel,
+		dd.freeLabel,
+	)
+
 	leftPanel := container.NewVBox(
 		widget.NewLabelWithStyle("Storage", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-		dd.storageLabel,
+		storageInfo,
 		refreshStorageBtn,
 		widget.NewSeparator(),
 		restartBtn,
@@ -95,14 +105,21 @@ func (dd *DeviceDialog) refreshStorage() {
 	if ws == nil || !ws.IsConnected() {
 		fyne.Do(func() {
 			dd.statusLabel.SetText("⚫ Não conectado")
-			dd.storageLabel.SetText("Storage: indisponível")
+			dd.totalLabel.SetText("Total:  --")
+			dd.usedLabel.SetText("Usado: --")
+			dd.freeLabel.SetText("Livre:  --")
 		})
 		return
 	}
 
 	resp, err := ws.Send("storage.info", nil)
 	if err != nil {
-		fyne.Do(func() { dd.storageLabel.SetText("Storage: " + err.Error()) })
+		fyne.Do(func() {
+			dd.statusLabel.SetText("Erro: " + err.Error())
+			dd.totalLabel.SetText("Total:  --")
+			dd.usedLabel.SetText("Usado: --")
+			dd.freeLabel.SetText("Livre:  --")
+		})
 		return
 	}
 
@@ -114,8 +131,9 @@ func (dd *DeviceDialog) refreshStorage() {
 	json.Unmarshal(resp.Payload, &info)
 
 	fyne.Do(func() {
-		dd.storageLabel.SetText(fmt.Sprintf("Total: %s | Usado: %s | Livre: %s",
-			formatBytes(info.Total), formatBytes(info.Used), formatBytes(info.Free)))
+		dd.totalLabel.SetText("Total:  " + formatBytes(info.Total))
+		dd.usedLabel.SetText("Usado: " + formatBytes(info.Used))
+		dd.freeLabel.SetText("Livre:  " + formatBytes(info.Free))
 		dd.statusLabel.SetText("🟢 Conectado")
 	})
 }

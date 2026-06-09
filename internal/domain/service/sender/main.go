@@ -65,6 +65,8 @@ func (w *Worker) Run(ctx context.Context, jobs <-chan command.Command) error {
 				}
 				try++
 				num = 0
+			} else {
+				try = 0
 			}
 		}
 	}

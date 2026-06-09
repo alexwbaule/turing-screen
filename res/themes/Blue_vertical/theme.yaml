@@ -25,14 +25,14 @@ static_texts:
     X: 243
     Y: 501
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 27
+    FONT_SIZE: 24
     FONT_COLOR: 84, 241, 255
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 126
     Y: 697
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 84, 241, 255
 STATS:
   CPU:
@@ -44,10 +44,9 @@ STATS:
         X: 241
         Y: 254
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 253, 0, 143
         PLACEHOLDER: '43'
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 8
@@ -85,10 +84,9 @@ STATS:
         X: 101
         Y: 452
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 45
+        FONT_SIZE: 40
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '136'
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 10
@@ -115,10 +113,9 @@ STATS:
         X: 423
         Y: 384
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 22
+        FONT_SIZE: 20
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '0'
-        ALIGN: center
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -126,10 +123,9 @@ STATS:
         X: 385
         Y: 452
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 45
+        FONT_SIZE: 40
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '32'
-        ALIGN: center
     PERCENTAGE:
       RADIAL:
         SHOW: true
@@ -157,10 +153,9 @@ STATS:
         X: 88
         Y: 600
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 22
+        FONT_SIZE: 20
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '107'
-        ALIGN: center
   VOLUME:
     TEXT:
       SHOW: true
@@ -168,10 +163,9 @@ STATS:
       X: 392
       Y: 600
       FONT: geforce/GeForce-Bold.ttf
-      FONT_SIZE: 22
+      FONT_SIZE: 20
       FONT_COLOR: 84, 241, 255
       PLACEHOLDER: '0'
-      ALIGN: center
   NET:
     INTERVAL: 1
     ETH:
@@ -182,10 +176,9 @@ STATS:
           X: 188
           Y: 596
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 15
+          FONT_SIZE: 13
           FONT_COLOR: 84, 241, 255
           PLACEHOLDER: 12KB/s
-          ALIGN: center
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -193,10 +186,9 @@ STATS:
           X: 264
           Y: 596
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 15
+          FONT_SIZE: 13
           FONT_COLOR: 84, 241, 255
           PLACEHOLDER: 385KB/s
-          ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -206,11 +198,10 @@ STATS:
         X: 189
         Y: 722
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 13
         FONT_COLOR: 84, 241, 255
         SHOW_UNIT: true
         PLACEHOLDER: 10623M
-        ALIGN: center
   DATE:
     INTERVAL: 1
     DAY:
@@ -220,11 +211,10 @@ STATS:
         X: 438
         Y: 695
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 36
+        FONT_SIZE: 32
         FONT_COLOR: 84, 241, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-10-10'
-        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -233,8 +223,7 @@ STATS:
         X: 302
         Y: 731
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 36
+        FONT_SIZE: 32
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '16:21:51'
-        ALIGN: center
         FORMAT: short

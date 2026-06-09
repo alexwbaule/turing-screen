@@ -59,13 +59,21 @@ type Message struct {
 	Error   string          `json:"error,omitempty"`
 }
 
+// clientConn wraps a WebSocket connection with a per-client send channel.
+// Writes are delegated to a dedicated writer goroutine so that broadcast never
+// blocks while holding the clients map lock.
+type clientConn struct {
+	conn   *websocket.Conn
+	sendCh chan []byte // buffered; writer goroutine drains it
+}
+
 type Server struct {
 	log        *logger.Logger
 	controller Controller
 	port       int
 	server     *http.Server
-	clients    map[*websocket.Conn]bool
-	clientsMu  sync.Mutex
+	clients    map[*websocket.Conn]*clientConn
+	clientsMu  sync.RWMutex
 }
 
 func NewServer(log *logger.Logger, controller Controller, port int) *Server {
@@ -73,7 +81,7 @@ func NewServer(log *logger.Logger, controller Controller, port int) *Server {
 		log:        log,
 		controller: controller,
 		port:       port,
-		clients:    make(map[*websocket.Conn]bool),
+		clients:    make(map[*websocket.Conn]*clientConn),
 	}
 }
 
@@ -116,14 +124,27 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request, ctx con
 	}
 	defer conn.Close(websocket.StatusNormalClosure, "bye")
 
+	sendCh := make(chan []byte, 32)
+	cc := &clientConn{conn: conn, sendCh: sendCh}
+
 	s.clientsMu.Lock()
-	s.clients[conn] = true
+	s.clients[conn] = cc
 	s.clientsMu.Unlock()
 
 	defer func() {
 		s.clientsMu.Lock()
 		delete(s.clients, conn)
 		s.clientsMu.Unlock()
+		close(sendCh) // stops the writer goroutine
+	}()
+
+	// Per-client writer goroutine: drains sendCh with a per-write timeout.
+	go func() {
+		for data := range sendCh {
+			wctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			conn.Write(wctx, websocket.MessageText, data)
+			cancel()
+		}
 	}()
 
 	s.log.Info("WebSocket client connected")
@@ -143,7 +164,11 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request, ctx con
 
 		response := s.handleMessage(msg)
 		respData, _ := json.Marshal(response)
-		conn.Write(ctx, websocket.MessageText, respData)
+		select {
+		case sendCh <- respData:
+		default:
+			s.log.Warn("WebSocket send buffer full, dropping response")
+		}
 	}
 }
 
@@ -301,9 +326,9 @@ func (s *Server) handleMessage(msg Message) Message {
 	}
 }
 
-// broadcastStatusLoop sends status events to all connected clients every 2 seconds.
+// broadcastStatusLoop pushes event.status and event.sensors to all clients every 500ms.
 func (s *Server) broadcastStatusLoop(ctx context.Context) {
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
@@ -311,14 +336,16 @@ func (s *Server) broadcastStatusLoop(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			status := s.controller.GetStatus()
-			s.broadcast(ctx, "event.status", status)
+			s.broadcast("event.status", s.controller.GetStatus())
+			s.broadcast("event.sensors", s.controller.GetSensorValues())
 		}
 	}
 }
 
-// broadcast sends a push event to all connected clients.
-func (s *Server) broadcast(ctx context.Context, action string, payload interface{}) {
+// broadcast sends a push event to all connected clients without blocking.
+// Uses RLock so reads of the clients map don't block other readers.
+// Each client has a buffered sendCh; slow clients are dropped rather than stalled.
+func (s *Server) broadcast(action string, payload interface{}) {
 	payloadData, _ := json.Marshal(payload)
 	msg := Message{
 		Action:  action,
@@ -327,11 +354,15 @@ func (s *Server) broadcast(ctx context.Context, action string, payload interface
 	}
 	data, _ := json.Marshal(msg)
 
-	s.clientsMu.Lock()
-	defer s.clientsMu.Unlock()
+	s.clientsMu.RLock()
+	defer s.clientsMu.RUnlock()
 
-	for conn := range s.clients {
-		conn.Write(ctx, websocket.MessageText, data)
+	for _, cc := range s.clients {
+		select {
+		case cc.sendCh <- data:
+		default:
+			// Client is slow or buffer is full — drop rather than block
+		}
 	}
 }
 

@@ -23,11 +23,10 @@ STATS:
         X: 141
         Y: 73
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 68
+        FONT_SIZE: 60
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 22%
-        ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -36,11 +35,10 @@ STATS:
         X: 411
         Y: 73
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 68
+        FONT_SIZE: 60
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 71°
-        ALIGN: center
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -49,11 +47,10 @@ STATS:
         X: 664
         Y: 87
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 48
+        FONT_SIZE: 43
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 3120MHZ
-        ALIGN: center
   GPU:
     INTERVAL: 1
     PERCENTAGE:
@@ -63,11 +60,10 @@ STATS:
         X: 142
         Y: 295
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 68
+        FONT_SIZE: 60
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0%
-        ALIGN: center
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -75,11 +71,10 @@ STATS:
         X: 407
         Y: 295
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 68
+        FONT_SIZE: 60
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 54°
-        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -89,8 +84,7 @@ STATS:
         X: 660
         Y: 295
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 68
+        FONT_SIZE: 60
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 87%
-        ALIGN: center

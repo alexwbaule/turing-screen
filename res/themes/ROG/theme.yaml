@@ -19,49 +19,49 @@ static_texts:
     X: 42
     Y: 24
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 98
     Y: 178
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 274
     Y: 268
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
   c:
     TEXT: 'c:'
     X: 401
     Y: 365
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
   C:
     TEXT: C
     X: 568
     Y: 405
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 20
+    FONT_SIZE: 17
     FONT_COLOR: 255, 255, 255
   D:
     TEXT: D
     X: 644
     Y: 405
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 20
+    FONT_SIZE: 17
     FONT_COLOR: 255, 255, 255
   E:
     TEXT: E
     X: 719
     Y: 405
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 20
+    FONT_SIZE: 17
     FONT_COLOR: 255, 255, 255
 STATS:
   CPU:
@@ -73,10 +73,9 @@ STATS:
         X: 62
         Y: 64
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 40
+        FONT_SIZE: 36
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '56'
-        ALIGN: center
     FAN:
       INTERVAL: 1
       TEXT:
@@ -85,10 +84,9 @@ STATS:
         X: 4
         Y: 126
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 28
+        FONT_SIZE: 25
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '0'
-        ALIGN: center
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -97,10 +95,9 @@ STATS:
         X: 384
         Y: 43
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '1962'
-        ALIGN: center
     POWER:
       INTERVAL: 1
       TEXT:
@@ -109,10 +106,9 @@ STATS:
         X: 350
         Y: 70
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '12'
-        ALIGN: center
       STATUS_BAR:
         SHOW: true
         INDEX: 8
@@ -133,10 +129,9 @@ STATS:
         X: 157
         Y: 96
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '28'
-        ALIGN: center
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -146,10 +141,9 @@ STATS:
         X: 62
         Y: 227
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 40
+        FONT_SIZE: 36
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '55'
-        ALIGN: center
     FAN:
       TEXT:
         SHOW: true
@@ -157,10 +151,9 @@ STATS:
         X: 4
         Y: 290
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 28
+        FONT_SIZE: 25
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '0'
-        ALIGN: center
     FREQUENCY:
       TEXT:
         SHOW: true
@@ -168,10 +161,9 @@ STATS:
         X: 143
         Y: 437
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '300'
-        ALIGN: center
       STATUS_BAR:
         SHOW: true
         INDEX: 9
@@ -191,10 +183,9 @@ STATS:
         X: 156
         Y: 227
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 40
+        FONT_SIZE: 36
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '23'
-        ALIGN: center
     POWER:
       TEXT:
         SHOW: true
@@ -202,10 +193,9 @@ STATS:
         X: 94
         Y: 323
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 28
+        FONT_SIZE: 25
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '1'
-        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -227,20 +217,18 @@ STATS:
         X: 317
         Y: 403
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 16
+        FONT_SIZE: 15
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '13914'
-        ALIGN: center
       PERCENT_TEXT:
         SHOW: true
         INDEX: 25
         X: 278
         Y: 342
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '88'
-        ALIGN: center
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -250,10 +238,9 @@ STATS:
         X: 522
         Y: 429
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 48
+        FONT_SIZE: 43
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '45'
-        ALIGN: center
     USED:
       PERCENT_TEXT:
         SHOW: true
@@ -261,10 +248,9 @@ STATS:
         X: 402
         Y: 426
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '96'
-        ALIGN: center
   DATE:
     INTERVAL: 1
     DAY:
@@ -274,11 +260,10 @@ STATS:
         X: 213
         Y: 10
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 26
+        FONT_SIZE: 23
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-06-30'
-        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -287,9 +272,8 @@ STATS:
         X: 358
         Y: 10
         FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 26
+        FONT_SIZE: 23
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '16:57:53'
-        ALIGN: center
         FORMAT: short

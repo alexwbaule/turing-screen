@@ -31,21 +31,21 @@ static_texts:
     X: 768
     Y: 186
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 0, 0, 0
   MIKU:
     TEXT: MIKU
     X: 36
     Y: 319
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 52
+    FONT_SIZE: 47
     FONT_COLOR: 0, 0, 0
   初音ミク:
     TEXT: 初音ミク
     X: 46
     Y: 80
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 20
+    FONT_SIZE: 17
     FONT_COLOR: 0, 0, 0
 STATS:
   NET:
@@ -58,11 +58,10 @@ STATS:
           X: 69
           Y: 10
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 16
+          FONT_SIZE: 15
           FONT_COLOR: 74, 129, 144
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
-          ALIGN: center
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -70,11 +69,10 @@ STATS:
           X: 220
           Y: 10
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 16
+          FONT_SIZE: 15
           FONT_COLOR: 74, 129, 144
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
-          ALIGN: center
   WEATHER:
     TEMPERATURE:
       TEXT:
@@ -83,11 +81,10 @@ STATS:
         X: 400
         Y: 8
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 13
         FONT_COLOR: 74, 129, 144
         SHOW_UNIT: true
         PLACEHOLDER: Cloudy N0Level  12°
-        ALIGN: center
   CPU:
     TEMPERATURE:
       INTERVAL: 1
@@ -97,11 +94,10 @@ STATS:
         X: 610
         Y: 10
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 16
+        FONT_SIZE: 15
         FONT_COLOR: 74, 129, 144
         SHOW_UNIT: true
         PLACEHOLDER: 36°
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -110,11 +106,10 @@ STATS:
         X: 741
         Y: 283
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 13
         FONT_COLOR: 211, 148, 253
         SHOW_UNIT: true
         PLACEHOLDER: 14%
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 17
@@ -135,11 +130,10 @@ STATS:
         X: 677
         Y: 10
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 16
+        FONT_SIZE: 15
         FONT_COLOR: 74, 129, 144
         SHOW_UNIT: true
         PLACEHOLDER: 29°
-        ALIGN: center
     PERCENTAGE:
       TEXT:
         SHOW: true
@@ -147,11 +141,10 @@ STATS:
         X: 741
         Y: 244
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 13
         FONT_COLOR: 211, 148, 253
         SHOW_UNIT: true
         PLACEHOLDER: 3%
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 16
@@ -172,11 +165,10 @@ STATS:
         X: 746
         Y: 10
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 16
+        FONT_SIZE: 15
         FONT_COLOR: 74, 129, 144
         SHOW_UNIT: true
         PLACEHOLDER: 32°
-        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -186,11 +178,10 @@ STATS:
         X: 741
         Y: 323
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 13
         FONT_COLOR: 211, 148, 253
         SHOW_UNIT: true
         PLACEHOLDER: 49%
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 18
@@ -211,11 +202,10 @@ STATS:
         X: 607
         Y: 149
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 28
+        FONT_SIZE: 25
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: '17:05:21'
-        ALIGN: center
         FORMAT: short
     DAY:
       TEXT:
@@ -224,9 +214,8 @@ STATS:
         X: 773
         Y: 149
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 28
+        FONT_SIZE: 25
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: Wed
-        ALIGN: center
         FORMAT: medium

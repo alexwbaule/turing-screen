@@ -29,7 +29,7 @@ STATS:
         X: 194
         Y: 84
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 78
+        FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '88'
         ALIGN: right
@@ -54,10 +54,9 @@ STATS:
         X: 27
         Y: 408
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 78
+        FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '88'
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 5
@@ -76,10 +75,9 @@ STATS:
       X: 21
       Y: 213
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-      FONT_SIZE: 54
+      FONT_SIZE: 48
       FONT_COLOR: 255, 224, 139
       PLACEHOLDER: '100'
-      ALIGN: center
   DISK:
     INTERVAL: 10
     USED:
@@ -89,10 +87,9 @@ STATS:
         X: 89
         Y: 301
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 51
+        FONT_SIZE: 45
         FONT_COLOR: 255, 224, 139
         PLACEHOLDER: '88'
-        ALIGN: center
   CPU:
     TEMPERATURE:
       INTERVAL: 1
@@ -102,10 +99,9 @@ STATS:
         X: 290
         Y: 640
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 78
+        FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '88'
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       GRAPH:
@@ -128,7 +124,7 @@ STATS:
         X: 466
         Y: 275
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 45
+        FONT_SIZE: 40
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: '12:00:00'
@@ -141,7 +137,7 @@ STATS:
         X: 463
         Y: 319
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 26
+        FONT_SIZE: 23
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: '2020-12-31'

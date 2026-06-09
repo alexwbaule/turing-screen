@@ -25,6 +25,10 @@ type SerialSender interface {
 	// Read reads raw bytes from the serial port into the given buffer.
 	Read(p []byte) (int, error)
 
+	// Flush discards all unread bytes in the OS receive buffer.
+	// Call after stopping workers to prevent stale responses from corrupting the next session.
+	Flush() error
+
 	// Close terminates the connection.
 	Close() error
 
@@ -143,6 +147,13 @@ func (s *Serial) Read(p []byte) (int, error) {
 
 	for attempt := 0; attempt < attempts; attempt++ {
 		n, err := s.port.Read(p)
+		if n > 0 {
+			// Data received — return it even if err == io.EOF.
+			// CDC-ACM devices sometimes close the stream after the last response byte,
+			// which produces (n>0, io.EOF). Discarding n here was causing DeleteFile
+			// to lose "delete_success" and exhaust retries.
+			return n, nil
+		}
 		if err != nil {
 			if err == io.EOF {
 				s.log.Warnf("Read EOF, trying again")
@@ -151,10 +162,7 @@ func (s *Serial) Read(p []byte) (int, error) {
 			}
 			return 0, fmt.Errorf("read serial error: %w", err)
 		}
-		if n > 0 {
-			return n, nil
-		}
-		// Zero bytes read, retry
+		// Zero bytes, no error — retry
 		time.Sleep(100 * time.Millisecond)
 	}
 
@@ -206,6 +214,32 @@ func (s *Serial) ResetDevice() error {
 	*/
 
 	return s.ReopenPort()
+}
+
+// Flush drains all pending bytes from the device receive buffer.
+// It sets a 100ms read timeout so each Read() returns immediately when data
+// is present or after 100ms of silence when the buffer is empty. This catches
+// bytes stuck in the USB subsystem layer that FIONREAD (BytesAvailable) misses,
+// which was the root cause of serial contamination between storage commands.
+func (s *Serial) Flush() error {
+	if s.port == nil {
+		return nil
+	}
+	if err := s.port.SetReadTimeout(100 * time.Millisecond); err != nil {
+		// fallback: plain sleep if termios change fails
+		time.Sleep(100 * time.Millisecond)
+		return nil
+	}
+	defer s.port.SetReadTimeout(5 * time.Second)
+
+	buf := make([]byte, 512)
+	for {
+		n, _ := s.port.Read(buf)
+		if n == 0 {
+			break // 100ms of silence — buffer is clear
+		}
+	}
+	return nil
 }
 
 func (s *Serial) Close() error {

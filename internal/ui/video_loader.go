@@ -9,8 +9,6 @@ import (
 	"io"
 	"log"
 	"os/exec"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -189,29 +187,6 @@ func ExtractVideoFrame(videoPath string) (image.Image, error) {
 	img := image.NewRGBA(image.Rect(0, 0, videoWidth, videoHeight))
 	copy(img.Pix, out.Bytes()[:frameSize])
 	return img, nil
-}
-
-// GetVideoDuration returns the duration in seconds.
-func GetVideoDuration(videoPath string) (float64, error) {
-	cmd := exec.Command("ffprobe",
-		"-v", "error",
-		"-show_entries", "format=duration",
-		"-of", "default=noprint_wrappers=1:nokey=1",
-		videoPath,
-	)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-
-	if err := cmd.Run(); err != nil {
-		return 0, err
-	}
-
-	durationStr := strings.TrimSpace(out.String())
-	duration, err := strconv.ParseFloat(durationStr, 64)
-	if err != nil {
-		return 0, err
-	}
-	return duration, nil
 }
 
 // CheckFFmpegAvailable checks if ffmpeg and ffprobe are installed.

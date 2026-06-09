@@ -373,11 +373,6 @@ func (lp *LayersPanel) generateKey() string {
 	return fmt.Sprintf("LAYER_%d", len(lp.app.currentTheme.StaticImages)+1)
 }
 
-// SelectedIndex returns the currently selected index (or -1).
-func (lp *LayersPanel) SelectedIndex() int {
-	return lp.selectedIndex
-}
-
 // SelectByWidget finds the widget in the entries list and selects it.
 func (lp *LayersPanel) SelectByWidget(w Selectable) {
 	lp.syncing = true

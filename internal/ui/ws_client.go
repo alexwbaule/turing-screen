@@ -31,6 +31,9 @@ type WSClient struct {
 	pending   map[string]chan WSMessage
 	pendingMu sync.Mutex
 	onEvent   func(WSMessage)
+
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func NewWSClient(url string) *WSClient {
@@ -50,11 +53,16 @@ func (c *WSClient) Connect() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	c.ctx = ctx
+	c.cancel = cancel
 
-	conn, _, err := websocket.Dial(ctx, c.url, nil)
+	dialCtx, dialCancel := context.WithTimeout(ctx, 3*time.Second)
+	defer dialCancel()
+
+	conn, _, err := websocket.Dial(dialCtx, c.url, nil)
 	if err != nil {
+		cancel()
 		c.connected.Store(false)
 		return err
 	}
@@ -76,6 +84,9 @@ func (c *WSClient) IsConnected() bool {
 func (c *WSClient) Close() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.cancel != nil {
+		c.cancel() // cancels readLoop and any in-flight writes
+	}
 	if c.conn != nil {
 		c.conn.Close(websocket.StatusNormalClosure, "bye")
 		c.conn = nil
@@ -106,7 +117,7 @@ func (c *WSClient) Send(action string, payload interface{}) (*WSMessage, error) 
 		Payload: payloadData,
 	}
 
-	// Register pending response channel
+	// Register pending response channel before sending
 	respChan := make(chan WSMessage, 1)
 	c.pendingMu.Lock()
 	c.pending[id] = respChan
@@ -118,24 +129,33 @@ func (c *WSClient) Send(action string, payload interface{}) (*WSMessage, error) 
 		c.pendingMu.Unlock()
 	}()
 
-	// Send
+	// Send with a 5-second write timeout derived from the cancelable context
 	data, _ := json.Marshal(msg)
 	c.mu.Lock()
-	err := c.conn.Write(context.Background(), websocket.MessageText, data)
+	wctx, wcancel := context.WithTimeout(c.ctx, 5*time.Second)
+	err := c.conn.Write(wctx, websocket.MessageText, data)
+	wcancel()
 	c.mu.Unlock()
 	if err != nil {
 		c.connected.Store(false)
+		// Drain the pending channel immediately so the caller doesn't wait
+		select {
+		case respChan <- WSMessage{Status: "error", Error: "write failed: " + err.Error()}:
+		default:
+		}
 		return nil, err
 	}
 
-	// Wait for response
+	// Wait for response or context cancellation
 	select {
 	case resp := <-respChan:
 		if resp.Status == "error" {
 			return &resp, fmt.Errorf("%s", resp.Error)
 		}
 		return &resp, nil
-	case <-time.After(10 * time.Second):
+	case <-c.ctx.Done():
+		return nil, fmt.Errorf("connection closed")
+	case <-time.After(5 * time.Second):
 		return nil, fmt.Errorf("timeout waiting for response")
 	}
 }
@@ -157,13 +177,17 @@ func (c *WSClient) SendFire(action string, payload interface{}) {
 	data, _ := json.Marshal(msg)
 
 	c.mu.Lock()
-	c.conn.Write(context.Background(), websocket.MessageText, data)
+	wctx, wcancel := context.WithTimeout(c.ctx, 5*time.Second)
+	c.conn.Write(wctx, websocket.MessageText, data)
+	wcancel()
 	c.mu.Unlock()
 }
 
 func (c *WSClient) readLoop() {
+	defer c.drainPending()
+
 	for {
-		_, data, err := c.conn.Read(context.Background())
+		_, data, err := c.conn.Read(c.ctx)
 		if err != nil {
 			c.connected.Store(false)
 			log.Printf("[WSClient] read error: %v", err)
@@ -191,4 +215,18 @@ func (c *WSClient) readLoop() {
 			c.onEvent(msg)
 		}
 	}
+}
+
+// drainPending unblocks all goroutines waiting in Send() by sending an error response.
+func (c *WSClient) drainPending() {
+	c.pendingMu.Lock()
+	defer c.pendingMu.Unlock()
+	errMsg := WSMessage{Status: "error", Error: "disconnected"}
+	for _, ch := range c.pending {
+		select {
+		case ch <- errMsg:
+		default:
+		}
+	}
+	c.pending = make(map[string]chan WSMessage)
 }

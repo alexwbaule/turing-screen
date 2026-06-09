@@ -29,10 +29,9 @@ STATS:
         X: 117
         Y: 114
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 48
+        FONT_SIZE: 43
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '100'
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 15
@@ -58,10 +57,9 @@ STATS:
         X: 318
         Y: 86
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '88'
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 18
@@ -81,10 +79,9 @@ STATS:
         X: 313
         Y: 147
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '4800'
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 19
@@ -105,10 +102,9 @@ STATS:
         X: 509
         Y: 114
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 48
+        FONT_SIZE: 43
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '100'
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 16
@@ -133,10 +129,9 @@ STATS:
         X: 700
         Y: 86
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '88'
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 20
@@ -155,10 +150,9 @@ STATS:
         X: 737
         Y: 151
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '8888'
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 21
@@ -179,10 +173,9 @@ STATS:
         X: 117
         Y: 333
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 48
+        FONT_SIZE: 43
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '100'
-        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 17
@@ -209,11 +202,10 @@ STATS:
         X: 380
         Y: 314
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 30
+        FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 100%
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 22
@@ -232,11 +224,10 @@ STATS:
         X: 456
         Y: 314
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 30
+        FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88°
-        ALIGN: center
   NET:
     INTERVAL: 1
     ETH:
@@ -247,10 +238,9 @@ STATS:
           X: 299
           Y: 404
           FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 24
+          FONT_SIZE: 21
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 888KB/s
-          ALIGN: center
       UPLOAD:
         TEXT:
           SHOW: true
@@ -258,10 +248,9 @@ STATS:
           X: 428
           Y: 404
           FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 24
+          FONT_SIZE: 21
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 888KB/s
-          ALIGN: center
   DATE:
     INTERVAL: 1
     DAY:
@@ -271,11 +260,10 @@ STATS:
         X: 556
         Y: 288
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 39
+        FONT_SIZE: 35
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2020-12-31'
-        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -284,8 +272,7 @@ STATS:
         X: 557
         Y: 395
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 39
+        FONT_SIZE: 35
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '12:00:00'
-        ALIGN: center
         FORMAT: short

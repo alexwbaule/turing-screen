@@ -120,8 +120,8 @@ func StartCollectors(
 			case <-ticker.C:
 				now := time.Now()
 				values.mu.Lock()
-				values.DateHour = now
-				values.DateDay = now
+				values.data.DateHour = now
+				values.data.DateDay = now
 				values.mu.Unlock()
 			}
 		}
@@ -150,7 +150,7 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 	percent, err := cpu.PercentWithContext(ctx, 0, false)
 	if err == nil && len(percent) > 0 {
 		values.mu.Lock()
-		values.CPUPercent = percent[0]
+		values.data.CPUPercent = percent[0]
 		values.mu.Unlock()
 	}
 
@@ -162,7 +162,7 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 			total += i.Mhz.Current
 		}
 		values.mu.Lock()
-		values.CPUFrequency = total / float64(len(info))
+		values.data.CPUFrequency = total / float64(len(info))
 		values.mu.Unlock()
 	}
 
@@ -171,7 +171,7 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 	for _, t := range temps {
 		if strings.Contains(t.SensorKey, "tdie") || strings.Contains(t.SensorKey, tempSensor) {
 			values.mu.Lock()
-			values.CPUTemp = t.Temperature
+			values.data.CPUTemp = t.Temperature
 			values.mu.Unlock()
 			break
 		}
@@ -181,9 +181,9 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 	lload, err := load.AvgWithContext(ctx)
 	if err == nil {
 		values.mu.Lock()
-		values.CPULoad1 = lload.Load1
-		values.CPULoad5 = lload.Load5
-		values.CPULoad15 = lload.Load15
+		values.data.CPULoad1 = lload.Load1
+		values.data.CPULoad5 = lload.Load5
+		values.data.CPULoad15 = lload.Load15
 		values.mu.Unlock()
 	}
 
@@ -192,7 +192,7 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 	for _, f := range fans {
 		if f.Speed > 0 {
 			values.mu.Lock()
-			values.CPUFan = f.Speed
+			values.data.CPUFan = f.Speed
 			values.mu.Unlock()
 			break
 		}
@@ -203,7 +203,7 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 	for _, p := range powers {
 		if strings.Contains(p.SensorKey, "core") || strings.Contains(p.SensorKey, "package") {
 			values.mu.Lock()
-			values.CPUPower = p.Power
+			values.data.CPUPower = p.Power
 			values.mu.Unlock()
 			break
 		}
@@ -214,7 +214,7 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 	for _, v := range voltages {
 		if strings.Contains(v.SensorKey, "core") || strings.Contains(v.SensorKey, "vcore") {
 			values.mu.Lock()
-			values.CPUVoltage = v.Voltage
+			values.data.CPUVoltage = v.Voltage
 			values.mu.Unlock()
 			break
 		}
@@ -231,14 +231,14 @@ func collectGPU(ctx context.Context, values *SensorValues, provider interfaces.P
 	}
 
 	values.mu.Lock()
-	values.GPUPercent = float64(data.Load)
-	values.GPUTemp = float64(data.Temperature)
-	values.GPUPower = float64(data.Power)
-	values.GPUFrequency = float64(data.Frequency)
-	values.GPUVoltage = float64(data.Voltage)
-	values.GPUFan = float64(data.Fan)
+	values.data.GPUPercent = float64(data.Load)
+	values.data.GPUTemp = float64(data.Temperature)
+	values.data.GPUPower = float64(data.Power)
+	values.data.GPUFrequency = float64(data.Frequency)
+	values.data.GPUVoltage = float64(data.Voltage)
+	values.data.GPUFan = float64(data.Fan)
 	if data.VRAMSize > 0 {
-		values.GPUMemory = float64(data.VRAMUsage) / float64(data.VRAMSize) * 100
+		values.data.GPUMemory = float64(data.VRAMUsage) / float64(data.VRAMSize) * 100
 	}
 	values.mu.Unlock()
 }
@@ -247,16 +247,16 @@ func collectMemory(ctx context.Context, values *SensorValues) {
 	vmem, err := mem.VirtualMemoryWithContext(ctx)
 	if err == nil {
 		values.mu.Lock()
-		values.MemPercent = vmem.UsedPercent
-		values.MemUsed = vmem.Used
-		values.MemFree = vmem.Free
+		values.data.MemPercent = vmem.UsedPercent
+		values.data.MemUsed = vmem.Used
+		values.data.MemFree = vmem.Free
 		values.mu.Unlock()
 	}
 
 	swap, err := mem.SwapMemoryWithContext(ctx)
 	if err == nil {
 		values.mu.Lock()
-		values.SwapPercent = swap.UsedPercent
+		values.data.SwapPercent = swap.UsedPercent
 		values.mu.Unlock()
 	}
 }
@@ -265,8 +265,8 @@ func collectDisk(ctx context.Context, values *SensorValues, tempSensor string, l
 	usage, err := disk.UsageWithContext(ctx, "/")
 	if err == nil {
 		values.mu.Lock()
-		values.DiskPercent = usage.UsedPercent
-		values.DiskFree = 100 - usage.UsedPercent
+		values.data.DiskPercent = usage.UsedPercent
+		values.data.DiskFree = 100 - usage.UsedPercent
 		values.mu.Unlock()
 	}
 
@@ -274,7 +274,7 @@ func collectDisk(ctx context.Context, values *SensorValues, tempSensor string, l
 	for _, t := range temps {
 		if strings.Contains(t.SensorKey, "nvme") || strings.Contains(t.SensorKey, tempSensor) {
 			values.mu.Lock()
-			values.DiskTemp = t.Temperature
+			values.data.DiskTemp = t.Temperature
 			values.mu.Unlock()
 			break
 		}
@@ -293,10 +293,10 @@ func collectNetwork(ctx context.Context, values *SensorValues, netConfig device.
 			sent := c.BytesSent
 			if lastRecv > 0 {
 				values.mu.Lock()
-				values.NetDownSpeed = float64(recv-lastRecv) / interval.Seconds()
-				values.NetUpSpeed = float64(sent-lastSent) / interval.Seconds()
-				values.NetDownloaded = recv
-				values.NetUploaded = sent
+				values.data.NetDownSpeed = float64(recv-lastRecv) / interval.Seconds()
+				values.data.NetUpSpeed = float64(sent-lastSent) / interval.Seconds()
+				values.data.NetDownloaded = recv
+				values.data.NetUploaded = sent
 				values.mu.Unlock()
 			}
 			return recv, sent
@@ -312,8 +312,8 @@ func collectWeather(values *SensorValues, client *weather.Client, city string, l
 		return
 	}
 	values.mu.Lock()
-	values.WeatherTemp = forecast.Temperature
-	values.WeatherDesc = forecast.Description
-	values.WeatherWind = forecast.WindSpeed
+	values.data.WeatherTemp = forecast.Temperature
+	values.data.WeatherDesc = forecast.Description
+	values.data.WeatherWind = forecast.WindSpeed
 	values.mu.Unlock()
 }

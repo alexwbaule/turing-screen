@@ -29,10 +29,9 @@ STATS:
         X: 37
         Y: 63
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 78
+        FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '61'
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       GRAPH:
@@ -55,10 +54,9 @@ STATS:
         X: 284
         Y: 341
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 78
+        FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '87'
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 8
@@ -79,10 +77,9 @@ STATS:
         X: 772
         Y: 325
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 78
+        FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '49'
-        ALIGN: center
   VOLUME:
     TEXT:
       SHOW: true
@@ -90,10 +87,9 @@ STATS:
       X: 189
       Y: 22
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-      FONT_SIZE: 63
+      FONT_SIZE: 56
       FONT_COLOR: 255, 224, 139
       PLACEHOLDER: '19'
-      ALIGN: center
   DISK:
     INTERVAL: 10
     USED:
@@ -103,10 +99,9 @@ STATS:
         X: 260
         Y: 115
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 63
+        FONT_SIZE: 56
         FONT_COLOR: 255, 224, 139
         PLACEHOLDER: '94'
-        ALIGN: center
   DATE:
     INTERVAL: 1
     HOUR:
@@ -116,11 +111,10 @@ STATS:
         X: 346
         Y: 9
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 39
+        FONT_SIZE: 35
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: '14:03:46'
-        ALIGN: center
         FORMAT: short
     DAY:
       TEXT:
@@ -129,9 +123,8 @@ STATS:
         X: 375
         Y: 50
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 24
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: '2022-07-08'
-        ALIGN: center
         FORMAT: medium

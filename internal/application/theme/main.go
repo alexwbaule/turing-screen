@@ -177,7 +177,7 @@ func parseBackgroundStyle(data map[string]interface{}, file string) (theme.Backg
 	}, nil
 }
 
-func parseTextStyle(data map[string]interface{}) theme.TextStyle {
+func parseTextStyle(data map[string]interface{}, defaultAlign theme.Alignment) theme.TextStyle {
 	var fColor color.Color
 	var fface font.Face
 	var align theme.Alignment
@@ -199,10 +199,10 @@ func parseTextStyle(data map[string]interface{}) theme.TextStyle {
 		fface = utils.DefaultFont
 	}
 
-	if val, ok := data["align"].(string); ok {
+	if val, ok := data["align"].(string); ok && val != "" {
 		align = theme.StringToAlignment(val)
 	} else {
-		align = theme.LEFT
+		align = defaultAlign
 	}
 
 	return theme.TextStyle{
@@ -211,6 +211,7 @@ func parseTextStyle(data map[string]interface{}) theme.TextStyle {
 		Align:     align,
 	}
 }
+
 
 func translateDuration(data interface{}) (interface{}, error) {
 	const minInterval = 100 * time.Millisecond
@@ -272,7 +273,7 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	textStyle := parseTextStyle(data)
+	textStyle := parseTextStyle(data, theme.LEFT)
 
 	var barColor color.Color
 	if val, ok := data["bar_color"].(string); ok {
@@ -380,7 +381,7 @@ func translateStaticText(file string, data map[string]interface{}) (interface{},
 	if err != nil {
 		return nil, err
 	}
-	textStyle := parseTextStyle(data)
+	textStyle := parseTextStyle(data, theme.LEFT)
 
 	v := theme.StaticText{
 		Layout:          layout,
@@ -397,7 +398,7 @@ func translateText(file string, data map[string]interface{}) (interface{}, error
 	if err != nil {
 		return nil, err
 	}
-	textStyle := parseTextStyle(data)
+	textStyle := parseTextStyle(data, theme.LEFT)
 
 	show := false
 	if val, ok := data["show"].(bool); ok {
@@ -439,7 +440,7 @@ func translateGauge(file string, data map[string]interface{}) (interface{}, erro
 	if err != nil {
 		return nil, err
 	}
-	textStyle := parseTextStyle(data)
+	textStyle := parseTextStyle(data, theme.LEFT)
 
 	var needleColor color.Color
 	if val, ok := data["needle_color"].(string); ok {
@@ -605,10 +606,6 @@ func (t *Theme) GetStats() *theme.Stats {
 }
 func (t *Theme) GetDisplay() *theme.Display {
 	return t.theme.Display
-}
-
-func (t *Theme) GetPath() string {
-	return t.path
 }
 
 func (t *Theme) GetVideoPlay() *theme.VideoPlay {

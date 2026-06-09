@@ -19,7 +19,7 @@ static_texts:
     X: 120
     Y: 148
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 30
+    FONT_SIZE: 27
     FONT_COLOR: 255, 255, 255
 STATS:
   DATE:
@@ -31,11 +31,10 @@ STATS:
         X: 29
         Y: 52
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 62
+        FONT_SIZE: 55
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '18:27:35'
-        ALIGN: center
         FORMAT: short
     DAY:
       TEXT:
@@ -44,11 +43,10 @@ STATS:
         X: 340
         Y: 253
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-06-02'
-        ALIGN: center
         FORMAT: medium
   GPU:
     INTERVAL: 1
@@ -59,11 +57,10 @@ STATS:
         X: 92
         Y: 177
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 61°
-        ALIGN: center
     MEMORY:
       TEXT:
         SHOW: true
@@ -71,11 +68,10 @@ STATS:
         X: 181
         Y: 177
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 69%
-        ALIGN: center
     PERCENTAGE:
       TEXT:
         SHOW: true
@@ -83,11 +79,10 @@ STATS:
         X: 283
         Y: 177
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 39%
-        ALIGN: center
   VOLUME:
     TEXT:
       SHOW: true
@@ -95,11 +90,10 @@ STATS:
       X: 182
       Y: 253
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-      FONT_SIZE: 21
+      FONT_SIZE: 19
       FONT_COLOR: 255, 255, 255
       SHOW_UNIT: true
       PLACEHOLDER: 10%
-      ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -109,11 +103,10 @@ STATS:
         X: 37
         Y: 253
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 85%
-        ALIGN: center
   CPU:
     PERCENTAGE:
       INTERVAL: 1

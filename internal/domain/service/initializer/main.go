@@ -82,6 +82,12 @@ func (i *Initializer) Run(background device.ImageBackground) error {
 
 // commonInit runs the shared initialization steps for both modes.
 func (i *Initializer) commonInit() error {
+	// Discard stale bytes left in the OS receive buffer from the previous session.
+	// Without this, partial responses from prior commands corrupt the HELLO read.
+	if err := i.sender.Flush(); err != nil {
+		i.log.Warnf("pre-init serial flush failed (non-fatal): %v", err)
+	}
+
 	// 1. HELLO + read(23)
 	if _, err := i.sender.Execute(i.cmdDevice.Hello()); err != nil {
 		return fmt.Errorf("HELLO failed: %w", err)
@@ -105,8 +111,11 @@ func (i *Initializer) commonInit() error {
 	}
 
 	// 5. OPTIONS with orientation (no response)
-	i.cmdOption.SetOptions(command.Default, command.NoFlip, command.Disabled)
-	if _, err := i.sender.Execute(i.cmdOption); err != nil {
+	// SetOptions returns a new *Option — assign it back so Execute sends the
+	// configured bytes (before this fix, the return value was discarded and
+	// Execute sent the zero-value struct = 250 null bytes).
+	opt := i.cmdOption.SetOptions(command.Default, command.NoFlip, command.Disabled)
+	if _, err := i.sender.Execute(opt); err != nil {
 		return fmt.Errorf("OPTIONS failed: %w", err)
 	}
 

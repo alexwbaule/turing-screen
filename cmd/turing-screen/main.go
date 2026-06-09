@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/alexwbaule/turing-screen/internal/application"
@@ -28,6 +29,9 @@ func main() {
 	app.Run(func(ctx context.Context) error {
 		// --- Dependency Instantiation (shared, always alive) ---
 		app.Log.Infof("device display: %#v", app.Config.GetDeviceDisplay())
+
+		// currentValues holds the active SensorValues so the API can snapshot them.
+		var currentValues atomic.Pointer[compositor.SensorValues]
 
 		devSerial, err := serial.NewSerial(app.Config.GetDevicePort(), app.Log)
 		if err != nil {
@@ -117,7 +121,7 @@ func main() {
 				sensorWg.Add(1)
 				go func() {
 					defer sensorWg.Done()
-					ticker := time.NewTicker(1 * time.Second)
+					ticker := time.NewTicker(500 * time.Millisecond)
 					defer ticker.Stop()
 					for {
 						select {
@@ -142,6 +146,7 @@ func main() {
 			weatherConfig := app.Config.GetWeatherConfig()
 
 			values := &compositor.SensorValues{}
+			currentValues.Store(values)
 
 			var weatherClient *weather.Client
 			if weatherConfig.Enabled {
@@ -211,10 +216,11 @@ func main() {
 				}
 			}
 		drained:
-			// Flush serial buffer to discard any pending responses
-			time.Sleep(100 * time.Millisecond)
-			flushBuf := make([]byte, 1024)
-			devSerial.Read(flushBuf)
+			// Discard any bytes left in the OS receive buffer so the next
+			// init session starts clean (no stale responses from prior commands).
+			if err := devSerial.Flush(); err != nil {
+				app.Log.Warnf("serial flush after stop: %v", err)
+			}
 
 			sensorsRunning = false
 			app.Log.Info("all sensors stopped, serial flushed")
@@ -226,6 +232,13 @@ func main() {
 			app.Config.GetThemeName(), "chs_5inch",
 		)
 		apiController.SetSensorControl(func() { stopSensors() }, func() { startSensors() })
+		apiController.SetSensorFunc(func() map[string]interface{} {
+			v := currentValues.Load()
+			if v == nil {
+				return map[string]interface{}{}
+			}
+			return v.Snapshot()
+		})
 
 		g, ctx := errgroup.WithContext(ctx)
 

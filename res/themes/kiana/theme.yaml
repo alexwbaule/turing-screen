@@ -29,11 +29,10 @@ STATS:
         X: 182
         Y: 62
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 3898M
-        ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -42,11 +41,10 @@ STATS:
         X: 194
         Y: 196
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 35°
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -55,11 +53,10 @@ STATS:
         X: 211
         Y: 265
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 4%
-        ALIGN: center
     FAN:
       INTERVAL: 1
       TEXT:
@@ -68,11 +65,10 @@ STATS:
         X: 182
         Y: 95
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 1163R
-        ALIGN: center
     POWER:
       INTERVAL: 1
       TEXT:
@@ -81,11 +77,10 @@ STATS:
         X: 182
         Y: 128
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 8W
-        ALIGN: center
   GPU:
     INTERVAL: 1
     FREQUENCY:
@@ -95,11 +90,10 @@ STATS:
         X: 441
         Y: 62
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 940M
-        ALIGN: center
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -107,11 +101,10 @@ STATS:
         X: 407
         Y: 196
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 29°
-        ALIGN: center
     PERCENTAGE:
       TEXT:
         SHOW: true
@@ -119,11 +112,10 @@ STATS:
         X: 422
         Y: 265
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 27%
-        ALIGN: center
     FAN:
       TEXT:
         SHOW: true
@@ -131,11 +123,10 @@ STATS:
         X: 441
         Y: 95
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0R
-        ALIGN: center
     MEMORY:
       TEXT:
         SHOW: true
@@ -143,8 +134,7 @@ STATS:
         X: 441
         Y: 128
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 419M
-        ALIGN: center

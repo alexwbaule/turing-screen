@@ -29,10 +29,9 @@ STATS:
         X: 534
         Y: 67
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 26
+        FONT_SIZE: 23
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '60'
-        ALIGN: center
     PERCENTAGE:
       STATUS_BAR:
         SHOW: true
@@ -55,10 +54,9 @@ STATS:
         X: 534
         Y: 196
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 26
+        FONT_SIZE: 23
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '66'
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       STATUS_BAR:
@@ -82,10 +80,9 @@ STATS:
         X: 534
         Y: 325
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 26
+        FONT_SIZE: 23
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '48'
-        ALIGN: center
     USED:
       STATUS_BAR:
         SHOW: true
@@ -107,11 +104,10 @@ STATS:
         X: 85
         Y: 441
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: Cloudy SW4Level  33°
-        ALIGN: center
   DATE:
     INTERVAL: 1
     HOUR:
@@ -121,11 +117,10 @@ STATS:
         X: 268
         Y: 443
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '18:29:12'
-        ALIGN: center
         FORMAT: short
   NET:
     INTERVAL: 1
@@ -137,11 +132,10 @@ STATS:
           X: 472
           Y: 442
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 21
+          FONT_SIZE: 19
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
-          ALIGN: center
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -149,11 +143,10 @@ STATS:
           X: 690
           Y: 442
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 21
+          FONT_SIZE: 19
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
-          ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:

@@ -3,7 +3,6 @@ package device
 import (
 	"bytes"
 	"image"
-	"image/color"
 	"image/draw"
 	"math/big"
 
@@ -45,14 +44,6 @@ func NewScaledNRGBA(src image.Image, dstW, dstH int) *image.NRGBA {
 	draw.Draw(dst, rect, src, src.Bounds().Min, draw.Src)
 
 	return dst
-}
-
-// NewBlank creates a blank white NRGBA image of the given dimensions.
-func NewBlank(w, h int) *image.NRGBA {
-	rect := image.Rect(0, 0, w, h)
-	img := image.NewNRGBA(rect)
-	draw.Draw(img, rect, &image.Uniform{color.RGBA{255, 255, 255, 255}}, image.Point{}, draw.Src)
-	return img
 }
 
 func (i *ImageProcess) GenerateBackgroundImage(orietation theme.Orientation) []byte {

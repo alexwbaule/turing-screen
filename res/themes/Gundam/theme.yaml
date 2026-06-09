@@ -31,21 +31,21 @@ static_texts:
     X: 158
     Y: 39
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 20
+    FONT_SIZE: 17
     FONT_COLOR: 34, 54, 104
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 157
     Y: 155
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 20
+    FONT_SIZE: 17
     FONT_COLOR: 34, 54, 104
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 159
     Y: 268
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 18
+    FONT_SIZE: 16
     FONT_COLOR: 34, 54, 104
 STATS:
   CPU:
@@ -57,10 +57,9 @@ STATS:
         X: 195
         Y: 91
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 34, 54, 104
         PLACEHOLDER: '3812'
-        ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -69,11 +68,10 @@ STATS:
         X: 313
         Y: 92
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
         PLACEHOLDER: 65°
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       GRAPH:
@@ -96,11 +94,10 @@ STATS:
         X: 175
         Y: 209
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
         PLACEHOLDER: 54°
-        ALIGN: center
     MEMORY:
       TEXT:
         SHOW: true
@@ -108,11 +105,10 @@ STATS:
         X: 300
         Y: 209
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 22
+        FONT_SIZE: 20
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
         PLACEHOLDER: 134M
-        ALIGN: center
     PERCENTAGE:
       GRAPH:
         SHOW: true
@@ -134,22 +130,20 @@ STATS:
         X: 168
         Y: 319
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 22
+        FONT_SIZE: 20
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
         PLACEHOLDER: 89%
-        ALIGN: center
       USED:
         SHOW: true
         INDEX: 9
         X: 294
         Y: 320
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 22
+        FONT_SIZE: 20
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
         PLACEHOLDER: 14106M
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 17
@@ -171,11 +165,10 @@ STATS:
           X: 47
           Y: 387
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 26
+          FONT_SIZE: 23
           FONT_COLOR: 34, 54, 104
           SHOW_UNIT: true
           PLACEHOLDER: 6KB/s
-          ALIGN: center
       UPLOAD:
         TEXT:
           SHOW: true
@@ -183,11 +176,10 @@ STATS:
           X: 47
           Y: 419
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 26
+          FONT_SIZE: 23
           FONT_COLOR: 34, 54, 104
           SHOW_UNIT: true
           PLACEHOLDER: 65KB/s
-          ALIGN: center
   DATE:
     INTERVAL: 1
     HOUR:
@@ -197,11 +189,10 @@ STATS:
         X: 211
         Y: 420
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 26
+        FONT_SIZE: 23
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
         PLACEHOLDER: '17:42:04'
-        ALIGN: center
         FORMAT: short
     DAY:
       TEXT:
@@ -210,9 +201,8 @@ STATS:
         X: 213
         Y: 387
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 26
+        FONT_SIZE: 23
         FONT_COLOR: 34, 54, 104
         SHOW_UNIT: true
         PLACEHOLDER: '2022-06-22'
-        ALIGN: center
         FORMAT: medium

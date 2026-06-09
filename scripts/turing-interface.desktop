@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Turing Screen
+Comment=Theme editor and device manager for Turing Smart Screen
+Exec=/opt/smart-screen/bin/turing-interface
+Icon=turing-screen
+Path=/opt/smart-screen/
+Terminal=false
+Categories=Utility;Settings;
+StartupNotify=true
+StartupWMClass=turing-interface

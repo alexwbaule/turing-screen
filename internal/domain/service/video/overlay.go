@@ -111,14 +111,20 @@ func (o *OverlayBuffer) Refresh() command.Command {
 
 	w, h := o.width, o.height
 
-	// Build diff image
+	// Build diff image using direct Pix slice access for performance
 	updateImage := image.NewNRGBA(image.Rect(0, 0, w, h))
+	prev := o.previous
+	cur := o.current
+	stride := cur.Stride
 	for py := 0; py < h; py++ {
+		rowStart := py * stride
 		for px := 0; px < w; px++ {
-			c1 := o.previous.NRGBAAt(px, py)
-			c2 := o.current.NRGBAAt(px, py)
-			if c1 != c2 {
-				updateImage.SetNRGBA(px, py, c2)
+			off := rowStart + px*4
+			if prev.Pix[off] != cur.Pix[off] ||
+				prev.Pix[off+1] != cur.Pix[off+1] ||
+				prev.Pix[off+2] != cur.Pix[off+2] ||
+				prev.Pix[off+3] != cur.Pix[off+3] {
+				copy(updateImage.Pix[off:off+4], cur.Pix[off:off+4])
 			}
 		}
 	}
@@ -142,12 +148,14 @@ func (o *OverlayBuffer) Refresh() command.Command {
 // getVisibleSegments detects visible pixel segments per line.
 func getVisibleSegments(img *image.NRGBA, y, width int) [][]int {
 	var segments [][]int
+	rowStart := y * img.Stride
 	i := 0
 	for i < width {
-		if img.NRGBAAt(i, y).A > 0 {
+		// Alpha is at offset+3
+		if img.Pix[rowStart+i*4+3] > 0 {
 			seg := []int{i, 1}
 			j := i + 1
-			for j < width && img.NRGBAAt(j, y).A > 0 {
+			for j < width && img.Pix[rowStart+j*4+3] > 0 {
 				seg[1]++
 				j++
 			}

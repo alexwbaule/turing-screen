@@ -21,7 +21,7 @@ type drawItem struct {
 }
 
 // renderFrame draws all active sensor widgets onto a copy of the background, respecting INDEX order.
-func (c *Compositor) renderFrame(vals *SensorValues) *image.NRGBA {
+func (c *Compositor) renderFrame(vals *sensorData) *image.NRGBA {
 	frame := imageToNRGBA(c.builder.GetBackground())
 	stats := c.stats
 	if stats == nil {
@@ -531,14 +531,47 @@ func (c *Compositor) drawChartOnFrame(frame *image.NRGBA, stat *theme.Chart) {
 
 func fillNRGBA(dst *image.NRGBA, x, y, w, h int, c color.Color) {
 	r, g, b, a := c.RGBA()
-	nc := color.NRGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
+	nr, ng, nb, na := uint8(r>>8), uint8(g>>8), uint8(b>>8), uint8(a>>8)
 	bounds := dst.Bounds()
-	for py := y; py < y+h && py < bounds.Max.Y; py++ {
-		for px := x; px < x+w && px < bounds.Max.X; px++ {
-			if px >= 0 && py >= 0 {
-				dst.SetNRGBA(px, py, nc)
-			}
-		}
+
+	// Clamp to bounds
+	x1 := x
+	if x1 < bounds.Min.X {
+		x1 = bounds.Min.X
+	}
+	y1 := y
+	if y1 < bounds.Min.Y {
+		y1 = bounds.Min.Y
+	}
+	x2 := x + w
+	if x2 > bounds.Max.X {
+		x2 = bounds.Max.X
+	}
+	y2 := y + h
+	if y2 > bounds.Max.Y {
+		y2 = bounds.Max.Y
+	}
+	if x1 >= x2 || y1 >= y2 {
+		return
+	}
+
+	actualW := x2 - x1
+
+	// Fill first row directly into Pix
+	firstOff := dst.PixOffset(x1, y1)
+	for i := 0; i < actualW; i++ {
+		off := firstOff + i*4
+		dst.Pix[off] = nr
+		dst.Pix[off+1] = ng
+		dst.Pix[off+2] = nb
+		dst.Pix[off+3] = na
+	}
+
+	// Copy first row to all remaining rows
+	firstRow := dst.Pix[firstOff : firstOff+actualW*4]
+	for py := y1 + 1; py < y2; py++ {
+		rowOff := dst.PixOffset(x1, py)
+		copy(dst.Pix[rowOff:rowOff+actualW*4], firstRow)
 	}
 }
 

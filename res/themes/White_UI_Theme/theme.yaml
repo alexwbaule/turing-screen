@@ -19,21 +19,21 @@ static_texts:
     X: 225
     Y: 49
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 30
+    FONT_SIZE: 27
     FONT_COLOR: 255, 255, 255
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 230
     Y: 401
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 30
+    FONT_SIZE: 27
     FONT_COLOR: 255, 255, 255
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 23
     Y: 238
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 30
+    FONT_SIZE: 27
     FONT_COLOR: 255, 255, 255
 STATS:
   CPU:
@@ -45,10 +45,9 @@ STATS:
         X: 75
         Y: 83
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 128, 128, 128
         PLACEHOLDER: '69'
-        ALIGN: center
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -57,11 +56,10 @@ STATS:
         X: 225
         Y: 88
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 3997MHZ
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -70,11 +68,10 @@ STATS:
         X: 372
         Y: 89
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 23%
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 13
@@ -95,10 +92,9 @@ STATS:
         X: 39
         Y: 416
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 128, 128, 128
         PLACEHOLDER: '61'
-        ALIGN: center
     MEMORY:
       TEXT:
         SHOW: true
@@ -106,11 +102,10 @@ STATS:
         X: 229
         Y: 435
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 737M
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 15
@@ -129,11 +124,10 @@ STATS:
         X: 364
         Y: 435
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 41%
-        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -143,22 +137,20 @@ STATS:
         X: 22
         Y: 274
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 13039M
-        ALIGN: center
       PERCENT_TEXT:
         SHOW: true
         INDEX: 9
         X: 142
         Y: 275
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 83%
-        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 14
@@ -192,11 +184,10 @@ STATS:
           X: 342
           Y: 576
           FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 24
+          FONT_SIZE: 21
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 7KB/s
-          ALIGN: center
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -204,11 +195,10 @@ STATS:
           X: 342
           Y: 618
           FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 24
+          FONT_SIZE: 21
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 1KB/s
-          ALIGN: center
   DATE:
     INTERVAL: 1
     DAY:
@@ -218,11 +208,10 @@ STATS:
         X: 79
         Y: 668
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 30
+        FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-06-02'
-        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -231,11 +220,10 @@ STATS:
         X: 338
         Y: 667
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 30
+        FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '18:28:20'
-        ALIGN: center
         FORMAT: short
   WEATHER:
     TEMPERATURE:
@@ -245,8 +233,7 @@ STATS:
         X: 79
         Y: 730
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 30
+        FONT_SIZE: 27
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: Cloudy SW4Level  33°
-        ALIGN: center

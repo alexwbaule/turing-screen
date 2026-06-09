@@ -25,14 +25,14 @@ static_texts:
     X: 148
     Y: 29
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 26
+    FONT_SIZE: 23
     FONT_COLOR: 89, 181, 248
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 388
     Y: 28
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 26
+    FONT_SIZE: 23
     FONT_COLOR: 49, 212, 74
 STATS:
   CPU:
@@ -44,11 +44,10 @@ STATS:
         X: 122
         Y: 58
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 70°
-        ALIGN: center
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -58,11 +57,10 @@ STATS:
         X: 360
         Y: 58
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 62°
-        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -72,11 +70,10 @@ STATS:
         X: 118
         Y: 219
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 50
+        FONT_SIZE: 44
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 85%
-        ALIGN: center
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -86,11 +83,10 @@ STATS:
         X: 360
         Y: 222
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 49°
-        ALIGN: center
   NET:
     INTERVAL: 1
     ETH:
@@ -101,10 +97,9 @@ STATS:
           X: 123
           Y: 386
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 30
+          FONT_SIZE: 27
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 0KB/s
-          ALIGN: center
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -112,7 +107,6 @@ STATS:
           X: 362
           Y: 385
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 30
+          FONT_SIZE: 27
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 0KB/s
-          ALIGN: center

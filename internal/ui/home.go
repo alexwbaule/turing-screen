@@ -99,7 +99,10 @@ func buildHomeMenu(app *EditorApp) *fyne.MainMenu {
 	turnoffItem := fyne.NewMenuItem("Desligar", func() { go wsDeviceCmd(app, "device.turnoff") })
 	deviceMenu := fyne.NewMenu("Device", restartItem, rebootItem, resetItem, fyne.NewMenuItemSeparator(), turnoffItem)
 
-	return fyne.NewMainMenu(fileMenu, deviceMenu)
+	configItem := fyne.NewMenuItem("Configurações...", func() { ShowConfigDialog(app) })
+	configMenu := fyne.NewMenu("Configurações", configItem)
+
+	return fyne.NewMainMenu(fileMenu, deviceMenu, configMenu)
 }
 
 func wsDeviceCmd(app *EditorApp, action string) {

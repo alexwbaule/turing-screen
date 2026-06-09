@@ -25,28 +25,28 @@ static_texts:
     X: 597
     Y: 433
     FONT: turtheme/Motorblock.ttf
-    FONT_SIZE: 18
+    FONT_SIZE: 16
     FONT_COLOR: 255, 255, 255
   TEXT_1:
     TEXT: .
     X: 639
     Y: 433
     FONT: turtheme/Motorblock.ttf
-    FONT_SIZE: 18
+    FONT_SIZE: 16
     FONT_COLOR: 255, 255, 255
   SSD:
     TEXT: SSD
     X: 647
     Y: 303
     FONT: turtheme/Source-San-Hans-BLOD.ttf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
   VOL:
     TEXT: VOL
     X: 700
     Y: 303
     FONT: turtheme/Source-San-Hans-BLOD.ttf
-    FONT_SIZE: 15
+    FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
 STATS:
   CPU:
@@ -58,11 +58,10 @@ STATS:
         X: 295
         Y: 170
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 36°
-        ALIGN: center
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -71,11 +70,10 @@ STATS:
         X: 646
         Y: 40
         FONT: turtheme/Source-San-Hans-BLOD.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 13
         FONT_COLOR: 137, 137, 137
         SHOW_UNIT: true
         PLACEHOLDER: 4054M
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       STATUS_BAR:
@@ -99,11 +97,10 @@ STATS:
         X: 457
         Y: 255
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 29°
-        ALIGN: center
     FREQUENCY:
       TEXT:
         SHOW: true
@@ -111,11 +108,10 @@ STATS:
         X: 718
         Y: 40
         FONT: turtheme/Source-San-Hans-BLOD.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 13
         FONT_COLOR: 137, 137, 137
         SHOW_UNIT: true
         PLACEHOLDER: 1012M
-        ALIGN: center
     PERCENTAGE:
       STATUS_BAR:
         SHOW: true
@@ -138,11 +134,10 @@ STATS:
         X: 295
         Y: 330
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 32°
-        ALIGN: center
     USED:
       RADIAL:
         SHOW: true
@@ -170,11 +165,10 @@ STATS:
         X: 525
         Y: 430
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022'
-        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -183,11 +177,10 @@ STATS:
         X: 702
         Y: 430
         FONT: turtheme/Motorblock.ttf
-        FONT_SIZE: 21
+        FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '14:37'
-        ALIGN: center
         FORMAT: short
   MEMORY:
     INTERVAL: 5

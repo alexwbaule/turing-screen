@@ -5,7 +5,7 @@ device:
         height: 480
         reverse: false
         width: 800
-    log: info
+    log: debug
     port: AUTO
     sensors:
         cpu:
@@ -27,5 +27,5 @@ device:
             city: Sao Paulo,BR
             enabled: true
             interval: 30m
-    theme: sci-fi_deep_space
+    theme: Technology_theme
     turn_off_on_exit: false

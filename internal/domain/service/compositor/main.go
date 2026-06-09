@@ -15,10 +15,9 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
 )
 
-// SensorValues holds the latest values from all sensor collectors.
-type SensorValues struct {
-	mu sync.RWMutex
-
+// sensorData holds the plain data fields for all sensor collectors.
+// Separating data from the mutex allows a zero-copy snapshot with a single struct assignment.
+type sensorData struct {
 	CPUPercent   float64
 	CPUTemp      float64
 	CPUFrequency float64
@@ -63,6 +62,54 @@ type SensorValues struct {
 	Volume float64
 }
 
+// SensorValues holds the latest values from all sensor collectors.
+type SensorValues struct {
+	mu   sync.RWMutex
+	data sensorData
+}
+
+// Snapshot returns a map of current sensor values, safe to call from any goroutine.
+func (v *SensorValues) Snapshot() map[string]interface{} {
+	v.mu.RLock()
+	d := v.data
+	v.mu.RUnlock()
+	return map[string]interface{}{
+		"cpu_percent":     d.CPUPercent,
+		"cpu_temp":        d.CPUTemp,
+		"cpu_frequency":   d.CPUFrequency,
+		"cpu_fan":         d.CPUFan,
+		"cpu_power":       d.CPUPower,
+		"cpu_voltage":     d.CPUVoltage,
+		"cpu_load1":       d.CPULoad1,
+		"cpu_load5":       d.CPULoad5,
+		"cpu_load15":      d.CPULoad15,
+		"gpu_percent":     d.GPUPercent,
+		"gpu_temp":        d.GPUTemp,
+		"gpu_memory":      d.GPUMemory,
+		"gpu_power":       d.GPUPower,
+		"gpu_frequency":   d.GPUFrequency,
+		"gpu_voltage":     d.GPUVoltage,
+		"gpu_fan":         d.GPUFan,
+		"mem_percent":     d.MemPercent,
+		"mem_used":        d.MemUsed,
+		"mem_free":        d.MemFree,
+		"swap_percent":    d.SwapPercent,
+		"disk_percent":    d.DiskPercent,
+		"disk_free":       d.DiskFree,
+		"disk_temp":       d.DiskTemp,
+		"net_up_speed":    d.NetUpSpeed,
+		"net_down_speed":  d.NetDownSpeed,
+		"net_uploaded":    d.NetUploaded,
+		"net_downloaded":  d.NetDownloaded,
+		"wifi_up_speed":   d.WifiUpSpeed,
+		"wifi_down_speed": d.WifiDownSpeed,
+		"weather_temp":    d.WeatherTemp,
+		"weather_desc":    d.WeatherDesc,
+		"weather_wind":    d.WeatherWind,
+		"volume":          d.Volume,
+	}
+}
+
 // Compositor renders all sensors into a single frame and sends diffs to the device.
 type Compositor struct {
 	log       *logger.Logger
@@ -76,6 +123,7 @@ type Compositor struct {
 	display   *theme.Display
 	count     int64
 	jobs      chan<- command.Command
+
 }
 
 func New(
@@ -125,52 +173,9 @@ func (c *Compositor) Run(ctx context.Context) error {
 }
 
 func (c *Compositor) renderAndSend() {
-	// 1. Read all current values (snapshot without mutex copy)
+	// 1. Snapshot all current sensor values in one struct assignment
 	c.values.mu.RLock()
-	vals := SensorValues{
-		CPUPercent:   c.values.CPUPercent,
-		CPUTemp:      c.values.CPUTemp,
-		CPUFrequency: c.values.CPUFrequency,
-		CPUFan:       c.values.CPUFan,
-		CPUPower:     c.values.CPUPower,
-		CPUVoltage:   c.values.CPUVoltage,
-		CPULoad1:     c.values.CPULoad1,
-		CPULoad5:     c.values.CPULoad5,
-		CPULoad15:    c.values.CPULoad15,
-
-		GPUPercent:   c.values.GPUPercent,
-		GPUTemp:      c.values.GPUTemp,
-		GPUMemory:    c.values.GPUMemory,
-		GPUPower:     c.values.GPUPower,
-		GPUFrequency: c.values.GPUFrequency,
-		GPUVoltage:   c.values.GPUVoltage,
-		GPUFan:       c.values.GPUFan,
-
-		MemPercent:  c.values.MemPercent,
-		MemUsed:     c.values.MemUsed,
-		MemFree:     c.values.MemFree,
-		SwapPercent: c.values.SwapPercent,
-
-		DiskPercent: c.values.DiskPercent,
-		DiskFree:    c.values.DiskFree,
-		DiskTemp:    c.values.DiskTemp,
-
-		NetUpSpeed:    c.values.NetUpSpeed,
-		NetDownSpeed:  c.values.NetDownSpeed,
-		NetUploaded:   c.values.NetUploaded,
-		NetDownloaded: c.values.NetDownloaded,
-		WifiUpSpeed:   c.values.WifiUpSpeed,
-		WifiDownSpeed: c.values.WifiDownSpeed,
-
-		DateHour: c.values.DateHour,
-		DateDay:  c.values.DateDay,
-
-		WeatherTemp: c.values.WeatherTemp,
-		WeatherDesc: c.values.WeatherDesc,
-		WeatherWind: c.values.WeatherWind,
-
-		Volume: c.values.Volume,
-	}
+	vals := c.values.data
 	c.values.mu.RUnlock()
 
 	// 2. Render everything on top of background
@@ -188,6 +193,7 @@ func (c *Compositor) renderAndSend() {
 		return // nothing changed
 	}
 
+	dirtyRects = mergeHorizontalRects(dirtyRects)
 	c.log.Debugf("compositor: %d dirty rects to send", len(dirtyRects))
 
 	for _, r := range dirtyRects {
@@ -195,9 +201,13 @@ func (c *Compositor) renderAndSend() {
 		crop := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
 		draw.Draw(crop, crop.Bounds(), frame, r.Min, draw.Src)
 
-		// Create UPDATE_BITMAP and push to jobs channel (Worker handles sending)
+		// Create UPDATE_BITMAP (static mode) or draw on overlay (video mode → NoOp)
 		img := device.NewImageProcess(crop)
 		cmd := c.cmdUpdate.SendPayloadFrom(img, r.Min.X, r.Min.Y, "compositor")
+		if cmd.GetName() == "NOOP" {
+			// Video mode: drawing was a side-effect; no command to enqueue
+			continue
+		}
 		select {
 		case c.jobs <- cmd:
 		default:
@@ -211,7 +221,13 @@ func (c *Compositor) renderAndSend() {
 	c.prevFrame = frame
 }
 
-// findDirtyRects compares two frames and returns blocks that changed.
+// findDirtyRects compares two frames and returns pixel-tight bounding boxes of
+// changed regions. The frame is divided into 32×32 tiles only as an organisational
+// convenience (keeps each result rect bounded to one tile, which helps the
+// horizontal merge step). Within each tile a single pass over all pixels
+// accumulates the exact min/max coordinates of changed pixels — no separate
+// "did anything change?" pre-scan is needed, because a tile with no changes
+// simply produces tMinX > tMaxX and is silently skipped.
 func (c *Compositor) findDirtyRects(prev, curr *image.NRGBA) []image.Rectangle {
 	const blockSize = 32
 	bounds := prev.Bounds()
@@ -230,25 +246,69 @@ func (c *Compositor) findDirtyRects(prev, curr *image.NRGBA) []image.Rectangle {
 				bh = h - by
 			}
 
-			changed := false
-			for py := by; py < by+bh && !changed; py++ {
+			// Single pass: accumulate the pixel-tight bounding box.
+			// Initialise to an inverted range — if nothing changes, tMinX > tMaxX
+			// and we produce no rect.
+			tMinX := bx + bw
+			tMinY := by + bh
+			tMaxX := bx - 1
+			tMaxY := by - 1
+
+			for py := by; py < by+bh; py++ {
 				prevOff := prev.PixOffset(bx, py)
 				currOff := curr.PixOffset(bx, py)
-				for px := 0; px < bw*4; px++ {
-					if prev.Pix[prevOff+px] != curr.Pix[currOff+px] {
-						changed = true
-						break
+				for px := 0; px < bw; px++ {
+					po := prevOff + px*4
+					co := currOff + px*4
+					if prev.Pix[po] != curr.Pix[co] ||
+						prev.Pix[po+1] != curr.Pix[co+1] ||
+						prev.Pix[po+2] != curr.Pix[co+2] ||
+						prev.Pix[po+3] != curr.Pix[co+3] {
+						absX := bx + px
+						if absX < tMinX {
+							tMinX = absX
+						}
+						if absX > tMaxX {
+							tMaxX = absX
+						}
+						if py < tMinY {
+							tMinY = py
+						}
+						if py > tMaxY {
+							tMaxY = py
+						}
 					}
 				}
 			}
 
-			if changed {
-				dirty = append(dirty, image.Rect(bx, by, bx+bw, by+bh))
+			if tMinX <= tMaxX {
+				dirty = append(dirty, image.Rect(tMinX, tMinY, tMaxX+1, tMaxY+1))
 			}
 		}
 	}
 
 	return dirty
+}
+
+// mergeHorizontalRects coalesces adjacent dirty blocks on the same row into
+// a single wider rectangle, reducing the number of UPDATE_BITMAP commands.
+// Input rects must be ordered row-by-row, left to right (as returned by findDirtyRects).
+func mergeHorizontalRects(rects []image.Rectangle) []image.Rectangle {
+	if len(rects) == 0 {
+		return rects
+	}
+	merged := make([]image.Rectangle, 0, len(rects))
+	merged = append(merged, rects[0])
+	for _, r := range rects[1:] {
+		last := &merged[len(merged)-1]
+		// Same Y span and contiguous in X → extend the last rect
+		if r.Min.Y == last.Min.Y && r.Max.Y == last.Max.Y && r.Min.X == last.Max.X {
+			last.Max.X = r.Max.X
+		} else {
+			merged = append(merged, r)
+		}
+	}
+	return merged
 }
 
 // imageToNRGBA copies an image to NRGBA.

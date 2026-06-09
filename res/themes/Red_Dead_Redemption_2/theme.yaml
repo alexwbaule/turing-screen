@@ -25,21 +25,21 @@ static_texts:
     X: 423
     Y: 212
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 16
+    FONT_SIZE: 15
     FONT_COLOR: 255, 255, 255
   CPUMODEL:
     TEXT: '{{CPU_MODEL}}'
     X: 613
     Y: 212
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 16
+    FONT_SIZE: 15
     FONT_COLOR: 255, 255, 255
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 423
     Y: 287
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 16
+    FONT_SIZE: 15
     FONT_COLOR: 255, 255, 255
 STATS:
   DISK:
@@ -51,11 +51,10 @@ STATS:
         X: 612
         Y: 285
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 16
+        FONT_SIZE: 15
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88%
-        ALIGN: center
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -63,10 +62,9 @@ STATS:
         X: 762
         Y: 282
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
+        FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '43'
-        ALIGN: center
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -76,10 +74,9 @@ STATS:
         X: 572
         Y: 209
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
+        FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '55'
-        ALIGN: center
     PERCENTAGE:
       STATUS_BAR:
         SHOW: true
@@ -137,10 +134,9 @@ STATS:
         X: 762
         Y: 209
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
+        FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '66'
-        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       STATUS_BAR:
@@ -181,10 +177,9 @@ STATS:
         X: 573
         Y: 282
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
+        FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '85'
-        ALIGN: center
       STATUS_BAR:
         SHOW: true
         INDEX: 12
@@ -223,11 +218,10 @@ STATS:
         X: 87
         Y: 439
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 20
+        FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '18:10:12'
-        ALIGN: center
         FORMAT: short
   VOLUME:
     TEXT:
@@ -236,11 +230,10 @@ STATS:
       X: 283
       Y: 439
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-      FONT_SIZE: 20
+      FONT_SIZE: 17
       FONT_COLOR: 255, 255, 255
       SHOW_UNIT: true
       PLACEHOLDER: 10%
-      ALIGN: center
   WEATHER:
     TEMPERATURE:
       TEXT:
@@ -249,8 +242,7 @@ STATS:
         X: 460
         Y: 437
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 18
+        FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: Sunny SW4Level  34°
-        ALIGN: center

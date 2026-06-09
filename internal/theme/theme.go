@@ -2,7 +2,6 @@ package theme
 
 import (
 	"image"
-	"strings"
 
 	"golang.org/x/image/font"
 )
@@ -32,107 +31,6 @@ const (
 	DATE              FormatDateTime = 0
 	TIME              FormatDateTime = 1
 )
-
-func (a Alignment) String() string {
-	switch a {
-	case LEFT:
-		return "LEFT"
-	case CENTER:
-		return "CENTER"
-	case RIGHT:
-		return "RIGHT"
-	}
-	return "LEFT"
-}
-
-func StringToFormat(src string) Format {
-	switch strings.ToUpper(src) {
-	case "SHORT":
-		return SHORT
-	case "MEDIUM":
-		return MEDIUM
-	case "LONG":
-		return LONG
-	case "FULL":
-		return FULL
-	}
-	return SHORT
-}
-
-func (f Format) String(t FormatDateTime) string {
-	switch f {
-	case SHORT:
-		if t == DATE {
-			return "01/02/06"
-		}
-		return "15:04"
-	case MEDIUM:
-		if t == DATE {
-			return "Jan 02, 2006"
-		}
-		return "15:04:05"
-	case LONG:
-		if t == DATE {
-			return "January 02, 2006"
-		}
-		return "15:04:05 MST"
-	case FULL:
-		if t == DATE {
-			return "Monday, January 02, 2006"
-		}
-		return "15:04:05 -07:00:00"
-	}
-	if t == DATE {
-		return "01/02/06"
-	}
-	return "15:04"
-}
-
-func StringToAlignment(src string) Alignment {
-	switch strings.ToUpper(src) {
-	case "LEFT":
-		return LEFT
-	case "CENTER":
-		return CENTER
-	case "RIGHT":
-		return RIGHT
-	}
-	return LEFT
-}
-
-func (o Orientation) String() string {
-	switch o {
-	case PORTRAIT:
-		return "PORTRAIT"
-	case REVERSE_PORTRAIT:
-		return "REVERSE_PORTRAIT"
-	case LANDSCAPE:
-		return "LANDSCAPE"
-	case REVERSE_LANDSCAPE:
-		return "REVERSE_LANDSCAPE"
-	}
-	return "LANDSCAPE"
-}
-
-func StringToOrientation(src string, reverse bool) Orientation {
-	switch strings.ToUpper(src) {
-	case "PORTRAIT":
-		if reverse {
-			return REVERSE_PORTRAIT
-		}
-		return PORTRAIT
-	case "REVERSE_PORTRAIT":
-		return REVERSE_PORTRAIT
-	case "LANDSCAPE":
-		if reverse {
-			return REVERSE_LANDSCAPE
-		}
-		return LANDSCAPE
-	case "REVERSE_LANDSCAPE":
-		return REVERSE_LANDSCAPE
-	}
-	return LANDSCAPE
-}
 
 type Theme struct {
 	Display      *Display               `yaml:"display"`

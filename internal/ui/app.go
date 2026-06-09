@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"image"
-	"image/draw"
 	_ "image/png"
 	"log"
 	"os"
@@ -17,6 +16,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/widget"
 	"github.com/alexwbaule/turing-screen/internal/theme"
 	"github.com/alexwbaule/turing-screen/internal/utils"
@@ -1190,6 +1190,45 @@ func (e *EditorApp) Run() {
 	// Build home screen
 	e.homeScreen = NewHomeScreen(e)
 
+	// System tray (only available on desktop drivers that support it)
+	shown := true
+	if desk, ok := e.fyneApp.(desktop.App); ok {
+		if iconBytes, err := os.ReadFile("res/icon.svg"); err == nil {
+			desk.SetSystemTrayIcon(fyne.NewStaticResource("icon.svg", iconBytes))
+		}
+
+		trayMenu := fyne.NewMenu("Turing Screen",
+			fyne.NewMenuItem("Mostrar / Ocultar", func() {
+				if shown {
+					e.mainWindow.Hide()
+					shown = false
+				} else {
+					e.mainWindow.Show()
+					e.mainWindow.RequestFocus()
+					shown = true
+				}
+			}),
+			fyne.NewMenuItemSeparator(),
+			fyne.NewMenuItem("Configurações...", func() {
+				if !shown {
+					e.mainWindow.Show()
+					e.mainWindow.RequestFocus()
+					shown = true
+				}
+				ShowConfigDialog(e)
+			}),
+			fyne.NewMenuItemSeparator(),
+			fyne.NewMenuItem("Sair", func() { e.fyneApp.Quit() }),
+		)
+		desk.SetSystemTrayMenu(trayMenu)
+
+		// Close intercept: hide to tray instead of quitting
+		e.mainWindow.SetCloseIntercept(func() {
+			shown = false
+			e.mainWindow.Hide()
+		})
+	}
+
 	// Main window with menu
 	e.mainWindow.SetMainMenu(buildHomeMenu(e))
 	e.mainWindow.SetContent(e.homeScreen.GetContainer())
@@ -1231,233 +1270,3 @@ func (e *EditorApp) currentActiveTheme() string {
 
 // SendThemeToDevice composites the current theme into a single 800x480 image
 // and sends it to the turing-screen service via gRPC.
-func (e *EditorApp) SendThemeToDevice() {
-	composited := e.compositeThemeImage()
-	if composited == nil {
-		dialog.ShowError(fmt.Errorf("erro ao gerar imagem do tema"), e.activeWindow())
-		return
-	}
-
-	// TODO: send composited image to turing-screen via gRPC
-	dialog.ShowInformation("Play", "Composição do tema gerada com sucesso. Envio via gRPC ainda não implementado.", e.activeWindow())
-}
-
-// compositeThemeImage renders all theme components into a single 800x480 image.
-func (e *EditorApp) compositeThemeImage() image.Image {
-	dst := image.NewRGBA(image.Rect(0, 0, 800, 480))
-
-	// Draw background layers (static_images in alphabetical order)
-	if e.currentTheme.StaticImages != nil {
-		keys := make([]string, 0, len(e.currentTheme.StaticImages))
-		for k := range e.currentTheme.StaticImages {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		themeDir := ""
-		if e.backgroundPath != "" {
-			themeDir = filepath.Dir(e.backgroundPath)
-		}
-		for _, key := range keys {
-			imgData := e.currentTheme.StaticImages[key]
-			imgPath := imgData.Path
-			if themeDir != "" && !filepath.IsAbs(imgPath) {
-				imgPath = filepath.Join(themeDir, imgPath)
-			}
-			file, err := os.Open(imgPath)
-			if err != nil {
-				log.Printf("[compositeThemeImage] cannot open layer %q: %v", imgPath, err)
-				continue
-			}
-			img, _, err := image.Decode(file)
-			file.Close()
-			if err != nil {
-				log.Printf("[compositeThemeImage] cannot decode layer %q: %v", imgPath, err)
-				continue
-			}
-			r := image.Rect(imgData.X, imgData.Y, imgData.X+img.Bounds().Dx(), imgData.Y+img.Bounds().Dy())
-			draw.Draw(dst, r, img, image.Point{}, draw.Over)
-		}
-	}
-
-	// Render all static texts
-	for _, textData := range e.editableStaticText {
-		if textData.Show {
-			rendered := renderGGText(textData, e.fontCache)
-			if rendered != nil {
-				posX := textData.X
-				align := strings.ToUpper(textData.Align)
-				w := rendered.Bounds().Dx()
-				switch align {
-				case "CENTER":
-					posX = textData.X - w/2
-				case "RIGHT":
-					posX = textData.X - w
-				}
-				if posX < 0 {
-					posX = 0
-				}
-				r := image.Rect(posX, textData.Y, posX+w, textData.Y+rendered.Bounds().Dy())
-				draw.Draw(dst, r, rendered, image.Point{}, draw.Over)
-			}
-		}
-	}
-
-	// Render all stats components via reflection
-	if e.currentTheme.Stats != nil {
-		e.compositeStruct(dst, reflect.ValueOf(e.currentTheme.Stats))
-	}
-
-	return dst
-}
-
-// compositeStruct traverses the theme Stats structure and renders each visible component.
-func (e *EditorApp) compositeStruct(dst *image.RGBA, v reflect.Value) {
-	if !v.IsValid() {
-		return
-	}
-	if v.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return
-		}
-		v = v.Elem()
-	}
-
-	// Handle Load
-	if v.Type() == reflect.TypeOf(theme.Load{}) {
-		load := v.Interface().(theme.Load)
-		if load.One != nil && load.One.Text != nil && load.One.Text.Show {
-			e.compositeText(dst, load.One.Text)
-		}
-		if load.Five != nil && load.Five.Text != nil && load.Five.Text.Show {
-			e.compositeText(dst, load.Five.Text)
-		}
-		if load.Fifteen != nil && load.Fifteen.Text != nil && load.Fifteen.Text.Show {
-			e.compositeText(dst, load.Fifteen.Text)
-		}
-		return
-	}
-
-	// Handle Measurement
-	if v.Type() == reflect.TypeOf(theme.Measurement{}) {
-		m := v.Interface().(theme.Measurement)
-		if m.Text != nil && m.Text.Show {
-			e.compositeText(dst, m.Text)
-		}
-		if m.PercentText != nil && m.PercentText.Show {
-			e.compositeText(dst, m.PercentText)
-		}
-		if m.Graph != nil && m.Graph.Show {
-			if img := renderGGGraph(m.Graph); img != nil {
-				r := image.Rect(m.Graph.X, m.Graph.Y, m.Graph.X+img.Bounds().Dx(), m.Graph.Y+img.Bounds().Dy())
-				draw.Draw(dst, r, img, image.Point{}, draw.Over)
-			}
-		}
-		if m.Radial != nil && m.Radial.Show {
-			if img := renderGGRadial(m.Radial, e.fontCache); img != nil {
-				ox := m.Radial.X - m.Radial.Radius
-				oy := m.Radial.Y - m.Radial.Radius
-				r := image.Rect(ox, oy, ox+img.Bounds().Dx(), oy+img.Bounds().Dy())
-				draw.Draw(dst, r, img, image.Point{}, draw.Over)
-			}
-		}
-		if m.Chart != nil && m.Chart.Show {
-			if img := renderGGChart(m.Chart); img != nil {
-				r := image.Rect(m.Chart.X, m.Chart.Y, m.Chart.X+img.Bounds().Dx(), m.Chart.Y+img.Bounds().Dy())
-				draw.Draw(dst, r, img, image.Point{}, draw.Over)
-			}
-		}
-		return
-	}
-
-	// Handle MemMeasurement
-	if v.Type() == reflect.TypeOf(theme.MemMeasurement{}) {
-		mm := v.Interface().(theme.MemMeasurement)
-		if mm.PercentText != nil && mm.PercentText.Show {
-			e.compositeText(dst, mm.PercentText)
-		}
-		if mm.Used != nil && mm.Used.Show {
-			e.compositeText(dst, mm.Used)
-		}
-		if mm.Free != nil && mm.Free.Show {
-			e.compositeText(dst, mm.Free)
-		}
-		if mm.Graph != nil && mm.Graph.Show {
-			if img := renderGGGraph(mm.Graph); img != nil {
-				r := image.Rect(mm.Graph.X, mm.Graph.Y, mm.Graph.X+img.Bounds().Dx(), mm.Graph.Y+img.Bounds().Dy())
-				draw.Draw(dst, r, img, image.Point{}, draw.Over)
-			}
-		}
-		if mm.Radial != nil && mm.Radial.Show {
-			if img := renderGGRadial(mm.Radial, e.fontCache); img != nil {
-				ox := mm.Radial.X - mm.Radial.Radius
-				oy := mm.Radial.Y - mm.Radial.Radius
-				r := image.Rect(ox, oy, ox+img.Bounds().Dx(), oy+img.Bounds().Dy())
-				draw.Draw(dst, r, img, image.Point{}, draw.Over)
-			}
-		}
-		if mm.Chart != nil && mm.Chart.Show {
-			if img := renderGGChart(mm.Chart); img != nil {
-				r := image.Rect(mm.Chart.X, mm.Chart.Y, mm.Chart.X+img.Bounds().Dx(), mm.Chart.Y+img.Bounds().Dy())
-				draw.Draw(dst, r, img, image.Point{}, draw.Over)
-			}
-		}
-		return
-	}
-
-	// Handle Weather (compositeStruct)
-	if v.Type() == reflect.TypeOf(theme.Weather{}) {
-		w := v.Interface().(theme.Weather)
-		if w.Temperature != nil && w.Temperature.Text != nil && w.Temperature.Text.Show {
-			e.compositeText(dst, w.Temperature.Text)
-		}
-		if w.Condition != nil && w.Condition.Show {
-			e.compositeText(dst, w.Condition)
-		}
-		return
-	}
-
-	// Handle Volume (compositeStruct)
-	if v.Type() == reflect.TypeOf(theme.Volume{}) {
-		vol := v.Interface().(theme.Volume)
-		if vol.Text != nil && vol.Text.Show {
-			e.compositeText(dst, vol.Text)
-		}
-		return
-	}
-
-	if v.Kind() != reflect.Struct {
-		return
-	}
-
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldType := v.Type().Field(i)
-		yamlTag := strings.Split(fieldType.Tag.Get("yaml"), ",")[0]
-		if yamlTag == "" || yamlTag == "-" {
-			continue
-		}
-		e.compositeStruct(dst, field)
-	}
-}
-
-// compositeText renders a text element respecting ALIGN and draws it on dst.
-func (e *EditorApp) compositeText(dst *image.RGBA, textData *theme.Text) {
-	img := renderGGText(textData, e.fontCache)
-	if img == nil {
-		return
-	}
-	posX := textData.X
-	w := img.Bounds().Dx()
-	align := strings.ToUpper(textData.Align)
-	switch align {
-	case "CENTER":
-		posX = textData.X - w/2
-	case "RIGHT":
-		posX = textData.X - w
-	}
-	if posX < 0 {
-		posX = 0
-	}
-	r := image.Rect(posX, textData.Y, posX+w, textData.Y+img.Bounds().Dy())
-	draw.Draw(dst, r, img, image.Point{}, draw.Over)
-}

@@ -30,6 +30,7 @@ var (
 	playVideoSuccess                     = regexp.MustCompile(`^play_video_success$`)
 	storageStatus                        = regexp.MustCompile(`^\d+-\d+-\d+-\d+-\d+-\d+$`)
 	listDirResult                        = regexp.MustCompile(`^result:dir:`)
+	deleteSuccess                        = regexp.MustCompile(`^delete_success$`)
 	createSuccess                        = regexp.MustCompile(`^create_success$`)
 	fileRevDone                          = regexp.MustCompile(`^file_rev_done`)
 	fileSizeResponse                     = regexp.MustCompile(`^\d+$`)
@@ -201,7 +202,7 @@ func (s *Storage) DeleteFile(path string) *Storage {
 		bytes:   buildPathPayload([]byte{cmdDeleteFile, 0xef, 0x69, 0x00, 0x00, 0x00}, utils.ParsePath(path)),
 		padding: 0x00,
 		size:    1024,
-		readed:  nil, // Assuming no specific success message to parse
+		readed:  deleteSuccess,
 		log:     s.log,
 	}
 }

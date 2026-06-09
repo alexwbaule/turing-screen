@@ -31,14 +31,14 @@ static_texts:
     X: 148
     Y: 29
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 26
+    FONT_SIZE: 23
     FONT_COLOR: 89, 181, 248
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 388
     Y: 28
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 26
+    FONT_SIZE: 23
     FONT_COLOR: 49, 212, 74
 STATS:
   CPU:
@@ -50,11 +50,10 @@ STATS:
         X: 123
         Y: 60
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 49°
-        ALIGN: center
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -64,11 +63,10 @@ STATS:
         X: 360
         Y: 60
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 49°
-        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -78,11 +76,10 @@ STATS:
         X: 118
         Y: 222
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 50
+        FONT_SIZE: 44
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 35%
-        ALIGN: center
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -92,11 +89,10 @@ STATS:
         X: 360
         Y: 222
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 52
+        FONT_SIZE: 47
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 41°
-        ALIGN: center
   NET:
     INTERVAL: 1
     ETH:
@@ -107,10 +103,9 @@ STATS:
           X: 123
           Y: 386
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 30
+          FONT_SIZE: 27
           FONT_COLOR: 0, 0, 0
           PLACEHOLDER: 0KB/s
-          ALIGN: center
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -118,10 +113,9 @@ STATS:
           X: 362
           Y: 385
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 30
+          FONT_SIZE: 27
           FONT_COLOR: 0, 0, 0
           PLACEHOLDER: 0KB/s
-          ALIGN: center
   DATE:
     INTERVAL: 1
     DAY:
@@ -131,11 +125,10 @@ STATS:
         X: 589
         Y: 433
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 13
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2023-04-30'
-        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -144,9 +137,8 @@ STATS:
         X: 690
         Y: 408
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 34
+        FONT_SIZE: 31
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '14:15:03'
-        ALIGN: center
         FORMAT: short

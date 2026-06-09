@@ -16,29 +16,14 @@ import (
 	"strings"
 
 	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 )
 
 var DefaultFont = DefaultFontFace()
 
-type Formatter interface {
-	Hertz(s float64) string
-	Bitsf(s float64) string
-	Bytesf(s float64) string
-	IBytesf(s float64) string
-	Bits(s uint64) string
-	Bytes(s uint64) string
-	IBytes(s uint64) string
-}
-
 func CountStr(s string) int {
 	return len([]rune(s))
-}
-
-func IsInteger(val float64) bool {
-	return val == float64(int(val))
 }
 
 func BZero(s int, b byte) []byte {
@@ -99,23 +84,6 @@ func LoadVideo(path string) ([]byte, int64, error) {
 	return buffer, fileInfo.Size(), nil
 }
 
-// ParseListDir parses the device LIST_DIR response "result:dir:file:name1/name2/..."
-// and returns a slice of file names.
-func ParseListDir(response []byte) ([]string, error) {
-	raw := string(bytes.Trim(response, "\x00"))
-	if !strings.HasPrefix(raw, "result:dir:") {
-		return nil, fmt.Errorf("invalid list dir response: %q", raw)
-	}
-	// Format: "result:dir:file:name1/name2/name3/"
-	content := strings.TrimPrefix(raw, "result:dir:")
-	content = strings.TrimPrefix(content, "file:")
-	content = strings.TrimRight(content, "/")
-	if content == "" {
-		return nil, nil
-	}
-	return strings.Split(content, "/"), nil
-}
-
 // ParseFileSize parses the GET_FILE_INFO response (ASCII decimal file size).
 func ParseFileSize(response []byte) (int64, error) {
 	raw := string(bytes.Trim(response, "\x00"))
@@ -166,17 +134,6 @@ func Radians(degrees int) float64 {
 	return float64(degrees) * (math.Pi / 180.0)
 }
 
-func Degrees(radian float64) int {
-	return int(radian * (180.0 / math.Pi))
-}
-
-func CreateImage(width int, height int, background color.Color) *image.RGBA {
-	rect := image.Rect(0, 0, width, height)
-	img := image.NewRGBA(rect)
-	draw.Draw(img, img.Bounds(), &image.Uniform{C: background}, image.Point{}, draw.Src)
-	return img
-}
-
 func LoadFontFace(path string, points float64) font.Face {
 	fontBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -216,39 +173,14 @@ func Hertz(s float64, showUnit bool) string {
 	return humanateHertz(s, 1000, sizes, showUnit)
 }
 
-func Bitsf(s float64, showUnit bool) string {
-	sizes := []string{"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb"}
-	return humanateFloatBytes(s, 1000, sizes, showUnit)
-}
-
-func Bytesf(s float64, showUnit bool) string {
-	sizes := []string{"B", "kB", "MB", "GB", "TB", "PB", "EB"}
-	return humanateFloatBytes(s, 1000, sizes, showUnit)
-}
-
-func IBytesf(s float64, showUnit bool) string {
-	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
-	return humanateFloatBytes(s, 1024, sizes, showUnit)
-}
-
 func BitsShort(s uint64, showUnit bool) string {
 	sizes := []string{"b", "k", "M", "G", "T", "P", "E"}
-	return humanateBytes(s, 1000, sizes, showUnit)
-}
-
-func Bits(s uint64, showUnit bool) string {
-	sizes := []string{"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb"}
 	return humanateBytes(s, 1000, sizes, showUnit)
 }
 
 func Bytes(s uint64, showUnit bool) string {
 	sizes := []string{"B", "kB", "MB", "GB", "TB", "PB", "EB"}
 	return humanateBytes(s, 1000, sizes, showUnit)
-}
-
-func IBytes(s uint64, showUnit bool) string {
-	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
-	return humanateBytes(s, 1024, sizes, showUnit)
 }
 
 // NetSpeed formats a network speed value (bytes per second) into human-readable
@@ -268,34 +200,6 @@ func NetSpeed(bytesPerSec float64, showUnit bool) string {
 	}
 	suffix := sizes[int(e)]
 	val := math.Floor(bytesPerSec/math.Pow(1000, e)*10+0.5) / 10
-	if showUnit {
-		if val < 10 {
-			return fmt.Sprintf("%3.1f %s", val, suffix)
-		}
-		return fmt.Sprintf("%3.f %s", val, suffix)
-	}
-	if val < 10 {
-		return fmt.Sprintf("%3.1f", val)
-	}
-	return fmt.Sprintf("%3.f", val)
-}
-
-// NetSpeedBits formats a network speed value (bits per second) into human-readable
-// format like "1.2 Mbps", "950 Kbps", "0 bps".
-func NetSpeedBits(bitsPerSec float64, showUnit bool) string {
-	sizes := []string{"bps", "Kbps", "Mbps", "Gbps"}
-	if bitsPerSec < 1 {
-		if showUnit {
-			return fmt.Sprintf("%3.f %s", 0.0, sizes[0])
-		}
-		return fmt.Sprintf("%3.f", 0.0)
-	}
-	e := math.Floor(logn(bitsPerSec, 1000))
-	if int(e) >= len(sizes) {
-		e = float64(len(sizes) - 1)
-	}
-	suffix := sizes[int(e)]
-	val := math.Floor(bitsPerSec/math.Pow(1000, e)*10+0.5) / 10
 	if showUnit {
 		if val < 10 {
 			return fmt.Sprintf("%3.1f %s", val, suffix)
@@ -345,33 +249,6 @@ func humanateBytes(s uint64, base float64, sizes []string, showUnit bool) string
 	e := math.Floor(logn(float64(s), base))
 	suffix := sizes[int(e)]
 	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
-	f := "%5.f"
-	if CountStr(suffix) == 2 {
-		f = "%4.f"
-		if val < 10 {
-			f = "%3.1f"
-		}
-	}
-	if val < 10 {
-		f = "%4.1f"
-	}
-	if showUnit {
-		f += "%s"
-		return fmt.Sprintf(f, val, suffix)
-	}
-	return fmt.Sprintf(f, val)
-}
-
-func humanateFloatBytes(s float64, base float64, sizes []string, showUnit bool) string {
-	if s < 10 {
-		if showUnit {
-			return fmt.Sprintf("%3.2f%s", s, sizes[0])
-		}
-		return fmt.Sprintf("%3.2f", s)
-	}
-	e := math.Floor(logn(s, base))
-	suffix := sizes[int(e)]
-	val := math.Floor(s/math.Pow(base, e)*10+0.5) / 10
 	f := "%5.f"
 	if CountStr(suffix) == 2 {
 		f = "%4.f"

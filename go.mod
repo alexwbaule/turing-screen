@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	fyne.io/fyne/v2 v2.7.4
 	github.com/alexwbaule/gopsutil/v3 v3.32.0
-	github.com/alexwbaule/serial v1.0.0
+	github.com/alexwbaule/serial v1.1.3
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
