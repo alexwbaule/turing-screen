@@ -21,6 +21,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 27
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
 STATS:
   DATE:
     INTERVAL: 1
@@ -35,6 +36,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '18:27:35'
+        ALIGN: left
         FORMAT: short
     DAY:
       TEXT:
@@ -47,6 +49,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-06-02'
+        ALIGN: left
         FORMAT: medium
   GPU:
     INTERVAL: 1
@@ -61,6 +64,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 61°
+        ALIGN: left
     MEMORY:
       TEXT:
         SHOW: true
@@ -72,6 +76,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 69%
+        ALIGN: left
     PERCENTAGE:
       TEXT:
         SHOW: true
@@ -83,6 +88,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 39%
+        ALIGN: left
   VOLUME:
     TEXT:
       SHOW: true
@@ -94,6 +100,7 @@ STATS:
       FONT_COLOR: 255, 255, 255
       SHOW_UNIT: true
       PLACEHOLDER: 10%
+      ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -107,6 +114,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 85%
+        ALIGN: left
   CPU:
     PERCENTAGE:
       INTERVAL: 1

@@ -27,6 +27,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 25
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   CPUMODEL:
     TEXT: '{{CPU_MODEL}}'
     X: 121
@@ -34,6 +35,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 25
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 118
@@ -41,6 +43,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 25
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
 STATS:
   GPU:
     INTERVAL: 1
@@ -55,6 +58,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 54°
+        ALIGN: left
     PERCENTAGE:
       TEXT:
         SHOW: true
@@ -66,6 +70,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0%
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 13
@@ -88,6 +93,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 3%
+        ALIGN: left
   CPU:
     TEMPERATURE:
       INTERVAL: 1
@@ -101,6 +107,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 65°
+        ALIGN: left
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -112,6 +119,7 @@ STATS:
         FONT_SIZE: 19
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '2458'
+        ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -124,6 +132,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 19%
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 14
@@ -148,6 +157,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 14153M
+        ALIGN: left
       PERCENT_TEXT:
         SHOW: true
         INDEX: 12
@@ -158,6 +168,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 90%
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 15
@@ -181,6 +192,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: Light Rain NE2Level  25°
+        ALIGN: left
   DATE:
     INTERVAL: 1
     HOUR:
@@ -194,6 +206,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '17:41:57'
+        ALIGN: left
         FORMAT: short
   NET:
     INTERVAL: 1
@@ -209,6 +222,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
       UPLOAD:
         TEXT:
           SHOW: true
@@ -220,3 +234,4 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left

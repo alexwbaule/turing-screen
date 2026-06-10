@@ -33,6 +33,7 @@ STATS:
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
         PLACEHOLDER: 41%
+        ALIGN: right
       STATUS_BAR:
         SHOW: true
         INDEX: 12
@@ -56,6 +57,7 @@ STATS:
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
         PLACEHOLDER: 62°
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 7
@@ -77,6 +79,7 @@ STATS:
         FONT_SIZE: 19
         FONT_COLOR: 255, 199, 199
         PLACEHOLDER: '737'
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 8
@@ -101,6 +104,7 @@ STATS:
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
         PLACEHOLDER: 30%
+        ALIGN: right
       STATUS_BAR:
         SHOW: true
         INDEX: 13
@@ -125,6 +129,7 @@ STATS:
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
         PLACEHOLDER: 69°
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 9
@@ -158,6 +163,7 @@ STATS:
         FONT_SIZE: 19
         FONT_COLOR: 255, 199, 199
         PLACEHOLDER: '2184'
+        ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -171,6 +177,7 @@ STATS:
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
         PLACEHOLDER: 85%
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 11
@@ -192,6 +199,7 @@ STATS:
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
         PLACEHOLDER: 13395M
+        ALIGN: right
   DISK:
     INTERVAL: 10
     USED:

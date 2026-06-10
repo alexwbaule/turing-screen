@@ -27,6 +27,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 24
     FONT_COLOR: 84, 241, 255
+    ALIGN: center
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 126
@@ -34,6 +35,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 13
     FONT_COLOR: 84, 241, 255
+    ALIGN: right
 STATS:
   CPU:
     PERCENTAGE:
@@ -47,6 +49,7 @@ STATS:
         FONT_SIZE: 47
         FONT_COLOR: 253, 0, 143
         PLACEHOLDER: '43'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 8
@@ -87,6 +90,7 @@ STATS:
         FONT_SIZE: 40
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '136'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 10
@@ -116,6 +120,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '0'
+        ALIGN: center
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -126,6 +131,7 @@ STATS:
         FONT_SIZE: 40
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '32'
+        ALIGN: center
     PERCENTAGE:
       RADIAL:
         SHOW: true
@@ -156,6 +162,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '107'
+        ALIGN: center
   VOLUME:
     TEXT:
       SHOW: true
@@ -166,6 +173,7 @@ STATS:
       FONT_SIZE: 20
       FONT_COLOR: 84, 241, 255
       PLACEHOLDER: '0'
+      ALIGN: center
   NET:
     INTERVAL: 1
     ETH:
@@ -179,6 +187,7 @@ STATS:
           FONT_SIZE: 13
           FONT_COLOR: 84, 241, 255
           PLACEHOLDER: 12KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -189,6 +198,7 @@ STATS:
           FONT_SIZE: 13
           FONT_COLOR: 84, 241, 255
           PLACEHOLDER: 385KB/s
+          ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -202,6 +212,7 @@ STATS:
         FONT_COLOR: 84, 241, 255
         SHOW_UNIT: true
         PLACEHOLDER: 10623M
+        ALIGN: right
   DATE:
     INTERVAL: 1
     DAY:
@@ -215,6 +226,7 @@ STATS:
         FONT_COLOR: 84, 241, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-10-10'
+        ALIGN: right
         FORMAT: medium
     HOUR:
       TEXT:
@@ -226,4 +238,5 @@ STATS:
         FONT_SIZE: 32
         FONT_COLOR: 84, 241, 255
         PLACEHOLDER: '16:21:51'
+        ALIGN: left
         FORMAT: short

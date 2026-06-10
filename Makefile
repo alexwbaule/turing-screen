@@ -72,9 +72,19 @@ install: build-all
 	@echo "==> Installing icon and desktop entry"
 	install -Dm644 res/icon.svg /usr/share/icons/hicolor/scalable/apps/turing-screen.svg
 	install -m 644 scripts/turing-interface.desktop $(DESKTOP_DIR)/turing-interface.desktop
-	@echo ""
-	@echo "Done. Add your user to the $(GROUP) group:"
-	@echo "  sudo usermod -aG $(GROUP) $$USER  (re-login to take effect)"
+	@# Auto-add the invoking user (SUDO_USER) to the group
+	@if [ -n "$$SUDO_USER" ]; then \
+		if ! id -nG "$$SUDO_USER" 2>/dev/null | grep -qw "$(GROUP)"; then \
+			usermod -aG $(GROUP) $$SUDO_USER; \
+			echo "==> Usuário '$$SUDO_USER' adicionado ao grupo '$(GROUP)'."; \
+			echo "    Faça re-login ou execute: newgrp $(GROUP)"; \
+		else \
+			echo "==> Usuário '$$SUDO_USER' já está no grupo '$(GROUP)'."; \
+		fi \
+	else \
+		echo "==> Aviso: SUDO_USER não detectado. Adicione seu usuário manualmente:"; \
+		echo "    sudo usermod -aG $(GROUP) $$USER"; \
+	fi
 	@echo ""
 	@echo "To enable the daemon on boot:"
 	@echo "  sudo systemctl enable --now smart-screen-go"

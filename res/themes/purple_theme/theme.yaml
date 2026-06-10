@@ -32,6 +32,7 @@ STATS:
         FONT_SIZE: 23
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '60'
+        ALIGN: right
     PERCENTAGE:
       STATUS_BAR:
         SHOW: true
@@ -57,6 +58,7 @@ STATS:
         FONT_SIZE: 23
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '66'
+        ALIGN: right
     PERCENTAGE:
       INTERVAL: 1
       STATUS_BAR:
@@ -83,6 +85,7 @@ STATS:
         FONT_SIZE: 23
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '48'
+        ALIGN: right
     USED:
       STATUS_BAR:
         SHOW: true
@@ -108,6 +111,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: Cloudy SW4Level  33°
+        ALIGN: left
   DATE:
     INTERVAL: 1
     HOUR:
@@ -121,6 +125,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '18:29:12'
+        ALIGN: left
         FORMAT: short
   NET:
     INTERVAL: 1
@@ -136,6 +141,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -147,6 +153,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:

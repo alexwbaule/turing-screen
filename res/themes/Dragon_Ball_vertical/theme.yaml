@@ -28,7 +28,7 @@ STATS:
         INDEX: 0
         X: 194
         Y: 84
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Blk.otf
         FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '88'
@@ -53,10 +53,11 @@ STATS:
         INDEX: 1
         X: 27
         Y: 408
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Blk.otf
         FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '88'
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 5
@@ -78,6 +79,7 @@ STATS:
       FONT_SIZE: 48
       FONT_COLOR: 255, 224, 139
       PLACEHOLDER: '100'
+      ALIGN: left
   DISK:
     INTERVAL: 10
     USED:
@@ -86,10 +88,11 @@ STATS:
         INDEX: 3
         X: 89
         Y: 301
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Blk.otf
         FONT_SIZE: 45
         FONT_COLOR: 255, 224, 139
         PLACEHOLDER: '88'
+        ALIGN: left
   CPU:
     TEMPERATURE:
       INTERVAL: 1
@@ -98,10 +101,11 @@ STATS:
         INDEX: 6
         X: 290
         Y: 640
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Blk.otf
         FONT_SIZE: 69
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '88'
+        ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       GRAPH:
@@ -123,7 +127,7 @@ STATS:
         INDEX: 8
         X: 466
         Y: 275
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Roman.otf
         FONT_SIZE: 40
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
@@ -136,7 +140,7 @@ STATS:
         INDEX: 9
         X: 463
         Y: 319
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Md.otf
         FONT_SIZE: 23
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true

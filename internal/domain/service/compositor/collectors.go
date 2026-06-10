@@ -14,6 +14,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/interfaces"
+	"github.com/alexwbaule/turing-screen/internal/resource/volume"
 	"github.com/alexwbaule/turing-screen/internal/resource/weather"
 )
 
@@ -29,6 +30,7 @@ func StartCollectors(
 	gpuProvider interfaces.Provider,
 	weatherClient *weather.Client,
 	weatherCity string,
+	volumeClient *volume.Client,
 	intervals struct {
 		CPU, GPU, Memory, Disk, Network time.Duration
 		Weather                         time.Duration
@@ -94,17 +96,19 @@ func StartCollectors(
 		}
 	}()
 
-	// Network collector
+	// Network collector (wired + wifi share the same IOCounters source)
 	go func() {
 		ticker := time.NewTicker(intervals.Network)
 		defer ticker.Stop()
-		var lastRecv, lastSent uint64
+		var lastWiredRecv, lastWiredSent uint64
+		var lastWifiRecv, lastWifiSent uint64
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				lastRecv, lastSent = collectNetwork(ctx, values, netConfig, intervals.Network, lastRecv, lastSent)
+				lastWiredRecv, lastWiredSent = collectIface(ctx, values, netConfig.Wired, intervals.Network, lastWiredRecv, lastWiredSent, false)
+				lastWifiRecv, lastWifiSent = collectIface(ctx, values, netConfig.Wifi, intervals.Network, lastWifiRecv, lastWifiSent, true)
 			}
 		}
 	}()
@@ -143,6 +147,34 @@ func StartCollectors(
 			}
 		}()
 	}
+
+	// Volume collector (PulseAudio/PipeWire)
+	if volumeClient != nil {
+		go func() {
+			ticker := time.NewTicker(time.Second)
+			defer ticker.Stop()
+			collectVolume(values, volumeClient, log)
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					collectVolume(values, volumeClient, log)
+				}
+			}
+		}()
+	}
+}
+
+func collectVolume(values *SensorValues, client *volume.Client, log *logger.Logger) {
+	vol, err := client.GetVolume()
+	if err != nil {
+		log.Warnf("volume collect failed: %v", err)
+		return
+	}
+	values.mu.Lock()
+	values.data.Volume = float64(vol)
+	values.mu.Unlock()
 }
 
 func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, log *logger.Logger) {
@@ -281,26 +313,37 @@ func collectDisk(ctx context.Context, values *SensorValues, tempSensor string, l
 	}
 }
 
-func collectNetwork(ctx context.Context, values *SensorValues, netConfig device.Net, interval time.Duration, lastRecv, lastSent uint64) (uint64, uint64) {
+// collectIface collects speed for one named network interface.
+// wifi=false → updates wired fields; wifi=true → updates wifi fields.
+func collectIface(ctx context.Context, values *SensorValues, iface string, interval time.Duration, lastRecv, lastSent uint64, wifi bool) (uint64, uint64) {
+	if iface == "" {
+		return lastRecv, lastSent
+	}
 	counters, err := net.IOCountersWithContext(ctx, true)
 	if err != nil {
 		return lastRecv, lastSent
 	}
-
 	for _, c := range counters {
-		if c.Name == netConfig.Wired {
-			recv := c.BytesRecv
-			sent := c.BytesSent
-			if lastRecv > 0 {
-				values.mu.Lock()
-				values.data.NetDownSpeed = float64(recv-lastRecv) / interval.Seconds()
-				values.data.NetUpSpeed = float64(sent-lastSent) / interval.Seconds()
+		if c.Name != iface {
+			continue
+		}
+		recv, sent := c.BytesRecv, c.BytesSent
+		if lastRecv > 0 {
+			down := float64(recv-lastRecv) / interval.Seconds()
+			up := float64(sent-lastSent) / interval.Seconds()
+			values.mu.Lock()
+			if wifi {
+				values.data.WifiDownSpeed = down
+				values.data.WifiUpSpeed = up
+			} else {
+				values.data.NetDownSpeed = down
+				values.data.NetUpSpeed = up
 				values.data.NetDownloaded = recv
 				values.data.NetUploaded = sent
-				values.mu.Unlock()
 			}
-			return recv, sent
+			values.mu.Unlock()
 		}
+		return recv, sent
 	}
 	return lastRecv, lastSent
 }

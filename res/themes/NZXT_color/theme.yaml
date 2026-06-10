@@ -33,6 +33,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 23
     FONT_COLOR: 89, 181, 248
+    ALIGN: center
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 388
@@ -40,6 +41,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 23
     FONT_COLOR: 49, 212, 74
+    ALIGN: center
 STATS:
   CPU:
     TEMPERATURE:
@@ -54,6 +56,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88°
+        ALIGN: left
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -67,6 +70,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88°
+        ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -80,6 +84,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 100%
+        ALIGN: left
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -93,6 +98,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88°
+        ALIGN: left
   NET:
     INTERVAL: 1
     ETH:
@@ -106,6 +112,7 @@ STATS:
           FONT_SIZE: 27
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 888KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -116,6 +123,7 @@ STATS:
           FONT_SIZE: 27
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 888KB/s
+          ALIGN: left
   DATE:
     INTERVAL: 1
     DAY:
@@ -129,6 +137,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2020-12-31'
+        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -141,4 +150,5 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '12:00:00'
+        ALIGN: center
         FORMAT: short

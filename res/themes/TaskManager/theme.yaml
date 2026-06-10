@@ -21,6 +21,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   CPU:
     TEXT: CPU
     X: 376
@@ -28,6 +29,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 32
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   DISK0:
     TEXT: DISK0
     X: 160
@@ -35,6 +37,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   INTERNET:
     TEXT: INTERNET
     X: 160
@@ -42,6 +45,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   MHz:
     TEXT: MHz
     X: 515
@@ -49,6 +53,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   Memory:
     TEXT: Memory
     X: 160
@@ -56,6 +61,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   TEXT_6:
     TEXT: /
     X: 202
@@ -63,6 +69,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   GB:
     TEXT: GB(        )
     X: 257
@@ -70,6 +77,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   RAM_GB_LABEL:
     TEXT: Ram Used(GB)
     X: 160
@@ -77,6 +85,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   RAMTOTAL_GB_LABEL:
     TEXT: Total Ram(GB)
     X: 212
@@ -84,6 +93,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   GPU0:
     TEXT: GPU0
     X: 160
@@ -91,6 +101,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 160
@@ -98,6 +109,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   CPU_Usage:
     TEXT: CPU Usage %
     X: 384
@@ -105,6 +117,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 15
     FONT_COLOR: 85, 85, 85
+    ALIGN: left
   CPUMODEL:
     TEXT: '{{CPU_MODEL}}'
     X: 768
@@ -112,6 +125,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 20
     FONT_COLOR: 0, 0, 0
+    ALIGN: right
   Uage:
     TEXT: Uage
     X: 383
@@ -119,6 +133,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   Clock:
     TEXT: Clock
     X: 466
@@ -126,6 +141,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   '100':
     TEXT: 100%
     X: 717
@@ -133,6 +149,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   Time:
     TEXT: Time
     X: 385
@@ -140,6 +157,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   Fan_Speed:
     TEXT: Fan Speed
     X: 611
@@ -147,6 +165,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   Power:
     TEXT: Power
     X: 643
@@ -154,6 +173,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
   Voltage:
     TEXT: Voltage
     X: 635
@@ -161,6 +181,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 0, 0, 0
+    ALIGN: left
 STATS:
   CPU:
     PERCENTAGE:
@@ -175,6 +196,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 5%
+        ALIGN: left
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -186,6 +208,7 @@ STATS:
         FONT_SIZE: 19
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '3292'
+        ALIGN: left
     FAN:
       INTERVAL: 1
       TEXT:
@@ -198,6 +221,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 0R
+        ALIGN: right
     POWER:
       INTERVAL: 1
       TEXT:
@@ -210,6 +234,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 9W
+        ALIGN: right
     VOLTAGE:
       INTERVAL: 1
       TEXT:
@@ -222,6 +247,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 0.91V
+        ALIGN: right
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -235,6 +261,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 35%
+        ALIGN: left
   NET:
     INTERVAL: 1
     ETH:
@@ -249,6 +276,7 @@ STATS:
           FONT_COLOR: 0, 0, 0
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -260,6 +288,7 @@ STATS:
           FONT_COLOR: 0, 0, 0
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
   GPU:
     INTERVAL: 1
     PERCENTAGE:
@@ -273,6 +302,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 52%
+        ALIGN: left
   DATE:
     INTERVAL: 1
     HOUR:
@@ -286,4 +316,5 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: '14:14:16'
+        ALIGN: left
         FORMAT: short

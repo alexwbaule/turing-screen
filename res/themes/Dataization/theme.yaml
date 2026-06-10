@@ -27,6 +27,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 20
     FONT_COLOR: 67, 182, 221
+    ALIGN: left
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 382
@@ -34,6 +35,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 20
     FONT_COLOR: 67, 182, 221
+    ALIGN: left
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 630
@@ -41,6 +43,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 20
     FONT_COLOR: 67, 182, 221
+    ALIGN: left
 STATS:
   CPU:
     PERCENTAGE:
@@ -54,6 +57,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '20'
+        ALIGN: right
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -65,6 +69,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '51'
+        ALIGN: right
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -76,6 +81,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '3370'
+        ALIGN: right
     POWER:
       INTERVAL: 1
       TEXT:
@@ -87,6 +93,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '4'
+        ALIGN: right
     FAN:
       INTERVAL: 1
       TEXT:
@@ -98,6 +105,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: right
     VOLTAGE:
       INTERVAL: 1
       TEXT:
@@ -109,6 +117,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0.93'
+        ALIGN: right
   GPU:
     INTERVAL: 1
     PERCENTAGE:
@@ -121,6 +130,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: right
     POWER:
       TEXT:
         SHOW: true
@@ -131,6 +141,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: right
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -141,6 +152,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: right
     MEMORY:
       TEXT:
         SHOW: true
@@ -151,6 +163,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: right
     FREQUENCY:
       TEXT:
         SHOW: true
@@ -161,6 +174,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: right
     FAN:
       TEXT:
         SHOW: true
@@ -171,6 +185,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: right
     VOLTAGE:
       TEXT:
         SHOW: true
@@ -181,6 +196,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0.00'
+        ALIGN: right
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -193,6 +209,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '61'
+        ALIGN: right
       USED:
         SHOW: true
         INDEX: 19
@@ -202,6 +219,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '6120'
+        ALIGN: right
   DISK:
     INTERVAL: 10
     USED:
@@ -214,6 +232,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '81'
+        ALIGN: right
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -224,6 +243,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '40'
+        ALIGN: right
   NET:
     INTERVAL: 1
     ETH:
@@ -237,6 +257,7 @@ STATS:
           FONT_SIZE: 20
           FONT_COLOR: 67, 182, 221
           PLACEHOLDER: 0KB/s
+          ALIGN: right
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -247,6 +268,7 @@ STATS:
           FONT_SIZE: 20
           FONT_COLOR: 67, 182, 221
           PLACEHOLDER: 0KB/s
+          ALIGN: right
   WEATHER:
     TEMPERATURE:
       TEXT:
@@ -259,6 +281,7 @@ STATS:
         FONT_COLOR: 67, 182, 221
         SHOW_UNIT: true
         PLACEHOLDER: Sunny N0Level  11°
+        ALIGN: left
   DATE:
     INTERVAL: 1
     HOUR:
@@ -272,6 +295,7 @@ STATS:
         FONT_COLOR: 67, 182, 221
         SHOW_UNIT: true
         PLACEHOLDER: '15:36:54'
+        ALIGN: center
         FORMAT: short
     DAY:
       TEXT:
@@ -284,4 +308,5 @@ STATS:
         FONT_COLOR: 67, 182, 221
         SHOW_UNIT: true
         PLACEHOLDER: '2022-12-13'
+        ALIGN: center
         FORMAT: medium

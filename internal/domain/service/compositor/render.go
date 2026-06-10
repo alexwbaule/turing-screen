@@ -115,6 +115,18 @@ func (c *Compositor) renderFrame(vals *sensorData) *image.NRGBA {
 				items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, d.Text) }})
 			}
 		}
+		if stats.Net.Wifi != nil {
+			if u := stats.Net.Wifi.Upload; u != nil && u.Text != nil && u.Text.Show {
+				str := utils.NetSpeed(vals.WifiUpSpeed, true)
+				idx := u.Text.Index
+				items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, u.Text) }})
+			}
+			if d := stats.Net.Wifi.Download; d != nil && d.Text != nil && d.Text.Show {
+				str := utils.NetSpeed(vals.WifiDownSpeed, true)
+				idx := d.Text.Index
+				items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, d.Text) }})
+			}
+		}
 	}
 
 	// Date/Time

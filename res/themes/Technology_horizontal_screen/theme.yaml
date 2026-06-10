@@ -32,6 +32,7 @@ STATS:
         FONT_SIZE: 43
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '100'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 15
@@ -60,6 +61,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '88'
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 18
@@ -82,6 +84,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '4800'
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 19
@@ -105,6 +108,7 @@ STATS:
         FONT_SIZE: 43
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '100'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 16
@@ -132,6 +136,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '88'
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 20
@@ -153,6 +158,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '8888'
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 21
@@ -176,6 +182,7 @@ STATS:
         FONT_SIZE: 43
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '100'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 17
@@ -206,6 +213,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 100%
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 22
@@ -228,6 +236,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88°
+        ALIGN: right
   NET:
     INTERVAL: 1
     ETH:
@@ -241,6 +250,7 @@ STATS:
           FONT_SIZE: 21
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 888KB/s
+          ALIGN: left
       UPLOAD:
         TEXT:
           SHOW: true
@@ -251,6 +261,7 @@ STATS:
           FONT_SIZE: 21
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 888KB/s
+          ALIGN: left
   DATE:
     INTERVAL: 1
     DAY:
@@ -264,6 +275,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2020-12-31'
+        ALIGN: left
         FORMAT: medium
     HOUR:
       TEXT:
@@ -275,4 +287,5 @@ STATS:
         FONT_SIZE: 35
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '12:00:00'
+        ALIGN: left
         FORMAT: short

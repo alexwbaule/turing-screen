@@ -32,6 +32,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: Sunny N2Level  34°
+        ALIGN: center
   CPU:
     FREQUENCY:
       INTERVAL: 1
@@ -44,6 +45,7 @@ STATS:
         FONT_SIZE: 20
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '3069'
+        ALIGN: right
     PERCENTAGE:
       INTERVAL: 1
       RADIAL:
@@ -72,6 +74,7 @@ STATS:
         FONT_SIZE: 40
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '9'
+        ALIGN: center
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -83,6 +86,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '59'
+        ALIGN: right
   GPU:
     INTERVAL: 1
     MEMORY:
@@ -96,6 +100,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0M
+        ALIGN: right
     PERCENTAGE:
       RADIAL:
         SHOW: true
@@ -123,6 +128,7 @@ STATS:
         FONT_SIZE: 40
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: center
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -133,6 +139,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: right
   DATE:
     INTERVAL: 1
     DAY:
@@ -146,6 +153,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-08-15'
+        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -158,6 +166,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '16:10:26'
+        ALIGN: center
         FORMAT: short
   MEMORY:
     INTERVAL: 5
@@ -188,6 +197,7 @@ STATS:
         FONT_SIZE: 37
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '58'
+        ALIGN: center
   DISK:
     INTERVAL: 10
     USED:
@@ -217,6 +227,7 @@ STATS:
         FONT_SIZE: 37
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '93'
+        ALIGN: center
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -227,6 +238,7 @@ STATS:
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '42'
+        ALIGN: right
   VOLUME:
     RADIAL:
       SHOW: true
@@ -254,6 +266,7 @@ STATS:
       FONT_SIZE: 37
       FONT_COLOR: 255, 255, 255
       PLACEHOLDER: '100'
+      ALIGN: center
   NET:
     INTERVAL: 1
     ETH:
@@ -268,6 +281,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: right
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -279,3 +293,4 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: right

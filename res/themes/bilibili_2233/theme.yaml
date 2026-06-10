@@ -32,6 +32,7 @@ STATS:
         FONT_COLOR: 44, 166, 214
         SHOW_UNIT: true
         PLACEHOLDER: 晴转多云 20° 东北风
+        ALIGN: left
   DATE:
     INTERVAL: 1
     DAY:
@@ -45,6 +46,7 @@ STATS:
         FONT_COLOR: 44, 166, 214
         SHOW_UNIT: true
         PLACEHOLDER: '2020-12-31'
+        ALIGN: left
         FORMAT: medium
     HOUR:
       TEXT:
@@ -57,6 +59,7 @@ STATS:
         FONT_COLOR: 44, 166, 214
         SHOW_UNIT: true
         PLACEHOLDER: '12:00:00'
+        ALIGN: left
         FORMAT: short
   CPU:
     FREQUENCY:
@@ -71,6 +74,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 4800MHZ
+        ALIGN: center
     VOLTAGE:
       INTERVAL: 1
       TEXT:
@@ -83,6 +87,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 1.8V
+        ALIGN: center
     FAN:
       INTERVAL: 1
       TEXT:
@@ -95,6 +100,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 1888RPM
+        ALIGN: center
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -107,6 +113,7 @@ STATS:
         FONT_COLOR: 44, 166, 214
         SHOW_UNIT: true
         PLACEHOLDER: 100%
+        ALIGN: left
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -119,6 +126,7 @@ STATS:
         FONT_COLOR: 44, 166, 214
         SHOW_UNIT: true
         PLACEHOLDER: 88°
+        ALIGN: left
   GPU:
     INTERVAL: 1
     PERCENTAGE:
@@ -132,6 +140,7 @@ STATS:
         FONT_COLOR: 247, 164, 213
         SHOW_UNIT: true
         PLACEHOLDER: 100%
+        ALIGN: left
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -143,6 +152,7 @@ STATS:
         FONT_COLOR: 247, 164, 213
         SHOW_UNIT: true
         PLACEHOLDER: 88°
+        ALIGN: left
     FREQUENCY:
       TEXT:
         SHOW: true
@@ -154,6 +164,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 8888MHZ
+        ALIGN: center
     MEMORY:
       TEXT:
         SHOW: true
@@ -165,6 +176,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 8888M
+        ALIGN: center
     FAN:
       TEXT:
         SHOW: true
@@ -176,6 +188,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 1888RPM
+        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -189,6 +202,7 @@ STATS:
         FONT_COLOR: 247, 164, 213
         SHOW_UNIT: true
         PLACEHOLDER: 100%
+        ALIGN: left
   DISK:
     INTERVAL: 10
     USED:
@@ -202,6 +216,7 @@ STATS:
         FONT_COLOR: 247, 164, 213
         SHOW_UNIT: true
         PLACEHOLDER: 100%
+        ALIGN: left
   NET:
     INTERVAL: 1
     ETH:
@@ -216,6 +231,7 @@ STATS:
           FONT_COLOR: 247, 164, 213
           SHOW_UNIT: true
           PLACEHOLDER: 888KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -227,3 +243,4 @@ STATS:
           FONT_COLOR: 247, 164, 213
           SHOW_UNIT: true
           PLACEHOLDER: 888KB/s
+          ALIGN: left

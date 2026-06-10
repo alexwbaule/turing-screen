@@ -27,6 +27,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 63, 238, 255
+    ALIGN: left
   Voltage:
     TEXT: Voltage
     X: 640
@@ -34,6 +35,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 63, 238, 255
+    ALIGN: left
   Core_clock:
     TEXT: Core clock
     X: 640
@@ -41,6 +43,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 63, 238, 255
+    ALIGN: left
   UL:
     TEXT: UL：
     X: 354
@@ -48,6 +51,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 63, 238, 255
+    ALIGN: left
   DL:
     TEXT: DL：
     X: 354
@@ -55,6 +59,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 63, 238, 255
+    ALIGN: left
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 41
@@ -62,6 +67,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 16
     FONT_COLOR: 63, 238, 255
+    ALIGN: left
 STATS:
   NET:
     INTERVAL: 1
@@ -77,6 +83,7 @@ STATS:
           FONT_COLOR: 63, 238, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -88,6 +95,7 @@ STATS:
           FONT_COLOR: 63, 238, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -194,6 +202,7 @@ STATS:
         FONT_SIZE: 16
         FONT_COLOR: 63, 238, 255
         PLACEHOLDER: '3648'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 26
@@ -223,6 +232,7 @@ STATS:
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
         PLACEHOLDER: 1.35V
+        ALIGN: left
     POWER:
       INTERVAL: 1
       TEXT:
@@ -235,6 +245,7 @@ STATS:
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
         PLACEHOLDER: 15W
+        ALIGN: left
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -286,6 +297,7 @@ STATS:
         FONT_SIZE: 17
         FONT_COLOR: 63, 238, 255
         PLACEHOLDER: '1755'
+        ALIGN: left
     VOLTAGE:
       TEXT:
         SHOW: true
@@ -297,6 +309,7 @@ STATS:
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0.68V
+        ALIGN: left
   VOLUME:
     TEXT:
       SHOW: true
@@ -321,6 +334,7 @@ STATS:
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2023-06-27'
+        ALIGN: center
         FORMAT: medium
     HOUR:
       TEXT:
@@ -346,3 +360,4 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
+        ALIGN: left

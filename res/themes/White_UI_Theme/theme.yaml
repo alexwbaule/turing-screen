@@ -21,6 +21,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 27
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 230
@@ -28,6 +29,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 27
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 23
@@ -35,6 +37,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 27
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
 STATS:
   CPU:
     TEMPERATURE:
@@ -48,6 +51,7 @@ STATS:
         FONT_SIZE: 47
         FONT_COLOR: 128, 128, 128
         PLACEHOLDER: '69'
+        ALIGN: left
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -60,6 +64,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 3997MHZ
+        ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -72,6 +77,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 23%
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 13
@@ -95,6 +101,7 @@ STATS:
         FONT_SIZE: 47
         FONT_COLOR: 128, 128, 128
         PLACEHOLDER: '61'
+        ALIGN: left
     MEMORY:
       TEXT:
         SHOW: true
@@ -106,6 +113,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 737M
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 15
@@ -128,6 +136,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 41%
+        ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -141,6 +150,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 13039M
+        ALIGN: left
       PERCENT_TEXT:
         SHOW: true
         INDEX: 9
@@ -151,6 +161,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 83%
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 14
@@ -188,6 +199,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 7KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -199,6 +211,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 1KB/s
+          ALIGN: left
   DATE:
     INTERVAL: 1
     DAY:
@@ -212,6 +225,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-06-02'
+        ALIGN: left
         FORMAT: medium
     HOUR:
       TEXT:
@@ -224,6 +238,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '18:28:20'
+        ALIGN: left
         FORMAT: short
   WEATHER:
     TEMPERATURE:
@@ -237,3 +252,4 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: Cloudy SW4Level  33°
+        ALIGN: left

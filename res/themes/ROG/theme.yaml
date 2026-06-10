@@ -21,6 +21,7 @@ static_texts:
     FONT: turtheme/RACESPACEREGULAR.otf
     FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 98
@@ -28,6 +29,7 @@ static_texts:
     FONT: turtheme/RACESPACEREGULAR.otf
     FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 274
@@ -35,6 +37,7 @@ static_texts:
     FONT: turtheme/RACESPACEREGULAR.otf
     FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   c:
     TEXT: 'c:'
     X: 401
@@ -42,6 +45,7 @@ static_texts:
     FONT: turtheme/RACESPACEREGULAR.otf
     FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   C:
     TEXT: C
     X: 568
@@ -49,6 +53,7 @@ static_texts:
     FONT: turtheme/RACESPACEREGULAR.otf
     FONT_SIZE: 17
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   D:
     TEXT: D
     X: 644
@@ -56,6 +61,7 @@ static_texts:
     FONT: turtheme/RACESPACEREGULAR.otf
     FONT_SIZE: 17
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   E:
     TEXT: E
     X: 719
@@ -63,6 +69,7 @@ static_texts:
     FONT: turtheme/RACESPACEREGULAR.otf
     FONT_SIZE: 17
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
 STATS:
   CPU:
     TEMPERATURE:
@@ -76,6 +83,7 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '56'
+        ALIGN: right
     FAN:
       INTERVAL: 1
       TEXT:
@@ -87,6 +95,7 @@ STATS:
         FONT_SIZE: 25
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '0'
+        ALIGN: left
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -98,6 +107,7 @@ STATS:
         FONT_SIZE: 19
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '1962'
+        ALIGN: right
     POWER:
       INTERVAL: 1
       TEXT:
@@ -109,6 +119,7 @@ STATS:
         FONT_SIZE: 19
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '12'
+        ALIGN: right
       STATUS_BAR:
         SHOW: true
         INDEX: 8
@@ -132,6 +143,7 @@ STATS:
         FONT_SIZE: 17
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '28'
+        ALIGN: center
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -144,6 +156,7 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '55'
+        ALIGN: right
     FAN:
       TEXT:
         SHOW: true
@@ -154,6 +167,7 @@ STATS:
         FONT_SIZE: 25
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '0'
+        ALIGN: left
     FREQUENCY:
       TEXT:
         SHOW: true
@@ -164,6 +178,7 @@ STATS:
         FONT_SIZE: 19
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '300'
+        ALIGN: right
       STATUS_BAR:
         SHOW: true
         INDEX: 9
@@ -186,6 +201,7 @@ STATS:
         FONT_SIZE: 36
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '23'
+        ALIGN: right
     POWER:
       TEXT:
         SHOW: true
@@ -196,6 +212,7 @@ STATS:
         FONT_SIZE: 25
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '1'
+        ALIGN: center
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -220,6 +237,7 @@ STATS:
         FONT_SIZE: 15
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '13914'
+        ALIGN: right
       PERCENT_TEXT:
         SHOW: true
         INDEX: 25
@@ -229,6 +247,7 @@ STATS:
         FONT_SIZE: 17
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '88'
+        ALIGN: center
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -241,6 +260,7 @@ STATS:
         FONT_SIZE: 43
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '45'
+        ALIGN: right
     USED:
       PERCENT_TEXT:
         SHOW: true
@@ -251,6 +271,7 @@ STATS:
         FONT_SIZE: 17
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '96'
+        ALIGN: center
   DATE:
     INTERVAL: 1
     DAY:
@@ -264,6 +285,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-06-30'
+        ALIGN: left
         FORMAT: medium
     HOUR:
       TEXT:
@@ -276,4 +298,5 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '16:57:53'
+        ALIGN: left
         FORMAT: short

@@ -19,6 +19,7 @@ import (
 	gpuProvider "github.com/alexwbaule/turing-screen/internal/resource/gpu"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
+	"github.com/alexwbaule/turing-screen/internal/resource/volume"
 	"github.com/alexwbaule/turing-screen/internal/resource/weather"
 	"golang.org/x/sync/errgroup"
 )
@@ -182,6 +183,13 @@ func main() {
 				weatherClient = weather.NewClient()
 			}
 
+			var volClient *volume.Client
+			if vc, err := volume.NewClient(); err != nil {
+				app.Log.Warnf("volume client unavailable: %v", err)
+			} else {
+				volClient = vc
+			}
+
 			compositor.StartCollectors(
 				sensorCtx, app.Log, values,
 				cpuCfg.TemperatureSensor,
@@ -190,6 +198,7 @@ func main() {
 				gpuProvider.NewGPUProvider(gpuCfg.Provider, app.Log),
 				weatherClient,
 				weatherConfig.City,
+				volClient,
 				struct {
 					CPU, GPU, Memory, Disk, Network time.Duration
 					Weather                         time.Duration

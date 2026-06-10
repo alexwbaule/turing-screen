@@ -33,6 +33,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 4%
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 14
@@ -56,6 +57,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 9W
+        ALIGN: left
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -68,6 +70,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 36°
+        ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -81,6 +84,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 57%
+        ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 15
@@ -106,6 +110,7 @@ STATS:
           FONT_COLOR: 0, 0, 0
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -117,6 +122,7 @@ STATS:
           FONT_COLOR: 0, 0, 0
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -130,6 +136,7 @@ STATS:
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
         PLACEHOLDER: 32°
+        ALIGN: left
   DATE:
     INTERVAL: 1
     HOUR:
@@ -143,6 +150,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '14:40'
+        ALIGN: left
         FORMAT: short
     DAY:
       TEXT:
@@ -155,6 +163,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '07'
+        ALIGN: left
         FORMAT: medium
   WEATHER:
     TEMPERATURE:
@@ -168,3 +177,4 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: Cloudy SW1Level  12°
+        ALIGN: left

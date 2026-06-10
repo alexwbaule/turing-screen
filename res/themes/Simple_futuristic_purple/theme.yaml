@@ -27,6 +27,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 21
     FONT_COLOR: 104, 102, 116
+    ALIGN: left
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 24
@@ -34,6 +35,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 21
     FONT_COLOR: 104, 102, 116
+    ALIGN: left
   C:
     TEXT: C:/
     X: 284
@@ -41,6 +43,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 15
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
 STATS:
   CPU:
     PERCENTAGE:
@@ -54,6 +57,7 @@ STATS:
         FONT_SIZE: 60
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '14'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 33
@@ -78,11 +82,12 @@ STATS:
         INDEX: 5
         X: 451
         Y: 107
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 13
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 58°
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 22
@@ -101,11 +106,12 @@ STATS:
         INDEX: 6
         X: 451
         Y: 156
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 13
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 2522M
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 23
@@ -124,11 +130,12 @@ STATS:
         INDEX: 7
         X: 451
         Y: 206
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 13
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0R
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 24
@@ -147,11 +154,12 @@ STATS:
         INDEX: 18
         X: 197
         Y: 726
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Th.otf
         FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 3W
+        ALIGN: right
     VOLTAGE:
       INTERVAL: 1
       TEXT:
@@ -159,11 +167,12 @@ STATS:
         INDEX: 19
         X: 195
         Y: 756
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Th.otf
         FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0.70V
+        ALIGN: right
   GPU:
     INTERVAL: 1
     PERCENTAGE:
@@ -176,6 +185,7 @@ STATS:
         FONT_SIZE: 60
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '0'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 34
@@ -199,11 +209,12 @@ STATS:
         INDEX: 8
         X: 451
         Y: 349
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 13
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0°
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 25
@@ -221,11 +232,12 @@ STATS:
         INDEX: 9
         X: 451
         Y: 398
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 13
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0M
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 30
@@ -243,11 +255,12 @@ STATS:
         INDEX: 10
         X: 451
         Y: 448
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 13
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0R
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 26
@@ -265,22 +278,24 @@ STATS:
         INDEX: 20
         X: 428
         Y: 726
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Th.otf
         FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0W
+        ALIGN: right
     VOLTAGE:
       TEXT:
         SHOW: true
         INDEX: 21
         X: 426
         Y: 756
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Th.otf
         FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 0.00V
+        ALIGN: right
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -293,15 +308,17 @@ STATS:
         FONT_SIZE: 45
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '54'
+        ALIGN: center
       USED:
         SHOW: true
         INDEX: 11
         X: 167
         Y: 519
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '7101'
+        ALIGN: center
       GRAPH:
         SHOW: true
         INDEX: 27
@@ -338,11 +355,12 @@ STATS:
         INDEX: 13
         X: 451
         Y: 510
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 17
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 43°
+        ALIGN: right
     USED:
       GRAPH:
         SHOW: true
@@ -360,11 +378,12 @@ STATS:
         INDEX: 31
         X: 452
         Y: 546
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
         FONT_SIZE: 15
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 93%
+        ALIGN: right
   NET:
     INTERVAL: 1
     ETH:
@@ -374,19 +393,21 @@ STATS:
           INDEX: 14
           X: 320
           Y: 612
-          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT: turtheme/HelveticaNeueLTPro-Lt.otf
           FONT_SIZE: 16
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
           INDEX: 15
           X: 320
           Y: 635
-          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT: turtheme/HelveticaNeueLTPro-Lt.otf
           FONT_SIZE: 16
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left

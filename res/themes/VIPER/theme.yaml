@@ -27,6 +27,7 @@ static_texts:
     FONT: turtheme/Motorblock.ttf
     FONT_SIZE: 16
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   TEXT_1:
     TEXT: .
     X: 639
@@ -34,6 +35,7 @@ static_texts:
     FONT: turtheme/Motorblock.ttf
     FONT_SIZE: 16
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   SSD:
     TEXT: SSD
     X: 647
@@ -41,6 +43,7 @@ static_texts:
     FONT: turtheme/Source-San-Hans-BLOD.ttf
     FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
+    ALIGN: center
   VOL:
     TEXT: VOL
     X: 700
@@ -48,6 +51,7 @@ static_texts:
     FONT: turtheme/Source-San-Hans-BLOD.ttf
     FONT_SIZE: 13
     FONT_COLOR: 255, 255, 255
+    ALIGN: center
 STATS:
   CPU:
     TEMPERATURE:
@@ -62,6 +66,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 36°
+        ALIGN: left
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -74,6 +79,7 @@ STATS:
         FONT_COLOR: 137, 137, 137
         SHOW_UNIT: true
         PLACEHOLDER: 4054M
+        ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       STATUS_BAR:
@@ -101,6 +107,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 29°
+        ALIGN: left
     FREQUENCY:
       TEXT:
         SHOW: true
@@ -112,6 +119,7 @@ STATS:
         FONT_COLOR: 137, 137, 137
         SHOW_UNIT: true
         PLACEHOLDER: 1012M
+        ALIGN: left
     PERCENTAGE:
       STATUS_BAR:
         SHOW: true
@@ -138,6 +146,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 32°
+        ALIGN: left
     USED:
       RADIAL:
         SHOW: true
@@ -169,6 +178,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022'
+        ALIGN: left
         FORMAT: medium
     HOUR:
       TEXT:
@@ -181,6 +191,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '14:37'
+        ALIGN: left
         FORMAT: short
   MEMORY:
     INTERVAL: 5

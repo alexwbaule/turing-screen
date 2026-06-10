@@ -27,6 +27,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 24
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 435
@@ -34,6 +35,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 24
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   RAM:
     TEXT: RAM
     X: 76
@@ -41,6 +43,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 25
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
     X: 135
@@ -48,6 +51,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 25
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   C:
     TEXT: C：
     X: 276
@@ -55,6 +59,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 24
     FONT_COLOR: 255, 255, 255
+    ALIGN: left
   SSD:
     TEXT: SSD
     X: 377
@@ -62,6 +67,7 @@ static_texts:
     FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 24
     FONT_COLOR: 255, 255, 255
+    ALIGN: center
 STATS:
   CPU:
     PERCENTAGE:
@@ -75,6 +81,7 @@ STATS:
         FONT_SIZE: 47
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '4'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 6
@@ -104,6 +111,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 32°
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 7
@@ -126,6 +134,7 @@ STATS:
         FONT_SIZE: 25
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '4008'
+        ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 8
@@ -166,6 +175,7 @@ STATS:
         FONT_SIZE: 47
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '8'
+        ALIGN: center
     TEMPERATURE:
       GRAPH:
         SHOW: true
@@ -188,6 +198,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 26°
+        ALIGN: right
     MEMORY:
       GRAPH:
         SHOW: true
@@ -209,6 +220,7 @@ STATS:
         FONT_SIZE: 25
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '436'
+        ALIGN: right
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -221,6 +233,7 @@ STATS:
         FONT_SIZE: 47
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '46'
+        ALIGN: center
       RADIAL:
         SHOW: true
         INDEX: 19
@@ -262,6 +275,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 98%
+        ALIGN: right
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -273,6 +287,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 32°
+        ALIGN: right
   NET:
     INTERVAL: 1
     ETH:
@@ -287,6 +302,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -298,6 +314,7 @@ STATS:
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
           PLACEHOLDER: 0KB/s
+          ALIGN: left
   VOLUME:
     RADIAL:
       SHOW: true
@@ -329,6 +346,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '16:44'
+        ALIGN: center
         FORMAT: short
     DAY:
       TEXT:
@@ -341,4 +359,5 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2022-12-07'
+        ALIGN: center
         FORMAT: medium

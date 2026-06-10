@@ -27,6 +27,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 23
     FONT_COLOR: 89, 181, 248
+    ALIGN: center
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
     X: 388
@@ -34,6 +35,7 @@ static_texts:
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 23
     FONT_COLOR: 49, 212, 74
+    ALIGN: center
 STATS:
   CPU:
     TEMPERATURE:
@@ -48,6 +50,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 70°
+        ALIGN: left
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -61,6 +64,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 62°
+        ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -74,6 +78,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 85%
+        ALIGN: left
   DISK:
     INTERVAL: 10
     TEMPERATURE:
@@ -87,6 +92,7 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 49°
+        ALIGN: left
   NET:
     INTERVAL: 1
     ETH:
@@ -100,6 +106,7 @@ STATS:
           FONT_SIZE: 27
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 0KB/s
+          ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
@@ -110,3 +117,4 @@ STATS:
           FONT_SIZE: 27
           FONT_COLOR: 255, 255, 255
           PLACEHOLDER: 0KB/s
+          ALIGN: left
