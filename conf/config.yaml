@@ -1,5 +1,10 @@
 device:
     api_port: 9120
+    debug:
+        profiling:
+            enabled: false
+            pprof_addr: "localhost:6060"
+            pyroscope_addr: ""
     display:
         brightness: 25
         height: 720

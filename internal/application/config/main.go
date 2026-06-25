@@ -71,6 +71,10 @@ func (c *Config) GetAPIPort() int {
 	return c.device.APIPort
 }
 
+func (c *Config) GetDebugConfig() device.Debug {
+	return c.device.Debug
+}
+
 // Reload re-reads the config file from disk.
 func (c *Config) Reload() error {
 	var config device.Config

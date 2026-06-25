@@ -10,10 +10,20 @@ import (
 
 	pyroscope "github.com/grafana/pyroscope-go"
 
+	"github.com/alexwbaule/turing-screen/internal/application/config"
+	entityDevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/ui"
 )
 
-func startProfiling(appName, pprofAddr string) {
+func startProfiling(appName string, dbg entityDevice.Debug) {
+	if !dbg.Profiling.Enabled {
+		return
+	}
+
+	pprofAddr := dbg.Profiling.PprofAddr
+	if pprofAddr == "" {
+		pprofAddr = "localhost:6061"
+	}
 	go func() {
 		log.Printf("[profiling] pprof listening on http://%s/debug/pprof/", pprofAddr)
 		if err := http.ListenAndServe(pprofAddr, nil); err != nil {
@@ -21,7 +31,7 @@ func startProfiling(appName, pprofAddr string) {
 		}
 	}()
 
-	if addr := os.Getenv("PYROSCOPE_ADDR"); addr != "" {
+	if addr := dbg.Profiling.PyroscopeAddr; addr != "" {
 		_, err := pyroscope.Start(pyroscope.Config{
 			ApplicationName: appName,
 			ServerAddress:   addr,
@@ -61,7 +71,11 @@ func main() {
 		log.Printf("[single-instance] socket listen failed: %v (continuing without single-instance enforcement)", err)
 	}
 
-	startProfiling("turing-interface", "localhost:6061")
+	if cfg, err := config.NewDefaultConfig(); err != nil {
+		log.Printf("[config] failed to load config, profiling disabled: %v", err)
+	} else {
+		startProfiling("turing-interface", cfg.GetDebugConfig())
+	}
 	editorApp := ui.NewEditorApp()
 
 	if ln != nil {

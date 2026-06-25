@@ -21,8 +21,19 @@ type Device struct {
 	LogLevel      string `mapstructure:"log"`
 	TurnOffOnExit bool   `mapstructure:"turn_off_on_exit"`
 	APIPort       int    `mapstructure:"api_port"`
+	Debug         Debug  `mapstructure:"debug"`
 	Sensors
 	Display
+}
+
+type Debug struct {
+	Profiling ProfilingConfig `mapstructure:"profiling"`
+}
+
+type ProfilingConfig struct {
+	Enabled       bool   `mapstructure:"enabled"`
+	PprofAddr     string `mapstructure:"pprof_addr"`
+	PyroscopeAddr string `mapstructure:"pyroscope_addr"`
 }
 
 type Net struct {

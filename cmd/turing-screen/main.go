@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -14,9 +13,11 @@ import (
 	pyroscope "github.com/grafana/pyroscope-go"
 
 	"github.com/alexwbaule/turing-screen/internal/application"
+	"github.com/alexwbaule/turing-screen/internal/application/config"
 	"github.com/alexwbaule/turing-screen/internal/application/hwinfo"
 	appTheme "github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
+	entityDevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/api"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/compositor"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/initializer"
@@ -31,8 +32,15 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func startProfiling(appName, pprofAddr string) {
-	// pprof — always available, zero external deps
+func startProfiling(appName string, dbg entityDevice.Debug) {
+	if !dbg.Profiling.Enabled {
+		return
+	}
+
+	pprofAddr := dbg.Profiling.PprofAddr
+	if pprofAddr == "" {
+		pprofAddr = "localhost:6060"
+	}
 	go func() {
 		log.Printf("[profiling] pprof listening on http://%s/debug/pprof/", pprofAddr)
 		if err := http.ListenAndServe(pprofAddr, nil); err != nil {
@@ -40,8 +48,7 @@ func startProfiling(appName, pprofAddr string) {
 		}
 	}()
 
-	// Pyroscope continuous profiling — only when PYROSCOPE_ADDR is set
-	if addr := os.Getenv("PYROSCOPE_ADDR"); addr != "" {
+	if addr := dbg.Profiling.PyroscopeAddr; addr != "" {
 		_, err := pyroscope.Start(pyroscope.Config{
 			ApplicationName: appName,
 			ServerAddress:   addr,
@@ -64,7 +71,13 @@ func startProfiling(appName, pprofAddr string) {
 }
 
 func main() {
-	startProfiling("turing-screen", "localhost:6060")
+	cfg, err := config.NewDefaultConfig()
+	if err != nil {
+		log.Printf("[config] failed to load config, profiling disabled: %v", err)
+	} else {
+		startProfiling("turing-screen", cfg.GetDebugConfig())
+	}
+
 	app := application.NewApplication()
 
 	app.Run(func(ctx context.Context) error {
