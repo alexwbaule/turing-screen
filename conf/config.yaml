@@ -1,11 +1,11 @@
 device:
     api_port: 9120
     display:
-        brightness: 20
-        height: 480
+        brightness: 25
+        height: 720
         reverse: false
-        width: 800
-    log: debug
+        width: 1280
+    log: info
     port: AUTO
     sensors:
         cpu:
@@ -27,5 +27,5 @@ device:
             city: Sao Paulo,BR
             enabled: true
             interval: 30m
-    theme: Technology_theme
+    theme: GIGABYTE
     turn_off_on_exit: false

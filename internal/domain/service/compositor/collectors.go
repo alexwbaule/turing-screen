@@ -198,17 +198,6 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 		values.mu.Unlock()
 	}
 
-	// Temperature
-	temps, _ := host.SensorsTemperaturesWithContext(ctx)
-	for _, t := range temps {
-		if strings.Contains(t.SensorKey, "tdie") || strings.Contains(t.SensorKey, tempSensor) {
-			values.mu.Lock()
-			values.data.CPUTemp = t.Temperature
-			values.mu.Unlock()
-			break
-		}
-	}
-
 	// Load
 	lload, err := load.AvgWithContext(ctx)
 	if err == nil {
@@ -219,38 +208,62 @@ func collectCPU(ctx context.Context, values *SensorValues, tempSensor string, lo
 		values.mu.Unlock()
 	}
 
-	// Fan
-	fans, _ := host.SensorsFansWithContext(ctx)
-	for _, f := range fans {
-		if f.Speed > 0 {
-			values.mu.Lock()
-			values.data.CPUFan = f.Speed
-			values.mu.Unlock()
-			break
+	// Read all hwmon sensors in one pass to populate temp, fan, power, voltage.
+	// Four separate Sensors* calls each traverse /sys/class/hwmon/ independently;
+	// a single SensorsTemperaturesWithContext call + manual fan/power/voltage reads
+	// from the same traversal would be ideal, but gopsutil doesn't expose that.
+	// Compromise: read temperatures once here; disk also needs temps (collectDisk),
+	// so we accept the duplicate read rather than coupling the two collectors.
+	var cpuTemp, cpuFan, cpuPower, cpuVoltage float64
+	if temps, err2 := host.SensorsTemperaturesWithContext(ctx); err2 == nil {
+		for _, t := range temps {
+			key := strings.ToLower(t.SensorKey)
+			if cpuTemp == 0 && (strings.Contains(key, "tdie") || strings.Contains(key, tempSensor)) {
+				cpuTemp = t.Temperature
+			}
+		}
+	}
+	if fans, err2 := host.SensorsFansWithContext(ctx); err2 == nil {
+		for _, f := range fans {
+			if f.Speed > 0 {
+				cpuFan = f.Speed
+				break
+			}
+		}
+	}
+	if powers, err2 := host.SensorsPowerWithContext(ctx); err2 == nil {
+		for _, p := range powers {
+			key := strings.ToLower(p.SensorKey)
+			if strings.Contains(key, "core") || strings.Contains(key, "package") {
+				cpuPower = p.Power
+				break
+			}
+		}
+	}
+	if voltages, err2 := host.SensorsVoltagesWithContext(ctx); err2 == nil {
+		for _, v := range voltages {
+			key := strings.ToLower(v.SensorKey)
+			if strings.Contains(key, "core") || strings.Contains(key, "vcore") {
+				cpuVoltage = v.Voltage
+				break
+			}
 		}
 	}
 
-	// Power
-	powers, _ := host.SensorsPowerWithContext(ctx)
-	for _, p := range powers {
-		if strings.Contains(p.SensorKey, "core") || strings.Contains(p.SensorKey, "package") {
-			values.mu.Lock()
-			values.data.CPUPower = p.Power
-			values.mu.Unlock()
-			break
-		}
+	values.mu.Lock()
+	if cpuTemp > 0 {
+		values.data.CPUTemp = cpuTemp
 	}
-
-	// Voltage
-	voltages, _ := host.SensorsVoltagesWithContext(ctx)
-	for _, v := range voltages {
-		if strings.Contains(v.SensorKey, "core") || strings.Contains(v.SensorKey, "vcore") {
-			values.mu.Lock()
-			values.data.CPUVoltage = v.Voltage
-			values.mu.Unlock()
-			break
-		}
+	if cpuFan > 0 {
+		values.data.CPUFan = cpuFan
 	}
+	if cpuPower > 0 {
+		values.data.CPUPower = cpuPower
+	}
+	if cpuVoltage > 0 {
+		values.data.CPUVoltage = cpuVoltage
+	}
+	values.mu.Unlock()
 }
 
 func collectGPU(ctx context.Context, values *SensorValues, provider interfaces.Provider, log *logger.Logger) {

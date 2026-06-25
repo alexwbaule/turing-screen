@@ -112,18 +112,20 @@ func (v *SensorValues) Snapshot() map[string]interface{} {
 
 // Compositor renders all sensors into a single frame and sends diffs to the device.
 type Compositor struct {
-	log       *logger.Logger
-	serial    serial.SerialSender
-	builder   *renderer.Builder
-	stats     *theme.Stats
-	values    *SensorValues
-	cmdUpdate *command.UpdatePayload
-	interval  time.Duration
-	prevFrame *image.NRGBA
-	display   *theme.Display
-	count     int64
-	jobs      chan<- command.Command
-
+	log           *logger.Logger
+	serial        serial.SerialSender
+	builder       *renderer.Builder
+	stats         *theme.Stats
+	values        *SensorValues
+	cmdUpdate     *command.UpdatePayload
+	interval      time.Duration
+	frame         *image.NRGBA // pre-allocated render buffer, reused each tick
+	prevFrame     *image.NRGBA
+	background    []byte // snapshot of background Pix for fast reset
+	display       *theme.Display
+	count         int64
+	jobs          chan<- command.Command
+	frameCallback func(*image.NRGBA)
 }
 
 func New(
@@ -153,6 +155,14 @@ func (c *Compositor) SetJobs(jobs chan<- command.Command) {
 	c.jobs = jobs
 }
 
+// SetFrameCallback installs a callback invoked with each rendered frame.
+// When set, the compositor skips dirty-rect diffing and jobs-channel output
+// entirely — callers should encode and send the full frame themselves.
+// Used by TURZX devices that require full-frame PNG uploads.
+func (c *Compositor) SetFrameCallback(fn func(*image.NRGBA)) {
+	c.frameCallback = fn
+}
+
 // Run starts the compositor render loop.
 func (c *Compositor) Run(ctx context.Context) error {
 	ticker := time.NewTicker(c.interval)
@@ -172,19 +182,47 @@ func (c *Compositor) Run(ctx context.Context) error {
 	}
 }
 
+// initFrameBuffer initialises two pre-allocated render buffers (double-buffer pattern)
+// and a background pixel snapshot on the first call. No-op after first invocation.
+func (c *Compositor) initFrameBuffer() {
+	if c.frame != nil {
+		return
+	}
+	bg := c.builder.GetBackground()
+	bounds := bg.Bounds()
+	c.frame = image.NewNRGBA(bounds)
+	// prevFrame starts as background (matches what the device shows initially)
+	c.prevFrame = image.NewNRGBA(bounds)
+	copy(c.prevFrame.Pix, bg.Pix)
+	// Snapshot the background pixels once; it never changes after init.
+	c.background = make([]byte, len(bg.Pix))
+	copy(c.background, bg.Pix)
+}
+
 func (c *Compositor) renderAndSend() {
 	// 1. Snapshot all current sensor values in one struct assignment
 	c.values.mu.RLock()
 	vals := c.values.data
 	c.values.mu.RUnlock()
 
-	// 2. Render everything on top of background
-	frame := c.renderFrame(&vals)
+	// 2. Reset frame to background (reuse pre-allocated buffer — zero allocation)
+	c.initFrameBuffer()
+	copy(c.frame.Pix, c.background)
 
-	// 3. First frame: store the BACKGROUND as reference (what's on the device)
-	if c.prevFrame == nil {
-		c.prevFrame = imageToNRGBA(c.builder.GetBackground())
-		c.log.Debug("compositor: background stored as reference")
+	// 3. Render everything on top of background in-place (no allocation)
+	frame := c.renderFrame(c.frame, &vals)
+
+	// TURZX path: full-frame callback — skip dirty-rect diff and jobs channel.
+	if c.frameCallback != nil {
+		c.frameCallback(frame)
+		// Swap buffers so next tick's copy resets the other buffer
+		c.frame, c.prevFrame = c.prevFrame, c.frame
+		return
+	}
+
+	// Rev C path: guard against missing dependencies before dirty-rect diff.
+	if c.cmdUpdate == nil || c.jobs == nil {
+		return
 	}
 
 	// 4. Diff with previous frame and send dirty regions
@@ -217,8 +255,9 @@ func (c *Compositor) renderAndSend() {
 		}
 	}
 
-	// 5. Store current frame as previous (ALL jobs were queued successfully)
-	c.prevFrame = frame
+	// 5. Swap buffers (ALL jobs queued successfully): next tick's c.frame gets reset
+	// to background, so we swap to keep prevFrame pointing at the just-sent frame.
+	c.frame, c.prevFrame = c.prevFrame, c.frame
 }
 
 // findDirtyRects compares two frames and returns pixel-tight bounding boxes of
@@ -311,10 +350,3 @@ func mergeHorizontalRects(rects []image.Rectangle) []image.Rectangle {
 	return merged
 }
 
-// imageToNRGBA copies an image to NRGBA.
-func imageToNRGBA(src image.Image) *image.NRGBA {
-	bounds := src.Bounds()
-	dst := image.NewNRGBA(bounds)
-	draw.Draw(dst, bounds, src, bounds.Min, draw.Src)
-	return dst
-}

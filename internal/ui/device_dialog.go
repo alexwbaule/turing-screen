@@ -41,7 +41,16 @@ func ShowDeviceDialog(app *EditorApp) {
 	dd.usedLabel = widget.NewLabel("Usado: --")
 	dd.freeLabel = widget.NewLabel("Livre:  --")
 
-	dirs := []string{"/root/video/", "/root/image/", "/root/font/", "/root/"}
+	var dirs []string
+	if app.deviceType == "turzx" {
+		dd.currentDir = "/tmp/sdcard/mmcblk0p1/video/"
+		dirs = []string{
+			"/tmp/sdcard/mmcblk0p1/video/",
+			"/tmp/sdcard/mmcblk0p1/img/",
+		}
+	} else {
+		dirs = []string{"/root/video/", "/root/image/", "/root/font/", "/root/"}
+	}
 	dd.dirSelect = widget.NewSelect(dirs, func(s string) {
 		dd.currentDir = s
 	})
@@ -78,8 +87,6 @@ func ShowDeviceDialog(app *EditorApp) {
 		refreshStorageBtn,
 		widget.NewSeparator(),
 		restartBtn,
-		widget.NewSeparator(),
-		dd.statusLabel,
 	)
 
 	fileActions := container.NewVBox(
@@ -91,7 +98,12 @@ func ShowDeviceDialog(app *EditorApp) {
 	)
 
 	rightPanel := container.NewBorder(dd.dirSelect, nil, nil, fileActions, dd.fileList)
-	content := container.NewBorder(nil, nil, leftPanel, nil, rightPanel)
+	// Status label spans the full dialog width at the bottom — it must NOT be
+	// inside leftPanel, otherwise long messages widen the left column.
+	dd.statusLabel.Wrapping = fyne.TextTruncate
+	statusRow := container.NewVBox(widget.NewSeparator(), dd.statusLabel)
+	mainSplit := container.NewBorder(nil, nil, leftPanel, nil, rightPanel)
+	content := container.NewBorder(nil, statusRow, nil, nil, mainSplit)
 
 	d := dialog.NewCustom("Device Storage", "Fechar", content, dd.win)
 	d.Resize(fyne.NewSize(700, 400))

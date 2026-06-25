@@ -5,6 +5,8 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -20,6 +22,9 @@ type PropertiesPanel struct {
 	app            *EditorApp
 	selectedWidget fyne.CanvasObject
 	headerLabel    *widget.Label
+
+	refreshMu    sync.Mutex
+	refreshTimer *time.Timer
 
 	sensorSelect  *widget.Select
 	typeSelect    *widget.Select
@@ -48,34 +53,53 @@ type PropertiesPanel struct {
 	formatSelect     *widget.Select
 	showUnitCheck    *widget.Check
 
-	graphWidthEntry    *widget.Entry
-	graphHeightEntry   *widget.Entry
-	graphMinEntry      *widget.Entry
-	graphMaxEntry      *widget.Entry
-	graphBarColorEntry *widget.Entry
-	graphBarColorBtn   *widget.Button
-	graphBgColorEntry  *widget.Entry
-	graphBgColorBtn    *widget.Button
-	graphOutlineCheck  *widget.Check
+	graphWidthEntry          *widget.Entry
+	graphHeightEntry         *widget.Entry
+	graphMinEntry            *widget.Entry
+	graphMaxEntry            *widget.Entry
+	graphBarColorEntry       *widget.Entry
+	graphBarColorBtn         *widget.Button
+	graphEmptyColorEntry     *widget.Entry
+	graphEmptyColorBtn       *widget.Button
+	graphBgColorEntry        *widget.Entry
+	graphBgColorBtn          *widget.Button
+	graphGradientColorEntry  *widget.Entry
+	graphGradientColorBtn    *widget.Button
+	graphOutlineCheck        *widget.Check
+	graphStepsEntry          *widget.Entry
+	graphStepGapEntry        *widget.Entry
+	graphBlockWidthEntry     *widget.Entry
+	graphCornerRadiusEntry   *widget.Entry
+	graphBorderWidthEntry    *widget.Entry
+	graphRevertValueCheck    *widget.Check
+	graphDirectionSelect     *widget.Select
 
-	radialRadiusEntry    *widget.Entry
-	radialWidthEntry     *widget.Entry
-	radialMinEntry       *widget.Entry
-	radialMaxEntry       *widget.Entry
-	radialStartEntry     *widget.Entry
-	radialEndEntry       *widget.Entry
-	radialStepsEntry     *widget.Entry
-	radialSepEntry       *widget.Entry
-	radialClockCheck     *widget.Check
-	radialBarColorEntry  *widget.Entry
-	radialBarColorBtn    *widget.Button
-	radialBgColorEntry   *widget.Entry
-	radialBgColorBtn     *widget.Button
-	radialShowTextCheck  *widget.Check
-	radialShowUnitCheck  *widget.Check
-	radialFontSelector   *widget.Select
-	radialFontColorEntry *widget.Entry
-	radialFontColorBtn   *widget.Button
+	radialRadiusEntry        *widget.Entry
+	radialWidthEntry         *widget.Entry
+	radialMinEntry           *widget.Entry
+	radialMaxEntry           *widget.Entry
+	radialStartEntry         *widget.Entry
+	radialEndEntry           *widget.Entry
+	radialStepsEntry         *widget.Entry
+	radialSepEntry           *widget.Entry
+	radialBlockAngleEntry    *widget.Entry
+	radialClockCheck         *widget.Check
+	radialRoundCheck         *widget.Check
+	radialRevertCheck        *widget.Check
+	radialRevertValueCheck   *widget.Check
+	radialBarColorEntry      *widget.Entry
+	radialBarColorBtn        *widget.Button
+	radialEmptyColorEntry    *widget.Entry
+	radialEmptyColorBtn      *widget.Button
+	radialBgColorEntry       *widget.Entry
+	radialBgColorBtn         *widget.Button
+	radialGradientColorEntry *widget.Entry
+	radialGradientColorBtn   *widget.Button
+	radialShowTextCheck      *widget.Check
+	radialShowUnitCheck      *widget.Check
+	radialFontSelector       *widget.Select
+	radialFontColorEntry     *widget.Entry
+	radialFontColorBtn       *widget.Button
 
 	chartWidthEntry     *widget.Entry
 	chartHeightEntry    *widget.Entry
@@ -88,6 +112,23 @@ type PropertiesPanel struct {
 	chartLineColorEntry *widget.Entry
 	chartLineColorBtn   *widget.Button
 	chartBorderEntry    *widget.Entry
+}
+
+// scheduleRefresh debounces visual refreshes so that rapid OnChanged events
+// (e.g. every keystroke in a text entry) only trigger one buildImage() call
+// after 150ms of inactivity instead of one per keystroke.
+func (p *PropertiesPanel) scheduleRefresh(w fyne.Widget) {
+	p.refreshMu.Lock()
+	defer p.refreshMu.Unlock()
+	if p.refreshTimer != nil {
+		p.refreshTimer.Stop()
+	}
+	p.refreshTimer = time.AfterFunc(150*time.Millisecond, func() {
+		fyne.Do(func() {
+			w.Refresh()
+			w.Resize(w.MinSize())
+		})
+	})
 }
 
 func buildProperties(app *EditorApp) *PropertiesPanel {
@@ -142,21 +183,17 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.textContentEntry.OnChanged = func(s string) {
 		if dw, ok := p.selectedWidget.(*DraggableWidget); ok {
 			if strings.HasPrefix(dw.YAMLPath, "static_texts.") {
-				// Static text: set the actual Text field
 				dw.TextData.Text = s
 			} else {
-				// Sensor widget: set Placeholder (Text field is runtime-only)
 				dw.TextData.Placeholder = s
 			}
-			dw.Refresh()
-			dw.Resize(dw.MinSize())
+			p.scheduleRefresh(dw)
 		}
 	}
 	p.fontSelector = widget.NewSelect(availableFonts, func(s string) {
 		if dw, ok := p.selectedWidget.(*DraggableWidget); ok {
 			dw.TextData.Font = s
-			dw.Refresh()
-			dw.Resize(dw.MinSize())
+			p.scheduleRefresh(dw)
 		}
 	})
 	p.fontSizeEntry = widget.NewEntry()
@@ -164,8 +201,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 		if dw, ok := p.selectedWidget.(*DraggableWidget); ok {
 			if v, err := strconv.Atoi(s); err == nil {
 				dw.TextData.FontSize = v
-				dw.Refresh()
-				dw.Resize(dw.MinSize())
+				p.scheduleRefresh(dw)
 			}
 		}
 	}
@@ -173,7 +209,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.fontColorEntry.OnChanged = func(s string) {
 		if dw, ok := p.selectedWidget.(*DraggableWidget); ok {
 			dw.TextData.FontColor = s
-			dw.Refresh()
+			p.scheduleRefresh(dw)
 		}
 	}
 	p.fontColorBtn = widget.NewButton("Picker", func() {
@@ -183,7 +219,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.fontColorEntry.SetText(val)
 				dw.TextData.FontColor = val
 				dw.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
 			picker.Show()
 		}
 	})
@@ -191,7 +227,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.bgColorEntry.OnChanged = func(s string) {
 		if dw, ok := p.selectedWidget.(*DraggableWidget); ok {
 			dw.TextData.BackgroundColor = s
-			dw.Refresh()
+			p.scheduleRefresh(dw)
 		}
 	}
 	p.bgColorBtn = widget.NewButton("Picker", func() {
@@ -201,7 +237,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.bgColorEntry.SetText(val)
 				dw.TextData.BackgroundColor = val
 				dw.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
 			picker.Show()
 		}
 	})
@@ -264,15 +300,13 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.graphWidthEntry = makeIntEntry(func(v int) {
 		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
 			dg.GraphData.Width = v
-			dg.Refresh()
-			dg.Resize(dg.MinSize())
+			p.scheduleRefresh(dg)
 		}
 	})
 	p.graphHeightEntry = makeIntEntry(func(v int) {
 		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
 			dg.GraphData.Height = v
-			dg.Refresh()
-			dg.Resize(dg.MinSize())
+			p.scheduleRefresh(dg)
 		}
 	})
 	p.graphMinEntry = makeIntEntry(func(v int) {
@@ -289,7 +323,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.graphBarColorEntry.OnChanged = func(s string) {
 		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
 			dg.GraphData.BarColor = s
-			dg.Refresh()
+			p.scheduleRefresh(dg)
 		}
 	}
 	p.graphBarColorBtn = widget.NewButton("Picker", func() {
@@ -299,7 +333,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.graphBarColorEntry.SetText(val)
 				dg.GraphData.BarColor = val
 				dg.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
 			picker.Show()
 		}
 	})
@@ -307,7 +341,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.graphBgColorEntry.OnChanged = func(s string) {
 		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
 			dg.GraphData.BackgroundColor = s
-			dg.Refresh()
+			p.scheduleRefresh(dg)
 		}
 	}
 	p.graphBgColorBtn = widget.NewButton("Picker", func() {
@@ -317,14 +351,92 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.graphBgColorEntry.SetText(val)
 				dg.GraphData.BackgroundColor = val
 				dg.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
 			picker.Show()
 		}
 	})
 	p.graphOutlineCheck = widget.NewCheck("Outline", func(checked bool) {
 		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
 			dg.GraphData.BarOutline = checked
-			dg.Refresh()
+			p.scheduleRefresh(dg)
+		}
+	})
+	p.graphStepsEntry = makeIntEntry(func(v int) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.Steps = v
+			p.scheduleRefresh(dg)
+		}
+	})
+	p.graphStepGapEntry = makeIntEntry(func(v int) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.StepGap = v
+			p.scheduleRefresh(dg)
+		}
+	})
+	p.graphEmptyColorEntry = widget.NewEntry()
+	p.graphEmptyColorEntry.OnChanged = func(s string) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.EmptyColor = s
+			p.scheduleRefresh(dg)
+		}
+	}
+	p.graphEmptyColorBtn = widget.NewButton("Picker", func() {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			picker := dialog.NewColorPicker("Cor Vazia", "", func(c color.Color) {
+				val := utils.FormatColor(c)
+				p.graphEmptyColorEntry.SetText(val)
+				dg.GraphData.EmptyColor = val
+				dg.Refresh()
+			}, p.app.activeWindow())
+			picker.Show()
+		}
+	})
+	p.graphGradientColorEntry = widget.NewEntry()
+	p.graphGradientColorEntry.OnChanged = func(s string) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.GradientColor = s
+			p.scheduleRefresh(dg)
+		}
+	}
+	p.graphGradientColorBtn = widget.NewButton("Picker", func() {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			picker := dialog.NewColorPicker("Gradiente", "", func(c color.Color) {
+				val := utils.FormatColor(c)
+				p.graphGradientColorEntry.SetText(val)
+				dg.GraphData.GradientColor = val
+				dg.Refresh()
+			}, p.app.activeWindow())
+			picker.Show()
+		}
+	})
+	p.graphCornerRadiusEntry = makeIntEntry(func(v int) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.CornerRadius = v
+			p.scheduleRefresh(dg)
+		}
+	})
+	p.graphBorderWidthEntry = makeIntEntry(func(v int) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.BorderWidth = v
+			p.scheduleRefresh(dg)
+		}
+	})
+	p.graphBlockWidthEntry = makeIntEntry(func(v int) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.BlockWidth = v
+			p.scheduleRefresh(dg)
+		}
+	})
+	p.graphRevertValueCheck = widget.NewCheck("Inverter Valor", func(checked bool) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.RevertValue = checked
+			p.scheduleRefresh(dg)
+		}
+	})
+	p.graphDirectionSelect = widget.NewSelect([]string{"left", "right", "up", "down"}, func(s string) {
+		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
+			dg.GraphData.Direction = s
+			p.scheduleRefresh(dg)
 		}
 	})
 	p.graphFields = container.NewVBox(
@@ -332,25 +444,35 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 		widget.NewLabel("Altura:"), p.graphHeightEntry,
 		widget.NewLabel("Valor Mínimo:"), p.graphMinEntry,
 		widget.NewLabel("Valor Máximo:"), p.graphMaxEntry,
+		widget.NewLabel("Direção:"), p.graphDirectionSelect,
 		widget.NewLabel("Cor da Barra (R,G,B):"),
 		container.NewBorder(nil, nil, nil, p.graphBarColorBtn, p.graphBarColorEntry),
+		widget.NewLabel("Cor Vazia (R,G,B):"),
+		container.NewBorder(nil, nil, nil, p.graphEmptyColorBtn, p.graphEmptyColorEntry),
 		widget.NewLabel("Cor de Fundo (R,G,B):"),
 		container.NewBorder(nil, nil, nil, p.graphBgColorBtn, p.graphBgColorEntry),
+		widget.NewLabel("Gradiente (R,G,B):"),
+		container.NewBorder(nil, nil, nil, p.graphGradientColorBtn, p.graphGradientColorEntry),
 		p.graphOutlineCheck,
+		p.graphRevertValueCheck,
+		widget.NewLabel("Segmentos / Gap:"),
+		container.NewGridWithColumns(2, p.graphStepsEntry, p.graphStepGapEntry),
+		widget.NewLabel("Largura do Bloco:"), p.graphBlockWidthEntry,
+		widget.NewLabel("Raio do Canto:"), p.graphCornerRadiusEntry,
+		widget.NewLabel("Espessura da Borda:"), p.graphBorderWidthEntry,
 	)
 
 	// === RADIAL FIELDS ===
 	p.radialRadiusEntry = makeIntEntry(func(v int) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.Radius = v
-			dr.Refresh()
-			dr.Resize(dr.MinSize())
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialWidthEntry = makeIntEntry(func(v int) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.Width = v
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialMinEntry = makeIntEntry(func(v int) {
@@ -366,38 +488,38 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.radialStartEntry = makeIntEntry(func(v int) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.AngleStart = v
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialEndEntry = makeIntEntry(func(v int) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.AngleEnd = v
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialStepsEntry = makeIntEntry(func(v int) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.AngleSteps = v
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialSepEntry = makeIntEntry(func(v int) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.AngleSep = v
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialClockCheck = widget.NewCheck("Horário", func(checked bool) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.Clockwise = checked
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialBarColorEntry = widget.NewEntry()
 	p.radialBarColorEntry.OnChanged = func(s string) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.BarColor = s
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	}
 	p.radialBarColorBtn = widget.NewButton("Picker", func() {
@@ -407,7 +529,25 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.radialBarColorEntry.SetText(val)
 				dr.RadialData.BarColor = val
 				dr.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
+			picker.Show()
+		}
+	})
+	p.radialEmptyColorEntry = widget.NewEntry()
+	p.radialEmptyColorEntry.OnChanged = func(s string) {
+		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
+			dr.RadialData.EmptyColor = s
+			p.scheduleRefresh(dr)
+		}
+	}
+	p.radialEmptyColorBtn = widget.NewButton("Picker", func() {
+		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
+			picker := dialog.NewColorPicker("Cor Vazia", "", func(c color.Color) {
+				val := utils.FormatColor(c)
+				p.radialEmptyColorEntry.SetText(val)
+				dr.RadialData.EmptyColor = val
+				dr.Refresh()
+			}, p.app.activeWindow())
 			picker.Show()
 		}
 	})
@@ -415,7 +555,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.radialBgColorEntry.OnChanged = func(s string) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.BackgroundColor = s
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	}
 	p.radialBgColorBtn = widget.NewButton("Picker", func() {
@@ -425,33 +565,33 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.radialBgColorEntry.SetText(val)
 				dr.RadialData.BackgroundColor = val
 				dr.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
 			picker.Show()
 		}
 	})
 	p.radialShowTextCheck = widget.NewCheck("Mostrar Texto", func(checked bool) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.ShowText = checked
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialShowUnitCheck = widget.NewCheck("Mostrar Unidade", func(checked bool) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.ShowUnit = checked
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialFontSelector = widget.NewSelect(availableFonts, func(s string) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.Font = s
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialFontColorEntry = widget.NewEntry()
 	p.radialFontColorEntry.OnChanged = func(s string) {
 		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
 			dr.RadialData.FontColor = s
-			dr.Refresh()
+			p.scheduleRefresh(dr)
 		}
 	}
 	p.radialFontColorBtn = widget.NewButton("Picker", func() {
@@ -461,8 +601,50 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.radialFontColorEntry.SetText(val)
 				dr.RadialData.FontColor = val
 				dr.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
 			picker.Show()
+		}
+	})
+	p.radialGradientColorEntry = widget.NewEntry()
+	p.radialGradientColorEntry.OnChanged = func(s string) {
+		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
+			dr.RadialData.GradientColor = s
+			p.scheduleRefresh(dr)
+		}
+	}
+	p.radialGradientColorBtn = widget.NewButton("Picker", func() {
+		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
+			picker := dialog.NewColorPicker("Gradiente", "", func(c color.Color) {
+				val := utils.FormatColor(c)
+				p.radialGradientColorEntry.SetText(val)
+				dr.RadialData.GradientColor = val
+				dr.Refresh()
+			}, p.app.activeWindow())
+			picker.Show()
+		}
+	})
+	p.radialBlockAngleEntry = makeIntEntry(func(v int) {
+		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
+			dr.RadialData.BlockAngle = v
+			p.scheduleRefresh(dr)
+		}
+	})
+	p.radialRoundCheck = widget.NewCheck("Pontas Arredondadas", func(checked bool) {
+		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
+			dr.RadialData.Round = checked
+			p.scheduleRefresh(dr)
+		}
+	})
+	p.radialRevertCheck = widget.NewCheck("Inverter Cores (Revert)", func(checked bool) {
+		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
+			dr.RadialData.Revert = checked
+			p.scheduleRefresh(dr)
+		}
+	})
+	p.radialRevertValueCheck = widget.NewCheck("Inverter Valor", func(checked bool) {
+		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
+			dr.RadialData.RevertValue = checked
+			p.scheduleRefresh(dr)
 		}
 	})
 	p.radialFields = container.NewVBox(
@@ -472,13 +654,21 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 		container.NewGridWithColumns(2, p.radialMinEntry, p.radialMaxEntry),
 		widget.NewLabel("Ângulo Início/Fim:"),
 		container.NewGridWithColumns(2, p.radialStartEntry, p.radialEndEntry),
-		widget.NewLabel("Steps / Separação:"),
+		widget.NewLabel("Segmentos / Separação:"),
 		container.NewGridWithColumns(2, p.radialStepsEntry, p.radialSepEntry),
+		widget.NewLabel("Ângulo do Bloco (graus):"), p.radialBlockAngleEntry,
 		p.radialClockCheck,
+		p.radialRoundCheck,
+		p.radialRevertCheck,
+		p.radialRevertValueCheck,
 		widget.NewLabel("Cor do Arco (R,G,B):"),
 		container.NewBorder(nil, nil, nil, p.radialBarColorBtn, p.radialBarColorEntry),
+		widget.NewLabel("Cor Vazia (R,G,B):"),
+		container.NewBorder(nil, nil, nil, p.radialEmptyColorBtn, p.radialEmptyColorEntry),
 		widget.NewLabel("Cor de Fundo (R,G,B):"),
 		container.NewBorder(nil, nil, nil, p.radialBgColorBtn, p.radialBgColorEntry),
+		widget.NewLabel("Gradiente (R,G,B):"),
+		container.NewBorder(nil, nil, nil, p.radialGradientColorBtn, p.radialGradientColorEntry),
 		p.radialShowTextCheck,
 		p.radialShowUnitCheck,
 		widget.NewLabel("Fonte:"), p.radialFontSelector,
@@ -490,15 +680,13 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.chartWidthEntry = makeIntEntry(func(v int) {
 		if dc, ok := p.selectedWidget.(*DraggableChart); ok {
 			dc.ChartData.Width = v
-			dc.Refresh()
-			dc.Resize(dc.MinSize())
+			p.scheduleRefresh(dc)
 		}
 	})
 	p.chartHeightEntry = makeIntEntry(func(v int) {
 		if dc, ok := p.selectedWidget.(*DraggableChart); ok {
 			dc.ChartData.Height = v
-			dc.Refresh()
-			dc.Resize(dc.MinSize())
+			p.scheduleRefresh(dc)
 		}
 	})
 	p.chartMinEntry = makeIntEntry(func(v int) {
@@ -514,20 +702,20 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.chartColWidthEntry = makeIntEntry(func(v int) {
 		if dc, ok := p.selectedWidget.(*DraggableChart); ok {
 			dc.ChartData.ColumnWidth = v
-			dc.Refresh()
+			p.scheduleRefresh(dc)
 		}
 	})
 	p.chartColGapEntry = makeIntEntry(func(v int) {
 		if dc, ok := p.selectedWidget.(*DraggableChart); ok {
 			dc.ChartData.ColumnGap = v
-			dc.Refresh()
+			p.scheduleRefresh(dc)
 		}
 	})
 	p.chartFillColorEntry = widget.NewEntry()
 	p.chartFillColorEntry.OnChanged = func(s string) {
 		if dc, ok := p.selectedWidget.(*DraggableChart); ok {
 			dc.ChartData.FillColor = s
-			dc.Refresh()
+			p.scheduleRefresh(dc)
 		}
 	}
 	p.chartFillColorBtn = widget.NewButton("Picker", func() {
@@ -537,7 +725,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.chartFillColorEntry.SetText(val)
 				dc.ChartData.FillColor = val
 				dc.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
 			picker.Show()
 		}
 	})
@@ -545,7 +733,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.chartLineColorEntry.OnChanged = func(s string) {
 		if dc, ok := p.selectedWidget.(*DraggableChart); ok {
 			dc.ChartData.LineColor = s
-			dc.Refresh()
+			p.scheduleRefresh(dc)
 		}
 	}
 	p.chartLineColorBtn = widget.NewButton("Picker", func() {
@@ -555,14 +743,14 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.chartLineColorEntry.SetText(val)
 				dc.ChartData.LineColor = val
 				dc.Refresh()
-			}, p.app.mainWindow)
+			}, p.app.activeWindow())
 			picker.Show()
 		}
 	})
 	p.chartBorderEntry = makeIntEntry(func(v int) {
 		if dc, ok := p.selectedWidget.(*DraggableChart); ok {
 			dc.ChartData.BorderWidth = v
-			dc.Refresh()
+			p.scheduleRefresh(dc)
 		}
 	})
 	p.chartFields = container.NewVBox(
@@ -737,9 +925,18 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.graphHeightEntry.SetText(strconv.Itoa(v.GraphData.Height))
 		p.graphMinEntry.SetText(strconv.Itoa(v.GraphData.MinValue))
 		p.graphMaxEntry.SetText(strconv.Itoa(v.GraphData.MaxValue))
+		p.graphDirectionSelect.SetSelected(v.GraphData.Direction)
 		p.graphBarColorEntry.SetText(v.GraphData.BarColor)
+		p.graphEmptyColorEntry.SetText(v.GraphData.EmptyColor)
 		p.graphBgColorEntry.SetText(v.GraphData.BackgroundColor)
+		p.graphGradientColorEntry.SetText(v.GraphData.GradientColor)
 		p.graphOutlineCheck.SetChecked(v.GraphData.BarOutline)
+		p.graphRevertValueCheck.SetChecked(v.GraphData.RevertValue)
+		p.graphStepsEntry.SetText(strconv.Itoa(v.GraphData.Steps))
+		p.graphStepGapEntry.SetText(strconv.Itoa(v.GraphData.StepGap))
+		p.graphBlockWidthEntry.SetText(strconv.Itoa(v.GraphData.BlockWidth))
+		p.graphCornerRadiusEntry.SetText(strconv.Itoa(v.GraphData.CornerRadius))
+		p.graphBorderWidthEntry.SetText(strconv.Itoa(v.GraphData.BorderWidth))
 	case *DraggableRadial:
 		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
 		p.radialFields.Show()
@@ -754,9 +951,15 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.radialEndEntry.SetText(strconv.Itoa(v.RadialData.AngleEnd))
 		p.radialStepsEntry.SetText(strconv.Itoa(v.RadialData.AngleSteps))
 		p.radialSepEntry.SetText(strconv.Itoa(v.RadialData.AngleSep))
+		p.radialBlockAngleEntry.SetText(strconv.Itoa(v.RadialData.BlockAngle))
 		p.radialClockCheck.SetChecked(v.RadialData.Clockwise)
+		p.radialRoundCheck.SetChecked(v.RadialData.Round)
+		p.radialRevertCheck.SetChecked(v.RadialData.Revert)
+		p.radialRevertValueCheck.SetChecked(v.RadialData.RevertValue)
 		p.radialBarColorEntry.SetText(v.RadialData.BarColor)
+		p.radialEmptyColorEntry.SetText(v.RadialData.EmptyColor)
 		p.radialBgColorEntry.SetText(v.RadialData.BackgroundColor)
+		p.radialGradientColorEntry.SetText(v.RadialData.GradientColor)
 		p.radialShowTextCheck.SetChecked(v.RadialData.ShowText)
 		p.radialShowUnitCheck.SetChecked(v.RadialData.ShowUnit)
 		p.radialFontSelector.SetSelected(v.RadialData.Font)

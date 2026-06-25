@@ -44,6 +44,8 @@ type Display struct {
 	Size        string `yaml:"SIZE"`
 	Orientation string `yaml:"ORIENTATION"`
 	RGBLed      string `yaml:"RGB_LED,omitempty"`
+	Width       int    `yaml:"WIDTH"`
+	Height      int    `yaml:"HEIGHT"`
 }
 
 type DinamicImage struct {
@@ -123,10 +125,16 @@ type Graph struct {
 	MinValue        int         `yaml:"MIN_VALUE"`
 	MaxValue        int         `yaml:"MAX_VALUE"`
 	BarColor        string      `yaml:"BAR_COLOR"`
+	EmptyColor      string      `yaml:"EMPTY_COLOR,omitempty"`
 	BackgroundColor string      `yaml:"BACKGROUND_COLOR,omitempty"`
+	GradientColor   string      `yaml:"GRADIENT_COLOR,omitempty"`
 	BarOutline      bool        `yaml:"BAR_OUTLINE"`
+	BorderWidth     int         `yaml:"BORDER_WIDTH,omitempty"`
+	CornerRadius    int         `yaml:"CORNER_RADIUS,omitempty"`
 	Steps           int         `yaml:"STEPS,omitempty"`
 	StepGap         int         `yaml:"STEP_GAP,omitempty"`
+	BlockWidth      int         `yaml:"BLOCK_WIDTH,omitempty"`
+	RevertValue     bool        `yaml:"REVERT_VALUE,omitempty"`
 	LoadedImage     image.Image `yaml:"-"`
 }
 
@@ -143,13 +151,19 @@ type Radial struct {
 	AngleEnd        int         `yaml:"ANGLE_END"`
 	AngleSteps      int         `yaml:"ANGLE_STEPS"`
 	AngleSep        int         `yaml:"ANGLE_SEP"`
+	BlockAngle      int         `yaml:"BLOCK_ANGLE,omitempty"`
 	Clockwise       bool        `yaml:"CLOCKWISE"`
 	BarColor        string      `yaml:"BAR_COLOR"`
+	EmptyColor      string      `yaml:"EMPTY_COLOR,omitempty"`
+	BackgroundColor string      `yaml:"BACKGROUND_COLOR,omitempty"`
+	GradientColor   string      `yaml:"GRADIENT_COLOR,omitempty"`
+	Round           bool        `yaml:"ROUND,omitempty"`
+	Revert          bool        `yaml:"REVERT,omitempty"`
+	RevertValue     bool        `yaml:"REVERT_VALUE,omitempty"`
 	ShowText        bool        `yaml:"SHOW_TEXT"`
 	ShowUnit        bool        `yaml:"SHOW_UNIT"`
 	Font            string      `yaml:"FONT,omitempty"`
 	FontColor       string      `yaml:"FONT_COLOR,omitempty"`
-	BackgroundColor string      `yaml:"BACKGROUND_COLOR,omitempty"`
 	LoadedFont      font.Face   `yaml:"-"`
 	LoadedImage     image.Image `yaml:"-"`
 }

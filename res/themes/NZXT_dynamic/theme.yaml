@@ -1,45 +1,41 @@
 # Auto-converted from .turtheme
 # Source: NZXT_dynamic
-# Resolution: 800x480 (landscape)
+# Resolution: 1280x720 (landscape)
 ---
 display:
   SIZE: 5"
   ORIENTATION: landscape
   RGB_LED: 0, 0, 0
+  WIDTH: 1280
+  HEIGHT: 720
 video:
   PATH: video/TURZX.mp4
   X: 0
   Y: 0
-  WIDTH: 800
-  HEIGHT: 480
+  WIDTH: 1280
+  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
-  LAYER_2:
-    PATH: assets/image_6.png
-    X: 0
-    Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    WIDTH: 1199
+    HEIGHT: 719
 static_texts:
   CPUMODEL:
     TEXT: '{{CPU_MODEL}}'
-    X: 148
-    Y: 29
+    X: 219
+    Y: 51
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 23
+    FONT_SIZE: 36
     FONT_COLOR: 89, 181, 248
     ALIGN: center
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
-    X: 388
-    Y: 28
+    X: 584
+    Y: 51
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 23
+    FONT_SIZE: 36
     FONT_COLOR: 49, 212, 74
     ALIGN: center
 STATS:
@@ -48,56 +44,56 @@ STATS:
       INTERVAL: 1
       TEXT:
         SHOW: true
-        INDEX: 2
-        X: 123
-        Y: 60
+        INDEX: 1
+        X: 189
+        Y: 87
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 74
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
-        PLACEHOLDER: 49°
+        PLACEHOLDER: 88°
         ALIGN: left
   GPU:
     INTERVAL: 1
     TEMPERATURE:
       TEXT:
         SHOW: true
-        INDEX: 3
-        X: 360
-        Y: 60
+        INDEX: 2
+        X: 557
+        Y: 89
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 74
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
-        PLACEHOLDER: 49°
+        PLACEHOLDER: 88°
         ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
-        INDEX: 4
-        X: 118
-        Y: 222
+        INDEX: 3
+        X: 181
+        Y: 331
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 44
+        FONT_SIZE: 74
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
-        PLACEHOLDER: 35%
+        PLACEHOLDER: 88%
         ALIGN: left
   DISK:
     INTERVAL: 10
     TEMPERATURE:
       TEXT:
         SHOW: true
-        INDEX: 5
-        X: 360
-        Y: 222
+        INDEX: 4
+        X: 547
+        Y: 331
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 74
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
-        PLACEHOLDER: 41°
+        PLACEHOLDER: 88°
         ALIGN: left
   NET:
     INTERVAL: 1
@@ -105,50 +101,22 @@ STATS:
       UPLOAD:
         TEXT:
           SHOW: true
-          INDEX: 6
-          X: 123
-          Y: 386
+          INDEX: 5
+          X: 184
+          Y: 581
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 27
+          FONT_SIZE: 39
           FONT_COLOR: 0, 0, 0
-          PLACEHOLDER: 0KB/s
+          PLACEHOLDER: '888'
           ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
-          INDEX: 7
-          X: 362
-          Y: 385
+          INDEX: 6
+          X: 542
+          Y: 579
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 27
+          FONT_SIZE: 39
           FONT_COLOR: 0, 0, 0
-          PLACEHOLDER: 0KB/s
+          PLACEHOLDER: '888'
           ALIGN: left
-  DATE:
-    INTERVAL: 1
-    DAY:
-      TEXT:
-        SHOW: true
-        INDEX: 10
-        X: 589
-        Y: 433
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 13
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: '2023-04-30'
-        ALIGN: center
-        FORMAT: medium
-    HOUR:
-      TEXT:
-        SHOW: true
-        INDEX: 11
-        X: 690
-        Y: 408
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 31
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: '14:15:03'
-        ALIGN: center
-        FORMAT: short

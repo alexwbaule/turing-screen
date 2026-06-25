@@ -1,24 +1,26 @@
 # Auto-converted from .turtheme
 # Source: Marvel’s Spider-man
-# Resolution: 800x480 (landscape)
+# Resolution: 1280x720 (landscape)
 ---
 display:
   SIZE: 5"
   ORIENTATION: landscape
   RGB_LED: 255, 199, 199
+  WIDTH: 1280
+  HEIGHT: 720
 video:
   PATH: video/SpiderMan.mp4
   X: 0
   Y: 0
-  WIDTH: 800
-  HEIGHT: 480
+  WIDTH: 1280
+  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png
     X: 0
     Y: 0
-    WIDTH: 3334
-    HEIGHT: 2000
+    WIDTH: 1280
+    HEIGHT: 800
 STATS:
   GPU:
     INTERVAL: 1
@@ -26,45 +28,45 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 1
-        X: 215
-        Y: 37
+        X: 345
+        Y: 62
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 76
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
-        PLACEHOLDER: 41%
+        PLACEHOLDER: 88%
         ALIGN: right
       STATUS_BAR:
         SHOW: true
         INDEX: 12
-        X: 596
-        Y: 286
-        WIDTH: 170
-        HEIGHT: 4
+        X: 953
+        Y: 476
+        WIDTH: 272
+        HEIGHT: 6
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
         INDICATOR_COLOR: 230, 0, 18
-        INDICATOR_RADIUS: 6
+        INDICATOR_RADIUS: 8
     TEMPERATURE:
       TEXT:
         SHOW: true
         INDEX: 4
-        X: 99
-        Y: 95
+        X: 158
+        Y: 160
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 19
+        FONT_SIZE: 29
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
-        PLACEHOLDER: 62°
+        PLACEHOLDER: 88°
         ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 7
-        X: 147
-        Y: 96
-        WIDTH: 69
-        HEIGHT: 11
+        X: 237
+        Y: 160
+        WIDTH: 106
+        HEIGHT: 17
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
@@ -73,20 +75,20 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 5
-        X: 99
-        Y: 118
+        X: 158
+        Y: 198
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 19
+        FONT_SIZE: 29
         FONT_COLOR: 255, 199, 199
-        PLACEHOLDER: '737'
+        PLACEHOLDER: '8888'
         ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 8
-        X: 147
-        Y: 120
-        WIDTH: 69
-        HEIGHT: 11
+        X: 237
+        Y: 201
+        WIDTH: 106
+        HEIGHT: 17
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
@@ -97,46 +99,46 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 2
-        X: 215
-        Y: 175
+        X: 345
+        Y: 292
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 76
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
-        PLACEHOLDER: 30%
+        PLACEHOLDER: 88%
         ALIGN: right
       STATUS_BAR:
         SHOW: true
         INDEX: 13
-        X: 596
-        Y: 333
-        WIDTH: 170
-        HEIGHT: 4
+        X: 953
+        Y: 554
+        WIDTH: 272
+        HEIGHT: 6
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
         INDICATOR_COLOR: 230, 0, 18
-        INDICATOR_RADIUS: 6
+        INDICATOR_RADIUS: 8
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
         SHOW: true
         INDEX: 6
-        X: 100
-        Y: 233
+        X: 160
+        Y: 391
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 19
+        FONT_SIZE: 29
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
-        PLACEHOLDER: 69°
+        PLACEHOLDER: 88°
         ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 9
-        X: 147
-        Y: 234
-        WIDTH: 69
-        HEIGHT: 11
+        X: 237
+        Y: 391
+        WIDTH: 106
+        HEIGHT: 17
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
@@ -146,10 +148,10 @@ STATS:
       GRAPH:
         SHOW: true
         INDEX: 10
-        X: 147
-        Y: 259
-        WIDTH: 69
-        HEIGHT: 11
+        X: 237
+        Y: 431
+        WIDTH: 106
+        HEIGHT: 17
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
@@ -157,12 +159,12 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 17
-        X: 100
-        Y: 255
+        X: 160
+        Y: 425
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 19
+        FONT_SIZE: 29
         FONT_COLOR: 255, 199, 199
-        PLACEHOLDER: '2184'
+        PLACEHOLDER: '4800'
         ALIGN: left
   MEMORY:
     INTERVAL: 5
@@ -170,21 +172,21 @@ STATS:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 3
-        X: 215
-        Y: 314
+        X: 345
+        Y: 522
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 76
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
-        PLACEHOLDER: 85%
+        PLACEHOLDER: 88%
         ALIGN: right
       GRAPH:
         SHOW: true
         INDEX: 11
-        X: 147
-        Y: 373
-        WIDTH: 69
-        HEIGHT: 11
+        X: 237
+        Y: 621
+        WIDTH: 106
+        HEIGHT: 17
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
@@ -192,13 +194,13 @@ STATS:
       USED:
         SHOW: true
         INDEX: 16
-        X: 120
-        Y: 372
+        X: 192
+        Y: 619
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 19
+        FONT_SIZE: 31
         FONT_COLOR: 255, 199, 199
         SHOW_UNIT: true
-        PLACEHOLDER: 13395M
+        PLACEHOLDER: 8888M
         ALIGN: right
   DISK:
     INTERVAL: 10
@@ -206,12 +208,12 @@ STATS:
       STATUS_BAR:
         SHOW: true
         INDEX: 15
-        X: 596
-        Y: 426
-        WIDTH: 170
-        HEIGHT: 4
+        X: 953
+        Y: 704
+        WIDTH: 272
+        HEIGHT: 6
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
         INDICATOR_COLOR: 230, 0, 18
-        INDICATOR_RADIUS: 6
+        INDICATOR_RADIUS: 8

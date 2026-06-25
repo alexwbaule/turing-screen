@@ -14,14 +14,26 @@ import (
 )
 
 // Controller provides actions the API can trigger on the daemon.
+// DeviceSettings holds configurable device parameters for SaveSettings.
+// All values are 0–255. Zero means "keep current / default".
+type DeviceSettings struct {
+	Brightness int `json:"brightness"` // 0–100 (converted to 0–102 internally)
+	Startup    int `json:"startup"`    // startup mode
+	Rotation   int `json:"rotation"`   // screen rotation
+	Sleep      int `json:"sleep"`      // sleep timeout
+	Offline    int `json:"offline"`    // offline mode flag
+}
+
 type Controller interface {
 	GetStatus() StatusResponse
 	SetModeEditor() error
 	SetModeNormal() error
 	SetBrightness(value int) error
+	SaveSettings(s DeviceSettings) error
 	RestartDevice() error
 	RebootDevice() error
 	ResetUSB() error
+	HardResetDevice() error
 	TurnOff() error
 	PreviewImage(imgData []byte) error
 	ApplyTheme(name string) error
@@ -42,6 +54,7 @@ type StatusResponse struct {
 	Firmware   string `json:"firmware"`
 	Uptime     string `json:"uptime"`
 	APIVersion string `json:"api_version"`
+	DeviceType string `json:"device_type"` // "turzx" or "revc"
 }
 
 type StorageInfo struct {
@@ -162,7 +175,9 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request, ctx con
 			continue
 		}
 
+		s.log.Infof("[WS←] id=%s action=%s payload=%s", msg.ID, msg.Action, truncateStr(string(msg.Payload), 120))
 		response := s.handleMessage(msg)
+		s.log.Infof("[WS→] id=%s action=%s status=%s err=%q", response.ID, response.Action, response.Status, response.Error)
 		respData, _ := json.Marshal(response)
 		select {
 		case sendCh <- respData:
@@ -202,6 +217,16 @@ func (s *Server) handleMessage(msg Message) Message {
 		}
 		return s.respondOK(msg.ID, msg.Action)
 
+	case "device.settings":
+		var p DeviceSettings
+		if err := json.Unmarshal(msg.Payload, &p); err != nil {
+			return s.respondError(msg.ID, msg.Action, "invalid payload: "+err.Error())
+		}
+		if err := s.controller.SaveSettings(p); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
 	case "device.restart":
 		s.controller.RestartDevice()
 		return s.respondOK(msg.ID, msg.Action)
@@ -212,6 +237,12 @@ func (s *Server) handleMessage(msg Message) Message {
 
 	case "device.reset":
 		if err := s.controller.ResetUSB(); err != nil {
+			return s.respondError(msg.ID, msg.Action, err.Error())
+		}
+		return s.respondOK(msg.ID, msg.Action)
+
+	case "device.hardreset":
+		if err := s.controller.HardResetDevice(); err != nil {
 			return s.respondError(msg.ID, msg.Action, err.Error())
 		}
 		return s.respondOK(msg.ID, msg.Action)
@@ -386,4 +417,11 @@ func (s *Server) sendError(ctx context.Context, conn *websocket.Conn, id, errMsg
 	msg := Message{ID: id, Status: "error", Error: errMsg}
 	data, _ := json.Marshal(msg)
 	conn.Write(ctx, websocket.MessageText, data)
+}
+
+func truncateStr(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "…"
 }

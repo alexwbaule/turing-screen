@@ -1,24 +1,26 @@
 # Auto-converted from .turtheme
 # Source: Dragon Ball
-# Resolution: 800x480 (landscape)
+# Resolution: 1280x720 (landscape)
 ---
 display:
   SIZE: 5"
   ORIENTATION: landscape
   RGB_LED: 0, 0, 0
+  WIDTH: 1280
+  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: assets/image_1.png
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    WIDTH: 1280
+    HEIGHT: 720
   LAYER_2:
     PATH: assets/image_3.png
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    WIDTH: 1280
+    HEIGHT: 720
 STATS:
   CPU:
     TEMPERATURE:
@@ -26,21 +28,21 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 2
-        X: 37
-        Y: 63
+        X: 58
+        Y: 89
         FONT: turtheme/HelveticaNeueLTPro-Blk.otf
-        FONT_SIZE: 69
+        FONT_SIZE: 112
         FONT_COLOR: 0, 0, 0
-        PLACEHOLDER: '61'
+        PLACEHOLDER: '88'
         ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       GRAPH:
         SHOW: true
         INDEX: 7
-        X: 23
-        Y: 184
-        WIDTH: 172
+        X: 39
+        Y: 274
+        WIDTH: 250
         HEIGHT: 12
         MIN_VALUE: 0
         MAX_VALUE: 100
@@ -52,19 +54,19 @@ STATS:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 3
-        X: 284
-        Y: 341
+        X: 465
+        Y: 505
         FONT: turtheme/HelveticaNeueLTPro-Blk.otf
-        FONT_SIZE: 69
+        FONT_SIZE: 112
         FONT_COLOR: 0, 0, 0
-        PLACEHOLDER: '87'
+        PLACEHOLDER: '88'
         ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 8
-        X: 278
-        Y: 451
-        WIDTH: 161
+        X: 445
+        Y: 676
+        WIDTH: 250
         HEIGHT: 12
         MIN_VALUE: 0
         MAX_VALUE: 100
@@ -76,23 +78,23 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 4
-        X: 772
-        Y: 325
+        X: 1230
+        Y: 482
         FONT: turtheme/HelveticaNeueLTPro-Blk.otf
-        FONT_SIZE: 69
+        FONT_SIZE: 112
         FONT_COLOR: 0, 0, 0
-        PLACEHOLDER: '49'
+        PLACEHOLDER: '88'
         ALIGN: right
   VOLUME:
     TEXT:
       SHOW: true
       INDEX: 5
-      X: 189
-      Y: 22
+      X: 363
+      Y: 47
       FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-      FONT_SIZE: 56
+      FONT_SIZE: 64
       FONT_COLOR: 255, 224, 139
-      PLACEHOLDER: '19'
+      PLACEHOLDER: '100'
       ALIGN: left
   DISK:
     INTERVAL: 10
@@ -100,12 +102,12 @@ STATS:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 6
-        X: 260
-        Y: 115
+        X: 434
+        Y: 181
         FONT: turtheme/HelveticaNeueLTPro-Blk.otf
-        FONT_SIZE: 56
+        FONT_SIZE: 64
         FONT_COLOR: 255, 224, 139
-        PLACEHOLDER: '94'
+        PLACEHOLDER: '88'
         ALIGN: left
   DATE:
     INTERVAL: 1
@@ -113,25 +115,25 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 9
-        X: 346
-        Y: 9
+        X: 555
+        Y: 22
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 35
+        FONT_SIZE: 40
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
-        PLACEHOLDER: '14:03:46'
+        PLACEHOLDER: '12:00:00'
         ALIGN: left
         FORMAT: short
     DAY:
       TEXT:
         SHOW: true
         INDEX: 10
-        X: 375
-        Y: 50
+        X: 614
+        Y: 71
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
+        FONT_SIZE: 32
         FONT_COLOR: 0, 0, 0
         SHOW_UNIT: true
-        PLACEHOLDER: '2022-07-08'
+        PLACEHOLDER: '2020-12-31'
         ALIGN: left
         FORMAT: medium

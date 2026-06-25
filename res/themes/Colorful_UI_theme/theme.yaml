@@ -1,47 +1,49 @@
 # Auto-converted from .turtheme
 # Source: Colorful UI theme
-# Resolution: 480x800 (portrait)
+# Resolution: 720x1280 (reverse_portrait)
 ---
 display:
   SIZE: 5"
-  ORIENTATION: portrait
+  ORIENTATION: reverse_portrait
   RGB_LED: 79, 79, 79
+  WIDTH: 720
+  HEIGHT: 1280
 video:
   PATH: video/atri.mp4
   X: 0
   Y: 0
-  WIDTH: 480
-  HEIGHT: 800
+  WIDTH: 720
+  HEIGHT: 1280
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png
     X: 0
     Y: 0
-    WIDTH: 480
-    HEIGHT: 800
+    WIDTH: 720
+    HEIGHT: 1200
 static_texts:
   CPUMODEL:
     TEXT: '{{CPU_MODEL}}'
-    X: 220
-    Y: 37
+    X: 367
+    Y: 59
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 27
+    FONT_SIZE: 44
     FONT_COLOR: 79, 79, 79
     ALIGN: left
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
-    X: 219
-    Y: 222
+    X: 364
+    Y: 354
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 27
+    FONT_SIZE: 44
     FONT_COLOR: 79, 79, 79
     ALIGN: left
   RAMMODEL:
     TEXT: '{{MEM_TOTAL}}'
-    X: 214
-    Y: 402
+    X: 356
+    Y: 643
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 27
+    FONT_SIZE: 44
     FONT_COLOR: 79, 79, 79
     ALIGN: left
 STATS:
@@ -51,34 +53,34 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 1
-        X: 221
-        Y: 74
+        X: 366
+        Y: 118
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
+        FONT_SIZE: 49
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: 3723MHZ
+        PLACEHOLDER: 4800M
         ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
         SHOW: true
         INDEX: 2
-        X: 372
-        Y: 74
+        X: 580
+        Y: 121
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
+        FONT_SIZE: 48
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: 15%
+        PLACEHOLDER: 88%
         ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 10
-        X: 223
-        Y: 122
-        WIDTH: 240
-        HEIGHT: 20
+        X: 368
+        Y: 197
+        WIDTH: 380
+        HEIGHT: 32
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
@@ -88,13 +90,13 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 18
-        X: 372
-        Y: 37
+        X: 622
+        Y: 60
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 43
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: 60°
+        PLACEHOLDER: 88°
         ALIGN: left
   GPU:
     INTERVAL: 1
@@ -102,21 +104,21 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 3
-        X: 351
-        Y: 256
+        X: 526
+        Y: 409
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
+        FONT_SIZE: 49
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: 491M
+        PLACEHOLDER: 8888M
         ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 12
-        X: 223
-        Y: 304
-        WIDTH: 240
-        HEIGHT: 20
+        X: 368
+        Y: 780
+        WIDTH: 380
+        HEIGHT: 32
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
@@ -125,25 +127,25 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 4
-        X: 221
-        Y: 256
+        X: 371
+        Y: 412
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
+        FONT_SIZE: 47
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: 7%
+        PLACEHOLDER: 88%
         ALIGN: left
     TEMPERATURE:
       TEXT:
         SHOW: true
         INDEX: 19
-        X: 372
-        Y: 222
+        X: 621
+        Y: 354
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 27
+        FONT_SIZE: 44
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: 50°
+        PLACEHOLDER: 88°
         ALIGN: left
   MEMORY:
     INTERVAL: 5
@@ -151,21 +153,21 @@ STATS:
       USED:
         SHOW: true
         INDEX: 5
-        X: 458
-        Y: 437
+        X: 700
+        Y: 701
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
+        FONT_SIZE: 49
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: 13873M
+        PLACEHOLDER: 8888M
         ALIGN: right
       PERCENT_TEXT:
         SHOW: true
         INDEX: 6
-        X: 216
-        Y: 437
+        X: 358
+        Y: 699
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
+        FONT_SIZE: 49
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
         PLACEHOLDER: 88%
@@ -173,10 +175,10 @@ STATS:
       GRAPH:
         SHOW: true
         INDEX: 11
-        X: 223
-        Y: 486
-        WIDTH: 240
-        HEIGHT: 20
+        X: 368
+        Y: 488
+        WIDTH: 380
+        HEIGHT: 32
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
@@ -188,25 +190,25 @@ STATS:
         TEXT:
           SHOW: true
           INDEX: 13
-          X: 82
-          Y: 635
+          X: 140
+          Y: 967
           FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 25
+          FONT_SIZE: 41
           FONT_COLOR: 79, 79, 79
           SHOW_UNIT: true
-          PLACEHOLDER: 0KB/s
+          PLACEHOLDER: 888KB/s
           ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
           INDEX: 14
-          X: 82
-          Y: 676
+          X: 138
+          Y: 1029
           FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 25
+          FONT_SIZE: 41
           FONT_COLOR: 79, 79, 79
           SHOW_UNIT: true
-          PLACEHOLDER: 0KB/s
+          PLACEHOLDER: 888KB/s
           ALIGN: left
   DATE:
     INTERVAL: 1
@@ -214,26 +216,26 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 15
-        X: 80
-        Y: 569
+        X: 135
+        Y: 859
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
+        FONT_SIZE: 49
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: '2022-06-07'
+        PLACEHOLDER: '2020-12-31'
         ALIGN: left
         FORMAT: medium
     HOUR:
       TEXT:
         SHOW: true
         INDEX: 16
-        X: 445
-        Y: 569
+        X: 708
+        Y: 863
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
+        FONT_SIZE: 49
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: '12:22:57'
+        PLACEHOLDER: '12:00:00'
         ALIGN: right
         FORMAT: short
   WEATHER:
@@ -241,11 +243,11 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 17
-        X: 60
-        Y: 731
+        X: 115
+        Y: 1214
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 24
+        FONT_SIZE: 40
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: Cloudy S3Level  24°
+        PLACEHOLDER: Partly Cloudy 20° NE Wind
         ALIGN: left

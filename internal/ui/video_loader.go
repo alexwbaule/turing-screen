@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"image"
-	"image/color"
 	_ "image/png"
 	"io"
 	"log"
@@ -16,44 +15,58 @@ import (
 	"fyne.io/fyne/v2/canvas"
 )
 
-const (
-	videoWidth  = 800
-	videoHeight = 480
-	videoFPS    = 24
-)
+const videoFPS = 24
 
-// VideoPlayer streams video from ffmpeg as raw RGBA and renders via canvas.Raster.
+// VideoPlayer streams video from ffmpeg as raw RGBA and renders via canvas.Image.
+// Unlike canvas.Raster, canvas.Image only redraws when explicitly Refresh()ed,
+// so Fyne's render loop is not constantly triggered between frames.
 type VideoPlayer struct {
-	raster       *canvas.Raster
+	img          *canvas.Image
 	currentFrame image.Image
 	mu           sync.Mutex
 	stopCh       chan struct{}
 	running      bool
 	videoPath    string
+	frameW       int
+	frameH       int
 }
 
-// NewVideoPlayer creates a player with a canvas.Raster bound to render the current frame.
+// NewVideoPlayer creates a player backed by a canvas.Image.
 func NewVideoPlayer() *VideoPlayer {
 	vp := &VideoPlayer{
 		stopCh: make(chan struct{}),
+		frameW: 1280,
+		frameH: 720,
 	}
-	vp.raster = canvas.NewRaster(vp.renderFrame)
+	vp.img = canvas.NewImageFromImage(nil)
+	vp.img.FillMode = canvas.ImageFillStretch
 	return vp
 }
 
-// CanvasObject returns the fyne.CanvasObject for this player (to add to layouts).
-func (vp *VideoPlayer) CanvasObject() fyne.CanvasObject {
-	return vp.raster
+// SetSize updates the output frame dimensions for subsequent video loads.
+func (vp *VideoPlayer) SetSize(w, h int) {
+	if w > 0 && h > 0 {
+		vp.frameW = w
+		vp.frameH = h
+	}
 }
 
-// renderFrame is called by Fyne on the render thread — always safe.
-func (vp *VideoPlayer) renderFrame(w, h int) image.Image {
-	vp.mu.Lock()
-	defer vp.mu.Unlock()
-	if vp.currentFrame == nil {
-		return image.NewUniform(color.Transparent)
-	}
-	return vp.currentFrame
+// SetOrientation kept for backward compatibility.
+func (vp *VideoPlayer) SetOrientation(orientation string) {}
+
+// frameDims returns the output frame dimensions.
+func (vp *VideoPlayer) frameDims() (w, h int) {
+	return vp.frameW, vp.frameH
+}
+
+// buildVF builds the ffmpeg -vf filter string.
+func (vp *VideoPlayer) buildVF() string {
+	return fmt.Sprintf("fps=%d,scale=%d:%d", videoFPS, vp.frameW, vp.frameH)
+}
+
+// CanvasObject returns the fyne.CanvasObject for this player.
+func (vp *VideoPlayer) CanvasObject() fyne.CanvasObject {
+	return vp.img
 }
 
 // LoadVideo starts streaming the video via ffmpeg in a loop.
@@ -62,28 +75,31 @@ func (vp *VideoPlayer) LoadVideo(videoPath string) error {
 	vp.videoPath = videoPath
 
 	// Show first frame immediately
-	frame, err := ExtractVideoFrame(videoPath)
+	frame, err := vp.extractFirstFrame(videoPath)
 	if err != nil {
 		return err
 	}
 	vp.mu.Lock()
 	vp.currentFrame = frame
+	vp.img.Image = frame
 	vp.mu.Unlock()
-	canvas.Refresh(vp.raster)
+	canvas.Refresh(vp.img)
 
 	go vp.streamLoop()
 	return nil
 }
 
-// Stop halts playback.
+// Stop halts playback and clears the image.
 func (vp *VideoPlayer) Stop() {
 	vp.mu.Lock()
-	defer vp.mu.Unlock()
 	if vp.running {
 		close(vp.stopCh)
 		vp.stopCh = make(chan struct{})
 		vp.running = false
 	}
+	vp.img.Image = nil
+	vp.mu.Unlock()
+	canvas.Refresh(vp.img)
 }
 
 func (vp *VideoPlayer) streamLoop() {
@@ -92,12 +108,37 @@ func (vp *VideoPlayer) streamLoop() {
 	stopCh := vp.stopCh
 	vp.mu.Unlock()
 
-	frameSize := videoWidth * videoHeight * 4 // RGBA
+	// Restart ffmpeg each time the video ends naturally (more reliable than
+	// -stream_loop -1, which can freeze some codecs or accumulate memory).
+	for {
+		select {
+		case <-stopCh:
+			return
+		default:
+		}
+
+		stopped := vp.streamOnce(stopCh)
+		if stopped {
+			return
+		}
+		// Natural EOF — brief pause then restart
+		select {
+		case <-stopCh:
+			return
+		case <-time.After(50 * time.Millisecond):
+		}
+	}
+}
+
+// streamOnce runs one pass of ffmpeg (no loop flag). Returns true if stopped
+// intentionally via stopCh, false if the stream ended naturally (EOF/error).
+func (vp *VideoPlayer) streamOnce(stopCh chan struct{}) (stopped bool) {
+	fw, fh := vp.frameDims()
+	frameSize := fw * fh * 4 // RGBA
 
 	cmd := exec.Command("ffmpeg",
-		"-stream_loop", "-1", // loop forever
 		"-i", vp.videoPath,
-		"-vf", fmt.Sprintf("fps=%d,scale=%d:%d", videoFPS, videoWidth, videoHeight),
+		"-vf", vp.buildVF(),
 		"-f", "rawvideo",
 		"-pix_fmt", "rgba",
 		"-",
@@ -106,70 +147,67 @@ func (vp *VideoPlayer) streamLoop() {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Printf("[VideoPlayer] ERRO pipe: %v", err)
-		return
+		return false
 	}
 
 	if err := cmd.Start(); err != nil {
 		log.Printf("[VideoPlayer] ERRO start: %v", err)
-		return
+		return false
 	}
 	defer cmd.Process.Kill()
 
 	buf := make([]byte, frameSize)
 	frameDuration := time.Second / time.Duration(videoFPS)
-	log.Printf("[VideoPlayer] Streaming %s @ %dfps %dx%d (frame interval: %v)", vp.videoPath, videoFPS, videoWidth, videoHeight, frameDuration)
+	log.Printf("[VideoPlayer] pass %s @ %dfps %dx%d", vp.videoPath, videoFPS, fw, fh)
 
 	for {
 		frameStart := time.Now()
 
-		// Check stop
 		select {
 		case <-stopCh:
-			return
+			return true
 		default:
 		}
 
-		// Read exactly one frame of RGBA data
 		_, err := io.ReadFull(stdout, buf)
 		if err != nil {
-			log.Printf("[VideoPlayer] Stream ended: %v", err)
-			return
+			// Natural end of stream — caller will restart
+			return false
 		}
 
-		// Create image from raw RGBA
-		img := image.NewRGBA(image.Rect(0, 0, videoWidth, videoHeight))
+		img := image.NewRGBA(image.Rect(0, 0, fw, fh))
 		copy(img.Pix, buf)
 
 		vp.mu.Lock()
 		vp.currentFrame = img
+		vp.img.Image = img
 		vp.mu.Unlock()
 
-		// Thread-safe: schedule Refresh on Fyne main thread
-		fyne.Do(func() {
-			canvas.Refresh(vp.raster)
-		})
+		canvas.Refresh(vp.img)
 
-		// Throttle to target FPS — sleep for remaining frame time
 		elapsed := time.Since(frameStart)
 		if elapsed < frameDuration {
 			select {
 			case <-stopCh:
-				return
+				return true
 			case <-time.After(frameDuration - elapsed):
 			}
 		}
 	}
 }
 
-// ExtractVideoFrame extracts the first frame of a video.
-func ExtractVideoFrame(videoPath string) (image.Image, error) {
+// extractFirstFrame extracts the first frame of the video scaled to the canvas dimensions.
+func (vp *VideoPlayer) extractFirstFrame(videoPath string) (image.Image, error) {
+	fw, fh := vp.frameDims()
+	vf := fmt.Sprintf("scale=%d:%d", fw, fh)
+
 	cmd := exec.Command("ffmpeg",
 		"-ss", "0",
 		"-i", videoPath,
 		"-vframes", "1",
 		"-f", "rawvideo",
 		"-pix_fmt", "rgba",
-		"-vf", fmt.Sprintf("scale=%d:%d", videoWidth, videoHeight),
+		"-vf", vf,
 		"-",
 	)
 	var out bytes.Buffer
@@ -179,12 +217,40 @@ func ExtractVideoFrame(videoPath string) (image.Image, error) {
 		return nil, fmt.Errorf("ffmpeg falhou: %w", err)
 	}
 
-	frameSize := videoWidth * videoHeight * 4
+	frameSize := fw * fh * 4
 	if out.Len() < frameSize {
 		return nil, fmt.Errorf("frame muito pequeno: %d bytes", out.Len())
 	}
 
-	img := image.NewRGBA(image.Rect(0, 0, videoWidth, videoHeight))
+	img := image.NewRGBA(image.Rect(0, 0, fw, fh))
+	copy(img.Pix, out.Bytes()[:frameSize])
+	return img, nil
+}
+
+// ExtractVideoFrame extracts the first frame of a video at the given dimensions.
+func ExtractVideoFrame(videoPath string, w, h int) (image.Image, error) {
+	cmd := exec.Command("ffmpeg",
+		"-ss", "0",
+		"-i", videoPath,
+		"-vframes", "1",
+		"-f", "rawvideo",
+		"-pix_fmt", "rgba",
+		"-vf", fmt.Sprintf("scale=%d:%d", w, h),
+		"-",
+	)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("ffmpeg falhou: %w", err)
+	}
+
+	frameSize := w * h * 4
+	if out.Len() < frameSize {
+		return nil, fmt.Errorf("frame muito pequeno: %d bytes", out.Len())
+	}
+
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	copy(img.Pix, out.Bytes()[:frameSize])
 	return img, nil
 }

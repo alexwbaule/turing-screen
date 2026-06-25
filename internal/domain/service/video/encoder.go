@@ -20,17 +20,19 @@ func BuildInitPayload(img *image.NRGBA, orientation theme.Orientation) []byte {
 	var rotated *image.NRGBA
 	switch orientation {
 	case theme.PORTRAIT:
-		rotated = image.NewNRGBA(image.Rect(0, 0, h, w))
-		for y := 0; y < h; y++ {
-			for x := 0; x < w; x++ {
-				rotated.Set(y, w-1-x, img.At(x, y))
-			}
-		}
-	case theme.REVERSE_PORTRAIT:
+		// 90° CCW: dest(col=H-1-y, row=x) — matches Python image.rotate(90)
 		rotated = image.NewNRGBA(image.Rect(0, 0, h, w))
 		for y := 0; y < h; y++ {
 			for x := 0; x < w; x++ {
 				rotated.Set(h-1-y, x, img.At(x, y))
+			}
+		}
+	case theme.REVERSE_PORTRAIT:
+		// 90° CW (270° CCW): dest(col=y, row=W-1-x) — matches Python image.rotate(270)
+		rotated = image.NewNRGBA(image.Rect(0, 0, h, w))
+		for y := 0; y < h; y++ {
+			for x := 0; x < w; x++ {
+				rotated.Set(y, w-1-x, img.At(x, y))
 			}
 		}
 	case theme.REVERSE_LANDSCAPE:

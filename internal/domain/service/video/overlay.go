@@ -26,23 +26,31 @@ type OverlayBuffer struct {
 // NewOverlayBuffer creates a new overlay buffer for the given display and orientation.
 // The display dimensions in the config represent the effective display size
 // (e.g. Width=800, Height=480 for LANDSCAPE), so no swap is needed.
+//
+// The encoder stride must always equal the physical landscape width (800) — the
+// Rev C protocol uses display_height as the fixed framebuffer stride regardless
+// of orientation (matching the Python reference: h * display_height + x).
 func NewOverlayBuffer(log *logger.Logger, display *device.Display, orientation theme.Orientation) *OverlayBuffer {
 	var w, h int
 	switch orientation {
 	case theme.LANDSCAPE, theme.REVERSE_LANDSCAPE:
 		w = display.Width
 		h = display.Height
-	default: // PORTRAIT, REVERSE_PORTRAIT
-		w = display.Height
-		h = display.Width
+	default: // PORTRAIT, REVERSE_PORTRAIT — overlay in portrait space (480×800)
+		w = display.Height // 480
+		h = display.Width  // 800
 	}
 	rect := image.Rect(0, 0, w, h)
+
+	// Stride is always the landscape width (800): the physical framebuffer line
+	// length is fixed at 800 for all orientations on the Rev C device.
+	stride := display.Width
 
 	overlay := &OverlayBuffer{
 		log:     log,
 		width:   w,
 		height:  h,
-		encoder: NewOverlayEncoder(log, w),
+		encoder: NewOverlayEncoder(log, stride),
 	}
 
 	overlay.current = image.NewNRGBA(rect)

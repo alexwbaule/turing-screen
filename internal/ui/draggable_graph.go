@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"image"
 	"image/color"
 
 	"fyne.io/fyne/v2"
@@ -16,9 +15,10 @@ type DraggableGraph struct {
 	GraphData   *theme.Graph
 	onTapped    func(dg *DraggableGraph)
 	onDragEnded func(dg *DraggableGraph)
-	raster      *canvas.Raster
+	img         *canvas.Image
 	selection   *canvas.Rectangle
 	hitbox      *canvas.Rectangle
+	dirty       bool
 }
 
 func NewDraggableGraph(data *theme.Graph, path string, tapped func(dg *DraggableGraph), dragEnd func(dg *DraggableGraph)) *DraggableGraph {
@@ -28,7 +28,8 @@ func NewDraggableGraph(data *theme.Graph, path string, tapped func(dg *Draggable
 		onTapped:    tapped,
 		onDragEnded: dragEnd,
 	}
-	dg.raster = canvas.NewRaster(dg.renderImage)
+	dg.img = canvas.NewImageFromImage(renderGGGraph(data))
+	dg.img.FillMode = canvas.ImageFillOriginal
 	dg.selection = canvas.NewRectangle(color.Transparent)
 	dg.selection.StrokeColor = color.Gray{Y: 150}
 	dg.selection.StrokeWidth = 1
@@ -36,10 +37,6 @@ func NewDraggableGraph(data *theme.Graph, path string, tapped func(dg *Draggable
 	dg.hitbox = canvas.NewRectangle(color.Transparent)
 	dg.ExtendBaseWidget(dg)
 	return dg
-}
-
-func (dg *DraggableGraph) renderImage(w, h int) image.Image {
-	return renderGGGraph(dg.GraphData)
 }
 
 func (dg *DraggableGraph) Tapped(_ *fyne.PointEvent) {
@@ -51,24 +48,23 @@ func (dg *DraggableGraph) Tapped(_ *fyne.PointEvent) {
 func (dg *DraggableGraph) Dragged(e *fyne.DragEvent) {
 	potentialPos := dg.Position().Add(e.Dragged)
 	widgetSize := dg.Size()
-	canvasWidth := currentCanvasWidth
-	canvasHeight := currentCanvasHeight
 	finalX := potentialPos.X
 	if finalX < 0 {
 		finalX = 0
 	}
-	if finalX+widgetSize.Width > canvasWidth {
-		finalX = canvasWidth - widgetSize.Width
+	if finalX+widgetSize.Width > currentCanvasWidth {
+		finalX = currentCanvasWidth - widgetSize.Width
 	}
 	finalY := potentialPos.Y
 	if finalY < 0 {
 		finalY = 0
 	}
-	if finalY+widgetSize.Height > canvasHeight {
-		finalY = canvasHeight - widgetSize.Height
+	if finalY+widgetSize.Height > currentCanvasHeight {
+		finalY = currentCanvasHeight - widgetSize.Height
 	}
 	dg.Move(fyne.NewPos(finalX, finalY))
 }
+
 func (dg *DraggableGraph) DragEnd() {
 	finalPos := dg.Position()
 	dg.GraphData.X = int(finalPos.X)
@@ -76,6 +72,11 @@ func (dg *DraggableGraph) DragEnd() {
 	if dg.onDragEnded != nil {
 		dg.onDragEnded(dg)
 	}
+}
+
+func (dg *DraggableGraph) Refresh() {
+	dg.dirty = true
+	dg.BaseWidget.Refresh()
 }
 func (dg *DraggableGraph) Select() {
 	dg.selection.Show()
@@ -86,9 +87,7 @@ func (dg *DraggableGraph) Deselect() {
 	dg.selection.Refresh()
 }
 func (dg *DraggableGraph) CreateRenderer() fyne.WidgetRenderer {
-	r := &draggableGraphRenderer{dg: dg}
-	r.Refresh()
-	return r
+	return &draggableGraphRenderer{dg: dg}
 }
 
 type draggableGraphRenderer struct {
@@ -97,7 +96,7 @@ type draggableGraphRenderer struct {
 
 func (r *draggableGraphRenderer) Destroy() {}
 func (r *draggableGraphRenderer) Layout(size fyne.Size) {
-	r.dg.raster.Resize(size)
+	r.dg.img.Resize(size)
 	r.dg.selection.Resize(size)
 	r.dg.hitbox.Resize(size)
 }
@@ -105,9 +104,12 @@ func (r *draggableGraphRenderer) MinSize() fyne.Size {
 	return fyne.NewSize(float32(r.dg.GraphData.Width), float32(r.dg.GraphData.Height))
 }
 func (r *draggableGraphRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.dg.hitbox, r.dg.raster, r.dg.selection}
+	return []fyne.CanvasObject{r.dg.hitbox, r.dg.img, r.dg.selection}
 }
 func (r *draggableGraphRenderer) Refresh() {
-	canvas.Refresh(r.dg.raster)
-	r.dg.selection.Refresh()
+	if r.dg.dirty || r.dg.img.Image == nil {
+		r.dg.img.Image = renderGGGraph(r.dg.GraphData)
+		r.dg.dirty = false
+		canvas.Refresh(r.dg.img)
+	}
 }

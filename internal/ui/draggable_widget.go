@@ -42,9 +42,12 @@ type DraggableWidget struct {
 	onDragEnded func(dw *DraggableWidget)
 	fontCache   *FontCache
 
-	raster    *canvas.Raster
+	img       *canvas.Image
 	selection *canvas.Rectangle
 	hitbox    *canvas.Rectangle
+	cachedW   int
+	cachedH   int
+	dirty     bool // true when data changed and buildImage must re-run
 }
 
 func NewDraggableWidget(data *theme.Text, path string, fc *FontCache, tapped func(dw *DraggableWidget), dragEnd func(dw *DraggableWidget)) *DraggableWidget {
@@ -56,30 +59,34 @@ func NewDraggableWidget(data *theme.Text, path string, fc *FontCache, tapped fun
 		fontCache:   fc,
 	}
 
-	dw.raster = canvas.NewRaster(dw.renderImage)
+	rendered := dw.buildImage()
+	dw.img = canvas.NewImageFromImage(rendered)
+	dw.img.FillMode = canvas.ImageFillOriginal
+
 	dw.selection = canvas.NewRectangle(color.Transparent)
 	dw.selection.StrokeColor = color.Gray{Y: 150}
 	dw.selection.StrokeWidth = 1
 	dw.selection.Hide()
-
 	dw.hitbox = canvas.NewRectangle(color.Transparent)
 
 	dw.ExtendBaseWidget(dw)
 	return dw
 }
 
-func (dw *DraggableWidget) renderImage(w, h int) image.Image {
-	// Use a copy of data for rendering to avoid mutating the original
+func (dw *DraggableWidget) buildImage() image.Image {
 	renderData := *dw.TextData
 	if renderData.Text == "" {
-		// Use Placeholder from theme if available, otherwise infer from YAML path
 		if renderData.Placeholder != "" {
 			renderData.Text = renderData.Placeholder
 		} else {
 			renderData.Text = getPlaceholderForField(dw.YAMLPath)
 		}
 	}
-	return renderGGText(&renderData, dw.fontCache)
+	img := renderGGText(&renderData, dw.fontCache)
+	b := img.Bounds()
+	dw.cachedW = b.Dx()
+	dw.cachedH = b.Dy()
+	return img
 }
 
 func (dw *DraggableWidget) Tapped(_ *fyne.PointEvent) {
@@ -91,43 +98,44 @@ func (dw *DraggableWidget) Tapped(_ *fyne.PointEvent) {
 func (dw *DraggableWidget) Dragged(e *fyne.DragEvent) {
 	potentialPos := dw.Position().Add(e.Dragged)
 	widgetSize := dw.Size()
-	canvasWidth := currentCanvasWidth
-	canvasHeight := currentCanvasHeight
 	finalX := potentialPos.X
 	if finalX < 0 {
 		finalX = 0
 	}
-	if finalX+widgetSize.Width > canvasWidth {
-		finalX = canvasWidth - widgetSize.Width
+	if finalX+widgetSize.Width > currentCanvasWidth {
+		finalX = currentCanvasWidth - widgetSize.Width
 	}
 	finalY := potentialPos.Y
 	if finalY < 0 {
 		finalY = 0
 	}
-	if finalY+widgetSize.Height > canvasHeight {
-		finalY = canvasHeight - widgetSize.Height
+	if finalY+widgetSize.Height > currentCanvasHeight {
+		finalY = currentCanvasHeight - widgetSize.Height
 	}
 	dw.Move(fyne.NewPos(finalX, finalY))
 }
+
 func (dw *DraggableWidget) DragEnd() {
 	finalPos := dw.Position()
 	widgetWidth := dw.Size().Width
-
-	// Convert visual position back to YAML X based on alignment
 	align := strings.ToUpper(dw.TextData.Align)
 	switch align {
 	case "CENTER":
 		dw.TextData.X = int(finalPos.X + widgetWidth/2)
 	case "RIGHT":
 		dw.TextData.X = int(finalPos.X + widgetWidth)
-	default: // LEFT
+	default:
 		dw.TextData.X = int(finalPos.X)
 	}
 	dw.TextData.Y = int(finalPos.Y)
-
 	if dw.onDragEnded != nil {
 		dw.onDragEnded(dw)
 	}
+}
+
+func (dw *DraggableWidget) Refresh() {
+	dw.dirty = true
+	dw.BaseWidget.Refresh()
 }
 func (dw *DraggableWidget) Select() {
 	dw.selection.Show()
@@ -139,7 +147,6 @@ func (dw *DraggableWidget) Deselect() {
 }
 func (dw *DraggableWidget) CreateRenderer() fyne.WidgetRenderer {
 	r := &draggableWidgetRenderer{dw: dw}
-	r.Refresh()
 	return r
 }
 
@@ -149,26 +156,23 @@ type draggableWidgetRenderer struct {
 
 func (r *draggableWidgetRenderer) Destroy() {}
 func (r *draggableWidgetRenderer) Layout(size fyne.Size) {
-	r.dw.raster.Resize(size)
+	r.dw.img.Resize(size)
 	r.dw.selection.Resize(size)
 	r.dw.hitbox.Resize(size)
 }
 func (r *draggableWidgetRenderer) MinSize() fyne.Size {
-	img := r.dw.renderImage(0, 0)
-	if img != nil {
-		bounds := img.Bounds()
-		w := float32(bounds.Dx())
-		h := float32(bounds.Dy())
-		if w > 0 && h > 0 {
-			return fyne.NewSize(w, h)
-		}
+	if r.dw.cachedW > 0 && r.dw.cachedH > 0 {
+		return fyne.NewSize(float32(r.dw.cachedW), float32(r.dw.cachedH))
 	}
-	return fyne.NewSize(80, 24) // Fallback visible size
+	return fyne.NewSize(80, 24)
 }
 func (r *draggableWidgetRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.dw.hitbox, r.dw.raster, r.dw.selection}
+	return []fyne.CanvasObject{r.dw.hitbox, r.dw.img, r.dw.selection}
 }
 func (r *draggableWidgetRenderer) Refresh() {
-	canvas.Refresh(r.dw.raster)
-	r.dw.selection.Refresh()
+	if r.dw.dirty || r.dw.img.Image == nil {
+		r.dw.img.Image = r.dw.buildImage()
+		r.dw.dirty = false
+		canvas.Refresh(r.dw.img)
+	}
 }

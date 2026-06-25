@@ -20,9 +20,8 @@ type drawItem struct {
 	drawFunc func(frame *image.NRGBA)
 }
 
-// renderFrame draws all active sensor widgets onto a copy of the background, respecting INDEX order.
-func (c *Compositor) renderFrame(vals *sensorData) *image.NRGBA {
-	frame := imageToNRGBA(c.builder.GetBackground())
+// renderFrame draws all active sensor widgets onto frame (pre-filled with background), respecting INDEX order.
+func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NRGBA {
 	stats := c.stats
 	if stats == nil {
 		return frame
@@ -308,6 +307,9 @@ func (c *Compositor) drawGraphOnFrame(frame *image.NRGBA, value float64, stat *t
 	if ratio < 0 {
 		ratio = 0
 	}
+	if stat.RevertValue {
+		ratio = 1 - ratio
+	}
 
 	direction := strings.ToLower(stat.Direction)
 	if direction == "" {
@@ -322,92 +324,237 @@ func (c *Compositor) drawGraphOnFrame(frame *image.NRGBA, value float64, stat *t
 		filledSize = int(math.Round(ratio * float64(stat.Height)))
 	}
 
-	if stat.Steps > 0 && stat.StepGap > 0 {
-		c.drawSegmentedBarOnFrame(frame, stat, direction, filledSize)
-	} else {
-		switch direction {
-		case "left":
-			fillNRGBA(frame, stat.X, stat.Y, filledSize, stat.Height, stat.BarColor)
-		case "right":
-			fillNRGBA(frame, stat.X+stat.Width-filledSize, stat.Y, filledSize, stat.Height, stat.BarColor)
-		case "up":
-			fillNRGBA(frame, stat.X, stat.Y+stat.Height-filledSize, stat.Width, filledSize, stat.BarColor)
-		case "down":
-			fillNRGBA(frame, stat.X, stat.Y, stat.Width, filledSize, stat.BarColor)
+	// Draw background track
+	if stat.BackgroundStyle.BackgroundColor != nil {
+		_, _, _, a := stat.BackgroundStyle.BackgroundColor.RGBA()
+		if a > 0 {
+			fillNRGBA(frame, stat.X, stat.Y, stat.Width, stat.Height, stat.BackgroundStyle.BackgroundColor)
 		}
 	}
 
-	if stat.BarOutline {
+	hasGradient := stat.GradientColor != nil
+	hasRound := stat.CornerRadius > 0
+
+	fillBar := func(x, y, w, h int, clr color.Color) {
+		if w <= 0 || h <= 0 || clr == nil {
+			return
+		}
+		if hasGradient && hasRound {
+			fillGradientRoundedNRGBA(frame, x, y, w, h, stat.CornerRadius, stat.GradientColor, clr)
+		} else if hasGradient {
+			fillGradientNRGBA(frame, x, y, w, h, stat.GradientColor, clr)
+		} else if hasRound {
+			fillRoundedNRGBA(frame, x, y, w, h, stat.CornerRadius, clr)
+		} else {
+			fillNRGBA(frame, x, y, w, h, clr)
+		}
+	}
+
+	// Compute effective steps (BlockWidth takes priority over Steps)
+	steps := stat.Steps
+	if stat.BlockWidth > 0 {
+		gap := stat.StepGap
+		if gap < 0 {
+			gap = 0
+		}
+		steps = stat.Width / (stat.BlockWidth + gap)
+		if steps < 1 {
+			steps = 1
+		}
+	}
+
+	if steps > 0 && stat.StepGap > 0 {
+		c.drawSegmentedBarOnFrame(frame, stat, direction, filledSize, steps, fillBar)
+	} else {
+		hasEmpty := stat.EmptyColor != nil
+		switch direction {
+		case "left":
+			if hasEmpty {
+				fillBar(stat.X+filledSize, stat.Y, stat.Width-filledSize, stat.Height, stat.EmptyColor)
+			}
+			fillBar(stat.X, stat.Y, filledSize, stat.Height, stat.BarColor)
+		case "right":
+			if hasEmpty {
+				fillBar(stat.X, stat.Y, stat.Width-filledSize, stat.Height, stat.EmptyColor)
+			}
+			fillBar(stat.X+stat.Width-filledSize, stat.Y, filledSize, stat.Height, stat.BarColor)
+		case "up":
+			if hasEmpty {
+				fillBar(stat.X, stat.Y, stat.Width, stat.Height-filledSize, stat.EmptyColor)
+			}
+			fillBar(stat.X, stat.Y+stat.Height-filledSize, stat.Width, filledSize, stat.BarColor)
+		case "down":
+			if hasEmpty {
+				fillBar(stat.X, stat.Y+filledSize, stat.Width, stat.Height-filledSize, stat.EmptyColor)
+			}
+			fillBar(stat.X, stat.Y, stat.Width, filledSize, stat.BarColor)
+		}
+	}
+
+	if stat.BorderWidth > 0 {
+		strokeBorderNRGBA(frame, stat.X, stat.Y, stat.Width, stat.Height, stat.BorderWidth, stat.BarColor)
+	} else if stat.BarOutline {
 		strokeNRGBA(frame, stat.X, stat.Y, stat.Width, stat.Height, stat.BarColor)
 	}
 }
 
-func (c *Compositor) drawSegmentedBarOnFrame(frame *image.NRGBA, stat *theme.Graph, direction string, filledSize int) {
-	steps := stat.Steps
+func (c *Compositor) drawSegmentedBarOnFrame(frame *image.NRGBA, stat *theme.Graph, direction string, filledSize, steps int, fillBar func(x, y, w, h int, clr color.Color)) {
 	gap := stat.StepGap
+	hasEmpty := stat.EmptyColor != nil
 
 	switch direction {
 	case "left", "right":
-		segW := (stat.Width - (steps-1)*gap) / steps
+		segW := stat.BlockWidth
+		if segW <= 0 {
+			segW = (stat.Width - (steps-1)*gap) / steps
+		}
 		if segW < 1 {
 			segW = 1
 		}
 		filledSteps := int(math.Round(float64(filledSize) / float64(stat.Width) * float64(steps)))
-		for i := 0; i < filledSteps && i < steps; i++ {
+		for i := 0; i < steps; i++ {
 			var sx int
 			if direction == "left" {
 				sx = stat.X + i*(segW+gap)
 			} else {
 				sx = stat.X + stat.Width - (i+1)*(segW+gap) + gap
 			}
-			fillNRGBA(frame, sx, stat.Y, segW, stat.Height, stat.BarColor)
+			if i < filledSteps {
+				fillBar(sx, stat.Y, segW, stat.Height, stat.BarColor)
+			} else if hasEmpty {
+				fillBar(sx, stat.Y, segW, stat.Height, stat.EmptyColor)
+			}
 		}
 	case "up", "down":
-		segH := (stat.Height - (steps-1)*gap) / steps
+		segH := stat.BlockWidth
+		if segH <= 0 {
+			segH = (stat.Height - (steps-1)*gap) / steps
+		}
 		if segH < 1 {
 			segH = 1
 		}
 		filledSteps := int(math.Round(float64(filledSize) / float64(stat.Height) * float64(steps)))
-		for i := 0; i < filledSteps && i < steps; i++ {
+		for i := 0; i < steps; i++ {
 			var sy int
 			if direction == "up" {
 				sy = stat.Y + stat.Height - (i+1)*(segH+gap) + gap
 			} else {
 				sy = stat.Y + i*(segH+gap)
 			}
-			fillNRGBA(frame, stat.X, sy, stat.Width, segH, stat.BarColor)
+			if i < filledSteps {
+				fillBar(stat.X, sy, stat.Width, segH, stat.BarColor)
+			} else if hasEmpty {
+				fillBar(stat.X, sy, stat.Width, segH, stat.EmptyColor)
+			}
 		}
 	}
 }
 
 func (c *Compositor) drawRadialOnFrame(frame *image.NRGBA, value float64, stat *theme.Radial) {
 	x, y := float64(stat.X), float64(stat.Y)
+
+	ratio := value / float64(stat.MaxValue-stat.MinValue)
+	if ratio > 1 {
+		ratio = 1
+	}
+	if ratio < 0 {
+		ratio = 0
+	}
+
 	amin := utils.Radians(stat.AngleStart)
 	amax := utils.Radians(180 + stat.AngleStart + stat.AngleEnd)
-	total := (value * float64(180+stat.AngleStart+stat.AngleEnd)) / 100
-	cur := utils.Radians(int(total) + stat.AngleStart)
+	totalArc := amax - amin
+	filledAngle := totalArc * ratio
+
+	var cur float64
+	if stat.RevertValue {
+		cur = amax - filledAngle
+	} else {
+		cur = amin + filledAngle
+	}
 	if cur > amax {
 		cur = amax
 	}
 
 	arcRadius := float64(stat.Radius - (stat.Width / 2))
 
-	if stat.AngleSteps > 1 && stat.AngleSep > 0 {
-		totalAngle := cur - amin
-		segAngle := totalAngle / float64(stat.AngleSteps)
+	barClr := stat.BarColor
+	emptyClr := stat.EmptyColor
+	if stat.Revert {
+		barClr, emptyClr = emptyClr, barClr
+	}
+
+	hasGradient := stat.GradientColor != nil
+
+	drawArc := func(a1, a2 float64, clr color.Color) {
+		if clr == nil || a2 <= a1 {
+			return
+		}
+		if hasGradient {
+			drawArcGradientNRGBA(frame, x, y, arcRadius, a1, a2, stat.Width, stat.GradientColor, clr)
+		} else {
+			drawArcNRGBA(frame, x, y, arcRadius, a1, a2, stat.Width, clr)
+		}
+		if stat.Round {
+			r := float64(stat.Width) / 2.0
+			sx := x + arcRadius*math.Cos(a1)
+			sy := y + arcRadius*math.Sin(a1)
+			ex := x + arcRadius*math.Cos(a2)
+			ey := y + arcRadius*math.Sin(a2)
+			drawCircleNRGBA(frame, sx, sy, r, clr)
+			drawCircleNRGBA(frame, ex, ey, r, clr)
+		}
+	}
+
+	// Determine effective step count (BlockAngle takes priority over AngleSteps)
+	angleSteps := stat.AngleSteps
+	if stat.BlockAngle > 0 {
+		blockAngleRad := utils.Radians(stat.BlockAngle)
+		angleSteps = int(math.Round(totalArc / blockAngleRad))
+		if angleSteps < 1 {
+			angleSteps = 1
+		}
+	}
+
+	if angleSteps > 1 && stat.AngleSep > 0 {
+		segAngle := totalArc / float64(angleSteps)
 		sepAngle := utils.Radians(stat.AngleSep)
-		for i := 0; i < stat.AngleSteps; i++ {
+		filledSteps := int(math.Round(ratio * float64(angleSteps)))
+		if filledSteps > angleSteps {
+			filledSteps = angleSteps
+		}
+		for i := 0; i < angleSteps; i++ {
 			segStart := amin + float64(i)*segAngle
 			segEnd := segStart + segAngle - sepAngle
-			if segEnd > cur {
-				segEnd = cur
+			if segEnd <= segStart {
+				continue
 			}
-			if segEnd > segStart {
-				drawArcNRGBA(frame, x, y, arcRadius, segStart, segEnd, stat.Width, stat.BarColor)
+			if stat.RevertValue {
+				if i >= angleSteps-filledSteps {
+					drawArc(segStart, segEnd, barClr)
+				} else if emptyClr != nil {
+					drawArc(segStart, segEnd, emptyClr)
+				}
+			} else {
+				if i < filledSteps {
+					drawArc(segStart, segEnd, barClr)
+				} else if emptyClr != nil {
+					drawArc(segStart, segEnd, emptyClr)
+				}
 			}
 		}
 	} else {
-		drawArcNRGBA(frame, x, y, arcRadius, amin, cur, stat.Width, stat.BarColor)
+		if stat.RevertValue {
+			if emptyClr != nil {
+				drawArc(amin, cur, emptyClr)
+			}
+			drawArc(cur, amax, barClr)
+		} else {
+			if emptyClr != nil {
+				drawArc(amin, amax, emptyClr)
+			}
+			drawArc(amin, cur, barClr)
+		}
 	}
 
 	if stat.ShowText && stat.Font != nil {
@@ -540,6 +687,183 @@ func (c *Compositor) drawChartOnFrame(frame *image.NRGBA, stat *theme.Chart) {
 }
 
 // --- Primitive drawing functions on *image.NRGBA ---
+
+func toNRGBAColor(c color.Color) color.NRGBA {
+	r, g, b, a := c.RGBA()
+	return color.NRGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
+}
+
+func lerpNRGBA(a, b color.NRGBA, t float64) color.NRGBA {
+	return color.NRGBA{
+		R: uint8(float64(a.R) + t*(float64(b.R)-float64(a.R))),
+		G: uint8(float64(a.G) + t*(float64(b.G)-float64(a.G))),
+		B: uint8(float64(a.B) + t*(float64(b.B)-float64(a.B))),
+		A: uint8(float64(a.A) + t*(float64(b.A)-float64(a.A))),
+	}
+}
+
+func fillGradientNRGBA(dst *image.NRGBA, x, y, w, h int, top, bottom color.Color) {
+	nt := toNRGBAColor(top)
+	nb := toNRGBAColor(bottom)
+	bounds := dst.Bounds()
+	for py := y; py < y+h; py++ {
+		if py < bounds.Min.Y || py >= bounds.Max.Y {
+			continue
+		}
+		t := 0.0
+		if h > 1 {
+			t = float64(py-y) / float64(h-1)
+		}
+		nc := lerpNRGBA(nt, nb, t)
+		for px := x; px < x+w; px++ {
+			if px < bounds.Min.X || px >= bounds.Max.X {
+				continue
+			}
+			dst.SetNRGBA(px, py, nc)
+		}
+	}
+}
+
+func inRoundCorner(px, py, x, y, w, h, radius int) bool {
+	r := float64(radius)
+	dx := float64(px - x)
+	dy := float64(py - y)
+	rx := float64(x + w - 1 - px)
+	ry := float64(y + h - 1 - py)
+	if dx < r && dy < r {
+		if (r-dx-0.5)*(r-dx-0.5)+(r-dy-0.5)*(r-dy-0.5) > r*r {
+			return true
+		}
+	}
+	if rx < r && dy < r {
+		if (r-rx-0.5)*(r-rx-0.5)+(r-dy-0.5)*(r-dy-0.5) > r*r {
+			return true
+		}
+	}
+	if dx < r && ry < r {
+		if (r-dx-0.5)*(r-dx-0.5)+(r-ry-0.5)*(r-ry-0.5) > r*r {
+			return true
+		}
+	}
+	if rx < r && ry < r {
+		if (r-rx-0.5)*(r-rx-0.5)+(r-ry-0.5)*(r-ry-0.5) > r*r {
+			return true
+		}
+	}
+	return false
+}
+
+func fillRoundedNRGBA(dst *image.NRGBA, x, y, w, h, radius int, c color.Color) {
+	nc := toNRGBAColor(c)
+	bounds := dst.Bounds()
+	for py := y; py < y+h; py++ {
+		if py < bounds.Min.Y || py >= bounds.Max.Y {
+			continue
+		}
+		for px := x; px < x+w; px++ {
+			if px < bounds.Min.X || px >= bounds.Max.X {
+				continue
+			}
+			if !inRoundCorner(px, py, x, y, w, h, radius) {
+				dst.SetNRGBA(px, py, nc)
+			}
+		}
+	}
+}
+
+func fillGradientRoundedNRGBA(dst *image.NRGBA, x, y, w, h, radius int, top, bottom color.Color) {
+	nt := toNRGBAColor(top)
+	nb := toNRGBAColor(bottom)
+	bounds := dst.Bounds()
+	for py := y; py < y+h; py++ {
+		if py < bounds.Min.Y || py >= bounds.Max.Y {
+			continue
+		}
+		t := 0.0
+		if h > 1 {
+			t = float64(py-y) / float64(h-1)
+		}
+		nc := lerpNRGBA(nt, nb, t)
+		for px := x; px < x+w; px++ {
+			if px < bounds.Min.X || px >= bounds.Max.X {
+				continue
+			}
+			if !inRoundCorner(px, py, x, y, w, h, radius) {
+				dst.SetNRGBA(px, py, nc)
+			}
+		}
+	}
+}
+
+func strokeBorderNRGBA(dst *image.NRGBA, x, y, w, h, bw int, c color.Color) {
+	for i := 0; i < bw; i++ {
+		strokeNRGBA(dst, x+i, y+i, w-2*i, h-2*i, c)
+	}
+}
+
+func drawArcGradientNRGBA(dst *image.NRGBA, cx, cy, radius, startAngle, endAngle float64, width int, top, bottom color.Color) {
+	nt := toNRGBAColor(top)
+	nb := toNRGBAColor(bottom)
+	halfW := float64(width) / 2.0
+	innerR := radius - halfW
+	outerR := radius + halfW
+	if innerR < 0 {
+		innerR = 0
+	}
+
+	minX := int(math.Floor(cx - outerR - 1))
+	maxX := int(math.Ceil(cx + outerR + 1))
+	minY := int(math.Floor(cy - outerR - 1))
+	maxY := int(math.Ceil(cy + outerR + 1))
+
+	bounds := dst.Bounds()
+	if minX < bounds.Min.X {
+		minX = bounds.Min.X
+	}
+	if minY < bounds.Min.Y {
+		minY = bounds.Min.Y
+	}
+	if maxX > bounds.Max.X {
+		maxX = bounds.Max.X
+	}
+	if maxY > bounds.Max.Y {
+		maxY = bounds.Max.Y
+	}
+
+	totalH := float64(maxY - minY)
+	twoPi := 2 * math.Pi
+	for py := minY; py < maxY; py++ {
+		for px := minX; px < maxX; px++ {
+			dx := float64(px) + 0.5 - cx
+			dy := float64(py) + 0.5 - cy
+			dist := math.Sqrt(dx*dx + dy*dy)
+			if dist < innerR || dist > outerR {
+				continue
+			}
+			angle := math.Mod(math.Atan2(dy, dx)+twoPi, twoPi)
+			s := math.Mod(startAngle+twoPi, twoPi)
+			e := math.Mod(endAngle+twoPi, twoPi)
+			inArc := false
+			if s <= e {
+				if angle >= s && angle <= e {
+					inArc = true
+				}
+			} else {
+				if angle >= s || angle <= e {
+					inArc = true
+				}
+			}
+			if !inArc {
+				continue
+			}
+			t := 0.0
+			if totalH > 0 {
+				t = float64(py-minY) / totalH
+			}
+			dst.SetNRGBA(px, py, lerpNRGBA(nt, nb, t))
+		}
+	}
+}
 
 func fillNRGBA(dst *image.NRGBA, x, y, w, h int, c color.Color) {
 	r, g, b, a := c.RGBA()

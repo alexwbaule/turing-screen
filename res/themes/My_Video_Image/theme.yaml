@@ -1,0 +1,27 @@
+# Auto-converted from .turtheme
+# Source: My_Video_Image
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 12, 84, 144
+  WIDTH: 800
+  HEIGHT: 480
+static_images:
+  BACKGROUND:
+    PATH: assets/image_4.png
+    X: 0
+    Y: 0
+    WIDTH: 1024
+    HEIGHT: 600
+static_texts:
+  TEXTO:
+    TEXT: TEXTO
+    X: 400
+    Y: 30
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 32
+    FONT_COLOR: 12, 84, 144
+    ALIGN: center
+STATS: {}

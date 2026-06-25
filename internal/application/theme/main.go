@@ -58,10 +58,6 @@ func NewTheme(cfg *config.Config, l *logger.Logger) (*Theme, error) {
 		return nil, fmt.Errorf("error unmarshalling config file: %w", err)
 	}
 
-	if cconfig.Display.Size != "5\"" {
-		l.Fatalf("this theme is not for this device [%s -> %s]", cconfig.Display.Size, cconfig.Display.Orientation)
-	}
-
 	return &Theme{
 		theme:    cconfig,
 		path:     fmt.Sprintf("res/themes/%s/", file),
@@ -250,19 +246,67 @@ func translateGraph(file string, data map[string]interface{}) (interface{}, erro
 		barColor = color.Transparent
 	}
 
+	var emptyColor color.Color
+	if val, ok := data["empty_color"].(string); ok {
+		emptyColor = utils.ConvertToColor(val, color.Transparent)
+	}
+
+	var gradientColor color.Color
+	if val, ok := data["gradient_color"].(string); ok {
+		gradientColor = utils.ConvertToColor(val, color.Transparent)
+	}
+
 	show := false
 	if val, ok := data["show"].(bool); ok {
 		show = val
+	}
+
+	steps := 0
+	if val, ok := data["steps"].(int); ok {
+		steps = val
+	}
+	stepGap := 0
+	if val, ok := data["step_gap"].(int); ok {
+		stepGap = val
+	}
+	blockWidth := 0
+	if val, ok := data["block_width"].(int); ok {
+		blockWidth = val
+	}
+	cornerRadius := 0
+	if val, ok := data["corner_radius"].(int); ok {
+		cornerRadius = val
+	}
+	borderWidth := 0
+	if val, ok := data["border_width"].(int); ok {
+		borderWidth = val
+	}
+	revertValue := false
+	if val, ok := data["revert_value"].(bool); ok {
+		revertValue = val
+	}
+	direction := ""
+	if val, ok := data["direction"].(string); ok {
+		direction = val
 	}
 
 	v := theme.Graph{
 		Layout:          layout,
 		BackgroundStyle: bgStyle,
 		Show:            show,
+		Direction:       direction,
 		MinValue:        data["min_value"].(int),
 		MaxValue:        data["max_value"].(int),
 		BarColor:        barColor,
+		EmptyColor:      emptyColor,
+		GradientColor:   gradientColor,
 		BarOutline:      data["bar_outline"].(bool),
+		Steps:           steps,
+		StepGap:         stepGap,
+		BlockWidth:      blockWidth,
+		CornerRadius:    cornerRadius,
+		BorderWidth:     borderWidth,
+		RevertValue:     revertValue,
 	}
 	return v, nil
 }
@@ -282,6 +326,16 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		barColor = color.Transparent
 	}
 
+	var emptyColor color.Color
+	if val, ok := data["empty_color"].(string); ok {
+		emptyColor = utils.ConvertToColor(val, color.Transparent)
+	}
+
+	var gradientColor color.Color
+	if val, ok := data["gradient_color"].(string); ok {
+		gradientColor = utils.ConvertToColor(val, color.Transparent)
+	}
+
 	show := false
 	if val, ok := data["show"].(bool); ok {
 		show = val
@@ -297,6 +351,23 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		showUnit = val
 	}
 
+	round := false
+	if val, ok := data["round"].(bool); ok {
+		round = val
+	}
+	revert := false
+	if val, ok := data["revert"].(bool); ok {
+		revert = val
+	}
+	revertValue := false
+	if val, ok := data["revert_value"].(bool); ok {
+		revertValue = val
+	}
+	blockAngle := 0
+	if val, ok := data["block_angle"].(int); ok {
+		blockAngle = val
+	}
+
 	v := theme.Radial{
 		Layout:          layout,
 		BackgroundStyle: bgStyle,
@@ -309,8 +380,14 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		AngleEnd:        data["angle_end"].(int),
 		AngleSteps:      data["angle_steps"].(int),
 		AngleSep:        data["angle_sep"].(int),
+		BlockAngle:      blockAngle,
 		Clockwise:       data["clockwise"].(bool),
 		BarColor:        barColor,
+		EmptyColor:      emptyColor,
+		GradientColor:   gradientColor,
+		Round:           round,
+		Revert:          revert,
+		RevertValue:     revertValue,
 		ShowText:        showText,
 		ShowUnit:        showUnit,
 	}
@@ -326,9 +403,18 @@ func translateDisplay(data map[string]interface{}, reverse bool) (interface{}, e
 	if !ok {
 		return nil, fmt.Errorf("missing orientation on theme")
 	}
+	var w, h int
+	if val, ok := data["width"].(int); ok {
+		w = val
+	}
+	if val, ok := data["height"].(int); ok {
+		h = val
+	}
 	v := theme.Display{
 		Size:        size,
 		Orientation: theme.StringToOrientation(orientation, reverse),
+		Width:       w,
+		Height:      h,
 	}
 	return v, nil
 }
@@ -359,17 +445,17 @@ func translateVideoPlay(file string, data map[string]interface{}) (interface{}, 
 
 	if val, ok := data["path"].(string); ok {
 		bgImagePath := imagePath + val
-		bVideo, vSize, err := utils.LoadVideo(bgImagePath)
+		bVideo, err := utils.LoadH264(bgImagePath)
 		if err != nil {
 			return theme.BackgroundStyle{}, err
 		}
 		return theme.VideoPlay{
 			Layout:          layout,
 			Video:           bVideo,
-			Size:            vSize,
+			Size:            int64(len(bVideo)),
 			ForegroundImage: image.Transparent,
-			Path:            imagePath + data["path"].(string),
-			DevicePath:      "/root/video/" + data["path"].(string),
+			Path:            bgImagePath,    // full path relative to project root (used by Rev-C initializer)
+			DevicePath:      "/root/video/" + val,
 		}, nil
 	}
 	return nil, fmt.Errorf("missing required config path on static_images")

@@ -1,0 +1,76 @@
+# Auto-converted from .turtheme
+# Source: 3
+# Resolution: 1280x720 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 720
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 720
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 3
+    Y: -37
+    WIDTH: 1281
+    HEIGHT: 768
+STATS:
+  CPU:
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 645
+        Y: 355
+        FONT: turtheme/Futura LT Book.ttf
+        FONT_SIZE: 133
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: center
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 65
+        Y: 606
+        FONT: turtheme/Futura LT Book.ttf
+        FONT_SIZE: 80
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 4800M
+        ALIGN: left
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 522
+        Y: 606
+        FONT: turtheme/Futura LT Book.ttf
+        FONT_SIZE: 80
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: left
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 920
+        Y: 606
+        FONT: turtheme/Futura LT Book.ttf
+        FONT_SIZE: 80
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: left

@@ -131,12 +131,14 @@ func (c *WSClient) Send(action string, payload interface{}) (*WSMessage, error) 
 
 	// Send with a 5-second write timeout derived from the cancelable context
 	data, _ := json.Marshal(msg)
+	log.Printf("[WS→] id=%s action=%s payload=%s", id, action, truncate(string(payloadData), 120))
 	c.mu.Lock()
 	wctx, wcancel := context.WithTimeout(c.ctx, 5*time.Second)
 	err := c.conn.Write(wctx, websocket.MessageText, data)
 	wcancel()
 	c.mu.Unlock()
 	if err != nil {
+		log.Printf("[WS→] WRITE ERROR id=%s action=%s: %v", id, action, err)
 		c.connected.Store(false)
 		// Drain the pending channel immediately so the caller doesn't wait
 		select {
@@ -149,13 +151,16 @@ func (c *WSClient) Send(action string, payload interface{}) (*WSMessage, error) 
 	// Wait for response or context cancellation
 	select {
 	case resp := <-respChan:
+		log.Printf("[WS←] id=%s action=%s status=%s err=%q payload=%s", id, action, resp.Status, resp.Error, truncate(string(resp.Payload), 120))
 		if resp.Status == "error" {
 			return &resp, fmt.Errorf("%s", resp.Error)
 		}
 		return &resp, nil
 	case <-c.ctx.Done():
+		log.Printf("[WS←] id=%s action=%s: context cancelled", id, action)
 		return nil, fmt.Errorf("connection closed")
 	case <-time.After(5 * time.Second):
+		log.Printf("[WS←] id=%s action=%s: TIMEOUT", id, action)
 		return nil, fmt.Errorf("timeout waiting for response")
 	}
 }
@@ -190,12 +195,13 @@ func (c *WSClient) readLoop() {
 		_, data, err := c.conn.Read(c.ctx)
 		if err != nil {
 			c.connected.Store(false)
-			log.Printf("[WSClient] read error: %v", err)
+			log.Printf("[WS] read loop exited: %v", err)
 			return
 		}
 
 		var msg WSMessage
 		if err := json.Unmarshal(data, &msg); err != nil {
+			log.Printf("[WS←] unmarshal error: %v (raw=%s)", err, truncate(string(data), 80))
 			continue
 		}
 
@@ -210,11 +216,21 @@ func (c *WSClient) readLoop() {
 			}
 		}
 
-		// It's a push event
+		// It's a push event — only log non-sensor/status spam
+		if msg.Action != "event.status" && msg.Action != "event.sensors" {
+			log.Printf("[WS event] action=%s status=%s", msg.Action, msg.Status)
+		}
 		if c.onEvent != nil {
 			c.onEvent(msg)
 		}
 	}
+}
+
+func truncate(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "…"
 }
 
 // drainPending unblocks all goroutines waiting in Send() by sending an error response.

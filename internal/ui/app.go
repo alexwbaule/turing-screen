@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"image"
+	_ "image/jpeg"
 	_ "image/png"
 	"log"
 	"os"
@@ -20,6 +21,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/alexwbaule/turing-screen/internal/theme"
 	"github.com/alexwbaule/turing-screen/internal/utils"
+	"github.com/disintegration/imaging"
 	"github.com/spf13/viper"
 )
 
@@ -39,6 +41,8 @@ type EditorApp struct {
 	canvasElements     *fyne.Container
 	canvasPlaceholder  *canvas.Rectangle
 	canvasStack        *fyne.Container
+	outerBg            *canvas.Rectangle
+	deviceType         string // "turzx" or "revc", set from event.status
 	propertiesPanel    *PropertiesPanel
 	layersPanel        *LayersPanel
 	homeScreen         *HomeScreen
@@ -54,6 +58,7 @@ type EditorApp struct {
 	canvasHeight       int    // current canvas height based on orientation
 	statusLabel        *widget.Label
 	wsClient           *WSClient
+	shown              bool
 }
 
 // activeWindow returns the editor window if open, otherwise the main window.
@@ -62,6 +67,16 @@ func (e *EditorApp) activeWindow() fyne.Window {
 		return e.editorWindow
 	}
 	return e.mainWindow
+}
+
+// ShowWindow brings the main window to the foreground from any goroutine.
+// Used by the single-instance IPC listener to restore a minimized/hidden window.
+func (e *EditorApp) ShowWindow() {
+	fyne.Do(func() {
+		e.mainWindow.Show()
+		e.mainWindow.RequestFocus()
+		e.shown = true
+	})
 }
 
 func NewEditorApp() *EditorApp {
@@ -78,8 +93,8 @@ func NewEditorApp() *EditorApp {
 		currentTheme:       &theme.Theme{},
 		editableStaticText: []*theme.Text{},
 		fontCache:          NewFontCache("res/fonts"),
-		canvasWidth:        800,
-		canvasHeight:       480,
+		canvasWidth:        1280,
+		canvasHeight:       720,
 	}
 	editor.propertiesPanel = buildProperties(editor)
 	editor.layersPanel = NewLayersPanel(editor)
@@ -284,107 +299,99 @@ func (e *EditorApp) AddComponent(componentType theme.ComponentType) {
 }
 
 func (e *EditorApp) LoadTheme(path string) {
-	log.Printf("========== LOAD THEME INICIADO ==========")
-	log.Printf("[LoadTheme] Caminho: %s", path)
-
-	loadedTheme, err := theme.LoadTheme(path)
-	if err != nil {
-		log.Printf("[LoadTheme] ERRO ao carregar: %v", err)
-		dialog.ShowError(err, e.activeWindow())
-		return
-	}
-	e.currentTheme = loadedTheme
-
-	// Set canvas orientation based on theme display
-	if loadedTheme.Display != nil && loadedTheme.Display.Orientation != "" {
-		e.SetCanvasOrientation(loadedTheme.Display.Orientation)
-	} else {
-		e.SetCanvasOrientation("landscape")
-	}
-
-	// Log do que foi parseado do YAML
-	log.Printf("[LoadTheme] Display: %+v", loadedTheme.Display)
-	log.Printf("[LoadTheme] StaticImages (%d entradas):", len(loadedTheme.StaticImages))
-	for key, img := range loadedTheme.StaticImages {
-		log.Printf("[LoadTheme]   StaticImage[%q] = PATH:%q X:%d Y:%d W:%d H:%d", key, img.Path, img.X, img.Y, img.Width, img.Height)
-	}
-	log.Printf("[LoadTheme] VideoPlay: %v", loadedTheme.VideoPlay != nil)
-	if loadedTheme.VideoPlay != nil {
-		log.Printf("[LoadTheme]   Video PATH:%q X:%d Y:%d W:%d H:%d", loadedTheme.VideoPlay.Path, loadedTheme.VideoPlay.X, loadedTheme.VideoPlay.Y, loadedTheme.VideoPlay.Width, loadedTheme.VideoPlay.Height)
-	}
-	log.Printf("[LoadTheme] StaticText (%d entradas):", len(loadedTheme.StaticText))
-	for key, txt := range loadedTheme.StaticText {
-		log.Printf("[LoadTheme]   StaticText[%q] = TEXT:%q SHOW:%v X:%d Y:%d Font:%q FontSize:%d", key, txt.Text, txt.Show, txt.X, txt.Y, txt.Font, txt.FontSize)
-	}
-	log.Printf("[LoadTheme] Stats == nil? %v", loadedTheme.Stats == nil)
-	if loadedTheme.Stats != nil {
-		log.Printf("[LoadTheme]   Stats.CPU == nil? %v", loadedTheme.Stats.CPU == nil)
-		log.Printf("[LoadTheme]   Stats.GPU == nil? %v", loadedTheme.Stats.GPU == nil)
-		log.Printf("[LoadTheme]   Stats.Memory == nil? %v", loadedTheme.Stats.Memory == nil)
-		log.Printf("[LoadTheme]   Stats.Disk == nil? %v", loadedTheme.Stats.Disk == nil)
-		log.Printf("[LoadTheme]   Stats.Net == nil? %v", loadedTheme.Stats.Net == nil)
-		log.Printf("[LoadTheme]   Stats.Date == nil? %v", loadedTheme.Stats.Date == nil)
-	}
-
-	e.selectWidget(nil)
-	e.editableStaticText = []*theme.Text{}
-	for key := range e.currentTheme.StaticText {
-		val := e.currentTheme.StaticText[key]
-		val.Show = true
-		log.Printf("[LoadTheme] Adicionando static text [%q] Text:%q X:%d Y:%d", key, val.Text, val.X, val.Y)
-		e.editableStaticText = append(e.editableStaticText, &val)
-	}
-
-	themeDir := filepath.Dir(path)
-	e.themeDir = themeDir
-	e.themePath = path
-
-	// Reset both layers
-	e.videoPath = ""
-	e.videoPlayer.Stop()
-	e.backgroundPath = ""
-	e.backgroundLayers.RemoveAll()
-
-	// Load video if present
-	if e.currentTheme.VideoPlay != nil {
-		vid := e.currentTheme.VideoPlay
-		videoAbsPath := filepath.Join(themeDir, vid.Path)
-		log.Printf("[LoadTheme] Video encontrado: PATH=%q => absPath=%q", vid.Path, videoAbsPath)
-		if err := e.loadVideoAsBackground(videoAbsPath); err != nil {
-			log.Printf("[LoadTheme] ERRO ao carregar vídeo: %v", err)
+	go func() {
+		// Phase 1 (goroutine): pure-Go work — YAML parse + ffmpeg extract.
+		// Neither touches Fyne so this is safe off the main thread.
+		loadedTheme, err := theme.LoadTheme(path)
+		if err != nil {
+			log.Printf("[LoadTheme] erro ao carregar %q: %v", path, err)
+			fyne.Do(func() { dialog.ShowError(err, e.activeWindow()) })
+			return
 		}
-	}
 
-	// Always load static_images as layers (on top of video if present)
-	e.LoadBackgroundLayers(themeDir)
-	e.RefreshCanvas()
-	e.layersPanel.SyncFromTheme()
-	e.layersPanel.Refresh()
-	log.Printf("========== LOAD THEME CONCLUÍDO ==========")
+		themeDir := filepath.Dir(path)
+
+		// Determine canvas dimensions from the loaded theme.
+		newW, newH := 1280, 720
+		orientation := "landscape"
+		if loadedTheme.Display != nil {
+			newW = loadedTheme.Display.Width
+			newH = loadedTheme.Display.Height
+			orientation = loadedTheme.Display.Orientation
+		}
+		if newW <= 0 || newH <= 0 {
+			o := strings.ToLower(orientation)
+			if o == "portrait" || o == "reverse_portrait" {
+				newW, newH = 720, 1280
+			} else {
+				newW, newH = 1280, 720
+			}
+		}
+
+		// Extract video first frame (blocking ffmpeg call — safe on goroutine).
+		var firstVideoPath string
+		var firstVideoFrame image.Image
+		if loadedTheme.VideoPlay != nil {
+			firstVideoPath = filepath.Join(themeDir, loadedTheme.VideoPlay.Path)
+			frame, ferr := ExtractVideoFrame(firstVideoPath, newW, newH)
+			if ferr != nil {
+				log.Printf("[LoadTheme] erro ao extrair frame de vídeo %q: %v", firstVideoPath, ferr)
+			} else {
+				firstVideoFrame = frame
+			}
+		}
+
+		// Phase 2 (main thread): all Fyne widget work.
+		fyne.Do(func() {
+			e.currentTheme = loadedTheme
+			e.SetCanvasSize(newW, newH, orientation)
+
+			e.selectWidget(nil)
+			e.editableStaticText = []*theme.Text{}
+			for key := range e.currentTheme.StaticText {
+				val := e.currentTheme.StaticText[key]
+				val.Show = true
+				e.editableStaticText = append(e.editableStaticText, &val)
+			}
+
+			e.themeDir = themeDir
+			e.themePath = path
+
+			e.videoPath = ""
+			e.videoPlayer.Stop()
+			e.backgroundPath = ""
+			e.backgroundLayers.RemoveAll()
+
+			if firstVideoFrame != nil {
+				e.videoPlayer.SetSize(newW, newH)
+				e.videoPlayer.mu.Lock()
+				e.videoPlayer.img.Image = firstVideoFrame
+				e.videoPlayer.mu.Unlock()
+				canvas.Refresh(e.videoPlayer.img)
+				e.videoPath = firstVideoPath
+				go e.videoPlayer.streamLoop()
+			}
+
+			e.LoadBackgroundLayers(themeDir)
+			e.RefreshCanvas()
+			e.layersPanel.SyncFromTheme()
+			e.layersPanel.Refresh()
+		})
+	}()
 }
 
 func (e *EditorApp) RefreshCanvas() {
-	log.Printf("[RefreshCanvas] Iniciando refresh...")
 	e.canvasElements.RemoveAll()
-	log.Printf("[RefreshCanvas] editableStaticText count: %d", len(e.editableStaticText))
 	for i, textDataPtr := range e.editableStaticText {
-		log.Printf("[RefreshCanvas]   static[%d] Show=%v Text=%q X=%d Y=%d", i, textDataPtr.Show, textDataPtr.Text, textDataPtr.X, textDataPtr.Y)
 		if textDataPtr.Show {
 			path := fmt.Sprintf("static_texts.[%d]", i)
 			e.renderText(textDataPtr, path)
 		}
 	}
 	if e.currentTheme.Stats != nil {
-		log.Printf("[RefreshCanvas] Renderizando Stats via reflection...")
 		e.renderStruct(reflect.ValueOf(e.currentTheme.Stats), "STATS")
-	} else {
-		log.Printf("[RefreshCanvas] Stats == nil, pulando")
 	}
-
-	// Apply z-order from INDEX fields
 	e.applyIndexOrder()
-
-	log.Printf("[RefreshCanvas] Total de objetos no canvas: %d", len(e.canvasElements.Objects))
 	e.canvasElements.Refresh()
 }
 
@@ -418,12 +425,10 @@ func getWidgetIndex(obj fyne.CanvasObject) int {
 
 func (e *EditorApp) renderStruct(v reflect.Value, currentPath string) {
 	if !v.IsValid() {
-		log.Printf("[renderStruct] path=%s => valor inválido, pulando", currentPath)
 		return
 	}
 	if v.Kind() == reflect.Ptr {
 		if v.IsNil() {
-			log.Printf("[renderStruct] path=%s => ponteiro nil, pulando", currentPath)
 			return
 		}
 		v = v.Elem()
@@ -432,7 +437,6 @@ func (e *EditorApp) renderStruct(v reflect.Value, currentPath string) {
 	// Handle Load
 	if v.Type() == reflect.TypeOf(theme.Load{}) {
 		load := v.Interface().(theme.Load)
-		log.Printf("[renderStruct] path=%s => Load detectado (One=%v, Five=%v, Fifteen=%v)", currentPath, load.One != nil, load.Five != nil, load.Fifteen != nil)
 		if load.One != nil && load.One.Text != nil && load.One.Text.Show {
 			e.renderText(load.One.Text, currentPath+".ONE.TEXT")
 		}
@@ -448,11 +452,6 @@ func (e *EditorApp) renderStruct(v reflect.Value, currentPath string) {
 	// Handle Measurement
 	if v.Type() == reflect.TypeOf(theme.Measurement{}) {
 		measurement := v.Interface().(theme.Measurement)
-		log.Printf("[renderStruct] path=%s => Measurement Show=%v Text=%v PercentText=%v Graph=%v Radial=%v Chart=%v",
-			currentPath, measurement.Show,
-			measurement.Text != nil, measurement.PercentText != nil,
-			measurement.Graph != nil, measurement.Radial != nil, measurement.Chart != nil)
-		// Render children if Show is true OR if any child exists (turing-screen YAML doesn't set Show on Measurement)
 		if measurement.Text != nil && measurement.Text.Show {
 			e.renderText(measurement.Text, currentPath+".TEXT")
 		}
@@ -474,11 +473,6 @@ func (e *EditorApp) renderStruct(v reflect.Value, currentPath string) {
 	// Handle MemMeasurement
 	if v.Type() == reflect.TypeOf(theme.MemMeasurement{}) {
 		memMeasurement := v.Interface().(theme.MemMeasurement)
-		log.Printf("[renderStruct] path=%s => MemMeasurement Show=%v PercentText=%v Used=%v Free=%v Graph=%v Radial=%v Chart=%v",
-			currentPath, memMeasurement.Show,
-			memMeasurement.PercentText != nil, memMeasurement.Used != nil, memMeasurement.Free != nil,
-			memMeasurement.Graph != nil, memMeasurement.Radial != nil, memMeasurement.Chart != nil)
-		// Render children if they exist and have Show=true (independent of MemMeasurement.Show)
 		if memMeasurement.PercentText != nil && memMeasurement.PercentText.Show {
 			e.renderText(memMeasurement.PercentText, currentPath+".PERCENT_TEXT")
 		}
@@ -532,21 +526,11 @@ func (e *EditorApp) renderStruct(v reflect.Value, currentPath string) {
 		if yamlTag == "" || yamlTag == "-" {
 			continue
 		}
-		newPath := currentPath + "." + yamlTag
-
-		// Log field traversal for top-level structs only (to avoid flooding)
-		if strings.Count(newPath, ".") <= 2 {
-			isNil := field.Kind() == reflect.Ptr && field.IsNil()
-			log.Printf("[renderStruct] percorrendo campo %s (kind=%s, nil=%v)", newPath, field.Kind(), isNil)
-		}
-
-		e.renderStruct(field, newPath)
+		e.renderStruct(field, currentPath+"."+yamlTag)
 	}
 }
 
 func (e *EditorApp) renderText(data *theme.Text, path string) {
-	log.Printf("[renderText] path=%s Text=%q X=%d Y=%d Font=%q FontSize=%d FontColor=%q BgColor=%q Align=%q",
-		path, data.Text, data.X, data.Y, data.Font, data.FontSize, data.FontColor, data.BackgroundColor, data.Align)
 	widget := NewDraggableWidget(data, path, e.fontCache,
 		func(dw *DraggableWidget) { e.selectWidget(dw) },
 		func(dw *DraggableWidget) { e.propertiesPanel.Update(dw) },
@@ -572,8 +556,6 @@ func (e *EditorApp) renderText(data *theme.Text, path string) {
 }
 
 func (e *EditorApp) renderGraph(data *theme.Graph, path string) {
-	log.Printf("[renderGraph] path=%s X=%d Y=%d W=%d H=%d BarColor=%q BgColor=%q Outline=%v",
-		path, data.X, data.Y, data.Width, data.Height, data.BarColor, data.BackgroundColor, data.BarOutline)
 	widget := NewDraggableGraph(data, path,
 		func(dg *DraggableGraph) { e.selectWidget(dg) },
 		func(dg *DraggableGraph) { e.propertiesPanel.Update(dg) },
@@ -584,8 +566,6 @@ func (e *EditorApp) renderGraph(data *theme.Graph, path string) {
 }
 
 func (e *EditorApp) renderRadial(data *theme.Radial, path string) {
-	log.Printf("[renderRadial] path=%s X=%d Y=%d Radius=%d Width=%d BarColor=%q BgColor=%q ShowText=%v",
-		path, data.X, data.Y, data.Radius, data.Width, data.BarColor, data.BackgroundColor, data.ShowText)
 	widget := NewDraggableRadial(data, path, e.fontCache,
 		func(dr *DraggableRadial) { e.selectWidget(dr) },
 		func(dr *DraggableRadial) { e.propertiesPanel.Update(dr) },
@@ -598,8 +578,6 @@ func (e *EditorApp) renderRadial(data *theme.Radial, path string) {
 }
 
 func (e *EditorApp) renderChart(data *theme.Chart, path string) {
-	log.Printf("[renderChart] path=%s X=%d Y=%d W=%d H=%d FillColor=%q LineColor=%q Border=%d",
-		path, data.X, data.Y, data.Width, data.Height, data.FillColor, data.LineColor, data.BorderWidth)
 	widget := NewDraggableChart(data, path,
 		func(dc *DraggableChart) { e.selectWidget(dc) },
 		func(dc *DraggableChart) { e.propertiesPanel.Update(dc) },
@@ -619,7 +597,7 @@ func (e *EditorApp) NewTheme() {
 	e.videoPlayer.Stop()
 	canvas.Refresh(e.videoPlayer.CanvasObject())
 	e.LoadBackgroundImage("")
-	e.SetCanvasOrientation("landscape")
+	e.SetCanvasSize(1280, 720, "landscape")
 	e.selectWidget(nil)
 	e.RefreshCanvas()
 	e.layersPanel.SyncFromTheme()
@@ -692,11 +670,11 @@ func (e *EditorApp) showLayerProperties(layerKey string) {
 				path := reader.URI().Path()
 				reader.Close()
 				imgData := e.currentTheme.StaticImages[layerKey]
-				imgData.Path = filepath.Base(path)
+				// Store the full absolute path so the preview loads immediately.
+				// The basename conversion happens on Save (where the file is also copied).
+				imgData.Path = path
 				e.currentTheme.StaticImages[layerKey] = imgData
-				if e.themeDir != "" {
-					e.LoadBackgroundLayersOrdered(e.themeDir, e.layersPanel.layerOrder)
-				}
+				e.LoadBackgroundLayersOrdered(e.themeDir, e.layersPanel.layerOrder)
 				e.layersPanel.Refresh()
 			}, e.activeWindow())
 			fileDialog.Resize(fyne.NewSize(900, 600))
@@ -795,7 +773,12 @@ func (e *EditorApp) LoadBackgroundLayers(themeDir string) {
 
 	for _, key := range keys {
 		imgData := e.currentTheme.StaticImages[key]
-		absPath := filepath.Join(themeDir, imgData.Path)
+		var absPath string
+		if filepath.IsAbs(imgData.Path) {
+			absPath = imgData.Path
+		} else {
+			absPath = filepath.Join(themeDir, imgData.Path)
+		}
 		log.Printf("[LoadBackgroundLayers] Layer %q: %s at (%d,%d) %dx%d", key, absPath, imgData.X, imgData.Y, imgData.Width, imgData.Height)
 
 		file, err := os.Open(absPath)
@@ -811,9 +794,15 @@ func (e *EditorApp) LoadBackgroundLayers(themeDir string) {
 			continue
 		}
 
+		// Scale down if image exceeds the device canvas dimensions
+		maxW, maxH := int(currentCanvasWidth), int(currentCanvasHeight)
+		if img.Bounds().Dx() > maxW || img.Bounds().Dy() > maxH {
+			log.Printf("[LoadBackgroundLayers] Layer %q: %dx%d > canvas %dx%d, redimensionando", key, img.Bounds().Dx(), img.Bounds().Dy(), maxW, maxH)
+			img = imaging.Fit(img, maxW, maxH, imaging.Lanczos)
+		}
+
 		layerCanvas := canvas.NewImageFromImage(img)
 		layerCanvas.FillMode = canvas.ImageFillOriginal
-		// Position the layer
 		layerCanvas.Move(fyne.NewPos(float32(imgData.X), float32(imgData.Y)))
 		layerCanvas.Resize(fyne.NewSize(float32(img.Bounds().Dx()), float32(img.Bounds().Dy())))
 		e.backgroundLayers.Add(layerCanvas)
@@ -835,7 +824,12 @@ func (e *EditorApp) LoadBackgroundLayersOrdered(themeDir string, order []string)
 		if !ok {
 			continue
 		}
-		absPath := filepath.Join(themeDir, imgData.Path)
+		var absPath string
+		if filepath.IsAbs(imgData.Path) {
+			absPath = imgData.Path
+		} else {
+			absPath = filepath.Join(themeDir, imgData.Path)
+		}
 		log.Printf("[LoadBackgroundLayersOrdered] Layer %q: %s at (%d,%d)", key, absPath, imgData.X, imgData.Y)
 
 		file, err := os.Open(absPath)
@@ -849,6 +843,13 @@ func (e *EditorApp) LoadBackgroundLayersOrdered(themeDir string, order []string)
 		if err != nil {
 			log.Printf("[LoadBackgroundLayersOrdered] ERRO ao decodificar %s: %v", absPath, err)
 			continue
+		}
+
+		// Scale down if image exceeds the device canvas dimensions
+		maxW, maxH := int(currentCanvasWidth), int(currentCanvasHeight)
+		if img.Bounds().Dx() > maxW || img.Bounds().Dy() > maxH {
+			log.Printf("[LoadBackgroundLayersOrdered] Layer %q: %dx%d > canvas %dx%d, redimensionando", key, img.Bounds().Dx(), img.Bounds().Dy(), maxW, maxH)
+			img = imaging.Fit(img, maxW, maxH, imaging.Lanczos)
 		}
 
 		layerCanvas := canvas.NewImageFromImage(img)
@@ -900,6 +901,26 @@ func (e *EditorApp) SaveThemeDirect() {
 		e.currentTheme.StaticText = newStaticTextMap
 	} else {
 		e.currentTheme.StaticText = nil
+	}
+
+	// Normalise static image paths: copy any absolute-path images into themeDir
+	// and convert back to basename so the YAML stays portable.
+	if e.currentTheme.StaticImages != nil && e.themeDir != "" {
+		normalised := make(map[string]theme.StaticImage)
+		for key, imgData := range e.currentTheme.StaticImages {
+			if filepath.IsAbs(imgData.Path) {
+				destName := filepath.Base(imgData.Path)
+				destPath := filepath.Join(e.themeDir, destName)
+				if imgData.Path != destPath {
+					if err := utils.CopyFile(imgData.Path, destPath); err != nil {
+						log.Printf("[SaveThemeDirect] aviso: não foi possível copiar imagem %s: %v", imgData.Path, err)
+					}
+				}
+				imgData.Path = destName
+			}
+			normalised[key] = imgData
+		}
+		e.currentTheme.StaticImages = normalised
 	}
 
 	err := theme.SaveTheme(e.currentTheme, e.themePath)
@@ -1005,8 +1026,8 @@ func (e *EditorApp) SaveTheme(uri fyne.URI) {
 			Path:       filepath.Base(e.videoPath),
 			X:          0,
 			Y:          0,
-			Width:      800,
-			Height:     480,
+			Width:      e.canvasWidth,
+			Height:     e.canvasHeight,
 			Background: bgFileName,
 		}
 		e.currentTheme.StaticImages = nil
@@ -1025,20 +1046,30 @@ func (e *EditorApp) SaveTheme(uri fyne.URI) {
 			if e.currentTheme.StaticImages == nil {
 				e.currentTheme.StaticImages = make(map[string]theme.StaticImage)
 			}
-			e.currentTheme.StaticImages["BACKGROUND"] = theme.StaticImage{Path: "background.png", X: 0, Y: 0, Width: 800, Height: 480}
+			e.currentTheme.StaticImages["BACKGROUND"] = theme.StaticImage{Path: "background.png", X: 0, Y: 0, Width: e.canvasWidth, Height: e.canvasHeight}
 		}
-		// If theme already had static_images (loaded from file), preserve them
-		// and copy the referenced files to target dir
+		// Copy static image files to target dir and normalise paths to basename.
 		if e.currentTheme.StaticImages != nil {
-			for key, img := range e.currentTheme.StaticImages {
-				srcPath := img.Path
-				// If it's a relative path, try to find it from the original theme dir
+			normalised := make(map[string]theme.StaticImage)
+			for key, imgData := range e.currentTheme.StaticImages {
+				srcPath := imgData.Path
 				if !filepath.IsAbs(srcPath) {
-					// Already relative — it will be saved as-is in YAML
-					// Just make sure the file exists in target
-					_ = key
+					// Relative — resolve from original theme dir
+					if e.themeDir != "" {
+						srcPath = filepath.Join(e.themeDir, srcPath)
+					}
 				}
+				destName := filepath.Base(srcPath)
+				destPath := filepath.Join(targetDir, destName)
+				if srcPath != destPath {
+					if err := utils.CopyFile(srcPath, destPath); err != nil {
+						log.Printf("[SaveTheme] aviso: não foi possível copiar imagem %s: %v", srcPath, err)
+					}
+				}
+				imgData.Path = destName
+				normalised[key] = imgData
 			}
+			e.currentTheme.StaticImages = normalised
 		}
 	}
 
@@ -1191,7 +1222,7 @@ func (e *EditorApp) Run() {
 	e.homeScreen = NewHomeScreen(e)
 
 	// System tray (only available on desktop drivers that support it)
-	shown := true
+	e.shown = true
 	if desk, ok := e.fyneApp.(desktop.App); ok {
 		if iconBytes, err := os.ReadFile("res/icon.svg"); err == nil {
 			desk.SetSystemTrayIcon(fyne.NewStaticResource("icon.svg", iconBytes))
@@ -1199,21 +1230,21 @@ func (e *EditorApp) Run() {
 
 		trayMenu := fyne.NewMenu("Turing Screen",
 			fyne.NewMenuItem("Mostrar / Ocultar", func() {
-				if shown {
+				if e.shown {
 					e.mainWindow.Hide()
-					shown = false
+					e.shown = false
 				} else {
 					e.mainWindow.Show()
 					e.mainWindow.RequestFocus()
-					shown = true
+					e.shown = true
 				}
 			}),
 			fyne.NewMenuItemSeparator(),
 			fyne.NewMenuItem("Configurações...", func() {
-				if !shown {
+				if !e.shown {
 					e.mainWindow.Show()
 					e.mainWindow.RequestFocus()
-					shown = true
+					e.shown = true
 				}
 				ShowConfigDialog(e)
 			}),
@@ -1224,7 +1255,7 @@ func (e *EditorApp) Run() {
 
 		// Close intercept: hide to tray instead of quitting
 		e.mainWindow.SetCloseIntercept(func() {
-			shown = false
+			e.shown = false
 			e.mainWindow.Hide()
 		})
 	}
@@ -1243,15 +1274,23 @@ func (e *EditorApp) showEditor() {
 	e.editorWindow.SetMainMenu(buildMainMenu(e))
 	e.editorWindow.SetContent(e.editorContent)
 	e.editorWindow.Resize(fyne.NewSize(1600, 900))
+	// Intercept the X button so it returns to home instead of quitting or orphaning
+	e.editorWindow.SetCloseIntercept(func() {
+		e.showHome()
+	})
 	e.editorWindow.Show()
 }
 
-// showHome closes the editor window.
+// showHome closes the editor window and returns focus to the main (home) window.
 func (e *EditorApp) showHome() {
+	e.videoPlayer.Stop()
 	if e.editorWindow != nil {
-		e.editorWindow.Close()
-		e.editorWindow = nil
+		win := e.editorWindow
+		e.editorWindow = nil // clear before Close() to avoid re-entry via intercept
+		win.Close()
 	}
+	e.mainWindow.Show()
+	e.mainWindow.RequestFocus()
 	e.homeScreen.loadThemeList()
 	e.homeScreen.updateDisplay()
 }

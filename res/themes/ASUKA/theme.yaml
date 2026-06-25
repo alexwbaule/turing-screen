@@ -1,0 +1,134 @@
+# Auto-converted from .turtheme
+# Source: ASUKA
+# Resolution: 1280x800 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 800
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 800
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 800
+  LAYER_3:
+    PATH: assets/image_5.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 800
+STATS:
+  GPU:
+    INTERVAL: 1
+    FREQUENCY:
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 233
+        Y: 711
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 8888M
+        ALIGN: left
+    PERCENTAGE:
+      GRAPH:
+        SHOW: true
+        INDEX: 7
+        X: 1064
+        Y: 389
+        WIDTH: 169
+        HEIGHT: 16
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 63, 130, 237
+        BAR_OUTLINE: false
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 865
+        Y: 653
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 97
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 6
+        X: 1064
+        Y: 320
+        WIDTH: 169
+        HEIGHT: 16
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 63, 130, 237
+        BAR_OUTLINE: false
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 1127
+        Y: 570
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 57
+        FONT_COLOR: 63, 130, 237
+        SHOW_UNIT: true
+        PLACEHOLDER: '12:00'
+        ALIGN: center
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        INDEX: 10
+        X: 1241
+        Y: 548
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '31'
+        ALIGN: right
+        FORMAT: medium
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      GRAPH:
+        SHOW: true
+        INDEX: 8
+        X: 1064
+        Y: 456
+        WIDTH: 169
+        HEIGHT: 16
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 63, 130, 237
+        BAR_OUTLINE: false
+  VOLUME:
+    GRAPH:
+      SHOW: true
+      INDEX: 9
+      X: 1015
+      Y: 647
+      WIDTH: 221
+      HEIGHT: 16
+      MIN_VALUE: 0
+      MAX_VALUE: 100
+      BAR_COLOR: 48, 101, 178
+      BAR_OUTLINE: false

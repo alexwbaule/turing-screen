@@ -1,0 +1,43 @@
+# Auto-converted from .turtheme
+# Source: REFERENCIA
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 12, 84, 144
+  WIDTH: 800
+  HEIGHT: 480
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+static_texts:
+  CENTER:
+    TEXT: CENTER
+    X: 400
+    Y: 0
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 32
+    FONT_COLOR: 12, 84, 144
+    ALIGN: center
+  RIGHT:
+    TEXT: RIGHT
+    X: 400
+    Y: 100
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 32
+    FONT_COLOR: 255, 255, 0
+    ALIGN: right
+  LEFT:
+    TEXT: LEFT
+    X: 400
+    Y: 200
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 32
+    FONT_COLOR: 255, 128, 64
+    ALIGN: left
+STATS: {}

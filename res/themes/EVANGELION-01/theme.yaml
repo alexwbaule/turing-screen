@@ -1,31 +1,33 @@
 # Auto-converted from .turtheme
 # Source: EVANGELION-01
-# Resolution: 480x800 (portrait)
+# Resolution: 720x1280 (reverse_portrait)
 ---
 display:
   SIZE: 5"
-  ORIENTATION: portrait
+  ORIENTATION: reverse_portrait
   RGB_LED: 255, 255, 255
+  WIDTH: 720
+  HEIGHT: 1280
 video:
   PATH: video/EVANGELION01.mp4
   X: 0
   Y: 0
-  WIDTH: 480
-  HEIGHT: 800
+  WIDTH: 720
+  HEIGHT: 1280
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png
     X: 0
     Y: 0
-    WIDTH: 481
-    HEIGHT: 801
+    WIDTH: 760
+    HEIGHT: 1266
 static_texts:
   GPU:
     TEXT: GPU
-    X: 160
-    Y: 701
+    X: 256
+    Y: 1104
     FONT: turtheme/LiquidCrystal-Normal.otf
-    FONT_SIZE: 33
+    FONT_SIZE: 55
     FONT_COLOR: 255, 255, 255
     ALIGN: left
 STATS:
@@ -35,26 +37,26 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 1
-        X: 10
-        Y: 62
+        X: 19
+        Y: 97
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 84
+        FONT_SIZE: 138
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: '14:38:08'
+        PLACEHOLDER: '12:00:00'
         ALIGN: left
         FORMAT: short
     DAY:
       TEXT:
         SHOW: true
         INDEX: 13
-        X: 352
-        Y: 164
+        X: 558
+        Y: 262
         FONT: turtheme/Source-San-Hans-BLOD.ttf
-        FONT_SIZE: 15
+        FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: '2022-12-07'
+        PLACEHOLDER: '2020-12-31'
         ALIGN: left
         FORMAT: medium
   CPU:
@@ -63,37 +65,37 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 2
-        X: 436
-        Y: 58
+        X: 699
+        Y: 89
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 19
+        FONT_SIZE: 28
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: 10W
+        PLACEHOLDER: 200W
         ALIGN: right
     VOLTAGE:
       INTERVAL: 1
       TEXT:
         SHOW: true
         INDEX: 3
-        X: 436
-        Y: 114
+        X: 696
+        Y: 179
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 19
+        FONT_SIZE: 31
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '1.25'
+        PLACEHOLDER: '1.8'
         ALIGN: right
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
         SHOW: true
         INDEX: 9
-        X: 408
-        Y: 463
+        X: 646
+        Y: 731
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 33
+        FONT_SIZE: 53
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '5'
+        PLACEHOLDER: '88'
         ALIGN: center
   GPU:
     INTERVAL: 1
@@ -101,46 +103,46 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 4
-        X: 75
-        Y: 638
+        X: 121
+        Y: 1005
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 33
+        FONT_SIZE: 53
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '77'
+        PLACEHOLDER: '88'
         ALIGN: center
     PERCENTAGE:
       TEXT:
         SHOW: true
         INDEX: 8
-        X: 409
-        Y: 552
+        X: 646
+        Y: 870
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 33
+        FONT_SIZE: 53
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '24'
+        PLACEHOLDER: '88'
         ALIGN: center
     VOLTAGE:
       TEXT:
         SHOW: true
         INDEX: 11
-        X: 316
-        Y: 700
+        X: 512
+        Y: 1102
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 35
+        FONT_SIZE: 57
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: 0.84V
+        PLACEHOLDER: 1.8V
         ALIGN: right
   VOLUME:
     TEXT:
       SHOW: true
       INDEX: 5
-      X: 75
-      Y: 726
+      X: 118
+      Y: 1144
       FONT: turtheme/LiquidCrystal-Normal.otf
-      FONT_SIZE: 33
+      FONT_SIZE: 53
       FONT_COLOR: 255, 255, 255
-      PLACEHOLDER: '58'
+      PLACEHOLDER: '100'
       ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -148,12 +150,12 @@ STATS:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 6
-        X: 409
-        Y: 638
+        X: 646
+        Y: 1007
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 33
+        FONT_SIZE: 53
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '58'
+        PLACEHOLDER: '88'
         ALIGN: center
   DISK:
     INTERVAL: 10
@@ -161,23 +163,23 @@ STATS:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 7
-        X: 409
-        Y: 726
+        X: 646
+        Y: 1146
         FONT: turtheme/LiquidCrystal-Normal.otf
-        FONT_SIZE: 33
+        FONT_SIZE: 53
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '97'
+        PLACEHOLDER: '88'
         ALIGN: center
   WEATHER:
     TEMPERATURE:
       TEXT:
         SHOW: true
         INDEX: 12
-        X: 32
-        Y: 160
+        X: 54
+        Y: 255
         FONT: turtheme/Source-San-Hans-BLOD.ttf
-        FONT_SIZE: 20
+        FONT_SIZE: 33
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: Cloudy SW1Level  12°
+        PLACEHOLDER: Partly Cloudy 20° NE Wind
         ALIGN: left

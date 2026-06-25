@@ -1,45 +1,53 @@
 # Auto-converted from .turtheme
 # Source: NZXT_color
-# Resolution: 800x480 (landscape)
+# Resolution: 1280x720 (landscape)
 ---
 display:
   SIZE: 5"
   ORIENTATION: landscape
   RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: assets/image_1.png
-    X: 0
-    Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    X: -29
+    Y: -30
+    WIDTH: 1319
+    HEIGHT: 791
   LAYER_2:
     PATH: assets/image_3.png
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    WIDTH: 1159
+    HEIGHT: 695
   LAYER_3:
     PATH: assets/image_5.png
-    X: 0
+    X: 242
+    Y: 120
+    WIDTH: 1008
+    HEIGHT: 604
+  LAYER_4:
+    PATH: assets/image_7.png
+    X: -20
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    WIDTH: 1280
+    HEIGHT: 800
 static_texts:
   CPUMODEL:
     TEXT: '{{CPU_MODEL}}'
-    X: 148
-    Y: 29
+    X: 215
+    Y: 47
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 23
+    FONT_SIZE: 33
     FONT_COLOR: 89, 181, 248
     ALIGN: center
   GPUMODEL:
     TEXT: '{{GPU_MODEL}}'
-    X: 388
-    Y: 28
+    X: 564
+    Y: 44
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 23
+    FONT_SIZE: 33
     FONT_COLOR: 49, 212, 74
     ALIGN: center
 STATS:
@@ -49,10 +57,10 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 3
-        X: 123
-        Y: 60
+        X: 184
+        Y: 84
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 74
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88°
@@ -63,10 +71,10 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 4
-        X: 360
-        Y: 60
+        X: 534
+        Y: 85
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 74
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88°
@@ -77,13 +85,13 @@ STATS:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 5
-        X: 118
-        Y: 222
+        X: 174
+        Y: 317
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 44
+        FONT_SIZE: 74
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: 100%
+        PLACEHOLDER: 88%
         ALIGN: left
   DISK:
     INTERVAL: 10
@@ -91,10 +99,10 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 6
-        X: 360
-        Y: 222
+        X: 533
+        Y: 317
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 47
+        FONT_SIZE: 74
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88°
@@ -106,23 +114,23 @@ STATS:
         TEXT:
           SHOW: true
           INDEX: 7
-          X: 123
-          Y: 386
+          X: 183
+          Y: 558
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 27
+          FONT_SIZE: 36
           FONT_COLOR: 255, 255, 255
-          PLACEHOLDER: 888KB/s
+          PLACEHOLDER: '888'
           ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
           INDEX: 8
-          X: 362
-          Y: 385
+          X: 530
+          Y: 562
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 27
+          FONT_SIZE: 36
           FONT_COLOR: 255, 255, 255
-          PLACEHOLDER: 888KB/s
+          PLACEHOLDER: '888'
           ALIGN: left
   DATE:
     INTERVAL: 1
@@ -130,10 +138,10 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 11
-        X: 589
-        Y: 433
+        X: 984
+        Y: 662
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 13
+        FONT_SIZE: 16
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '2020-12-31'
@@ -143,10 +151,10 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 12
-        X: 690
-        Y: 408
+        X: 1106
+        Y: 634
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 31
+        FONT_SIZE: 37
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: '12:00:00'

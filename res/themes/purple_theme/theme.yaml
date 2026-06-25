@@ -1,130 +1,138 @@
 # Auto-converted from .turtheme
 # Source: purple theme
-# Resolution: 800x480 (landscape)
+# Resolution: 1280x800 (landscape)
 ---
 display:
   SIZE: 5"
   ORIENTATION: landscape
   RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 800
 static_images:
   BACKGROUND:
     PATH: assets/image_1.png
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    WIDTH: 1280
+    HEIGHT: 800
   LAYER_2:
     PATH: assets/image_3.png
     X: 0
     Y: 0
-    WIDTH: 800
-    HEIGHT: 480
+    WIDTH: 1280
+    HEIGHT: 800
+  LAYER_3:
+    PATH: assets/image_5.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 800
 STATS:
   GPU:
     INTERVAL: 1
     TEMPERATURE:
       TEXT:
         SHOW: true
-        INDEX: 2
-        X: 534
-        Y: 67
+        INDEX: 3
+        X: 852
+        Y: 112
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 23
+        FONT_SIZE: 36
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '60'
+        PLACEHOLDER: '88'
         ALIGN: right
     PERCENTAGE:
       STATUS_BAR:
         SHOW: true
-        INDEX: 9
-        X: 56
-        Y: 164
-        WIDTH: 220
-        HEIGHT: 4
+        INDEX: 10
+        X: 87
+        Y: 273
+        WIDTH: 353
+        HEIGHT: 8
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 226, 175, 255
         INDICATOR_COLOR: 226, 175, 255
-        INDICATOR_RADIUS: 6
+        INDICATOR_RADIUS: 10
   CPU:
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
         SHOW: true
-        INDEX: 3
-        X: 534
-        Y: 196
+        INDEX: 4
+        X: 851
+        Y: 326
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 23
+        FONT_SIZE: 36
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '66'
+        PLACEHOLDER: '88'
         ALIGN: right
     PERCENTAGE:
       INTERVAL: 1
       STATUS_BAR:
         SHOW: true
-        INDEX: 10
-        X: 56
-        Y: 224
-        WIDTH: 220
-        HEIGHT: 4
+        INDEX: 11
+        X: 87
+        Y: 373
+        WIDTH: 353
+        HEIGHT: 8
         MIN_VALUE: 0
         MAX_VALUE: 100
-        BAR_COLOR: 183, 175, 255
-        INDICATOR_COLOR: 183, 175, 255
-        INDICATOR_RADIUS: 6
+        BAR_COLOR: 123, 124, 234
+        INDICATOR_COLOR: 123, 124, 234
+        INDICATOR_RADIUS: 10
   DISK:
     INTERVAL: 10
     TEMPERATURE:
       TEXT:
         SHOW: true
-        INDEX: 4
-        X: 534
-        Y: 325
+        INDEX: 5
+        X: 851
+        Y: 541
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 23
+        FONT_SIZE: 36
         FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '48'
+        PLACEHOLDER: '88'
         ALIGN: right
     USED:
       STATUS_BAR:
         SHOW: true
-        INDEX: 12
-        X: 56
-        Y: 343
-        WIDTH: 220
-        HEIGHT: 4
+        INDEX: 13
+        X: 87
+        Y: 572
+        WIDTH: 353
+        HEIGHT: 8
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 255, 236, 130
         INDICATOR_COLOR: 255, 236, 130
-        INDICATOR_RADIUS: 6
+        INDICATOR_RADIUS: 10
   WEATHER:
     TEMPERATURE:
       TEXT:
         SHOW: true
-        INDEX: 5
-        X: 85
-        Y: 441
+        INDEX: 6
+        X: 135
+        Y: 736
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 17
+        FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: Cloudy SW4Level  33°
+        PLACEHOLDER: Partly Cloudy 20° NE Wind
         ALIGN: left
   DATE:
     INTERVAL: 1
     HOUR:
       TEXT:
         SHOW: true
-        INDEX: 6
-        X: 268
-        Y: 443
+        INDEX: 7
+        X: 427
+        Y: 737
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 19
+        FONT_SIZE: 29
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: '18:29:12'
+        PLACEHOLDER: '12:00:00'
         ALIGN: left
         FORMAT: short
   NET:
@@ -133,39 +141,39 @@ STATS:
       UPLOAD:
         TEXT:
           SHOW: true
-          INDEX: 7
-          X: 472
-          Y: 442
+          INDEX: 8
+          X: 748
+          Y: 737
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 19
+          FONT_SIZE: 29
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
-          PLACEHOLDER: 0KB/s
+          PLACEHOLDER: 888KB/s
           ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
-          INDEX: 8
-          X: 690
-          Y: 442
+          INDEX: 9
+          X: 1097
+          Y: 737
           FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-          FONT_SIZE: 19
+          FONT_SIZE: 29
           FONT_COLOR: 255, 255, 255
           SHOW_UNIT: true
-          PLACEHOLDER: 0KB/s
+          PLACEHOLDER: 888KB/s
           ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
       STATUS_BAR:
         SHOW: true
-        INDEX: 11
-        X: 56
-        Y: 283
-        WIDTH: 220
-        HEIGHT: 4
+        INDEX: 12
+        X: 87
+        Y: 471
+        WIDTH: 353
+        HEIGHT: 8
         MIN_VALUE: 0
         MAX_VALUE: 100
-        BAR_COLOR: 255, 211, 173
-        INDICATOR_COLOR: 255, 211, 173
-        INDICATOR_RADIUS: 6
+        BAR_COLOR: 255, 221, 202
+        INDICATOR_COLOR: 255, 221, 202
+        INDICATOR_RADIUS: 10

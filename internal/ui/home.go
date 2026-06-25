@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -65,7 +66,7 @@ func NewHomeScreen(app *EditorApp) *HomeScreen {
 
 	go hs.pollStatus()
 
-	navRow := container.NewHBox(layout.NewSpacer(), prevBtn, hs.themeLabel, nextBtn, layout.NewSpacer())
+	navRow := container.NewBorder(nil, nil, prevBtn, nextBtn, container.NewCenter(hs.themeLabel))
 	previewContainer := container.NewCenter(hs.previewImage)
 	themeActions := container.NewHBox(layout.NewSpacer(), hs.activateBtn, hs.editBtn, layout.NewSpacer())
 	footer := container.NewBorder(nil, nil,
@@ -84,19 +85,23 @@ func NewHomeScreen(app *EditorApp) *HomeScreen {
 }
 
 func buildHomeMenu(app *EditorApp) *fyne.MainMenu {
-	quitOffItem := fyne.NewMenuItem("Sair e Desligar", func() {
+	hideItem := fyne.NewMenuItem("Sair", func() {
+		app.shown = false
+		app.mainWindow.Hide()
+	})
+	quitItem := fyne.NewMenuItem("Finalizar", func() { app.fyneApp.Quit() })
+	quitOffItem := fyne.NewMenuItem("Finalizar e Desligar", func() {
 		if app.wsClient != nil && app.wsClient.IsConnected() {
 			app.wsClient.SendFire("device.turnoff", nil)
 		}
 		app.fyneApp.Quit()
 	})
-	quitItem := fyne.NewMenuItem("Sair", func() { app.fyneApp.Quit() })
-	fileMenu := fyne.NewMenu("Arquivo", quitOffItem, quitItem)
+	fileMenu := fyne.NewMenu("Arquivo", hideItem, fyne.NewMenuItemSeparator(), quitItem, quitOffItem)
 
-	restartItem := fyne.NewMenuItem("Reiniciar (soft)", func() { go wsDeviceCmd(app, "device.restart") })
-	rebootItem := fyne.NewMenuItem("Reboot (hard)", func() { go wsDeviceCmd(app, "device.reboot") })
-	resetItem := fyne.NewMenuItem("Reset USB", func() { go wsDeviceCmd(app, "device.reset") })
-	turnoffItem := fyne.NewMenuItem("Desligar", func() { go wsDeviceCmd(app, "device.turnoff") })
+	restartItem := fyne.NewMenuItem("Reiniciar", func() { go wsDeviceCmd(app, "device.restart", "Reiniciando...") })
+	rebootItem := fyne.NewMenuItem("Reboot", func() { go wsDeviceCmd(app, "device.reboot", "Rebooting...") })
+	resetItem := fyne.NewMenuItem("Reset USB", func() { go wsDeviceCmd(app, "device.reset", "Resetando USB...") })
+	turnoffItem := fyne.NewMenuItem("Desligar", func() { go wsDeviceCmd(app, "device.turnoff", "Desligando...") })
 	deviceMenu := fyne.NewMenu("Device", restartItem, rebootItem, resetItem, fyne.NewMenuItemSeparator(), turnoffItem)
 
 	configItem := fyne.NewMenuItem("Configurações...", func() { ShowConfigDialog(app) })
@@ -105,10 +110,26 @@ func buildHomeMenu(app *EditorApp) *fyne.MainMenu {
 	return fyne.NewMainMenu(fileMenu, deviceMenu, configMenu)
 }
 
-func wsDeviceCmd(app *EditorApp, action string) {
-	if app.wsClient != nil && app.wsClient.IsConnected() {
-		app.wsClient.Send(action, nil)
+func wsDeviceCmd(app *EditorApp, action, pendingMsg string) {
+	if app.wsClient == nil || !app.wsClient.IsConnected() {
+		return
 	}
+	if app.homeScreen != nil {
+		fyne.Do(func() { app.homeScreen.statusLabel.SetText("⏳ " + pendingMsg) })
+	}
+	resp, err := app.wsClient.Send(action, nil)
+	if app.homeScreen == nil {
+		return
+	}
+	fyne.Do(func() {
+		if err != nil {
+			app.homeScreen.statusLabel.SetText("⚠ Erro: " + err.Error())
+			return
+		}
+		_ = resp
+		done := strings.TrimSuffix(pendingMsg, "...")
+		app.homeScreen.statusLabel.SetText("✓ " + done)
+	})
 }
 
 func (hs *HomeScreen) loadThemeList() {
@@ -205,8 +226,16 @@ func (hs *HomeScreen) applyTheme() {
 		return
 	}
 
-	log.Printf("[HomeScreen] Theme set: %s", themeName)
+	// Immediately update status label (don't wait for next event.status from daemon)
+	hs.statusLabel.SetText(fmt.Sprintf("⏳ Aplicando: %s...", themeName))
 	hs.updateDisplay()
+
+	// Tell the daemon to reload the theme now
+	if hs.app.wsClient != nil && hs.app.wsClient.IsConnected() {
+		go func() {
+			hs.app.wsClient.Send("theme.apply", map[string]string{"name": themeName})
+		}()
+	}
 }
 
 func (hs *HomeScreen) playTheme() {
@@ -248,12 +277,14 @@ func (hs *HomeScreen) pollStatus() {
 	hs.app.wsClient.SetEventHandler(func(msg WSMessage) {
 		if msg.Action == "event.status" {
 			var status struct {
-				Mode   string `json:"mode"`
-				Theme  string `json:"theme"`
-				Uptime string `json:"uptime"`
+				Mode       string `json:"mode"`
+				Theme      string `json:"theme"`
+				Uptime     string `json:"uptime"`
+				DeviceType string `json:"device_type"`
 			}
 			json.Unmarshal(msg.Payload, &status)
 			fyne.Do(func() {
+				hs.app.deviceType = status.DeviceType
 				hs.updateFromStatus(status.Mode, status.Theme, status.Uptime)
 			})
 		}
@@ -297,7 +328,7 @@ func (hs *HomeScreen) updateFromStatus(mode, theme, uptime string) {
 func (hs *HomeScreen) setButtonsRunning() {
 	hs.playBtn.Disable()
 	hs.stopBtn.Enable()
-	hs.storageBtn.Disable()
+	hs.storageBtn.Enable()
 }
 
 func (hs *HomeScreen) setButtonsPaused() {

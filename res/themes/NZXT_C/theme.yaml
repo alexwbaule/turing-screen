@@ -1,0 +1,122 @@
+# Auto-converted from .turtheme
+# Source: NZXT_C
+# Resolution: 1280x720 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 720
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 800
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 1159
+    HEIGHT: 695
+static_texts:
+  CPUMODEL:
+    TEXT: '{{CPU_MODEL}}'
+    X: 217
+    Y: 41
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 35
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+  GPUMODEL:
+    TEXT: '{{GPU_MODEL}}'
+    X: 566
+    Y: 40
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 35
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+STATS:
+  CPU:
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 190
+        Y: 86
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 74
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: left
+  GPU:
+    INTERVAL: 1
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 544
+        Y: 84
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 74
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: left
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 172
+        Y: 317
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 74
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: left
+  DISK:
+    INTERVAL: 10
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 533
+        Y: 316
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 74
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: left
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 6
+          X: 181
+          Y: 553
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 37
+          FONT_COLOR: 255, 255, 255
+          PLACEHOLDER: '888'
+          ALIGN: left
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 7
+          X: 530
+          Y: 557
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 37
+          FONT_COLOR: 255, 255, 255
+          PLACEHOLDER: '888'
+          ALIGN: left

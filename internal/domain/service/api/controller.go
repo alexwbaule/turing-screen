@@ -13,29 +13,35 @@ import (
 
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
+	entityTheme "github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
+	"github.com/alexwbaule/turing-screen/internal/resource/turzx"
 )
 
 // DaemonController implements the Controller interface for the turing-screen daemon.
 type DaemonController struct {
-	log       *logger.Logger
-	mu        sync.Mutex
-	mode      string // "starting", "normal", or "editor"
-	themeName string
-	firmware  string
-	startTime time.Time
+	log        *logger.Logger
+	mu         sync.Mutex
+	mode       string // "starting", "normal", or "editor"
+	themeName  string
+	firmware   string
+	startTime  time.Time
 	brightness int // last brightness value sent to the device
 
-	// Serial and commands
+	// Serial and commands (Rev-C path; nil for TURZX)
 	serial     serial.SerialSender
 	cmdDevice  *command.Device
 	cmdBright  *command.Brightness
 	cmdPayload *command.Payload
 
+	// TURZX USB driver (non-nil when a TURZX device is connected; nil for Rev-C)
+	turzxDrv    *turzx.Driver
+	orientation entityTheme.Orientation // display orientation for preview frames
+
 	// Sensor control
 	stopFunc    func()
-	restartFunc func() // function to restart sensors with current theme
+	restartFunc func()
 	sensorFunc  func() map[string]interface{}
 
 	// Theme
@@ -81,15 +87,36 @@ func (dc *DaemonController) SetSensorControl(stop func(), start func()) {
 	dc.restartFunc = start
 }
 
+// SetTURZXDriver registers the TURZX USB driver. When set, all device operations
+// dispatch to TURZX instead of Rev-C serial.
+func (dc *DaemonController) SetTURZXDriver(drv *turzx.Driver) {
+	dc.mu.Lock()
+	dc.turzxDrv = drv
+	dc.mu.Unlock()
+}
+
+// SetOrientation stores the current theme's display orientation so that
+// PreviewImage can rotate frames correctly for the TURZX device.
+func (dc *DaemonController) SetOrientation(o entityTheme.Orientation) {
+	dc.mu.Lock()
+	dc.orientation = o
+	dc.mu.Unlock()
+}
+
 func (dc *DaemonController) GetStatus() StatusResponse {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
+	deviceType := "revc"
+	if dc.turzxDrv != nil {
+		deviceType = "turzx"
+	}
 	return StatusResponse{
 		Mode:       dc.mode,
 		Theme:      dc.themeName,
 		Firmware:   dc.firmware,
 		Uptime:     time.Since(dc.startTime).Round(time.Second).String(),
 		APIVersion: "1.0",
+		DeviceType: deviceType,
 	}
 }
 
@@ -147,7 +174,16 @@ func (dc *DaemonController) SetBrightness(value int) error {
 	if value < 0 || value > 100 {
 		return fmt.Errorf("brightness must be 0-100")
 	}
-	_, err := dc.serial.Execute(dc.cmdBright.SetBrightness(value))
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	var err error
+	if drv != nil {
+		err = drv.SetBrightness(value)
+	} else {
+		_, err = dc.serial.Execute(dc.cmdBright.SetBrightness(value))
+	}
 	if err != nil {
 		return fmt.Errorf("failed to set brightness: %w", err)
 	}
@@ -155,6 +191,34 @@ func (dc *DaemonController) SetBrightness(value int) error {
 	dc.brightness = value
 	dc.mu.Unlock()
 	dc.log.Infof("API: brightness set to %d", value)
+	return nil
+}
+
+// SaveSettings persists display settings to device flash.
+// TURZX: uses cmd 125 to write all fields atomically.
+// Rev-C: only brightness is supported; other fields are logged as warnings.
+func (dc *DaemonController) SaveSettings(s DeviceSettings) error {
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		bri := byte(s.Brightness * 102 / 100)
+		if err := drv.SaveSettings(bri, byte(s.Startup), 0, byte(s.Rotation), byte(s.Sleep), byte(s.Offline)); err != nil {
+			return fmt.Errorf("TURZX SaveSettings: %w", err)
+		}
+		dc.log.Infof("API: TURZX settings saved (brightness=%d startup=%d rotation=%d sleep=%d offline=%d)",
+			s.Brightness, s.Startup, s.Rotation, s.Sleep, s.Offline)
+		return nil
+	}
+
+	// Rev-C only supports brightness
+	if s.Startup != 0 || s.Rotation != 0 || s.Sleep != 0 || s.Offline != 0 {
+		dc.log.Warnf("API: Rev-C device does not support startup/rotation/sleep/offline settings — ignored")
+	}
+	if s.Brightness > 0 {
+		return dc.SetBrightness(s.Brightness)
+	}
 	return nil
 }
 
@@ -170,23 +234,81 @@ func (dc *DaemonController) requireEditor() error {
 	return nil
 }
 
+// RestartDevice for TURZX acts as "wake screen": restores brightness and restarts
+// the compositor so the theme reappears. Python explicitly disables cmd 11 (hardware
+// restart) for USB models; the only meaningful action is bringing the display back.
+// For Rev-C serial it sends the soft-restart command (0x82).
 func (dc *DaemonController) RestartDevice() error {
-	dc.log.Info("API: restart device (soft 0x82)")
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	brightness := dc.brightness
+	dc.mu.Unlock()
+
+	if drv != nil {
+		dc.log.Infof("API: TURZX wake screen — restoring brightness %d and restarting theme", brightness)
+		if err := drv.SetBrightness(brightness); err != nil {
+			dc.log.Warnf("API: TURZX wake SetBrightness: %v", err)
+		}
+		dc.mu.Lock()
+		dc.mode = "starting"
+		dc.mu.Unlock()
+		if dc.restartFunc != nil {
+			go dc.restartFunc()
+		}
+		return nil
+	}
+	dc.log.Info("API: Rev-C restart device (soft 0x82)")
 	cmdStorage := command.NewStorage(dc.log)
-	dc.serial.Execute(cmdStorage.RestartDevice())
+	dc.serial.Execute(cmdStorage.RestartDevice()) //nolint:errcheck
 	return nil
 }
 
+// RebootDevice for TURZX is the same as RestartDevice (no hard-reboot command exists).
+// For Rev-C serial it sends the hard-reboot command (0x84).
 func (dc *DaemonController) RebootDevice() error {
-	dc.log.Info("API: reboot device (hard 0x84)")
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		return dc.RestartDevice()
+	}
+	dc.log.Info("API: Rev-C reboot device (hard 0x84)")
 	cmdDevice := command.NewDevice(dc.log)
-	dc.serial.Execute(cmdDevice.Restart())
+	dc.serial.Execute(cmdDevice.Restart()) //nolint:errcheck
 	return nil
 }
 
 func (dc *DaemonController) ResetUSB() error {
-	dc.log.Info("API: USB reset — stopping sensors first")
-	// Must stop sensors before reset (they use the serial port)
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		dc.log.Info("API: TURZX USB reset — stopping sensors then reconnecting USB")
+		if dc.stopFunc != nil {
+			dc.stopFunc()
+		}
+		dc.mu.Lock()
+		dc.mode = "editor"
+		dc.mu.Unlock()
+
+		if err := drv.Reconnect(); err != nil {
+			dc.log.Errorf("API: TURZX USB reconnect failed: %v", err)
+			return fmt.Errorf("USB reconnect: %w", err)
+		}
+
+		dc.log.Info("API: TURZX USB reconnect OK — restarting sensors")
+		dc.mu.Lock()
+		dc.mode = "starting"
+		dc.mu.Unlock()
+		if dc.restartFunc != nil {
+			go dc.restartFunc()
+		}
+		return nil
+	}
+
+	dc.log.Info("API: Rev-C USB reset — stopping sensors first")
 	if dc.stopFunc != nil {
 		dc.stopFunc()
 	}
@@ -194,8 +316,7 @@ func (dc *DaemonController) ResetUSB() error {
 	dc.mode = "editor"
 	dc.mu.Unlock()
 
-	err := dc.serial.ResetDevice()
-	if err != nil {
+	if err := dc.serial.ResetDevice(); err != nil {
 		return fmt.Errorf("USB reset failed: %w", err)
 	}
 
@@ -209,15 +330,70 @@ func (dc *DaemonController) ResetUSB() error {
 	return nil
 }
 
+// HardResetDevice sends cmd 11 to the TURZX device, triggering a firmware restart.
+// Python reference disabled this by default. Use to force SD card re-detection.
+// After the call the USB session will be stale — sensors will auto-restart via restartFunc.
+func (dc *DaemonController) HardResetDevice() error {
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		dc.log.Warn("API: TURZX HardReset (cmd 11) — device will restart, USB session will drop")
+		if dc.stopFunc != nil {
+			dc.stopFunc()
+		}
+		dc.mu.Lock()
+		dc.mode = "editor"
+		dc.mu.Unlock()
+
+		drv.HardReset() //nolint:errcheck — device restarts, response may never arrive
+
+		// Give device time to restart then reconnect
+		time.Sleep(3 * time.Second)
+		if err := drv.Reconnect(); err != nil {
+			dc.log.Errorf("API: TURZX post-hardreset reconnect failed: %v", err)
+			return fmt.Errorf("post-reset reconnect: %w", err)
+		}
+		dc.log.Info("API: TURZX post-hardreset reconnect OK — restarting sensors")
+		dc.mu.Lock()
+		dc.mode = "starting"
+		dc.mu.Unlock()
+		if dc.restartFunc != nil {
+			go dc.restartFunc()
+		}
+		return nil
+	}
+
+	dc.log.Info("API: Rev-C hard reset (0x84)")
+	cmdDevice := command.NewDevice(dc.log)
+	dc.serial.Execute(cmdDevice.Restart()) //nolint:errcheck
+	return nil
+}
+
+// TurnOff for TURZX: stops sensors (halts compositor + video stream), then blanks
+// the screen by sending a black frame and setting brightness to 0. The device firmware
+// stays alive so RestartDevice() / wake can bring it back without USB re-enumeration.
+// For Rev-C serial it sends the hardware power-off command.
 func (dc *DaemonController) TurnOff() error {
-	// Stop sensors before turning off so the worker doesn't keep writing to the
-	// serial port after the device shuts down (would trigger retry/wakeup logic).
 	dc.mu.Lock()
 	stop := dc.stopFunc
+	drv := dc.turzxDrv
 	dc.mode = "editor"
 	dc.mu.Unlock()
+
 	if stop != nil {
 		stop()
+	}
+	if drv != nil {
+		dc.log.Info("API: TURZX screen off — clearing display and setting brightness 0")
+		if err := drv.ClearScreen(); err != nil {
+			dc.log.Warnf("API: TURZX ClearScreen: %v", err)
+		}
+		if err := drv.SetBrightness(0); err != nil {
+			dc.log.Warnf("API: TURZX SetBrightness(0): %v", err)
+		}
+		return nil
 	}
 	_, err := dc.serial.Execute(dc.cmdDevice.TurnOff())
 	return err
@@ -229,6 +405,8 @@ func (dc *DaemonController) PreviewImage(imgData []byte) error {
 		dc.mu.Unlock()
 		return fmt.Errorf("must be in editor mode to preview")
 	}
+	drv := dc.turzxDrv
+	orient := dc.orientation
 	dc.mu.Unlock()
 
 	img, err := png.Decode(bytes.NewReader(imgData))
@@ -236,13 +414,20 @@ func (dc *DaemonController) PreviewImage(imgData []byte) error {
 		return fmt.Errorf("invalid PNG: %w", err)
 	}
 
-	// Send as static bitmap
+	if drv != nil {
+		if err := drv.SendFrame(toNRGBA(img), orient); err != nil {
+			return fmt.Errorf("failed to send preview: %w", err)
+		}
+		dc.log.Info("API: TURZX preview image sent")
+		return nil
+	}
+
 	processedImg := device.NewImageProcess(toNRGBA(img))
 	_, err = dc.serial.Execute(dc.cmdPayload.SendStaticBitmap(processedImg))
 	if err != nil {
 		return fmt.Errorf("failed to send preview: %w", err)
 	}
-	dc.log.Info("API: preview image sent to device")
+	dc.log.Info("API: Rev-C preview image sent to device")
 	return nil
 }
 
@@ -298,23 +483,41 @@ func (dc *DaemonController) GetSensorValues() map[string]interface{} {
 }
 
 func (dc *DaemonController) GetStorageInfo() (StorageInfo, error) {
+	dc.log.Info("API: GetStorageInfo called")
+
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		// TURZX: read-only USB command, driver mutex handles concurrency — no editor mode needed.
+		dc.log.Info("API: TURZX GetStorageInfo → calling driver")
+		info, err := drv.GetStorageInfo()
+		if err != nil {
+			dc.log.Errorf("API: TURZX GetStorageInfo error: %v", err)
+			return StorageInfo{}, err
+		}
+		dc.log.Infof("API: TURZX GetStorageInfo result: total=%d KB used=%d KB free=%d KB", info.TotalKB, info.UsedKB, info.FreeKB)
+		return StorageInfo{
+			Total: int64(info.TotalKB) * 1024,
+			Used:  int64(info.UsedKB) * 1024,
+			Free:  int64(info.FreeKB) * 1024,
+		}, nil
+	}
+
+	// Rev-C serial path: requires exclusive access to the serial port.
 	if err := dc.requireEditor(); err != nil {
+		dc.log.Warnf("API: GetStorageInfo blocked by requireEditor: %v", err)
 		return StorageInfo{}, err
 	}
-	// Flush before writing so that any trailing bytes the device sent after the
-	// previous storage command are discarded. Flushing here (at the start of the
-	// next command) is safer than flushing at the end of the previous one,
-	// because those trailing bytes may arrive in the OS buffer after the previous
-	// Flush() has already been called.
+	dc.log.Info("API: Rev-C GetStorageInfo → serial")
 	dc.serial.Flush()
-
 	cmdStorage := command.NewStorage(dc.log)
-
 	var resp []byte
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
 		if attempt > 0 {
-			dc.serial.Flush() // clear any partial response before retry
+			dc.serial.Flush()
 		}
 		resp, err = dc.serial.Execute(cmdStorage.GetStorageStatus())
 		if err == nil {
@@ -326,7 +529,6 @@ func (dc *DaemonController) GetStorageInfo() (StorageInfo, error) {
 	if err != nil {
 		return StorageInfo{}, fmt.Errorf("storage status failed: %w", err)
 	}
-
 	info, err := command.ParseStorageInfo(resp)
 	if err != nil {
 		return StorageInfo{}, err
@@ -342,10 +544,28 @@ func (dc *DaemonController) GetStorageFiles(path string) ([]string, error) {
 	if err := dc.requireEditor(); err != nil {
 		return nil, err
 	}
-	dc.serial.Flush() // discard trailing bytes from any previous storage command
 
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		// Map the caller-supplied path to the TURZX device path convention.
+		// UI may pass "video" or "image"; driver uses /tmp/sdcard/mmcblk0p1/{video,img}/
+		devicePath := turzx.StorageVideoPath
+		if strings.Contains(strings.ToLower(path), "img") || strings.Contains(strings.ToLower(path), "image") {
+			devicePath = turzx.StorageImagePath
+		}
+		dc.log.Infof("API: TURZX GetStorageFiles path=%q → %q", path, devicePath)
+		files, err := drv.ListDir(devicePath)
+		if err != nil {
+			return nil, fmt.Errorf("TURZX ListDir: %w", err)
+		}
+		return files, nil
+	}
+
+	dc.serial.Flush()
 	cmdStorage := command.NewStorage(dc.log)
-
 	var resp []byte
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
@@ -363,7 +583,6 @@ func (dc *DaemonController) GetStorageFiles(path string) ([]string, error) {
 		return nil, fmt.Errorf("list dir failed: %w", err)
 	}
 
-	// Parse "result:dir:file:name1/name2/..."
 	raw := strings.TrimRight(string(bytes.Trim(resp, "\x00")), "/")
 	if idx := strings.Index(raw, "file:"); idx >= 0 {
 		raw = raw[idx+5:]
@@ -373,38 +592,36 @@ func (dc *DaemonController) GetStorageFiles(path string) ([]string, error) {
 	if raw == "" {
 		return []string{}, nil
 	}
-	files := strings.Split(raw, "/")
-	return files, nil
+	return strings.Split(raw, "/"), nil
 }
 
 func (dc *DaemonController) UploadFile(name string, data []byte) error {
 	if err := dc.requireEditor(); err != nil {
 		return err
 	}
-	dc.serial.Flush()
 
 	dc.mu.Lock()
+	drv := dc.turzxDrv
 	brightness := byte(dc.brightness)
 	dc.mu.Unlock()
 
-	cmdStorage := command.NewStorage(dc.log)
+	if drv != nil {
+		remotePath := "/tmp/sdcard/mmcblk0p1/video/" + name
+		return drv.UploadFile(remotePath, data)
+	}
 
-	// 1. Prepare device for upload
+	dc.serial.Flush()
+	cmdStorage := command.NewStorage(dc.log)
 	if _, err := dc.serial.Execute(cmdStorage.SetPreUpload(brightness)); err != nil {
 		return fmt.Errorf("pre-upload failed: %w", err)
 	}
-
-	// 2. Create file on device (path is always /root/video/)
 	path := "/root/video/" + name
 	if _, err := dc.serial.Execute(cmdStorage.CreateFile(path, int64(len(data)))); err != nil {
 		return fmt.Errorf("create file failed: %w", err)
 	}
-
-	// 3. Send file data; device responds with "file_rev_done" when complete
 	if _, err := dc.serial.Execute(cmdStorage.UploadFile(data)); err != nil {
 		return fmt.Errorf("upload file data failed: %w", err)
 	}
-
 	dc.log.Infof("API: uploaded %s (%d bytes)", name, len(data))
 	return nil
 }
@@ -413,11 +630,18 @@ func (dc *DaemonController) DeleteFile(path string) error {
 	if err := dc.requireEditor(); err != nil {
 		return err
 	}
+
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		return drv.DeleteFile(path)
+	}
+
 	dc.serial.Flush()
 	cmdStorage := command.NewStorage(dc.log)
 	if _, err := dc.serial.Execute(cmdStorage.DeleteFile(path)); err != nil {
-		// Device may not respond within timeout but the delete still happens.
-		// Validate by checking the file no longer exists.
 		dc.log.Warnf("DeleteFile: no response from device, verifying deletion: %v", err)
 		dc.serial.Flush()
 		info := cmdStorage.GetFileInfo(path)
@@ -437,12 +661,24 @@ func (dc *DaemonController) PlayVideo(path string) error {
 	if err := dc.requireEditor(); err != nil {
 		return err
 	}
+
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		if err := drv.PlayVideoFromStorage(path); err != nil {
+			return fmt.Errorf("TURZX play video failed: %w", err)
+		}
+		dc.log.Infof("API: TURZX playing video %s", path)
+		return nil
+	}
+
 	dc.serial.Flush()
 	cmdMedia := command.NewMedia(dc.log)
-	dc.serial.Execute(cmdMedia.StopVideo())
+	dc.serial.Execute(cmdMedia.StopVideo()) //nolint:errcheck
 	time.Sleep(200 * time.Millisecond)
-	dc.serial.Flush() // clear StopVideo response before issuing play
-
+	dc.serial.Flush()
 	cmdStorage := command.NewStorage(dc.log)
 	_, err := dc.serial.Execute(cmdStorage.PlayVideo(path, true))
 	if err != nil {
@@ -456,9 +692,22 @@ func (dc *DaemonController) StopVideo() error {
 	if err := dc.requireEditor(); err != nil {
 		return err
 	}
+
+	dc.mu.Lock()
+	drv := dc.turzxDrv
+	dc.mu.Unlock()
+
+	if drv != nil {
+		if err := drv.StopVideoStream(); err != nil {
+			dc.log.Warnf("API: TURZX StopVideo: %v", err)
+		}
+		dc.log.Info("API: TURZX video stopped")
+		return nil
+	}
+
 	dc.serial.Flush()
 	cmdMedia := command.NewMedia(dc.log)
-	dc.serial.Execute(cmdMedia.StopVideo())
+	dc.serial.Execute(cmdMedia.StopVideo()) //nolint:errcheck
 	dc.log.Info("API: video stopped")
 	return nil
 }

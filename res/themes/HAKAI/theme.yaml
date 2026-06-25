@@ -1,0 +1,150 @@
+# Auto-converted from .turtheme
+# Source: HAKAI
+# Resolution: 1280x720 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 720
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 720
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 1200
+    HEIGHT: 720
+  LAYER_3:
+    PATH: assets/image_5.png
+    X: 0
+    Y: 0
+    WIDTH: 1200
+    HEIGHT: 720
+STATS:
+  GPU:
+    INTERVAL: 1
+    MEMORY:
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 359
+        Y: 458
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 56
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
+    PERCENTAGE:
+      GRAPH:
+        SHOW: true
+        INDEX: 8
+        X: 1001
+        Y: 345
+        WIDTH: 169
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 163, 36, 39
+        BAR_OUTLINE: false
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 4
+          X: 348
+          Y: 667
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 35
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: right
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 5
+          X: 693
+          Y: 667
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 35
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: right
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        INDEX: 6
+        X: 1062
+        Y: 514
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 56
+        FONT_COLOR: 163, 36, 39
+        SHOW_UNIT: true
+        PLACEHOLDER: '12:00'
+        ALIGN: center
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        INDEX: 11
+        X: 1176
+        Y: 494
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '31'
+        ALIGN: right
+        FORMAT: medium
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      GRAPH:
+        SHOW: true
+        INDEX: 7
+        X: 1001
+        Y: 282
+        WIDTH: 169
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 163, 36, 39
+        BAR_OUTLINE: false
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      GRAPH:
+        SHOW: true
+        INDEX: 9
+        X: 1001
+        Y: 404
+        WIDTH: 169
+        HEIGHT: 15
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 163, 36, 39
+        BAR_OUTLINE: false
+  VOLUME:
+    GRAPH:
+      SHOW: true
+      INDEX: 10
+      X: 950
+      Y: 588
+      WIDTH: 222
+      HEIGHT: 19
+      MIN_VALUE: 0
+      MAX_VALUE: 100
+      BAR_COLOR: 131, 29, 31
+      BAR_OUTLINE: false

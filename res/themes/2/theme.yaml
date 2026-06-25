@@ -1,0 +1,126 @@
+# Auto-converted from .turtheme
+# Source: 2
+# Resolution: 1280x720 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 720
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 800
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: -12
+    Y: -22
+    WIDTH: 1296
+    HEIGHT: 777
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      RADIAL:
+        SHOW: true
+        INDEX: 1
+        X: 448
+        Y: 371
+        RADIUS: 289
+        WIDTH: 110
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 212
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 0, 0, 255
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+      GRAPH:
+        SHOW: true
+        INDEX: 3
+        X: 349
+        Y: 613
+        WIDTH: 200
+        HEIGHT: 20
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 8
+        X: 521
+        Y: 409
+        FONT: turtheme/Azonix.otf
+        FONT_SIZE: 78
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 9
+        X: 450
+        Y: 299
+        FONT: turtheme/Azonix.otf
+        FONT_SIZE: 55
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 4800M
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    FREQUENCY:
+      TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 1159
+        Y: 93
+        FONT: turtheme/Azonix.otf
+        FONT_SIZE: 73
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '8888'
+        ALIGN: right
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 1157
+        Y: 269
+        FONT: turtheme/Azonix.otf
+        FONT_SIZE: 73
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 6
+        X: 1153
+        Y: 444
+        FONT: turtheme/Azonix.otf
+        FONT_SIZE: 73
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
+    POWER:
+      TEXT:
+        SHOW: true
+        INDEX: 7
+        X: 1152
+        Y: 609
+        FONT: turtheme/Azonix.otf
+        FONT_SIZE: 73
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '200'
+        ALIGN: right

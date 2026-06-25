@@ -167,8 +167,10 @@ type Theme struct {
 }
 
 type Display struct {
-	Size        string `mapstructure:"SIZE"`
+	Size        string      `mapstructure:"SIZE"`
 	Orientation Orientation
+	Width       int         `mapstructure:"WIDTH"`
+	Height      int         `mapstructure:"HEIGHT"`
 }
 
 type VideoPlay struct {
@@ -228,32 +230,44 @@ type Text struct {
 type Graph struct {
 	Layout
 	BackgroundStyle
-	Show       bool   `mapstructure:"SHOW"`
-	Direction  string `mapstructure:"DIRECTION"` // left (default), right, up, down
-	MinValue   int    `mapstructure:"MIN_VALUE"`
-	MaxValue   int    `mapstructure:"MAX_VALUE"`
-	BarColor   color.Color
-	BarOutline bool `mapstructure:"BAR_OUTLINE"`
-	Steps      int  `mapstructure:"STEPS"`    // number of segments (0 = continuous)
-	StepGap    int  `mapstructure:"STEP_GAP"` // gap between segments in pixels
+	Show          bool   `mapstructure:"SHOW"`
+	Direction     string `mapstructure:"DIRECTION"` // left (default), right, up, down
+	MinValue      int    `mapstructure:"MIN_VALUE"`
+	MaxValue      int    `mapstructure:"MAX_VALUE"`
+	BarColor      color.Color
+	EmptyColor    color.Color // color for unfilled track; nil = transparent
+	GradientColor color.Color // vertical gradient top color (nil = no gradient)
+	BarOutline    bool        `mapstructure:"BAR_OUTLINE"`
+	BorderWidth   int         `mapstructure:"BORDER_WIDTH"`   // border thickness around full rect
+	CornerRadius  int         `mapstructure:"CORNER_RADIUS"`  // rounded corner radius
+	Steps         int         `mapstructure:"STEPS"`          // number of segments (0 = continuous)
+	StepGap       int         `mapstructure:"STEP_GAP"`       // gap between segments in pixels
+	BlockWidth    int         `mapstructure:"BLOCK_WIDTH"`    // block size in px (overrides Steps)
+	RevertValue   bool        `mapstructure:"REVERT_VALUE"`   // invert ratio (show remaining)
 }
 
 type Radial struct {
 	Layout
 	BackgroundStyle
 	TextStyle
-	Show       bool `mapstructure:"SHOW"`
-	Radius     int  `mapstructure:"RADIUS"`
-	MinValue   int  `mapstructure:"MIN_VALUE"`
-	MaxValue   int  `mapstructure:"MAX_VALUE"`
-	AngleStart int  `mapstructure:"ANGLE_START"`
-	AngleEnd   int  `mapstructure:"ANGLE_END"`
-	AngleSteps int  `mapstring:"ANGLE_STEPS"`
-	AngleSep   int  `mapstructure:"ANGLE_SEP"`
-	Clockwise  bool `mapstructure:"CLOCKWISE"`
-	BarColor   color.Color
-	ShowText   bool `mapstructure:"SHOW_TEXT"`
-	ShowUnit   bool `mapstructure:"SHOW_UNIT"`
+	Show          bool `mapstructure:"SHOW"`
+	Radius        int  `mapstructure:"RADIUS"`
+	MinValue      int  `mapstructure:"MIN_VALUE"`
+	MaxValue      int  `mapstructure:"MAX_VALUE"`
+	AngleStart    int  `mapstructure:"ANGLE_START"`
+	AngleEnd      int  `mapstructure:"ANGLE_END"`
+	AngleSteps    int  `mapstructure:"ANGLE_STEPS"`
+	AngleSep      int  `mapstructure:"ANGLE_SEP"`
+	BlockAngle    int  `mapstructure:"BLOCK_ANGLE"`   // degrees per block (overrides AngleSteps)
+	Clockwise     bool `mapstructure:"CLOCKWISE"`
+	BarColor      color.Color
+	EmptyColor    color.Color // color for unfilled track; nil = transparent
+	GradientColor color.Color // vertical gradient top color (nil = no gradient)
+	Round         bool        `mapstructure:"ROUND"`        // rounded arc endpoints
+	Revert        bool        `mapstructure:"REVERT"`       // swap bar/empty colors
+	RevertValue   bool        `mapstructure:"REVERT_VALUE"` // fill from arc end
+	ShowText      bool        `mapstructure:"SHOW_TEXT"`
+	ShowUnit      bool        `mapstructure:"SHOW_UNIT"`
 }
 
 // Gauge draws a needle/pointer at an angle (like a speedometer).

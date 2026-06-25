@@ -82,8 +82,8 @@ func (i *ImageProcess) TransformForOverlay(orientation theme.Orientation, displa
 	x0, y0 := x, y
 
 	if orientation == theme.PORTRAIT {
-		img = imaging.Rotate90(img)
-		x0 = display.Height - x - img.Bounds().Dy()
+		// Overlay is portrait-space (480×800), matching the theme canvas — no rotation.
+		// x0=x, y0=y maps directly; the encoder uses stride=800 for correct addressing.
 	} else if orientation == theme.REVERSE_PORTRAIT {
 		img = imaging.Rotate270(img)
 		y0 = display.Width - y - img.Bounds().Dx()

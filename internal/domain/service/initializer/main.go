@@ -7,6 +7,7 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
+	themeEntity "github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/video"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
@@ -110,11 +111,15 @@ func (i *Initializer) commonInit() error {
 		return fmt.Errorf("SET_BRIGHTNESS failed: %w", err)
 	}
 
-	// 5. OPTIONS with orientation (no response)
-	// SetOptions returns a new *Option — assign it back so Execute sends the
-	// configured bytes (before this fix, the return value was discarded and
-	// Execute sent the zero-value struct = 250 null bytes).
-	opt := i.cmdOption.SetOptions(command.Default, command.NoFlip, command.Disabled)
+	// 5. OPTIONS with orientation (no response).
+	// REVERSE_PORTRAIT and REVERSE_LANDSCAPE send Flip180 to rotate the display
+	// 180°, matching the Python SetOrientation behaviour.
+	orientation := i.theme.GetDisplay().Orientation
+	flipMode := command.NoFlip
+	if orientation == themeEntity.REVERSE_PORTRAIT || orientation == themeEntity.REVERSE_LANDSCAPE {
+		flipMode = command.Flip180
+	}
+	opt := i.cmdOption.SetOptions(command.Default, flipMode, command.Disabled)
 	if _, err := i.sender.Execute(opt); err != nil {
 		return fmt.Errorf("OPTIONS failed: %w", err)
 	}

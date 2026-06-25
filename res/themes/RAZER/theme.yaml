@@ -1,53 +1,55 @@
 # Auto-converted from .turtheme
 # Source: RAZER
-# Resolution: 800x480 (landscape)
+# Resolution: 1280x720 (landscape)
 ---
 display:
   SIZE: 5"
   ORIENTATION: landscape
   RGB_LED: 32, 203, 32
+  WIDTH: 1280
+  HEIGHT: 720
 video:
   PATH: video/RAZER.mp4
   X: 0
   Y: 0
-  WIDTH: 800
-  HEIGHT: 480
+  WIDTH: 1280
+  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png
     X: 0
     Y: 0
-    WIDTH: 1667
-    HEIGHT: 1001
+    WIDTH: 1280
+    HEIGHT: 720
 static_texts:
   UP:
     TEXT: UP
-    X: 49
-    Y: 228
+    X: 86
+    Y: 358
     FONT: turtheme/HelveticaNeueLTPro-Md.otf
     FONT_SIZE: 16
     FONT_COLOR: 32, 203, 32
     ALIGN: left
   DOWN:
     TEXT: DOWN
-    X: 49
-    Y: 285
+    X: 85
+    Y: 430
     FONT: turtheme/HelveticaNeueLTPro-Md.otf
     FONT_SIZE: 16
     FONT_COLOR: 32, 203, 32
     ALIGN: left
   VRAM:
     TEXT: VRAM
-    X: 760
-    Y: 228
+    X: 1207
+    Y: 371
     FONT: turtheme/HelveticaNeueLTPro-Md.otf
     FONT_SIZE: 16
     FONT_COLOR: 32, 203, 32
     ALIGN: right
   FAN:
     TEXT: FAN
-    X: 760
-    Y: 285
+    X: 1208
+    Y: 430
     FONT: turtheme/HelveticaNeueLTPro-Md.otf
     FONT_SIZE: 16
     FONT_COLOR: 32, 203, 32
@@ -59,36 +61,36 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 1
-        X: 560
-        Y: 410
+        X: 892
+        Y: 615
         FONT: turtheme/HelveticaNeueLTPro-Md.otf
-        FONT_SIZE: 21
+        FONT_SIZE: 31
         FONT_COLOR: 32, 203, 32
         SHOW_UNIT: true
-        PLACEHOLDER: 8%
+        PLACEHOLDER: 88%
         ALIGN: center
     MEMORY:
       TEXT:
         SHOW: true
         INDEX: 9
-        X: 760
-        Y: 248
+        X: 1209
+        Y: 392
         FONT: turtheme/HelveticaNeueLTPro-Md.otf
-        FONT_SIZE: 19
+        FONT_SIZE: 21
         FONT_COLOR: 32, 203, 32
         SHOW_UNIT: true
-        PLACEHOLDER: 436M
+        PLACEHOLDER: 8888M
         ALIGN: right
     FAN:
       TEXT:
         SHOW: true
         INDEX: 11
-        X: 760
-        Y: 305
+        X: 1212
+        Y: 453
         FONT: turtheme/HelveticaNeueLTPro-Md.otf
-        FONT_SIZE: 19
+        FONT_SIZE: 21
         FONT_COLOR: 32, 203, 32
-        PLACEHOLDER: '0'
+        PLACEHOLDER: '1888'
         ALIGN: right
   CPU:
     PERCENTAGE:
@@ -96,13 +98,13 @@ STATS:
       TEXT:
         SHOW: true
         INDEX: 2
-        X: 633
-        Y: 410
+        X: 1010
+        Y: 615
         FONT: turtheme/HelveticaNeueLTPro-Md.otf
-        FONT_SIZE: 21
+        FONT_SIZE: 31
         FONT_COLOR: 32, 203, 32
         SHOW_UNIT: true
-        PLACEHOLDER: 3%
+        PLACEHOLDER: 88%
         ALIGN: center
   MEMORY:
     INTERVAL: 5
@@ -110,13 +112,13 @@ STATS:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 3
-        X: 708
-        Y: 410
+        X: 1130
+        Y: 615
         FONT: turtheme/HelveticaNeueLTPro-Md.otf
-        FONT_SIZE: 21
+        FONT_SIZE: 31
         FONT_COLOR: 32, 203, 32
         SHOW_UNIT: true
-        PLACEHOLDER: 46%
+        PLACEHOLDER: 88%
         ALIGN: center
   NET:
     INTERVAL: 1
@@ -125,23 +127,23 @@ STATS:
         TEXT:
           SHOW: true
           INDEX: 5
-          X: 48
-          Y: 248
+          X: 85
+          Y: 384
           FONT: turtheme/HelveticaNeueLTPro-Md.otf
-          FONT_SIZE: 19
+          FONT_SIZE: 21
           FONT_COLOR: 32, 203, 32
           SHOW_UNIT: true
-          PLACEHOLDER: 0KB/s
+          PLACEHOLDER: 888KB/s
           ALIGN: left
       DOWNLOAD:
         TEXT:
           SHOW: true
           INDEX: 7
-          X: 49
-          Y: 305
+          X: 84
+          Y: 455
           FONT: turtheme/HelveticaNeueLTPro-Md.otf
-          FONT_SIZE: 19
+          FONT_SIZE: 21
           FONT_COLOR: 32, 203, 32
           SHOW_UNIT: true
-          PLACEHOLDER: 0KB/s
+          PLACEHOLDER: 888KB/s
           ALIGN: left

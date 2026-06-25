@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"image"
 	"image/color"
 
 	"fyne.io/fyne/v2"
@@ -16,9 +15,10 @@ type DraggableChart struct {
 	ChartData   *theme.Chart
 	onTapped    func(dc *DraggableChart)
 	onDragEnded func(dc *DraggableChart)
-	raster      *canvas.Raster
+	img         *canvas.Image
 	selection   *canvas.Rectangle
 	hitbox      *canvas.Rectangle
+	dirty       bool
 }
 
 func NewDraggableChart(data *theme.Chart, path string, tapped func(dc *DraggableChart), dragEnd func(dc *DraggableChart)) *DraggableChart {
@@ -28,7 +28,8 @@ func NewDraggableChart(data *theme.Chart, path string, tapped func(dc *Draggable
 		onTapped:    tapped,
 		onDragEnded: dragEnd,
 	}
-	dc.raster = canvas.NewRaster(dc.renderImage)
+	dc.img = canvas.NewImageFromImage(renderGGChart(data))
+	dc.img.FillMode = canvas.ImageFillOriginal
 	dc.selection = canvas.NewRectangle(color.Transparent)
 	dc.selection.StrokeColor = color.Gray{Y: 150}
 	dc.selection.StrokeWidth = 1
@@ -36,10 +37,6 @@ func NewDraggableChart(data *theme.Chart, path string, tapped func(dc *Draggable
 	dc.hitbox = canvas.NewRectangle(color.Transparent)
 	dc.ExtendBaseWidget(dc)
 	return dc
-}
-
-func (dc *DraggableChart) renderImage(w, h int) image.Image {
-	return renderGGChart(dc.ChartData)
 }
 
 func (dc *DraggableChart) Tapped(_ *fyne.PointEvent) {
@@ -51,21 +48,19 @@ func (dc *DraggableChart) Tapped(_ *fyne.PointEvent) {
 func (dc *DraggableChart) Dragged(e *fyne.DragEvent) {
 	potentialPos := dc.Position().Add(e.Dragged)
 	widgetSize := dc.Size()
-	canvasWidth := currentCanvasWidth
-	canvasHeight := currentCanvasHeight
 	finalX := potentialPos.X
 	if finalX < 0 {
 		finalX = 0
 	}
-	if finalX+widgetSize.Width > canvasWidth {
-		finalX = canvasWidth - widgetSize.Width
+	if finalX+widgetSize.Width > currentCanvasWidth {
+		finalX = currentCanvasWidth - widgetSize.Width
 	}
 	finalY := potentialPos.Y
 	if finalY < 0 {
 		finalY = 0
 	}
-	if finalY+widgetSize.Height > canvasHeight {
-		finalY = canvasHeight - widgetSize.Height
+	if finalY+widgetSize.Height > currentCanvasHeight {
+		finalY = currentCanvasHeight - widgetSize.Height
 	}
 	dc.Move(fyne.NewPos(finalX, finalY))
 }
@@ -79,20 +74,20 @@ func (dc *DraggableChart) DragEnd() {
 	}
 }
 
+func (dc *DraggableChart) Refresh() {
+	dc.dirty = true
+	dc.BaseWidget.Refresh()
+}
 func (dc *DraggableChart) Select() {
 	dc.selection.Show()
 	dc.selection.Refresh()
 }
-
 func (dc *DraggableChart) Deselect() {
 	dc.selection.Hide()
 	dc.selection.Refresh()
 }
-
 func (dc *DraggableChart) CreateRenderer() fyne.WidgetRenderer {
-	r := &draggableChartRenderer{dc: dc}
-	r.Refresh()
-	return r
+	return &draggableChartRenderer{dc: dc}
 }
 
 type draggableChartRenderer struct {
@@ -100,22 +95,21 @@ type draggableChartRenderer struct {
 }
 
 func (r *draggableChartRenderer) Destroy() {}
-
 func (r *draggableChartRenderer) Layout(size fyne.Size) {
-	r.dc.raster.Resize(size)
+	r.dc.img.Resize(size)
 	r.dc.selection.Resize(size)
 	r.dc.hitbox.Resize(size)
 }
-
 func (r *draggableChartRenderer) MinSize() fyne.Size {
 	return fyne.NewSize(float32(r.dc.ChartData.Width), float32(r.dc.ChartData.Height))
 }
-
 func (r *draggableChartRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.dc.hitbox, r.dc.raster, r.dc.selection}
+	return []fyne.CanvasObject{r.dc.hitbox, r.dc.img, r.dc.selection}
 }
-
 func (r *draggableChartRenderer) Refresh() {
-	canvas.Refresh(r.dc.raster)
-	r.dc.selection.Refresh()
+	if r.dc.dirty || r.dc.img.Image == nil {
+		r.dc.img.Image = renderGGChart(r.dc.ChartData)
+		r.dc.dirty = false
+		canvas.Refresh(r.dc.img)
+	}
 }

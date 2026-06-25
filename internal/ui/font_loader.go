@@ -15,6 +15,10 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
+// imageRightPad is extra pixels added to the right of text images to prevent
+// glyph ink from bleeding past the advance width boundary (common in "%" etc).
+const imageRightPad = 4
+
 type FontCache struct {
 	mu       sync.RWMutex
 	faces    map[string]font.Face
@@ -105,8 +109,9 @@ func (fc *FontCache) GetFace(fontPath string, fontSize int) (font.Face, error) {
 	}
 
 	face, err := opentype.NewFace(parsed, &opentype.FaceOptions{
-		Size: float64(fontSize),
-		DPI:  72,
+		Size:    float64(fontSize),
+		DPI:     72,
+		Hinting: font.HintingFull,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar face %s@%d: %w", fontPath, fontSize, err)

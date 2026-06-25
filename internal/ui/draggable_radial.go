@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"image"
 	"image/color"
 
 	"fyne.io/fyne/v2"
@@ -17,9 +16,10 @@ type DraggableRadial struct {
 	onTapped    func(dr *DraggableRadial)
 	onDragEnded func(dr *DraggableRadial)
 	fontCache   *FontCache
-	raster      *canvas.Raster
+	img         *canvas.Image
 	selection   *canvas.Rectangle
 	hitbox      *canvas.Rectangle
+	dirty       bool
 }
 
 func NewDraggableRadial(data *theme.Radial, path string, fc *FontCache, tapped func(dr *DraggableRadial), dragEnd func(dr *DraggableRadial)) *DraggableRadial {
@@ -30,7 +30,8 @@ func NewDraggableRadial(data *theme.Radial, path string, fc *FontCache, tapped f
 		onDragEnded: dragEnd,
 		fontCache:   fc,
 	}
-	dr.raster = canvas.NewRaster(dr.renderImage)
+	dr.img = canvas.NewImageFromImage(renderGGRadial(data, fc))
+	dr.img.FillMode = canvas.ImageFillOriginal
 	dr.selection = canvas.NewRectangle(color.Transparent)
 	dr.selection.StrokeColor = color.Gray{Y: 150}
 	dr.selection.StrokeWidth = 1
@@ -38,10 +39,6 @@ func NewDraggableRadial(data *theme.Radial, path string, fc *FontCache, tapped f
 	dr.hitbox = canvas.NewRectangle(color.Transparent)
 	dr.ExtendBaseWidget(dr)
 	return dr
-}
-
-func (dr *DraggableRadial) renderImage(w, h int) image.Image {
-	return renderGGRadial(dr.RadialData, dr.fontCache)
 }
 
 func (dr *DraggableRadial) Tapped(_ *fyne.PointEvent) {
@@ -53,24 +50,23 @@ func (dr *DraggableRadial) Tapped(_ *fyne.PointEvent) {
 func (dr *DraggableRadial) Dragged(e *fyne.DragEvent) {
 	potentialPos := dr.Position().Add(e.Dragged)
 	widgetSize := dr.Size()
-	canvasWidth := currentCanvasWidth
-	canvasHeight := currentCanvasHeight
 	finalX := potentialPos.X
 	if finalX < 0 {
 		finalX = 0
 	}
-	if finalX+widgetSize.Width > canvasWidth {
-		finalX = canvasWidth - widgetSize.Width
+	if finalX+widgetSize.Width > currentCanvasWidth {
+		finalX = currentCanvasWidth - widgetSize.Width
 	}
 	finalY := potentialPos.Y
 	if finalY < 0 {
 		finalY = 0
 	}
-	if finalY+widgetSize.Height > canvasHeight {
-		finalY = canvasHeight - widgetSize.Height
+	if finalY+widgetSize.Height > currentCanvasHeight {
+		finalY = currentCanvasHeight - widgetSize.Height
 	}
 	dr.Move(fyne.NewPos(finalX, finalY))
 }
+
 func (dr *DraggableRadial) DragEnd() {
 	pos := dr.Position()
 	radius := float32(dr.RadialData.Radius)
@@ -79,6 +75,11 @@ func (dr *DraggableRadial) DragEnd() {
 	if dr.onDragEnded != nil {
 		dr.onDragEnded(dr)
 	}
+}
+
+func (dr *DraggableRadial) Refresh() {
+	dr.dirty = true
+	dr.BaseWidget.Refresh()
 }
 func (dr *DraggableRadial) Select() {
 	dr.selection.Show()
@@ -89,9 +90,7 @@ func (dr *DraggableRadial) Deselect() {
 	dr.selection.Refresh()
 }
 func (dr *DraggableRadial) CreateRenderer() fyne.WidgetRenderer {
-	r := &draggableRadialRenderer{dr: dr}
-	r.Refresh()
-	return r
+	return &draggableRadialRenderer{dr: dr}
 }
 
 type draggableRadialRenderer struct {
@@ -100,7 +99,7 @@ type draggableRadialRenderer struct {
 
 func (r *draggableRadialRenderer) Destroy() {}
 func (r *draggableRadialRenderer) Layout(size fyne.Size) {
-	r.dr.raster.Resize(size)
+	r.dr.img.Resize(size)
 	r.dr.selection.Resize(size)
 	r.dr.hitbox.Resize(size)
 }
@@ -109,9 +108,12 @@ func (r *draggableRadialRenderer) MinSize() fyne.Size {
 	return fyne.NewSize(diameter, diameter)
 }
 func (r *draggableRadialRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.dr.hitbox, r.dr.raster, r.dr.selection}
+	return []fyne.CanvasObject{r.dr.hitbox, r.dr.img, r.dr.selection}
 }
 func (r *draggableRadialRenderer) Refresh() {
-	canvas.Refresh(r.dr.raster)
-	r.dr.selection.Refresh()
+	if r.dr.dirty || r.dr.img.Image == nil {
+		r.dr.img.Image = renderGGRadial(r.dr.RadialData, r.dr.fontCache)
+		r.dr.dirty = false
+		canvas.Refresh(r.dr.img)
+	}
 }

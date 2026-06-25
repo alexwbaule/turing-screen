@@ -11,6 +11,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/opentype"
 )
 
 var DefaultFont = DefaultFontFace()
@@ -84,6 +86,56 @@ func LoadVideo(path string) ([]byte, int64, error) {
 	return buffer, fileInfo.Size(), nil
 }
 
+// LoadH264 returns the raw Annex-B H264 bytes needed for device streaming.
+//
+// If path is an .mp4 file:
+//   - Looks for <base>.h264 in the same directory (cache from a previous extraction).
+//   - If the cache exists, reads and returns it.
+//   - If not, runs ffmpeg (h264_mp4toannexb) to extract and cache it, then reads it.
+//
+// If path is already a .h264 file, reads it directly (backward-compat with old themes
+// that stored pre-extracted files and referenced them directly in theme.yaml).
+func LoadH264(path string) ([]byte, error) {
+	if path == "" {
+		return nil, fmt.Errorf("path is empty")
+	}
+	ext := strings.ToLower(filepath.Ext(path))
+
+	// Old-style: theme.yaml already points to a .h264 file — read directly.
+	if ext == ".h264" {
+		return os.ReadFile(path)
+	}
+
+	if ext != ".mp4" {
+		return nil, fmt.Errorf("unsupported video format %q (expected .mp4 or .h264)", ext)
+	}
+
+	// Derive the cache path: same directory, same base name, .h264 extension.
+	h264Path := path[:len(path)-len(ext)] + ".h264"
+
+	// Return cached extraction if it exists.
+	if data, err := os.ReadFile(h264Path); err == nil {
+		return data, nil
+	}
+
+	// Run ffmpeg to extract Annex-B H264 from the MP4 container.
+	// -c:v copy        — no re-encoding, just stream copy
+	// -bsf:v h264_mp4toannexb — convert AVCC length-prefix → Annex-B start codes
+	// -an              — drop audio
+	// -f h264          — raw Annex-B output
+	cmd := exec.Command("ffmpeg", "-y",
+		"-i", path,
+		"-c:v", "copy",
+		"-bsf:v", "h264_mp4toannexb",
+		"-an", "-f", "h264",
+		h264Path,
+	)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return nil, fmt.Errorf("ffmpeg H264 extract from %s: %w\n%s", filepath.Base(path), err, string(out))
+	}
+	return os.ReadFile(h264Path)
+}
+
 // ParseFileSize parses the GET_FILE_INFO response (ASCII decimal file size).
 func ParseFileSize(response []byte) (int64, error) {
 	raw := string(bytes.Trim(response, "\x00"))
@@ -139,16 +191,27 @@ func LoadFontFace(path string, points float64) font.Face {
 	if err != nil {
 		return DefaultFontFace()
 	}
+	// Try opentype first (handles both TTF and OTF).
+	if f, err := opentype.Parse(fontBytes); err == nil {
+		face, err := opentype.NewFace(f, &opentype.FaceOptions{
+			Size:    points,
+			DPI:     72,
+			Hinting: font.HintingFull,
+		})
+		if err == nil {
+			return face
+		}
+	}
+	// Fallback to freetype/truetype for legacy TTF.
 	f, err := truetype.Parse(fontBytes)
 	if err != nil {
 		return DefaultFontFace()
 	}
-	face := truetype.NewFace(f, &truetype.Options{
+	return truetype.NewFace(f, &truetype.Options{
 		Size:    points,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
-	return face
 }
 
 func DefaultFontFace() font.Face {
@@ -302,13 +365,14 @@ func CopyFile(src, dst string) error {
 	return err
 }
 
-// ParseColor converte uma string "r,g,b" para um objeto color.Color
+// ParseColor converte uma string "r,g,b" ou "r,g,b,a" para um objeto color.Color.
+// O canal alpha do formato de 4 partes é ignorado — sempre usa A=255.
 func ParseColor(colorStr string) color.Color {
 	if colorStr == "" {
-		return color.White // Retorna branco se a cor não estiver definida
+		return color.White
 	}
 	parts := strings.Split(colorStr, ",")
-	if len(parts) != 3 {
+	if len(parts) < 3 {
 		return color.White
 	}
 	r, _ := strconv.Atoi(strings.TrimSpace(parts[0]))
@@ -317,8 +381,13 @@ func ParseColor(colorStr string) color.Color {
 	return color.NRGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: 255}
 }
 
-// FormatColor converte um objeto color.Color para nossa string "r,g,b"
+// FormatColor converte um objeto color.Color para nossa string "r,g,b".
+// Usa caminho rápido para color.NRGBA (tipo nativo do Fyne) para evitar
+// problemas com alpha pré-multiplicado quando A < 255.
 func FormatColor(c color.Color) string {
+	if nc, ok := c.(color.NRGBA); ok {
+		return fmt.Sprintf("%d,%d,%d", nc.R, nc.G, nc.B)
+	}
 	r, g, b, _ := c.RGBA()
-	return fmt.Sprintf("%d,%d,%d", uint8(r), uint8(g), uint8(b))
+	return fmt.Sprintf("%d,%d,%d", uint8(r>>8), uint8(g>>8), uint8(b>>8))
 }

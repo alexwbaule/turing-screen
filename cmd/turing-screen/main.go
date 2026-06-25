@@ -2,10 +2,16 @@ package main
 
 import (
 	"context"
+	"image"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	pyroscope "github.com/grafana/pyroscope-go"
 
 	"github.com/alexwbaule/turing-screen/internal/application"
 	"github.com/alexwbaule/turing-screen/internal/application/hwinfo"
@@ -19,48 +25,98 @@ import (
 	gpuProvider "github.com/alexwbaule/turing-screen/internal/resource/gpu"
 	"github.com/alexwbaule/turing-screen/internal/resource/process/device"
 	"github.com/alexwbaule/turing-screen/internal/resource/serial"
+	"github.com/alexwbaule/turing-screen/internal/resource/turzx"
 	"github.com/alexwbaule/turing-screen/internal/resource/volume"
 	"github.com/alexwbaule/turing-screen/internal/resource/weather"
 	"golang.org/x/sync/errgroup"
 )
 
+func startProfiling(appName, pprofAddr string) {
+	// pprof — always available, zero external deps
+	go func() {
+		log.Printf("[profiling] pprof listening on http://%s/debug/pprof/", pprofAddr)
+		if err := http.ListenAndServe(pprofAddr, nil); err != nil {
+			log.Printf("[profiling] pprof error: %v", err)
+		}
+	}()
+
+	// Pyroscope continuous profiling — only when PYROSCOPE_ADDR is set
+	if addr := os.Getenv("PYROSCOPE_ADDR"); addr != "" {
+		_, err := pyroscope.Start(pyroscope.Config{
+			ApplicationName: appName,
+			ServerAddress:   addr,
+			Logger:          pyroscope.StandardLogger,
+			ProfileTypes: []pyroscope.ProfileType{
+				pyroscope.ProfileCPU,
+				pyroscope.ProfileAllocObjects,
+				pyroscope.ProfileAllocSpace,
+				pyroscope.ProfileInuseObjects,
+				pyroscope.ProfileInuseSpace,
+				pyroscope.ProfileGoroutines,
+			},
+		})
+		if err != nil {
+			log.Printf("[profiling] pyroscope start error: %v", err)
+		} else {
+			log.Printf("[profiling] pyroscope pushing to %s as '%s'", addr, appName)
+		}
+	}
+}
+
 func main() {
+	startProfiling("turing-screen", "localhost:6060")
 	app := application.NewApplication()
 
 	app.Run(func(ctx context.Context) error {
-		// --- Dependency Instantiation (shared, always alive) ---
 		app.Log.Infof("device display: %#v", app.Config.GetDeviceDisplay())
 
-		// currentValues holds the active SensorValues so the API can snapshot them.
 		var currentValues atomic.Pointer[compositor.SensorValues]
 
-		devSerial, err := serial.NewSerial(app.Config.GetDevicePort(), app.Log)
-		if err != nil {
-			log.Fatalf("failed to create serial sender: %v", err)
+		// --- Device detection: TURZX (USB bulk) takes priority over Rev C (serial) ---
+		turzxDrv, turzxErr := turzx.NewDriver(app.Log)
+		isTURZX := turzxErr == nil && turzxDrv != nil
+		if isTURZX {
+			app.Log.Infof("TURZX device detected: PID=0x%04x, native %dx%d", uint16(turzxDrv.PID), turzxDrv.Width, turzxDrv.Height)
+			if info, err := turzxDrv.GetStorageInfo(); err != nil {
+				app.Log.Warnf("TURZX: storage probe failed: %v", err)
+			} else {
+				app.Log.Infof("TURZX: storage: %s", info)
+			}
+		} else {
+			app.Log.Infof("TURZX not found (%v), using Rev C serial", turzxErr)
+		}
+
+		var devSerial serial.SerialSender
+		if !isTURZX {
+			var err error
+			devSerial, err = serial.NewSerial(app.Config.GetDevicePort(), app.Log)
+			if err != nil {
+				log.Fatalf("failed to create serial sender: %v", err)
+			}
 		}
 
 		cmdDevice := command.NewDevice(app.Log)
 		cmdBright := command.NewBrightness(app.Log)
-		cmdPayload := command.NewPayload(app.Log, 2) // LANDSCAPE default, overridden by theme
+		cmdPayload := command.NewPayload(app.Log, 2) // overridden per theme
 
-		// Shared jobs channel (single instance, reused across start/stop cycles)
+		// Shared jobs channel (Rev C only; TURZX sends frames directly)
 		jobs := make(chan command.Command, 2000)
 
-		// --- Sensor lifecycle management ---
 		var sensorCancel context.CancelFunc
 		var sensorWg sync.WaitGroup
 		var sensorMu sync.Mutex
 		sensorsRunning := false
 
-		// Forward-declare so startSensors can reference apiController (defined below).
 		var startSensors func()
 		var stopSensors func()
 
-		// --- API Server (always runs) ---
 		apiController := api.NewDaemonController(
 			app.Log, devSerial, cmdDevice, cmdBright, cmdPayload,
 			app.Config.GetThemeName(), "chs_5inch",
 		)
+		if isTURZX {
+			apiController.SetTURZXDriver(turzxDrv)
+		}
 		apiController.SetSensorControl(func() { stopSensors() }, func() { startSensors() })
 		apiController.SetSensorFunc(func() map[string]interface{} {
 			v := currentValues.Load()
@@ -78,7 +134,6 @@ func main() {
 				return
 			}
 
-			// Re-read config from disk (theme may have changed via API)
 			if err := app.Config.Reload(); err != nil {
 				app.Log.Warnf("failed to reload config: %v", err)
 			}
@@ -97,86 +152,127 @@ func main() {
 				staticTexts[key] = st
 			}
 
-			// Update payload orientation from theme
 			orientation := statsTheme.GetDisplay().Orientation
-			cmdPayload = command.NewPayload(app.Log, orientation)
-
+			apiController.SetOrientation(orientation)
 			builder := renderer.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
 			builder.BuildBackgroundImage(statsTheme.GetStaticImages())
 			builder.BuildBackgroundTexts(statsTheme.GetStaticTexts())
-			background := device.NewImageProcess(builder.GetBackground())
 
-			cmdMedia := command.NewMedia(app.Log)
-			cmdStorage := command.NewStorage(app.Log)
-			cmdOption := command.NewOption(app.Log)
-			cmdUpdate := command.NewUpdatePayload(app.Log, orientation, app.Config.GetDeviceDisplay())
+			values := &compositor.SensorValues{}
+			currentValues.Store(values)
 
-			// Initialize device — if it fails the device may be sleeping after a TurnOff.
-			// Reconnect (triggers wakeup via NewUsbDevice AUTO logic) and retry once.
-			initService := initializer.New(devSerial, app.Log, app.Config, statsTheme, cmdDevice, cmdMedia, cmdOption, cmdStorage, cmdBright, cmdPayload)
-			if err := initService.Run(background); err != nil {
-				app.Log.Warnf("device initialization failed, attempting reconnect (device may be sleeping): %v", err)
-				if rerr := devSerial.ResetDevice(); rerr != nil {
-					app.Log.Errorf("device reconnect failed: %v", rerr)
-					apiController.NotifySensorsFailed()
-					return
-				}
-				if err := initService.Run(background); err != nil {
-					app.Log.Errorf("device initialization failed after reconnect: %v", err)
-					apiController.NotifySensorsFailed()
-					return
-				}
-			}
-
-			if overlay := initService.Overlay(); overlay != nil {
-				cmdUpdate.SetOverlay(overlay)
-			}
-
-			// Create sensor context (cancelable independently)
 			var sensorCtx context.Context
 			sensorCtx, sensorCancel = context.WithCancel(ctx)
 
-			// Worker
-			worker := sender.NewWorker(devSerial, background, cmdDevice, cmdMedia, cmdPayload, app.Log)
-			sensorWg.Add(1)
-			go func() {
-				defer sensorWg.Done()
-				if err := worker.Run(sensorCtx, jobs); err != nil && sensorCtx.Err() == nil {
-					app.Log.Errorf("worker error: %v", err)
-				}
-			}()
+			var comp *compositor.Compositor
 
-			// Video overlay refresh
-			if overlay := initService.Overlay(); overlay != nil {
+			if isTURZX {
+				// TURZX pipeline: initialize device, then full-frame callback.
+				brightness := app.Config.GetDeviceDisplay().Brightness
+				if err := turzxDrv.Initialize(brightness); err != nil {
+					app.Log.Errorf("TURZX init failed: %v", err)
+					apiController.NotifySensorsFailed()
+					return
+				}
+
+				// Start H.264 background video if the theme defines one.
+				vp := statsTheme.GetVideoPlay()
+				app.Log.Infof("TURZX: theme video section: present=%v", vp != nil)
+				if vp != nil {
+					app.Log.Infof("TURZX: video bytes=%d path=%s", len(vp.Video), vp.Path)
+				}
+				if vp != nil && len(vp.Video) > 0 {
+					app.Log.Infof("TURZX: starting H264 video stream (%d B)", len(vp.Video))
+					turzxDrv.StartVideoStream(sensorCtx, vp.Video)
+				}
+
+				comp = compositor.New(
+					app.Log, nil, builder,
+					statsTheme.GetStats(), values,
+					nil,
+					statsTheme.GetDisplay(),
+					500*time.Millisecond,
+				)
+				comp.SetFrameCallback(func(frame *image.NRGBA) {
+					if err := turzxDrv.SendFrame(frame, orientation); err != nil {
+						app.Log.Warnf("TURZX SendFrame: %v", err)
+					}
+				})
+			} else {
+				// Rev C pipeline: serial worker + overlay + dirty-rect diff.
+				cmdPayload = command.NewPayload(app.Log, orientation)
+				background := device.NewImageProcess(builder.GetBackground())
+
+				cmdMedia := command.NewMedia(app.Log)
+				cmdStorage := command.NewStorage(app.Log)
+				cmdOption := command.NewOption(app.Log)
+				cmdUpdate := command.NewUpdatePayload(app.Log, orientation, app.Config.GetDeviceDisplay())
+
+				initService := initializer.New(devSerial, app.Log, app.Config, statsTheme, cmdDevice, cmdMedia, cmdOption, cmdStorage, cmdBright, cmdPayload)
+				if err := initService.Run(background); err != nil {
+					app.Log.Warnf("device init failed, attempting reconnect: %v", err)
+					if rerr := devSerial.ResetDevice(); rerr != nil {
+						app.Log.Errorf("device reconnect failed: %v", rerr)
+						apiController.NotifySensorsFailed()
+						return
+					}
+					if err := initService.Run(background); err != nil {
+						app.Log.Errorf("device init failed after reconnect: %v", err)
+						apiController.NotifySensorsFailed()
+						return
+					}
+				}
+
+				if overlay := initService.Overlay(); overlay != nil {
+					cmdUpdate.SetOverlay(overlay)
+				}
+
+				worker := sender.NewWorker(devSerial, background, cmdDevice, cmdMedia, cmdPayload, app.Log)
 				sensorWg.Add(1)
 				go func() {
 					defer sensorWg.Done()
-					ticker := time.NewTicker(500 * time.Millisecond)
-					defer ticker.Stop()
-					for {
-						select {
-						case <-sensorCtx.Done():
-							return
-						case <-ticker.C:
-							select {
-							case jobs <- overlay.Refresh():
-							default:
-							}
-						}
+					if err := worker.Run(sensorCtx, jobs); err != nil && sensorCtx.Err() == nil {
+						app.Log.Errorf("worker error: %v", err)
 					}
 				}()
+
+				if overlay := initService.Overlay(); overlay != nil {
+					sensorWg.Add(1)
+					go func() {
+						defer sensorWg.Done()
+						ticker := time.NewTicker(500 * time.Millisecond)
+						defer ticker.Stop()
+						for {
+							select {
+							case <-sensorCtx.Done():
+								return
+							case <-ticker.C:
+								select {
+								case jobs <- overlay.Refresh():
+								default:
+								}
+							}
+						}
+					}()
+				}
+
+				comp = compositor.New(
+					app.Log, devSerial, builder,
+					statsTheme.GetStats(), values,
+					cmdUpdate.WithSource("compositor"),
+					statsTheme.GetDisplay(),
+					500*time.Millisecond,
+				)
+				comp.SetJobs(jobs)
 			}
 
-			// Start compositor: collectors + render loop that feeds jobs
+			// Common: start sensor collectors
 			cpuCfg := app.Config.GetCPUSensorConfig()
 			gpuCfg := app.Config.GetGPUSensorConfig()
 			netCfg := app.Config.GetNetworkConfig()
 			diskCfg := app.Config.GetDiskSensorConfig()
 			memCfg := app.Config.GetMemoryConfig()
 			weatherConfig := app.Config.GetWeatherConfig()
-
-			values := &compositor.SensorValues{}
-			currentValues.Store(values)
 
 			var weatherClient *weather.Client
 			if weatherConfig.Enabled {
@@ -212,15 +308,6 @@ func main() {
 				},
 			)
 
-			comp := compositor.New(
-				app.Log, devSerial, builder,
-				statsTheme.GetStats(), values,
-				cmdUpdate.WithSource("compositor"),
-				statsTheme.GetDisplay(),
-				200*time.Millisecond,
-			)
-			comp.SetJobs(jobs)
-
 			sensorWg.Add(1)
 			go func() {
 				defer sensorWg.Done()
@@ -235,7 +322,6 @@ func main() {
 			app.Log.Info("all sensors started")
 		}
 
-		// stopSensors cancels the sensor context and waits for goroutines to finish.
 		stopSensors = func() {
 			sensorMu.Lock()
 			defer sensorMu.Unlock()
@@ -246,47 +332,49 @@ func main() {
 				sensorCancel()
 			}
 			sensorWg.Wait()
-			// Drain remaining jobs
-			for {
-				select {
-				case <-jobs:
-				default:
-					goto drained
+
+			if !isTURZX {
+				// Drain remaining jobs
+				for {
+					select {
+					case <-jobs:
+					default:
+						goto drained
+					}
 				}
-			}
-		drained:
-			// Discard any bytes left in the OS receive buffer so the next
-			// init session starts clean (no stale responses from prior commands).
-			if err := devSerial.Flush(); err != nil {
-				app.Log.Warnf("serial flush after stop: %v", err)
+			drained:
+				if err := devSerial.Flush(); err != nil {
+					app.Log.Warnf("serial flush after stop: %v", err)
+				}
 			}
 
 			sensorsRunning = false
-			app.Log.Info("all sensors stopped, serial flushed")
+			app.Log.Info("all sensors stopped")
 		}
 
 		g, ctx := errgroup.WithContext(ctx)
 
-		// API server goroutine
 		apiServer := api.NewServer(app.Log, apiController, app.Config.GetAPIPort())
 		g.Go(func() error {
 			return apiServer.Start(ctx)
 		})
 
-		// Graceful shutdown handler
 		g.Go(func() error {
 			<-ctx.Done()
 			app.Log.Info("shutdown signal received.")
 			stopSensors()
-			if app.Config.GetTurnOffOnExit() {
-				app.Log.Info("turning off device.")
-				devSerial.Execute(cmdDevice.TurnOff())
+			if isTURZX {
+				turzxDrv.Close()
+			} else {
+				if app.Config.GetTurnOffOnExit() {
+					app.Log.Info("turning off device.")
+					devSerial.Execute(cmdDevice.TurnOff())
+				}
+				_ = devSerial.Close()
 			}
-			_ = devSerial.Close()
 			return nil
 		})
 
-		// Start sensors on boot
 		startSensors()
 
 		return g.Wait()
