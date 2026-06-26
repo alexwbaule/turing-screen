@@ -20,19 +20,17 @@ import (
 const imageRightPad = 4
 
 type FontCache struct {
-	mu          sync.RWMutex
-	faces       map[string]font.Face
-	rawFonts    map[string][]byte
-	parsedFonts map[string]*opentype.Font
-	fontDir     string
+	mu       sync.RWMutex
+	faces    map[string]font.Face
+	rawFonts map[string][]byte
+	fontDir  string
 }
 
 func NewFontCache(fontDir string) *FontCache {
 	fc := &FontCache{
-		faces:       make(map[string]font.Face),
-		rawFonts:    make(map[string][]byte),
-		parsedFonts: make(map[string]*opentype.Font),
-		fontDir:     fontDir,
+		faces:    make(map[string]font.Face),
+		rawFonts: make(map[string][]byte),
+		fontDir:  fontDir,
 	}
 	fc.loadAll()
 	return fc
@@ -64,9 +62,6 @@ func (fc *FontCache) loadAll() {
 			return nil
 		}
 		fc.rawFonts[filepath.ToSlash(relPath)] = data
-		if parsed, err := opentype.Parse(data); err == nil {
-			fc.parsedFonts[filepath.ToSlash(relPath)] = parsed
-		}
 		return nil
 	})
 	log.Printf("Fontes carregadas em memória: %d", len(fc.rawFonts))
@@ -126,17 +121,22 @@ func (fc *FontCache) GetFace(fontPath string, fontSize int) (font.Face, error) {
 	return face, nil
 }
 
-// NewFace creates a fresh, exclusive font.Face for use in a single goroutine.
-// Unlike GetFace, the returned face is never shared and is safe for concurrent use.
+// NewFace creates a goroutine-safe font.Face by parsing a fresh *opentype.Font
+// from the cached raw bytes. Each caller gets fully independent state — no
+// shared mutable data between goroutines.
 func (fc *FontCache) NewFace(fontPath string, fontSize int) (font.Face, error) {
 	if fontSize <= 0 {
 		fontSize = 14
 	}
 	fc.mu.RLock()
-	parsed, ok := fc.parsedFonts[fontPath]
+	raw, ok := fc.rawFonts[fontPath]
 	fc.mu.RUnlock()
 	if !ok {
 		return nil, fmt.Errorf("fonte não encontrada: %s", fontPath)
+	}
+	parsed, err := opentype.Parse(raw)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao parsear fonte %s: %w", fontPath, err)
 	}
 	return opentype.NewFace(parsed, &opentype.FaceOptions{
 		Size:    float64(fontSize),
