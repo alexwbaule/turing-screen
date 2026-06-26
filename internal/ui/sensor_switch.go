@@ -263,10 +263,66 @@ func getMeasurementForSensor(t *theme.Theme, sensor string) *theme.Measurement {
 	return nil
 }
 
+// widgetSnapshot captures compatible fields when switching widget type or sensor.
+type widgetSnapshot struct {
+	X, Y            int
+	Index           int
+	MinValue        int
+	MaxValue        int
+	Width           int
+	Height          int
+	Radius          int
+	ArcWidth        int
+	AngleStart      int
+	AngleEnd        int
+	AngleSteps      int
+	AngleSep        int
+	BlockAngle      int
+	Clockwise       bool
+	Round           bool
+	PrimaryColor    string
+	BackgroundColor string
+	GradientColor   string
+	Font            string
+	FontSize        int
+	FontColor       string
+}
+
 // setWidgetOnMeasurement sets the appropriate widget type on a Measurement,
-// clearing any previously active widget of other types.
-func setWidgetOnMeasurement(m *theme.Measurement, widgetType string, x, y int, font string, fontSize int, fontColor string) {
-	// Clear all widget types
+// clearing all other widget types, and applying fields from snap.
+func setWidgetOnMeasurement(m *theme.Measurement, widgetType string, snap widgetSnapshot) {
+	if snap.Font == "" {
+		snap.Font = "jetbrains-mono/JetBrainsMono-Bold.ttf"
+	}
+	if snap.FontSize == 0 {
+		snap.FontSize = 22
+	}
+	if snap.PrimaryColor == "" {
+		snap.PrimaryColor = "255, 255, 255"
+	}
+	if snap.Width == 0 {
+		snap.Width = 150
+	}
+	if snap.Height == 0 {
+		snap.Height = 15
+	}
+	if snap.Radius == 0 {
+		snap.Radius = 40
+	}
+	if snap.ArcWidth == 0 {
+		snap.ArcWidth = 10
+	}
+	if snap.AngleEnd == 0 {
+		snap.AngleStart = 36
+		snap.AngleEnd = 60
+	}
+	if snap.AngleSteps == 0 {
+		snap.AngleSteps = 1
+	}
+	if snap.MaxValue == 0 {
+		snap.MaxValue = 100
+	}
+
 	m.Graph = nil
 	m.Radial = nil
 	m.Chart = nil
@@ -277,38 +333,68 @@ func setWidgetOnMeasurement(m *theme.Measurement, widgetType string, x, y int, f
 	switch widgetType {
 	case "TEXT":
 		m.Text = &theme.Text{
-			Show: true, X: x, Y: y,
-			Font: font, FontSize: fontSize, FontColor: fontColor,
+			Show: true, X: snap.X, Y: snap.Y, Index: snap.Index,
+			Font: snap.Font, FontSize: snap.FontSize,
+			FontColor:       snap.PrimaryColor,
+			BackgroundColor: snap.BackgroundColor,
 		}
 	case "GRAPH":
 		m.Graph = &theme.Graph{
-			Show: true, X: x, Y: y, Width: 150, Height: 15,
-			MinValue: 0, MaxValue: 100, BarColor: fontColor,
+			Show: true, X: snap.X, Y: snap.Y, Index: snap.Index,
+			Width: snap.Width, Height: snap.Height,
+			MinValue: snap.MinValue, MaxValue: snap.MaxValue,
+			BarColor:        snap.PrimaryColor,
+			BackgroundColor: snap.BackgroundColor,
+			GradientColor:   snap.GradientColor,
 		}
 	case "RADIAL":
 		m.Radial = &theme.Radial{
-			Show: true, X: x, Y: y, Radius: 40, Width: 10,
-			MinValue: 0, MaxValue: 100, AngleStart: 36, AngleEnd: 60,
-			AngleSteps: 1, Clockwise: true, BarColor: fontColor,
+			Show: true, X: snap.X, Y: snap.Y, Index: snap.Index,
+			Radius: snap.Radius, Width: snap.ArcWidth,
+			MinValue: snap.MinValue, MaxValue: snap.MaxValue,
+			AngleStart: snap.AngleStart, AngleEnd: snap.AngleEnd,
+			AngleSteps: snap.AngleSteps, AngleSep: snap.AngleSep,
+			BlockAngle: snap.BlockAngle,
+			Clockwise:       snap.Clockwise,
+			Round:           snap.Round,
+			BarColor:        snap.PrimaryColor,
+			BackgroundColor: snap.BackgroundColor,
+			GradientColor:   snap.GradientColor,
+			Font:            snap.Font,
+			FontColor:       snap.FontColor,
 		}
 	case "CHART":
 		m.Chart = &theme.Chart{
-			Show: true, X: x, Y: y, Width: 150, Height: 60,
-			Style: "line", MinValue: 0, MaxValue: 100,
+			Show: true, X: snap.X, Y: snap.Y, Index: snap.Index,
+			Width: snap.Width, Height: snap.Height,
+			Style: "line", MinValue: snap.MinValue, MaxValue: snap.MaxValue,
 			ColumnWidth: 3, ColumnGap: 1,
-			FillColor: fontColor, LineColor: "255,255,255", BorderWidth: 1,
+			FillColor:   snap.PrimaryColor,
+			LineColor:   "255, 255, 255",
+			BorderWidth: 1,
 		}
 	case "STATUS_BAR":
 		m.StatusBar = &theme.StatusBar{
-			Show: true, X: x, Y: y, Width: 150, Height: 6,
-			MinValue: 0, MaxValue: 100, BarColor: fontColor,
-			IndicatorColor: "255,255,255", IndicatorRadius: 6,
+			Show: true, X: snap.X, Y: snap.Y, Index: snap.Index,
+			Width: snap.Width, Height: snap.Height,
+			MinValue: snap.MinValue, MaxValue: snap.MaxValue,
+			BarColor:        snap.PrimaryColor,
+			BackgroundColor: snap.BackgroundColor,
+			IndicatorColor:  "255, 255, 255",
+			IndicatorRadius: 6,
 		}
 	case "GAUGE":
 		m.Gauge = &theme.Gauge{
-			Show: true, X: x, Y: y, Radius: 40, NeedleWidth: 2,
-			MinValue: 0, MaxValue: 100, AngleStart: 36, AngleEnd: 60,
-			NeedleColor: fontColor, ShowText: true,
+			Show: true, X: snap.X, Y: snap.Y, Index: snap.Index,
+			Radius: snap.Radius, NeedleWidth: 2,
+			MinValue: snap.MinValue, MaxValue: snap.MaxValue,
+			AngleStart:      snap.AngleStart,
+			AngleEnd:        snap.AngleEnd,
+			NeedleColor:     snap.PrimaryColor,
+			BackgroundColor: snap.BackgroundColor,
+			Font:            snap.Font,
+			FontColor:       snap.FontColor,
+			ShowText:        true,
 		}
 	}
 }

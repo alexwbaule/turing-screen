@@ -2,6 +2,7 @@ package ui
 
 import (
 	"image/color"
+	"sync/atomic"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -19,6 +20,7 @@ type DraggableGraph struct {
 	selection   *canvas.Rectangle
 	hitbox      *canvas.Rectangle
 	dirty       bool
+	renderGen   atomic.Uint64
 }
 
 func NewDraggableGraph(data *theme.Graph, path string, tapped func(dg *DraggableGraph), dragEnd func(dg *DraggableGraph)) *DraggableGraph {
@@ -107,9 +109,20 @@ func (r *draggableGraphRenderer) Objects() []fyne.CanvasObject {
 	return []fyne.CanvasObject{r.dg.hitbox, r.dg.img, r.dg.selection}
 }
 func (r *draggableGraphRenderer) Refresh() {
-	if r.dg.dirty || r.dg.img.Image == nil {
-		r.dg.img.Image = renderGGGraph(r.dg.GraphData)
-		r.dg.dirty = false
-		canvas.Refresh(r.dg.img)
+	if !r.dg.dirty && r.dg.img.Image != nil {
+		return
 	}
+	r.dg.dirty = false
+	gen := r.dg.renderGen.Add(1)
+	data := *r.dg.GraphData
+	go func() {
+		img := renderGGGraph(&data)
+		fyne.Do(func() {
+			if r.dg.renderGen.Load() != gen {
+				return
+			}
+			r.dg.img.Image = img
+			canvas.Refresh(r.dg.img)
+		})
+	}()
 }

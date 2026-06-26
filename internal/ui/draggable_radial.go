@@ -2,6 +2,7 @@ package ui
 
 import (
 	"image/color"
+	"sync/atomic"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -20,6 +21,7 @@ type DraggableRadial struct {
 	selection   *canvas.Rectangle
 	hitbox      *canvas.Rectangle
 	dirty       bool
+	renderGen   atomic.Uint64
 }
 
 func NewDraggableRadial(data *theme.Radial, path string, fc *FontCache, tapped func(dr *DraggableRadial), dragEnd func(dr *DraggableRadial)) *DraggableRadial {
@@ -111,9 +113,21 @@ func (r *draggableRadialRenderer) Objects() []fyne.CanvasObject {
 	return []fyne.CanvasObject{r.dr.hitbox, r.dr.img, r.dr.selection}
 }
 func (r *draggableRadialRenderer) Refresh() {
-	if r.dr.dirty || r.dr.img.Image == nil {
-		r.dr.img.Image = renderGGRadial(r.dr.RadialData, r.dr.fontCache)
-		r.dr.dirty = false
-		canvas.Refresh(r.dr.img)
+	if !r.dr.dirty && r.dr.img.Image != nil {
+		return
 	}
+	r.dr.dirty = false
+	gen := r.dr.renderGen.Add(1)
+	data := *r.dr.RadialData
+	fc := r.dr.fontCache
+	go func() {
+		img := renderGGRadial(&data, fc)
+		fyne.Do(func() {
+			if r.dr.renderGen.Load() != gen {
+				return
+			}
+			r.dr.img.Image = img
+			canvas.Refresh(r.dr.img)
+		})
+	}()
 }

@@ -33,9 +33,8 @@ type PropertiesPanel struct {
 	radialFields  *fyne.Container
 	chartFields   *fyne.Container
 	commonFields  *fyne.Container
-	placeholder   *widget.Label
-	scroll        *container.Scroll
-	scrollContent *fyne.Container
+	placeholder *widget.Label
+	scroll      *container.Scroll
 
 	yamlPathLabel *widget.Label
 	xEntry        *widget.Entry
@@ -119,7 +118,7 @@ func (p *PropertiesPanel) scheduleRefresh(w fyne.Widget) {
 	if p.refreshTimer != nil {
 		p.refreshTimer.Stop()
 	}
-	p.refreshTimer = time.AfterFunc(150*time.Millisecond, func() {
+	p.refreshTimer = time.AfterFunc(300*time.Millisecond, func() {
 		fyne.Do(func() {
 			w.Refresh()
 			w.Resize(w.MinSize())
@@ -728,14 +727,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 	p.placeholder.Wrapping = fyne.TextWrapWord
 	p.placeholder.Alignment = fyne.TextAlignCenter
 
-	p.scrollContent = container.NewVBox(
-		p.commonFields,
-		p.textFields,
-		p.graphFields,
-		p.radialFields,
-		p.chartFields,
-	)
-	p.scroll = container.NewVScroll(p.scrollContent)
+	p.scroll = container.NewVScroll(p.placeholder)
 	p.scroll.SetMinSize(fyne.NewSize(320, 1))
 
 	header := container.NewVBox(
@@ -809,11 +801,6 @@ func (p *PropertiesPanel) updateY(v int) {
 
 func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 	p.selectedWidget = obj
-	p.textFields.Hide()
-	p.graphFields.Hide()
-	p.radialFields.Hide()
-	p.chartFields.Hide()
-	p.commonFields.Hide()
 
 	if obj == nil {
 		log.Printf("[PropertiesPanel] Update(nil) — mostrando placeholder")
@@ -824,10 +811,7 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 	}
 
 	log.Printf("[PropertiesPanel] Update(%T) — mostrando propriedades", obj)
-	p.scroll.Content = p.scrollContent
-	p.commonFields.Show()
 
-	// Populate sensor/type selects based on widget path
 	var yamlPath string
 	switch v := obj.(type) {
 	case *DraggableWidget:
@@ -852,10 +836,10 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.typeSelect.Hide()
 	}
 
+	var typePanel fyne.CanvasObject
 	switch v := obj.(type) {
 	case *DraggableWidget:
 		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
-		p.textFields.Show()
 		p.yamlPathLabel.SetText(v.YAMLPath)
 		p.xEntry.SetText(strconv.Itoa(v.TextData.X))
 		p.yEntry.SetText(strconv.Itoa(v.TextData.Y))
@@ -871,9 +855,9 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.alignSelect.SetSelected(strings.ToUpper(v.TextData.Align))
 		p.formatSelect.SetSelected(strings.ToUpper(v.TextData.Format))
 		p.showUnitCheck.SetChecked(v.TextData.ShowUnit)
+		typePanel = p.textFields
 	case *DraggableGraph:
 		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
-		p.graphFields.Show()
 		p.yamlPathLabel.SetText(v.YAMLPath)
 		p.xEntry.SetText(strconv.Itoa(v.GraphData.X))
 		p.yEntry.SetText(strconv.Itoa(v.GraphData.Y))
@@ -892,9 +876,9 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.graphBlockWidthEntry.SetText(strconv.Itoa(v.GraphData.BlockWidth))
 		p.graphCornerRadiusEntry.SetText(strconv.Itoa(v.GraphData.CornerRadius))
 		p.graphBorderWidthEntry.SetText(strconv.Itoa(v.GraphData.BorderWidth))
+		typePanel = p.graphFields
 	case *DraggableRadial:
 		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
-		p.radialFields.Show()
 		p.yamlPathLabel.SetText(v.YAMLPath)
 		p.xEntry.SetText(strconv.Itoa(v.RadialData.X))
 		p.yEntry.SetText(strconv.Itoa(v.RadialData.Y))
@@ -918,9 +902,9 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.radialShowUnitCheck.SetChecked(v.RadialData.ShowUnit)
 		p.radialFontSelector.SetSelected(v.RadialData.Font)
 		p.radialFontColorEntry.SetText(v.RadialData.FontColor)
+		typePanel = p.radialFields
 	case *DraggableChart:
 		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
-		p.chartFields.Show()
 		p.yamlPathLabel.SetText(v.YAMLPath)
 		p.xEntry.SetText(strconv.Itoa(v.ChartData.X))
 		p.yEntry.SetText(strconv.Itoa(v.ChartData.Y))
@@ -933,76 +917,75 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.chartFillColorEntry.SetText(v.ChartData.FillColor)
 		p.chartLineColorEntry.SetText(v.ChartData.LineColor)
 		p.chartBorderEntry.SetText(strconv.Itoa(v.ChartData.BorderWidth))
+		typePanel = p.chartFields
 	}
 
+	p.scroll.Content = container.NewVBox(p.commonFields, typePanel)
 	p.scroll.Refresh()
 }
 
 // onSensorChanged handles the Sensor select change.
-// Moves the current widget to a different sensor path in the theme.
+// Moves the current widget to a different sensor path, preserving all data.
 func (p *PropertiesPanel) onSensorChanged(newSensor string) {
 	if p.selectedWidget == nil {
 		return
 	}
 
 	var currentPath string
-	var x, y int
-	var font string
-	var fontSize int
-	var fontColor string
+	var widgetType string
 
 	switch v := p.selectedWidget.(type) {
 	case *DraggableWidget:
 		currentPath = v.YAMLPath
-		x, y = v.TextData.X, v.TextData.Y
-		font = v.TextData.Font
-		fontSize = v.TextData.FontSize
-		fontColor = v.TextData.FontColor
+		widgetType = parseWidgetTypeFromPath(currentPath)
 	case *DraggableGraph:
 		currentPath = v.YAMLPath
-		x, y = v.GraphData.X, v.GraphData.Y
-		fontColor = v.GraphData.BarColor
+		widgetType = "GRAPH"
 	case *DraggableRadial:
 		currentPath = v.YAMLPath
-		x, y = v.RadialData.X, v.RadialData.Y
-		fontColor = v.RadialData.BarColor
+		widgetType = "RADIAL"
 	case *DraggableChart:
 		currentPath = v.YAMLPath
-		x, y = v.ChartData.X, v.ChartData.Y
-		fontColor = v.ChartData.FillColor
+		widgetType = "CHART"
 	default:
 		return
 	}
 
 	currentSensor := parseSensorFromPath(currentPath)
 	if currentSensor == newSensor {
-		return // same sensor, no change
+		return
 	}
 
-	widgetType := parseWidgetTypeFromPath(currentPath)
-	if font == "" {
-		font = "jetbrains-mono/JetBrainsMono-Bold.ttf"
-	}
-	if fontSize == 0 {
-		fontSize = 22
-	}
-	if fontColor == "" {
-		fontColor = "255,255,255"
-	}
-
-	// Remove from old sensor
 	oldMeasurement := getMeasurementForSensor(p.app.currentTheme, currentSensor)
+	newMeasurement := getMeasurementForSensor(p.app.currentTheme, newSensor)
+
+	if newMeasurement != nil {
+		clearWidgetType(newMeasurement, widgetType)
+		switch v := p.selectedWidget.(type) {
+		case *DraggableWidget:
+			cloned := *v.TextData
+			switch widgetType {
+			case "TEXT":
+				newMeasurement.Text = &cloned
+			case "PERCENT_TEXT":
+				newMeasurement.PercentText = &cloned
+			}
+		case *DraggableGraph:
+			cloned := *v.GraphData
+			newMeasurement.Graph = &cloned
+		case *DraggableRadial:
+			cloned := *v.RadialData
+			newMeasurement.Radial = &cloned
+		case *DraggableChart:
+			cloned := *v.ChartData
+			newMeasurement.Chart = &cloned
+		}
+	}
+
 	if oldMeasurement != nil {
 		clearWidgetType(oldMeasurement, widgetType)
 	}
 
-	// Add to new sensor
-	newMeasurement := getMeasurementForSensor(p.app.currentTheme, newSensor)
-	if newMeasurement != nil {
-		setWidgetOnMeasurement(newMeasurement, widgetType, x, y, font, fontSize, fontColor)
-	}
-
-	// Refresh and select the widget at the new path
 	newPath := "STATS." + newSensor + "." + widgetType
 	p.app.RefreshCanvas()
 	p.app.layersPanel.Refresh()
@@ -1010,37 +993,81 @@ func (p *PropertiesPanel) onSensorChanged(newSensor string) {
 }
 
 // onTypeChanged handles the Type select change.
-// Changes the visual representation of the currently selected sensor.
+// Changes the visual representation of the currently selected sensor, preserving compatible fields.
 func (p *PropertiesPanel) onTypeChanged(newType string) {
 	if p.selectedWidget == nil {
 		return
 	}
 
 	var currentPath string
-	var x, y int
-	var font string
-	var fontSize int
-	var fontColor string
+	var snap widgetSnapshot
 
 	switch v := p.selectedWidget.(type) {
 	case *DraggableWidget:
 		currentPath = v.YAMLPath
-		x, y = v.TextData.X, v.TextData.Y
-		font = v.TextData.Font
-		fontSize = v.TextData.FontSize
-		fontColor = v.TextData.FontColor
+		snap = widgetSnapshot{
+			X: v.TextData.X, Y: v.TextData.Y,
+			Font: v.TextData.Font, FontSize: v.TextData.FontSize,
+			PrimaryColor:    v.TextData.FontColor,
+			FontColor:       v.TextData.FontColor,
+			BackgroundColor: v.TextData.BackgroundColor,
+			Width: 150, Height: 15,
+			Radius: 40, ArcWidth: 10,
+			AngleStart: 36, AngleEnd: 60, AngleSteps: 1,
+		}
 	case *DraggableGraph:
 		currentPath = v.YAMLPath
-		x, y = v.GraphData.X, v.GraphData.Y
-		fontColor = v.GraphData.BarColor
+		snap = widgetSnapshot{
+			X: v.GraphData.X, Y: v.GraphData.Y,
+			Index:           v.GraphData.Index,
+			Width:           v.GraphData.Width,
+			Height:          v.GraphData.Height,
+			MinValue:        v.GraphData.MinValue,
+			MaxValue:        v.GraphData.MaxValue,
+			PrimaryColor:    v.GraphData.BarColor,
+			BackgroundColor: v.GraphData.BackgroundColor,
+			GradientColor:   v.GraphData.GradientColor,
+			Radius: 40, ArcWidth: 10,
+			AngleStart: 36, AngleEnd: 60, AngleSteps: 1,
+		}
 	case *DraggableRadial:
 		currentPath = v.YAMLPath
-		x, y = v.RadialData.X, v.RadialData.Y
-		fontColor = v.RadialData.BarColor
+		snap = widgetSnapshot{
+			X: v.RadialData.X, Y: v.RadialData.Y,
+			Index:           v.RadialData.Index,
+			Radius:          v.RadialData.Radius,
+			ArcWidth:        v.RadialData.Width,
+			MinValue:        v.RadialData.MinValue,
+			MaxValue:        v.RadialData.MaxValue,
+			AngleStart:      v.RadialData.AngleStart,
+			AngleEnd:        v.RadialData.AngleEnd,
+			AngleSteps:      v.RadialData.AngleSteps,
+			AngleSep:        v.RadialData.AngleSep,
+			BlockAngle:      v.RadialData.BlockAngle,
+			Clockwise:       v.RadialData.Clockwise,
+			Round:           v.RadialData.Round,
+			PrimaryColor:    v.RadialData.BarColor,
+			BackgroundColor: v.RadialData.BackgroundColor,
+			GradientColor:   v.RadialData.GradientColor,
+			Font:            v.RadialData.Font,
+			FontSize:        22,
+			FontColor:       v.RadialData.FontColor,
+			Width:           v.RadialData.Radius * 2,
+			Height:          15,
+		}
 	case *DraggableChart:
 		currentPath = v.YAMLPath
-		x, y = v.ChartData.X, v.ChartData.Y
-		fontColor = v.ChartData.FillColor
+		snap = widgetSnapshot{
+			X: v.ChartData.X, Y: v.ChartData.Y,
+			Index:        v.ChartData.Index,
+			Width:        v.ChartData.Width,
+			Height:       v.ChartData.Height,
+			MinValue:     v.ChartData.MinValue,
+			MaxValue:     v.ChartData.MaxValue,
+			PrimaryColor: v.ChartData.FillColor,
+			Radius: 40, ArcWidth: 10,
+			AngleStart: 36, AngleEnd: 60, AngleSteps: 1,
+		}
 	default:
 		return
 	}
@@ -1051,20 +1078,9 @@ func (p *PropertiesPanel) onTypeChanged(newType string) {
 	}
 
 	sensor := parseSensorFromPath(currentPath)
-	if font == "" {
-		font = "jetbrains-mono/JetBrainsMono-Bold.ttf"
-	}
-	if fontSize == 0 {
-		fontSize = 22
-	}
-	if fontColor == "" {
-		fontColor = "255,255,255"
-	}
-
-	// Replace widget type on the same measurement
 	m := getMeasurementForSensor(p.app.currentTheme, sensor)
 	if m != nil {
-		setWidgetOnMeasurement(m, newType, x, y, font, fontSize, fontColor)
+		setWidgetOnMeasurement(m, newType, snap)
 	}
 
 	// Refresh and select the widget at the new path

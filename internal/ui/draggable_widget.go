@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"strings"
+	"sync/atomic"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -47,7 +48,8 @@ type DraggableWidget struct {
 	hitbox    *canvas.Rectangle
 	cachedW   int
 	cachedH   int
-	dirty     bool // true when data changed and buildImage must re-run
+	dirty     bool
+	renderGen atomic.Uint64
 }
 
 func NewDraggableWidget(data *theme.Text, path string, fc *FontCache, tapped func(dw *DraggableWidget), dragEnd func(dw *DraggableWidget)) *DraggableWidget {
@@ -170,9 +172,32 @@ func (r *draggableWidgetRenderer) Objects() []fyne.CanvasObject {
 	return []fyne.CanvasObject{r.dw.hitbox, r.dw.img, r.dw.selection}
 }
 func (r *draggableWidgetRenderer) Refresh() {
-	if r.dw.dirty || r.dw.img.Image == nil {
-		r.dw.img.Image = r.dw.buildImage()
-		r.dw.dirty = false
-		canvas.Refresh(r.dw.img)
+	if !r.dw.dirty && r.dw.img.Image != nil {
+		return
 	}
+	r.dw.dirty = false
+	gen := r.dw.renderGen.Add(1)
+	textData := *r.dw.TextData
+	if textData.Text == "" {
+		if textData.Placeholder != "" {
+			textData.Text = textData.Placeholder
+		} else {
+			textData.Text = getPlaceholderForField(r.dw.YAMLPath)
+		}
+	}
+	fc := r.dw.fontCache
+	go func() {
+		img := renderGGText(&textData, fc)
+		b := img.Bounds()
+		fyne.Do(func() {
+			if r.dw.renderGen.Load() != gen {
+				return
+			}
+			r.dw.img.Image = img
+			r.dw.cachedW = b.Dx()
+			r.dw.cachedH = b.Dy()
+			canvas.Refresh(r.dw.img)
+			r.dw.Resize(r.dw.MinSize())
+		})
+	}()
 }
