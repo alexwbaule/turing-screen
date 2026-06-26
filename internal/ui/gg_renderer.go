@@ -98,12 +98,6 @@ func renderGGGraph(data *theme.Graph) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, imgW, imgH))
 	draw.Draw(img, img.Bounds(), &image.Uniform{C: color.Transparent}, image.Point{}, draw.Src)
 
-	if data.BackgroundColor != "" {
-		if bgColor := utils.ParseColor(data.BackgroundColor); bgColor != nil {
-			fillRect(img, 0, 0, imgW, imgH, bgColor)
-		}
-	}
-
 	previewRatio := 0.75
 	if data.RevertValue {
 		previewRatio = 1 - previewRatio
@@ -112,6 +106,10 @@ func renderGGGraph(data *theme.Graph) image.Image {
 	barColor := utils.ParseColor(data.BarColor)
 	if barColor == nil {
 		barColor = color.White
+	}
+	var bgColor color.Color
+	if data.BackgroundColor != "" {
+		bgColor = utils.ParseColor(data.BackgroundColor)
 	}
 	var gradientColor color.Color
 	if data.GradientColor != "" {
@@ -165,9 +163,12 @@ func renderGGGraph(data *theme.Graph) image.Image {
 			sx := i * (segW + gap)
 			if i < filledSteps {
 				fillBarRGBA(sx, 0, segW, imgH, barColor)
+			} else {
+				fillBarRGBA(sx, 0, segW, imgH, bgColor)
 			}
 		}
 	} else {
+		fillBarRGBA(filledW, 0, imgW-filledW, imgH, bgColor)
 		fillBarRGBA(0, 0, filledW, imgH, barColor)
 	}
 
@@ -194,8 +195,9 @@ func renderGGRadial(data *theme.Radial, fc *FontCache) image.Image {
 
 	cx, cy := float64(data.Radius), float64(data.Radius)
 
-	amin := radians(data.AngleStart)
-	amax := radians(180 + data.AngleStart + data.AngleEnd)
+	// Offset by -90° so AngleStart=0 → 12 o'clock (top).
+	amin := radians(data.AngleStart - 90)
+	amax := radians(180 + data.AngleStart - 90 + data.AngleEnd)
 	totalArc := amax - amin
 
 	previewRatio := 0.75

@@ -324,14 +324,6 @@ func (c *Compositor) drawGraphOnFrame(frame *image.NRGBA, value float64, stat *t
 		filledSize = int(math.Round(ratio * float64(stat.Height)))
 	}
 
-	// Draw background track
-	if stat.BackgroundStyle.BackgroundColor != nil {
-		_, _, _, a := stat.BackgroundStyle.BackgroundColor.RGBA()
-		if a > 0 {
-			fillNRGBA(frame, stat.X, stat.Y, stat.Width, stat.Height, stat.BackgroundStyle.BackgroundColor)
-		}
-	}
-
 	hasGradient := stat.GradientColor != nil
 	hasRound := stat.CornerRadius > 0
 
@@ -350,6 +342,14 @@ func (c *Compositor) drawGraphOnFrame(frame *image.NRGBA, value float64, stat *t
 		}
 	}
 
+	// Background track color: draw only the unfilled portion (bounding box stays transparent).
+	var bgClr color.Color
+	if c := stat.BackgroundStyle.BackgroundColor; c != nil {
+		if _, _, _, a := c.RGBA(); a > 0 {
+			bgClr = c
+		}
+	}
+
 	// Compute effective steps (BlockWidth takes priority over Steps)
 	steps := stat.Steps
 	if stat.BlockWidth > 0 {
@@ -364,16 +364,20 @@ func (c *Compositor) drawGraphOnFrame(frame *image.NRGBA, value float64, stat *t
 	}
 
 	if steps > 0 && stat.StepGap > 0 {
-		c.drawSegmentedBarOnFrame(frame, stat, direction, filledSize, steps, fillBar)
+		c.drawSegmentedBarOnFrame(frame, stat, direction, filledSize, steps, fillBar, bgClr)
 	} else {
 		switch direction {
 		case "left":
+			fillBar(stat.X+filledSize, stat.Y, stat.Width-filledSize, stat.Height, bgClr)
 			fillBar(stat.X, stat.Y, filledSize, stat.Height, stat.BarColor)
 		case "right":
+			fillBar(stat.X, stat.Y, stat.Width-filledSize, stat.Height, bgClr)
 			fillBar(stat.X+stat.Width-filledSize, stat.Y, filledSize, stat.Height, stat.BarColor)
 		case "up":
+			fillBar(stat.X, stat.Y, stat.Width, stat.Height-filledSize, bgClr)
 			fillBar(stat.X, stat.Y+stat.Height-filledSize, stat.Width, filledSize, stat.BarColor)
 		case "down":
+			fillBar(stat.X, stat.Y+filledSize, stat.Width, stat.Height-filledSize, bgClr)
 			fillBar(stat.X, stat.Y, stat.Width, filledSize, stat.BarColor)
 		}
 	}
@@ -385,7 +389,7 @@ func (c *Compositor) drawGraphOnFrame(frame *image.NRGBA, value float64, stat *t
 	}
 }
 
-func (c *Compositor) drawSegmentedBarOnFrame(frame *image.NRGBA, stat *theme.Graph, direction string, filledSize, steps int, fillBar func(x, y, w, h int, clr color.Color)) {
+func (c *Compositor) drawSegmentedBarOnFrame(frame *image.NRGBA, stat *theme.Graph, direction string, filledSize, steps int, fillBar func(x, y, w, h int, clr color.Color), bgClr color.Color) {
 	gap := stat.StepGap
 
 	switch direction {
@@ -407,6 +411,8 @@ func (c *Compositor) drawSegmentedBarOnFrame(frame *image.NRGBA, stat *theme.Gra
 			}
 			if i < filledSteps {
 				fillBar(sx, stat.Y, segW, stat.Height, stat.BarColor)
+			} else {
+				fillBar(sx, stat.Y, segW, stat.Height, bgClr)
 			}
 		}
 	case "up", "down":
@@ -427,6 +433,8 @@ func (c *Compositor) drawSegmentedBarOnFrame(frame *image.NRGBA, stat *theme.Gra
 			}
 			if i < filledSteps {
 				fillBar(stat.X, sy, stat.Width, segH, stat.BarColor)
+			} else {
+				fillBar(stat.X, sy, stat.Width, segH, bgClr)
 			}
 		}
 	}
@@ -443,8 +451,9 @@ func (c *Compositor) drawRadialOnFrame(frame *image.NRGBA, value float64, stat *
 		ratio = 0
 	}
 
-	amin := utils.Radians(stat.AngleStart)
-	amax := utils.Radians(180 + stat.AngleStart + stat.AngleEnd)
+	// Offset by -90° so AngleStart=0 → 12 o'clock (top).
+	amin := utils.Radians(stat.AngleStart - 90)
+	amax := utils.Radians(180 + stat.AngleStart - 90 + stat.AngleEnd)
 	totalArc := amax - amin
 	filledAngle := totalArc * ratio
 
