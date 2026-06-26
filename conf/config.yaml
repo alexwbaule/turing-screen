@@ -3,7 +3,7 @@ device:
     debug:
         profiling:
             enabled: false
-            pprof_addr: "localhost:6060"
+            pprof_addr: localhost:6060
             pyroscope_addr: ""
     display:
         brightness: 25
@@ -32,5 +32,5 @@ device:
             city: Sao Paulo,BR
             enabled: true
             interval: 30m
-    theme: GIGABYTE
+    theme: HAKAI
     turn_off_on_exit: false

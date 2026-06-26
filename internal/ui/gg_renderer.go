@@ -390,7 +390,7 @@ func loadFace(fontPath string, fontSize int, fc *FontCache) font.Face {
 	if fontPath == "" || fc == nil {
 		return nil
 	}
-	face, err := fc.GetFace(fontPath, fontSize)
+	face, err := fc.NewFace(fontPath, fontSize)
 	if err != nil {
 		return nil
 	}

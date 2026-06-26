@@ -20,17 +20,19 @@ import (
 const imageRightPad = 4
 
 type FontCache struct {
-	mu       sync.RWMutex
-	faces    map[string]font.Face
-	rawFonts map[string][]byte
-	fontDir  string
+	mu          sync.RWMutex
+	faces       map[string]font.Face
+	rawFonts    map[string][]byte
+	parsedFonts map[string]*opentype.Font
+	fontDir     string
 }
 
 func NewFontCache(fontDir string) *FontCache {
 	fc := &FontCache{
-		faces:    make(map[string]font.Face),
-		rawFonts: make(map[string][]byte),
-		fontDir:  fontDir,
+		faces:       make(map[string]font.Face),
+		rawFonts:    make(map[string][]byte),
+		parsedFonts: make(map[string]*opentype.Font),
+		fontDir:     fontDir,
 	}
 	fc.loadAll()
 	return fc
@@ -62,6 +64,9 @@ func (fc *FontCache) loadAll() {
 			return nil
 		}
 		fc.rawFonts[filepath.ToSlash(relPath)] = data
+		if parsed, err := opentype.Parse(data); err == nil {
+			fc.parsedFonts[filepath.ToSlash(relPath)] = parsed
+		}
 		return nil
 	})
 	log.Printf("Fontes carregadas em memória: %d", len(fc.rawFonts))
@@ -119,6 +124,25 @@ func (fc *FontCache) GetFace(fontPath string, fontSize int) (font.Face, error) {
 
 	fc.faces[key] = face
 	return face, nil
+}
+
+// NewFace creates a fresh, exclusive font.Face for use in a single goroutine.
+// Unlike GetFace, the returned face is never shared and is safe for concurrent use.
+func (fc *FontCache) NewFace(fontPath string, fontSize int) (font.Face, error) {
+	if fontSize <= 0 {
+		fontSize = 14
+	}
+	fc.mu.RLock()
+	parsed, ok := fc.parsedFonts[fontPath]
+	fc.mu.RUnlock()
+	if !ok {
+		return nil, fmt.Errorf("fonte não encontrada: %s", fontPath)
+	}
+	return opentype.NewFace(parsed, &opentype.FaceOptions{
+		Size:    float64(fontSize),
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
 }
 
 func (fc *FontCache) MeasureText(text string, fontPath string, fontSize int) (int, int, error) {
