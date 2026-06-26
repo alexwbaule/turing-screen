@@ -28,11 +28,17 @@ type layerEntry struct {
 
 // LayersPanel manages background layers and provides a list of all visible components
 // for selection (solves overlapping widget problem).
+//
+// Uses a simple VBox of buttons instead of widget.List. For the small number of
+// entries typical in a theme (5-20), a VBox is cheaper: selection changes only
+// refresh 2 buttons instead of the entire visible list.
 type LayersPanel struct {
 	app           *EditorApp
 	container     *fyne.Container
-	list          *widget.List
+	itemsBox      *fyne.Container
+	scroll        *container.Scroll
 	entries       []layerEntry
+	buttons       []*widget.Button
 	layerOrder    []string // ordered layer keys (determines z-order for display)
 	selectedIndex int
 	syncing       bool // prevents recursive selection loop
@@ -41,36 +47,9 @@ type LayersPanel struct {
 func NewLayersPanel(app *EditorApp) *LayersPanel {
 	lp := &LayersPanel{app: app, selectedIndex: -1}
 
-	lp.list = widget.NewList(
-		func() int {
-			return len(lp.entries)
-		},
-		func() fyne.CanvasObject {
-			return widget.NewLabel("Item")
-		},
-		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			label := obj.(*widget.Label)
-			if id < len(lp.entries) {
-				label.SetText(lp.entries[id].label)
-			}
-		},
-	)
-	lp.list.OnSelected = func(id widget.ListItemID) {
-		lp.selectedIndex = id
-		if lp.syncing {
-			return
-		}
-		if id < len(lp.entries) {
-			entry := lp.entries[id]
-			if !entry.isLayer && entry.widget != nil {
-				lp.app.selectWidget(entry.widget)
-			} else if entry.isLayer {
-				// Show layer properties (allow changing file)
-				lp.app.selectWidget(nil)
-				lp.app.showLayerProperties(entry.layerKey)
-			}
-		}
-	}
+	lp.itemsBox = container.NewVBox()
+	lp.scroll = container.NewVScroll(lp.itemsBox)
+	lp.scroll.SetMinSize(fyne.NewSize(200, 1))
 
 	addBtn := widget.NewButtonWithIcon("", fyneTheme.ContentAddIcon(), func() {
 		lp.addLayer()
@@ -88,19 +67,18 @@ func NewLayersPanel(app *EditorApp) *LayersPanel {
 	buttons := container.NewHBox(addBtn, removeBtn, upBtn, downBtn)
 	header := widget.NewLabelWithStyle("Layers", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
-	scroll := container.NewVScroll(lp.list)
-	scroll.SetMinSize(fyne.NewSize(200, 1))
-
 	lp.container = container.NewBorder(
 		container.NewVBox(header, buttons),
 		nil, nil, nil,
-		scroll,
+		lp.scroll,
 	)
 
 	return lp
 }
 
-// Refresh rebuilds the entries list from layerOrder + canvas widgets.
+// Refresh rebuilds the entries list from layerOrder + canvas widgets and recreates
+// the button list. Only called on structural changes (add/remove/reorder), not on
+// selection changes.
 func (lp *LayersPanel) Refresh() {
 	lp.entries = nil
 
@@ -150,7 +128,62 @@ func (lp *LayersPanel) Refresh() {
 		}
 	}
 
-	lp.list.Refresh()
+	lp.rebuildButtons()
+}
+
+// rebuildButtons creates one button per entry and updates the VBox.
+// Called from Refresh() after entries change.
+func (lp *LayersPanel) rebuildButtons() {
+	lp.buttons = make([]*widget.Button, len(lp.entries))
+	objects := make([]fyne.CanvasObject, len(lp.entries))
+	for i, entry := range lp.entries {
+		idx := i
+		b := widget.NewButton(entry.label, func() {
+			lp.onTap(idx)
+		})
+		b.Alignment = widget.ButtonAlignLeading
+		if i == lp.selectedIndex {
+			b.Importance = widget.HighImportance
+		} else {
+			b.Importance = widget.LowImportance
+		}
+		lp.buttons[i] = b
+		objects[i] = b
+	}
+	lp.itemsBox.Objects = objects
+	lp.itemsBox.Refresh()
+}
+
+// onTap handles a button click in the layers list.
+func (lp *LayersPanel) onTap(idx int) {
+	if lp.syncing || idx >= len(lp.entries) {
+		return
+	}
+	lp.setSelectionIndex(idx)
+	entry := lp.entries[idx]
+	if !entry.isLayer && entry.widget != nil {
+		lp.app.selectWidget(entry.widget)
+	} else if entry.isLayer {
+		lp.app.selectWidget(nil)
+		lp.app.showLayerProperties(entry.layerKey)
+	}
+}
+
+// setSelectionIndex changes which button appears selected. Only refreshes the
+// two affected buttons (old and new), not the entire list.
+func (lp *LayersPanel) setSelectionIndex(idx int) {
+	if idx == lp.selectedIndex {
+		return
+	}
+	if lp.selectedIndex >= 0 && lp.selectedIndex < len(lp.buttons) {
+		lp.buttons[lp.selectedIndex].Importance = widget.LowImportance
+		lp.buttons[lp.selectedIndex].Refresh()
+	}
+	lp.selectedIndex = idx
+	if idx >= 0 && idx < len(lp.buttons) {
+		lp.buttons[idx].Importance = widget.HighImportance
+		lp.buttons[idx].Refresh()
+	}
 }
 
 // SyncFromTheme rebuilds layerOrder from the theme's StaticImages (sorted alphabetically).
@@ -261,7 +294,6 @@ func (lp *LayersPanel) removeSelected() {
 				return
 			}
 			delete(lp.app.currentTheme.StaticImages, entry.layerKey)
-			// Remove from layerOrder
 			for i, k := range lp.layerOrder {
 				if k == entry.layerKey {
 					lp.layerOrder = append(lp.layerOrder[:i], lp.layerOrder[i+1:]...)
@@ -270,6 +302,7 @@ func (lp *LayersPanel) removeSelected() {
 			}
 			log.Printf("[LayersPanel] Removed layer %q", entry.layerKey)
 			lp.app.LoadBackgroundLayersOrdered(lp.app.themeDir, lp.layerOrder)
+			lp.selectedIndex = -1
 			lp.Refresh()
 		}, lp.app.mainWindow)
 	} else if entry.widget != nil {
@@ -286,7 +319,6 @@ func (lp *LayersPanel) moveUp() {
 	prevEntry := lp.entries[lp.selectedIndex-1]
 
 	if entry.isLayer && prevEntry.isLayer {
-		// Swap background layers in layerOrder
 		for i, k := range lp.layerOrder {
 			if k == entry.layerKey && i > 0 {
 				lp.layerOrder[i], lp.layerOrder[i-1] = lp.layerOrder[i-1], lp.layerOrder[i]
@@ -295,7 +327,6 @@ func (lp *LayersPanel) moveUp() {
 			}
 		}
 	} else if !entry.isLayer && !prevEntry.isLayer && entry.widget != nil && prevEntry.widget != nil {
-		// Swap canvas widgets z-order
 		objects := lp.app.canvasElements.Objects
 		idxA, idxB := -1, -1
 		for i, obj := range objects {
@@ -311,12 +342,12 @@ func (lp *LayersPanel) moveUp() {
 			lp.app.canvasElements.Refresh()
 		}
 	} else {
-		return // can't swap between layers and widgets
+		return
 	}
 
 	lp.selectedIndex--
 	lp.Refresh()
-	lp.list.Select(lp.selectedIndex)
+	lp.setSelectionIndex(lp.selectedIndex)
 }
 
 func (lp *LayersPanel) moveDown() {
@@ -327,7 +358,6 @@ func (lp *LayersPanel) moveDown() {
 	nextEntry := lp.entries[lp.selectedIndex+1]
 
 	if entry.isLayer && nextEntry.isLayer {
-		// Swap background layers in layerOrder
 		for i, k := range lp.layerOrder {
 			if k == entry.layerKey && i < len(lp.layerOrder)-1 {
 				lp.layerOrder[i], lp.layerOrder[i+1] = lp.layerOrder[i+1], lp.layerOrder[i]
@@ -336,7 +366,6 @@ func (lp *LayersPanel) moveDown() {
 			}
 		}
 	} else if !entry.isLayer && !nextEntry.isLayer && entry.widget != nil && nextEntry.widget != nil {
-		// Swap canvas widgets z-order
 		objects := lp.app.canvasElements.Objects
 		idxA, idxB := -1, -1
 		for i, obj := range objects {
@@ -357,7 +386,7 @@ func (lp *LayersPanel) moveDown() {
 
 	lp.selectedIndex++
 	lp.Refresh()
-	lp.list.Select(lp.selectedIndex)
+	lp.setSelectionIndex(lp.selectedIndex)
 }
 
 func (lp *LayersPanel) generateKey() string {
@@ -373,16 +402,24 @@ func (lp *LayersPanel) generateKey() string {
 	return fmt.Sprintf("LAYER_%d", len(lp.app.currentTheme.StaticImages)+1)
 }
 
-// SelectByWidget finds the widget in the entries list and selects it.
+// SelectByWidget finds the widget in the entries list and highlights its button.
+// Only refreshes the two changed buttons (O(1)), not the full list.
 func (lp *LayersPanel) SelectByWidget(w Selectable) {
-	lp.syncing = true
-	defer func() { lp.syncing = false }()
-
 	for i, entry := range lp.entries {
 		if entry.widget == w {
-			lp.selectedIndex = i
-			lp.list.Select(i)
+			lp.syncing = true
+			defer func() { lp.syncing = false }()
+			lp.setSelectionIndex(i)
 			return
 		}
 	}
+}
+
+// UnselectAll clears the current button selection without triggering callbacks.
+func (lp *LayersPanel) UnselectAll() {
+	if lp.selectedIndex >= 0 && lp.selectedIndex < len(lp.buttons) {
+		lp.buttons[lp.selectedIndex].Importance = widget.LowImportance
+		lp.buttons[lp.selectedIndex].Refresh()
+	}
+	lp.selectedIndex = -1
 }

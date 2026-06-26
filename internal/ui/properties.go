@@ -23,15 +23,17 @@ type PropertiesPanel struct {
 	selectedWidget fyne.CanvasObject
 	headerLabel    *widget.Label
 
-	refreshMu    sync.Mutex
-	refreshTimer *time.Timer
+	refreshMu      sync.Mutex
+	refreshTimer   *time.Timer
+	updating       bool   // true while Update() is populating fields — suppresses OnChanged callbacks
+	lastScrollType string // "text" | "graph" | "radial" | "chart" | "" — avoids VBox rebuild on same-type clicks
 
 	sensorSelect  *widget.Select
 	typeSelect    *widget.Select
-	textFields    *fyne.Container
-	graphFields   *fyne.Container
-	radialFields  *fyne.Container
-	chartFields   *fyne.Container
+	textFields    fyne.CanvasObject // *widget.Accordion
+	graphFields   fyne.CanvasObject // *widget.Accordion
+	radialFields  fyne.CanvasObject // *widget.Accordion
+	chartFields   fyne.CanvasObject // *widget.Accordion
 	commonFields  *fyne.Container
 	placeholder *widget.Label
 	scroll      *container.Scroll
@@ -109,10 +111,48 @@ type PropertiesPanel struct {
 	chartBorderEntry    *widget.Entry
 }
 
+// setLabel/setEntry/setSelect/setCheck skip the Fyne setter when the value is
+// already correct. widget.Label.SetText always fires Refresh regardless; the
+// others have internal guards but we add our own to avoid lock contention on
+// the hot path through Update().
+func setLabel(l *widget.Label, text string) {
+	if l.Text != text {
+		l.SetText(text)
+	}
+}
+func setEntry(e *widget.Entry, text string) {
+	if e.Text != text {
+		e.SetText(text)
+	}
+}
+func setSelect(s *widget.Select, text string) {
+	if s.Selected != text {
+		s.SetSelected(text)
+	}
+}
+func setCheck(c *widget.Check, checked bool) {
+	if c.Checked != checked {
+		c.SetChecked(checked)
+	}
+}
+
+// propWindow returns the properties window if it exists, otherwise falls back to
+// the active editor window. Used as the dialog parent so that color picker dialogs
+// appear anchored to the correct window.
+func (p *PropertiesPanel) propWindow() fyne.Window {
+	if p.app.propertiesWindow != nil {
+		return p.app.propertiesWindow
+	}
+	return p.app.activeWindow()
+}
+
 // scheduleRefresh debounces visual refreshes so that rapid OnChanged events
 // (e.g. every keystroke in a text entry) only trigger one buildImage() call
 // after 150ms of inactivity instead of one per keystroke.
 func (p *PropertiesPanel) scheduleRefresh(w fyne.Widget) {
+	if p.updating {
+		return
+	}
 	p.refreshMu.Lock()
 	defer p.refreshMu.Unlock()
 	if p.refreshTimer != nil {
@@ -214,7 +254,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.fontColorEntry.SetText(val)
 				dw.TextData.FontColor = val
 				dw.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -232,7 +272,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.bgColorEntry.SetText(val)
 				dw.TextData.BackgroundColor = val
 				dw.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -264,23 +304,32 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 			dw.TextData.ShowUnit = checked
 		}
 	})
-	p.textFields = container.NewVBox(
-		widget.NewLabel("Texto:"),
-		p.textContentEntry,
-		widget.NewLabel("Fonte:"),
-		p.fontSelector,
-		widget.NewLabel("Tamanho:"),
-		p.fontSizeEntry,
-		widget.NewLabel("Cor da Fonte (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.fontColorBtn, p.fontColorEntry),
-		widget.NewLabel("Cor de Fundo (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.bgColorBtn, p.bgColorEntry),
-		widget.NewLabel("Alinhamento:"),
-		p.alignSelect,
-		widget.NewLabel("Formato (datas):"),
-		p.formatSelect,
-		p.showUnitCheck,
+	textAcc := widget.NewAccordion(
+		widget.NewAccordionItem("Conteúdo", container.NewVBox(
+			widget.NewLabel("Texto:"),
+			p.textContentEntry,
+		)),
+		widget.NewAccordionItem("Fonte", container.NewVBox(
+			widget.NewLabel("Fonte:"),
+			p.fontSelector,
+			widget.NewLabel("Tamanho:"),
+			p.fontSizeEntry,
+			widget.NewLabel("Cor da Fonte (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.fontColorBtn, p.fontColorEntry),
+			widget.NewLabel("Cor de Fundo (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.bgColorBtn, p.bgColorEntry),
+		)),
+		widget.NewAccordionItem("Layout", container.NewVBox(
+			widget.NewLabel("Alinhamento:"),
+			p.alignSelect,
+			widget.NewLabel("Formato (datas):"),
+			p.formatSelect,
+			p.showUnitCheck,
+		)),
 	)
+	textAcc.MultiOpen = true
+	textAcc.Open(0)
+	p.textFields = textAcc
 
 	// === GRAPH FIELDS ===
 	makeIntEntry := func(onChange func(int)) *widget.Entry {
@@ -328,7 +377,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.graphBarColorEntry.SetText(val)
 				dg.GraphData.BarColor = val
 				dg.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -346,7 +395,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.graphBgColorEntry.SetText(val)
 				dg.GraphData.BackgroundColor = val
 				dg.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -382,7 +431,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.graphGradientColorEntry.SetText(val)
 				dg.GraphData.GradientColor = val
 				dg.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -416,26 +465,37 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 			p.scheduleRefresh(dg)
 		}
 	})
-	p.graphFields = container.NewVBox(
-		widget.NewLabel("Largura:"), p.graphWidthEntry,
-		widget.NewLabel("Altura:"), p.graphHeightEntry,
-		widget.NewLabel("Valor Mínimo:"), p.graphMinEntry,
-		widget.NewLabel("Valor Máximo:"), p.graphMaxEntry,
-		widget.NewLabel("Direção:"), p.graphDirectionSelect,
-		widget.NewLabel("Cor da Barra (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.graphBarColorBtn, p.graphBarColorEntry),
-		widget.NewLabel("Cor de Fundo (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.graphBgColorBtn, p.graphBgColorEntry),
-		widget.NewLabel("Gradiente (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.graphGradientColorBtn, p.graphGradientColorEntry),
-		p.graphOutlineCheck,
-		p.graphRevertValueCheck,
-		widget.NewLabel("Segmentos / Gap:"),
-		container.NewGridWithColumns(2, p.graphStepsEntry, p.graphStepGapEntry),
-		widget.NewLabel("Largura do Bloco:"), p.graphBlockWidthEntry,
-		widget.NewLabel("Raio do Canto:"), p.graphCornerRadiusEntry,
-		widget.NewLabel("Espessura da Borda:"), p.graphBorderWidthEntry,
+	graphAcc := widget.NewAccordion(
+		widget.NewAccordionItem("Dimensões", container.NewVBox(
+			widget.NewLabel("Largura:"), p.graphWidthEntry,
+			widget.NewLabel("Altura:"), p.graphHeightEntry,
+			widget.NewLabel("Direção:"), p.graphDirectionSelect,
+		)),
+		widget.NewAccordionItem("Aparência", container.NewVBox(
+			widget.NewLabel("Cor da Barra (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.graphBarColorBtn, p.graphBarColorEntry),
+			widget.NewLabel("Cor de Fundo (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.graphBgColorBtn, p.graphBgColorEntry),
+			widget.NewLabel("Gradiente (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.graphGradientColorBtn, p.graphGradientColorEntry),
+			p.graphOutlineCheck,
+			p.graphRevertValueCheck,
+		)),
+		widget.NewAccordionItem("Valores", container.NewVBox(
+			widget.NewLabel("Mín / Máx:"),
+			container.NewGridWithColumns(2, p.graphMinEntry, p.graphMaxEntry),
+		)),
+		widget.NewAccordionItem("Avançado", container.NewVBox(
+			widget.NewLabel("Segmentos / Gap:"),
+			container.NewGridWithColumns(2, p.graphStepsEntry, p.graphStepGapEntry),
+			widget.NewLabel("Largura do Bloco:"), p.graphBlockWidthEntry,
+			widget.NewLabel("Raio do Canto:"), p.graphCornerRadiusEntry,
+			widget.NewLabel("Espessura da Borda:"), p.graphBorderWidthEntry,
+		)),
 	)
+	graphAcc.MultiOpen = true
+	graphAcc.Open(0)
+	p.graphFields = graphAcc
 
 	// === RADIAL FIELDS ===
 	p.radialRadiusEntry = makeIntEntry(func(v int) {
@@ -504,7 +564,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.radialBarColorEntry.SetText(val)
 				dr.RadialData.BarColor = val
 				dr.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -522,7 +582,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.radialBgColorEntry.SetText(val)
 				dr.RadialData.BackgroundColor = val
 				dr.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -558,7 +618,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.radialFontColorEntry.SetText(val)
 				dr.RadialData.FontColor = val
 				dr.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -576,7 +636,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.radialGradientColorEntry.SetText(val)
 				dr.RadialData.GradientColor = val
 				dr.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -604,32 +664,43 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 			p.scheduleRefresh(dr)
 		}
 	})
-	p.radialFields = container.NewVBox(
-		widget.NewLabel("Raio:"), p.radialRadiusEntry,
-		widget.NewLabel("Espessura:"), p.radialWidthEntry,
-		widget.NewLabel("Valor Mín/Máx:"),
-		container.NewGridWithColumns(2, p.radialMinEntry, p.radialMaxEntry),
-		widget.NewLabel("Ângulo Início/Fim:"),
-		container.NewGridWithColumns(2, p.radialStartEntry, p.radialEndEntry),
-		widget.NewLabel("Segmentos / Separação:"),
-		container.NewGridWithColumns(2, p.radialStepsEntry, p.radialSepEntry),
-		widget.NewLabel("Ângulo do Bloco (graus):"), p.radialBlockAngleEntry,
-		p.radialClockCheck,
-		p.radialRoundCheck,
-		p.radialRevertCheck,
-		p.radialRevertValueCheck,
-		widget.NewLabel("Cor do Arco (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.radialBarColorBtn, p.radialBarColorEntry),
-		widget.NewLabel("Cor de Fundo (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.radialBgColorBtn, p.radialBgColorEntry),
-		widget.NewLabel("Gradiente (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.radialGradientColorBtn, p.radialGradientColorEntry),
-		p.radialShowTextCheck,
-		p.radialShowUnitCheck,
-		widget.NewLabel("Fonte:"), p.radialFontSelector,
-		widget.NewLabel("Cor da Fonte (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.radialFontColorBtn, p.radialFontColorEntry),
+	radialAcc := widget.NewAccordion(
+		widget.NewAccordionItem("Geometria", container.NewVBox(
+			widget.NewLabel("Raio:"), p.radialRadiusEntry,
+			widget.NewLabel("Espessura:"), p.radialWidthEntry,
+			widget.NewLabel("Mín / Máx:"),
+			container.NewGridWithColumns(2, p.radialMinEntry, p.radialMaxEntry),
+		)),
+		widget.NewAccordionItem("Ângulos", container.NewVBox(
+			widget.NewLabel("Início / Fim:"),
+			container.NewGridWithColumns(2, p.radialStartEntry, p.radialEndEntry),
+			widget.NewLabel("Segmentos / Separação:"),
+			container.NewGridWithColumns(2, p.radialStepsEntry, p.radialSepEntry),
+			widget.NewLabel("Ângulo do Bloco:"), p.radialBlockAngleEntry,
+			p.radialClockCheck,
+			p.radialRoundCheck,
+			p.radialRevertCheck,
+			p.radialRevertValueCheck,
+		)),
+		widget.NewAccordionItem("Aparência", container.NewVBox(
+			widget.NewLabel("Cor do Arco (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.radialBarColorBtn, p.radialBarColorEntry),
+			widget.NewLabel("Cor de Fundo (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.radialBgColorBtn, p.radialBgColorEntry),
+			widget.NewLabel("Gradiente (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.radialGradientColorBtn, p.radialGradientColorEntry),
+		)),
+		widget.NewAccordionItem("Texto", container.NewVBox(
+			p.radialShowTextCheck,
+			p.radialShowUnitCheck,
+			widget.NewLabel("Fonte:"), p.radialFontSelector,
+			widget.NewLabel("Cor da Fonte (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.radialFontColorBtn, p.radialFontColorEntry),
+		)),
 	)
+	radialAcc.MultiOpen = true
+	radialAcc.Open(0)
+	p.radialFields = radialAcc
 
 	// === CHART FIELDS ===
 	p.chartWidthEntry = makeIntEntry(func(v int) {
@@ -680,7 +751,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.chartFillColorEntry.SetText(val)
 				dc.ChartData.FillColor = val
 				dc.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -698,7 +769,7 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				p.chartLineColorEntry.SetText(val)
 				dc.ChartData.LineColor = val
 				dc.Refresh()
-			}, p.app.activeWindow())
+			}, p.propWindow())
 			picker.Show()
 		}
 	})
@@ -708,19 +779,28 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 			p.scheduleRefresh(dc)
 		}
 	})
-	p.chartFields = container.NewVBox(
-		widget.NewLabel("Largura:"), p.chartWidthEntry,
-		widget.NewLabel("Altura:"), p.chartHeightEntry,
-		widget.NewLabel("Valor Mín/Máx:"),
-		container.NewGridWithColumns(2, p.chartMinEntry, p.chartMaxEntry),
-		widget.NewLabel("Largura Coluna:"), p.chartColWidthEntry,
-		widget.NewLabel("Gap Coluna:"), p.chartColGapEntry,
-		widget.NewLabel("Cor Preenchimento (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.chartFillColorBtn, p.chartFillColorEntry),
-		widget.NewLabel("Cor da Linha (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.chartLineColorBtn, p.chartLineColorEntry),
-		widget.NewLabel("Borda:"), p.chartBorderEntry,
+	chartAcc := widget.NewAccordion(
+		widget.NewAccordionItem("Dimensões", container.NewVBox(
+			widget.NewLabel("Largura:"), p.chartWidthEntry,
+			widget.NewLabel("Altura:"), p.chartHeightEntry,
+		)),
+		widget.NewAccordionItem("Valores", container.NewVBox(
+			widget.NewLabel("Mín / Máx:"),
+			container.NewGridWithColumns(2, p.chartMinEntry, p.chartMaxEntry),
+		)),
+		widget.NewAccordionItem("Aparência", container.NewVBox(
+			widget.NewLabel("Largura Coluna:"), p.chartColWidthEntry,
+			widget.NewLabel("Gap Coluna:"), p.chartColGapEntry,
+			widget.NewLabel("Cor Preenchimento (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.chartFillColorBtn, p.chartFillColorEntry),
+			widget.NewLabel("Cor da Linha (R,G,B):"),
+			container.NewBorder(nil, nil, nil, p.chartLineColorBtn, p.chartLineColorEntry),
+			widget.NewLabel("Borda:"), p.chartBorderEntry,
+		)),
 	)
+	chartAcc.MultiOpen = true
+	chartAcc.Open(0)
+	p.chartFields = chartAcc
 
 	// === PLACEHOLDER ===
 	p.placeholder = widget.NewLabel("Selecione um componente para editar suas propriedades.")
@@ -751,6 +831,9 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 }
 
 func (p *PropertiesPanel) updateX(v int) {
+	if p.updating {
+		return
+	}
 	switch w := p.selectedWidget.(type) {
 	case *DraggableWidget:
 		w.TextData.X = v
@@ -782,6 +865,9 @@ func (p *PropertiesPanel) updateX(v int) {
 }
 
 func (p *PropertiesPanel) updateY(v int) {
+	if p.updating {
+		return
+	}
 	switch w := p.selectedWidget.(type) {
 	case *DraggableWidget:
 		w.TextData.Y = v
@@ -805,12 +891,17 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 	if obj == nil {
 		log.Printf("[PropertiesPanel] Update(nil) — mostrando placeholder")
 		p.headerLabel.SetText("Propriedades")
-		p.scroll.Content = p.placeholder
-		p.scroll.Refresh()
+		if p.lastScrollType != "" {
+			p.lastScrollType = ""
+			p.scroll.Content = p.placeholder
+			p.scroll.Refresh()
+		}
 		return
 	}
 
 	log.Printf("[PropertiesPanel] Update(%T) — mostrando propriedades", obj)
+	p.updating = true
+	defer func() { p.updating = false }()
 
 	var yamlPath string
 	switch v := obj.(type) {
@@ -827,8 +918,8 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 	if strings.HasPrefix(yamlPath, "STATS.") {
 		sensor := parseSensorFromPath(yamlPath)
 		wType := parseWidgetTypeFromPath(yamlPath)
-		p.sensorSelect.SetSelected(sensor)
-		p.typeSelect.SetSelected(wType)
+		setSelect(p.sensorSelect, sensor)
+		setSelect(p.typeSelect, wType)
 		p.sensorSelect.Show()
 		p.typeSelect.Show()
 	} else {
@@ -837,91 +928,99 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 	}
 
 	var typePanel fyne.CanvasObject
+	var scrollType string
 	switch v := obj.(type) {
 	case *DraggableWidget:
-		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
-		p.yamlPathLabel.SetText(v.YAMLPath)
-		p.xEntry.SetText(strconv.Itoa(v.TextData.X))
-		p.yEntry.SetText(strconv.Itoa(v.TextData.Y))
+		setLabel(p.headerLabel, "Propriedades: "+v.YAMLPath)
+		setLabel(p.yamlPathLabel, v.YAMLPath)
+		setEntry(p.xEntry, strconv.Itoa(v.TextData.X))
+		setEntry(p.yEntry, strconv.Itoa(v.TextData.Y))
 		if strings.HasPrefix(v.YAMLPath, "static_texts.") {
-			p.textContentEntry.SetText(v.TextData.Text)
+			setEntry(p.textContentEntry, v.TextData.Text)
 		} else {
-			p.textContentEntry.SetText(v.TextData.Placeholder)
+			setEntry(p.textContentEntry, v.TextData.Placeholder)
 		}
-		p.fontSelector.SetSelected(v.TextData.Font)
-		p.fontSizeEntry.SetText(strconv.Itoa(v.TextData.FontSize))
-		p.fontColorEntry.SetText(v.TextData.FontColor)
-		p.bgColorEntry.SetText(v.TextData.BackgroundColor)
-		p.alignSelect.SetSelected(strings.ToUpper(v.TextData.Align))
-		p.formatSelect.SetSelected(strings.ToUpper(v.TextData.Format))
-		p.showUnitCheck.SetChecked(v.TextData.ShowUnit)
+		setSelect(p.fontSelector, v.TextData.Font)
+		setEntry(p.fontSizeEntry, strconv.Itoa(v.TextData.FontSize))
+		setEntry(p.fontColorEntry, v.TextData.FontColor)
+		setEntry(p.bgColorEntry, v.TextData.BackgroundColor)
+		setSelect(p.alignSelect, strings.ToUpper(v.TextData.Align))
+		setSelect(p.formatSelect, strings.ToUpper(v.TextData.Format))
+		setCheck(p.showUnitCheck, v.TextData.ShowUnit)
 		typePanel = p.textFields
+		scrollType = "text"
 	case *DraggableGraph:
-		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
-		p.yamlPathLabel.SetText(v.YAMLPath)
-		p.xEntry.SetText(strconv.Itoa(v.GraphData.X))
-		p.yEntry.SetText(strconv.Itoa(v.GraphData.Y))
-		p.graphWidthEntry.SetText(strconv.Itoa(v.GraphData.Width))
-		p.graphHeightEntry.SetText(strconv.Itoa(v.GraphData.Height))
-		p.graphMinEntry.SetText(strconv.Itoa(v.GraphData.MinValue))
-		p.graphMaxEntry.SetText(strconv.Itoa(v.GraphData.MaxValue))
-		p.graphDirectionSelect.SetSelected(v.GraphData.Direction)
-		p.graphBarColorEntry.SetText(v.GraphData.BarColor)
-		p.graphBgColorEntry.SetText(v.GraphData.BackgroundColor)
-		p.graphGradientColorEntry.SetText(v.GraphData.GradientColor)
-		p.graphOutlineCheck.SetChecked(v.GraphData.BarOutline)
-		p.graphRevertValueCheck.SetChecked(v.GraphData.RevertValue)
-		p.graphStepsEntry.SetText(strconv.Itoa(v.GraphData.Steps))
-		p.graphStepGapEntry.SetText(strconv.Itoa(v.GraphData.StepGap))
-		p.graphBlockWidthEntry.SetText(strconv.Itoa(v.GraphData.BlockWidth))
-		p.graphCornerRadiusEntry.SetText(strconv.Itoa(v.GraphData.CornerRadius))
-		p.graphBorderWidthEntry.SetText(strconv.Itoa(v.GraphData.BorderWidth))
+		setLabel(p.headerLabel, "Propriedades: "+v.YAMLPath)
+		setLabel(p.yamlPathLabel, v.YAMLPath)
+		setEntry(p.xEntry, strconv.Itoa(v.GraphData.X))
+		setEntry(p.yEntry, strconv.Itoa(v.GraphData.Y))
+		setEntry(p.graphWidthEntry, strconv.Itoa(v.GraphData.Width))
+		setEntry(p.graphHeightEntry, strconv.Itoa(v.GraphData.Height))
+		setEntry(p.graphMinEntry, strconv.Itoa(v.GraphData.MinValue))
+		setEntry(p.graphMaxEntry, strconv.Itoa(v.GraphData.MaxValue))
+		setSelect(p.graphDirectionSelect, v.GraphData.Direction)
+		setEntry(p.graphBarColorEntry, v.GraphData.BarColor)
+		setEntry(p.graphBgColorEntry, v.GraphData.BackgroundColor)
+		setEntry(p.graphGradientColorEntry, v.GraphData.GradientColor)
+		setCheck(p.graphOutlineCheck, v.GraphData.BarOutline)
+		setCheck(p.graphRevertValueCheck, v.GraphData.RevertValue)
+		setEntry(p.graphStepsEntry, strconv.Itoa(v.GraphData.Steps))
+		setEntry(p.graphStepGapEntry, strconv.Itoa(v.GraphData.StepGap))
+		setEntry(p.graphBlockWidthEntry, strconv.Itoa(v.GraphData.BlockWidth))
+		setEntry(p.graphCornerRadiusEntry, strconv.Itoa(v.GraphData.CornerRadius))
+		setEntry(p.graphBorderWidthEntry, strconv.Itoa(v.GraphData.BorderWidth))
 		typePanel = p.graphFields
+		scrollType = "graph"
 	case *DraggableRadial:
-		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
-		p.yamlPathLabel.SetText(v.YAMLPath)
-		p.xEntry.SetText(strconv.Itoa(v.RadialData.X))
-		p.yEntry.SetText(strconv.Itoa(v.RadialData.Y))
-		p.radialRadiusEntry.SetText(strconv.Itoa(v.RadialData.Radius))
-		p.radialWidthEntry.SetText(strconv.Itoa(v.RadialData.Width))
-		p.radialMinEntry.SetText(strconv.Itoa(v.RadialData.MinValue))
-		p.radialMaxEntry.SetText(strconv.Itoa(v.RadialData.MaxValue))
-		p.radialStartEntry.SetText(strconv.Itoa(v.RadialData.AngleStart))
-		p.radialEndEntry.SetText(strconv.Itoa(v.RadialData.AngleEnd))
-		p.radialStepsEntry.SetText(strconv.Itoa(v.RadialData.AngleSteps))
-		p.radialSepEntry.SetText(strconv.Itoa(v.RadialData.AngleSep))
-		p.radialBlockAngleEntry.SetText(strconv.Itoa(v.RadialData.BlockAngle))
-		p.radialClockCheck.SetChecked(v.RadialData.Clockwise)
-		p.radialRoundCheck.SetChecked(v.RadialData.Round)
-		p.radialRevertCheck.SetChecked(v.RadialData.Revert)
-		p.radialRevertValueCheck.SetChecked(v.RadialData.RevertValue)
-		p.radialBarColorEntry.SetText(v.RadialData.BarColor)
-		p.radialBgColorEntry.SetText(v.RadialData.BackgroundColor)
-		p.radialGradientColorEntry.SetText(v.RadialData.GradientColor)
-		p.radialShowTextCheck.SetChecked(v.RadialData.ShowText)
-		p.radialShowUnitCheck.SetChecked(v.RadialData.ShowUnit)
-		p.radialFontSelector.SetSelected(v.RadialData.Font)
-		p.radialFontColorEntry.SetText(v.RadialData.FontColor)
+		setLabel(p.headerLabel, "Propriedades: "+v.YAMLPath)
+		setLabel(p.yamlPathLabel, v.YAMLPath)
+		setEntry(p.xEntry, strconv.Itoa(v.RadialData.X))
+		setEntry(p.yEntry, strconv.Itoa(v.RadialData.Y))
+		setEntry(p.radialRadiusEntry, strconv.Itoa(v.RadialData.Radius))
+		setEntry(p.radialWidthEntry, strconv.Itoa(v.RadialData.Width))
+		setEntry(p.radialMinEntry, strconv.Itoa(v.RadialData.MinValue))
+		setEntry(p.radialMaxEntry, strconv.Itoa(v.RadialData.MaxValue))
+		setEntry(p.radialStartEntry, strconv.Itoa(v.RadialData.AngleStart))
+		setEntry(p.radialEndEntry, strconv.Itoa(v.RadialData.AngleEnd))
+		setEntry(p.radialStepsEntry, strconv.Itoa(v.RadialData.AngleSteps))
+		setEntry(p.radialSepEntry, strconv.Itoa(v.RadialData.AngleSep))
+		setEntry(p.radialBlockAngleEntry, strconv.Itoa(v.RadialData.BlockAngle))
+		setCheck(p.radialClockCheck, v.RadialData.Clockwise)
+		setCheck(p.radialRoundCheck, v.RadialData.Round)
+		setCheck(p.radialRevertCheck, v.RadialData.Revert)
+		setCheck(p.radialRevertValueCheck, v.RadialData.RevertValue)
+		setEntry(p.radialBarColorEntry, v.RadialData.BarColor)
+		setEntry(p.radialBgColorEntry, v.RadialData.BackgroundColor)
+		setEntry(p.radialGradientColorEntry, v.RadialData.GradientColor)
+		setCheck(p.radialShowTextCheck, v.RadialData.ShowText)
+		setCheck(p.radialShowUnitCheck, v.RadialData.ShowUnit)
+		setSelect(p.radialFontSelector, v.RadialData.Font)
+		setEntry(p.radialFontColorEntry, v.RadialData.FontColor)
 		typePanel = p.radialFields
+		scrollType = "radial"
 	case *DraggableChart:
-		p.headerLabel.SetText("Propriedades: " + v.YAMLPath)
-		p.yamlPathLabel.SetText(v.YAMLPath)
-		p.xEntry.SetText(strconv.Itoa(v.ChartData.X))
-		p.yEntry.SetText(strconv.Itoa(v.ChartData.Y))
-		p.chartWidthEntry.SetText(strconv.Itoa(v.ChartData.Width))
-		p.chartHeightEntry.SetText(strconv.Itoa(v.ChartData.Height))
-		p.chartMinEntry.SetText(strconv.Itoa(v.ChartData.MinValue))
-		p.chartMaxEntry.SetText(strconv.Itoa(v.ChartData.MaxValue))
-		p.chartColWidthEntry.SetText(strconv.Itoa(v.ChartData.ColumnWidth))
-		p.chartColGapEntry.SetText(strconv.Itoa(v.ChartData.ColumnGap))
-		p.chartFillColorEntry.SetText(v.ChartData.FillColor)
-		p.chartLineColorEntry.SetText(v.ChartData.LineColor)
-		p.chartBorderEntry.SetText(strconv.Itoa(v.ChartData.BorderWidth))
+		setLabel(p.headerLabel, "Propriedades: "+v.YAMLPath)
+		setLabel(p.yamlPathLabel, v.YAMLPath)
+		setEntry(p.xEntry, strconv.Itoa(v.ChartData.X))
+		setEntry(p.yEntry, strconv.Itoa(v.ChartData.Y))
+		setEntry(p.chartWidthEntry, strconv.Itoa(v.ChartData.Width))
+		setEntry(p.chartHeightEntry, strconv.Itoa(v.ChartData.Height))
+		setEntry(p.chartMinEntry, strconv.Itoa(v.ChartData.MinValue))
+		setEntry(p.chartMaxEntry, strconv.Itoa(v.ChartData.MaxValue))
+		setEntry(p.chartColWidthEntry, strconv.Itoa(v.ChartData.ColumnWidth))
+		setEntry(p.chartColGapEntry, strconv.Itoa(v.ChartData.ColumnGap))
+		setEntry(p.chartFillColorEntry, v.ChartData.FillColor)
+		setEntry(p.chartLineColorEntry, v.ChartData.LineColor)
+		setEntry(p.chartBorderEntry, strconv.Itoa(v.ChartData.BorderWidth))
 		typePanel = p.chartFields
+		scrollType = "chart"
 	}
 
-	p.scroll.Content = container.NewVBox(p.commonFields, typePanel)
-	p.scroll.Refresh()
+	if scrollType != p.lastScrollType {
+		p.lastScrollType = scrollType
+		p.scroll.Content = container.NewVBox(p.commonFields, typePanel)
+		p.scroll.Refresh()
+	}
 }
 
 // onSensorChanged handles the Sensor select change.
@@ -1113,22 +1212,11 @@ func clearWidgetType(m *theme.Measurement, widgetType string) {
 // ShowLayerInfo shows properties for a background layer or video.
 func (p *PropertiesPanel) ShowLayerInfo(name, path string, onChange func()) {
 	p.selectedWidget = nil
-	p.textFields.Hide()
-	p.graphFields.Hide()
-	p.radialFields.Hide()
-	p.chartFields.Hide()
 	p.sensorSelect.Hide()
 	p.typeSelect.Hide()
 
-	p.headerLabel.SetText("Layer: " + name)
-	p.yamlPathLabel.SetText(path)
-	p.xEntry.SetText("")
-	p.yEntry.SetText("")
+	setLabel(p.headerLabel, "Layer: "+name)
 
-	p.commonFields.Show()
-	p.deleteButton.Hide()
-
-	// Replace scroll content with layer-specific UI
 	changeBtn := widget.NewButton("Trocar Arquivo...", func() {
 		onChange()
 	})

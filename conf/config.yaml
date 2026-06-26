@@ -2,7 +2,7 @@ device:
     api_port: 9120
     debug:
         profiling:
-            enabled: false
+            enabled: true
             pprof_addr: localhost:6060
             pyroscope_addr: ""
     display:

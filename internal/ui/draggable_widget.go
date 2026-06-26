@@ -59,10 +59,10 @@ func NewDraggableWidget(data *theme.Text, path string, fc *FontCache, tapped fun
 		onTapped:    tapped,
 		onDragEnded: dragEnd,
 		fontCache:   fc,
+		dirty:       true,
 	}
 
-	rendered := dw.buildImage()
-	dw.img = canvas.NewImageFromImage(rendered)
+	dw.img = canvas.NewImageFromImage(image.NewRGBA(image.Rect(0, 0, 1, 1)))
 	dw.img.FillMode = canvas.ImageFillOriginal
 
 	dw.selection = canvas.NewRectangle(color.Transparent)
@@ -140,10 +140,16 @@ func (dw *DraggableWidget) Refresh() {
 	dw.BaseWidget.Refresh()
 }
 func (dw *DraggableWidget) Select() {
+	if dw.selection.Visible() {
+		return
+	}
 	dw.selection.Show()
 	dw.selection.Refresh()
 }
 func (dw *DraggableWidget) Deselect() {
+	if !dw.selection.Visible() {
+		return
+	}
 	dw.selection.Hide()
 	dw.selection.Refresh()
 }

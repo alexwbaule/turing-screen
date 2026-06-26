@@ -35,6 +35,7 @@ type EditorApp struct {
 	fyneApp            fyne.App
 	mainWindow         fyne.Window
 	editorWindow       fyne.Window
+	propertiesWindow   fyne.Window
 	currentTheme       *theme.Theme
 	backgroundLayers   *fyne.Container
 	videoPlayer        *VideoPlayer
@@ -690,7 +691,7 @@ func (e *EditorApp) selectWidget(w Selectable) {
 	e.selectedWidget = w
 	if w == nil {
 		e.propertiesPanel.Update(nil)
-		e.layersPanel.list.UnselectAll()
+		e.layersPanel.UnselectAll()
 		return
 	}
 	e.selectedWidget.Select()
@@ -1214,7 +1215,7 @@ func (e *EditorApp) Run() {
 		nil,
 		nil,
 		container.NewHBox(toolbox, layersCol),
-		e.propertiesPanel.container,
+		nil,
 		buildCanvas(e),
 	)
 
@@ -1273,17 +1274,31 @@ func (e *EditorApp) showEditor() {
 	e.editorWindow = e.fyneApp.NewWindow("Turing Theme Editor")
 	e.editorWindow.SetMainMenu(buildMainMenu(e))
 	e.editorWindow.SetContent(e.editorContent)
-	e.editorWindow.Resize(fyne.NewSize(1600, 900))
-	// Intercept the X button so it returns to home instead of quitting or orphaning
+	e.editorWindow.Resize(fyne.NewSize(1200, 900))
 	e.editorWindow.SetCloseIntercept(func() {
 		e.showHome()
 	})
 	e.editorWindow.Show()
+
+	// Properties panel lives in its own window so canvas mouse events don't
+	// walk its ~120 Fyne objects on every pointer move.
+	e.propertiesWindow = e.fyneApp.NewWindow("Propriedades")
+	e.propertiesWindow.SetContent(e.propertiesPanel.container)
+	e.propertiesWindow.Resize(fyne.NewSize(340, 700))
+	e.propertiesWindow.SetCloseIntercept(func() {
+		e.propertiesWindow.Hide()
+	})
+	e.propertiesWindow.Show()
 }
 
 // showHome closes the editor window and returns focus to the main (home) window.
 func (e *EditorApp) showHome() {
 	e.videoPlayer.Stop()
+	if e.propertiesWindow != nil {
+		pw := e.propertiesWindow
+		e.propertiesWindow = nil
+		pw.Close()
+	}
 	if e.editorWindow != nil {
 		win := e.editorWindow
 		e.editorWindow = nil // clear before Close() to avoid re-entry via intercept

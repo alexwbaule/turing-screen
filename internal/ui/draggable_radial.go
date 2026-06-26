@@ -31,8 +31,9 @@ func NewDraggableRadial(data *theme.Radial, path string, fc *FontCache, tapped f
 		onTapped:    tapped,
 		onDragEnded: dragEnd,
 		fontCache:   fc,
+		dirty:       true,
 	}
-	dr.img = canvas.NewImageFromImage(renderGGRadial(data, fc))
+	dr.img = canvas.NewImageFromImage(nil)
 	dr.img.FillMode = canvas.ImageFillOriginal
 	dr.selection = canvas.NewRectangle(color.Transparent)
 	dr.selection.StrokeColor = color.Gray{Y: 150}
@@ -84,10 +85,16 @@ func (dr *DraggableRadial) Refresh() {
 	dr.BaseWidget.Refresh()
 }
 func (dr *DraggableRadial) Select() {
+	if dr.selection.Visible() {
+		return
+	}
 	dr.selection.Show()
 	dr.selection.Refresh()
 }
 func (dr *DraggableRadial) Deselect() {
+	if !dr.selection.Visible() {
+		return
+	}
 	dr.selection.Hide()
 	dr.selection.Refresh()
 }

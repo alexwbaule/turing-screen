@@ -29,8 +29,9 @@ func NewDraggableChart(data *theme.Chart, path string, tapped func(dc *Draggable
 		ChartData:   data,
 		onTapped:    tapped,
 		onDragEnded: dragEnd,
+		dirty:       true,
 	}
-	dc.img = canvas.NewImageFromImage(renderGGChart(data))
+	dc.img = canvas.NewImageFromImage(nil)
 	dc.img.FillMode = canvas.ImageFillOriginal
 	dc.selection = canvas.NewRectangle(color.Transparent)
 	dc.selection.StrokeColor = color.Gray{Y: 150}
@@ -81,10 +82,16 @@ func (dc *DraggableChart) Refresh() {
 	dc.BaseWidget.Refresh()
 }
 func (dc *DraggableChart) Select() {
+	if dc.selection.Visible() {
+		return
+	}
 	dc.selection.Show()
 	dc.selection.Refresh()
 }
 func (dc *DraggableChart) Deselect() {
+	if !dc.selection.Visible() {
+		return
+	}
 	dc.selection.Hide()
 	dc.selection.Refresh()
 }

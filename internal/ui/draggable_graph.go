@@ -29,8 +29,9 @@ func NewDraggableGraph(data *theme.Graph, path string, tapped func(dg *Draggable
 		GraphData:   data,
 		onTapped:    tapped,
 		onDragEnded: dragEnd,
+		dirty:       true,
 	}
-	dg.img = canvas.NewImageFromImage(renderGGGraph(data))
+	dg.img = canvas.NewImageFromImage(nil)
 	dg.img.FillMode = canvas.ImageFillOriginal
 	dg.selection = canvas.NewRectangle(color.Transparent)
 	dg.selection.StrokeColor = color.Gray{Y: 150}
@@ -81,10 +82,16 @@ func (dg *DraggableGraph) Refresh() {
 	dg.BaseWidget.Refresh()
 }
 func (dg *DraggableGraph) Select() {
+	if dg.selection.Visible() {
+		return
+	}
 	dg.selection.Show()
 	dg.selection.Refresh()
 }
 func (dg *DraggableGraph) Deselect() {
+	if !dg.selection.Visible() {
+		return
+	}
 	dg.selection.Hide()
 	dg.selection.Refresh()
 }
