@@ -117,10 +117,6 @@ func renderGGGraph(data *theme.Graph) image.Image {
 	if data.GradientColor != "" {
 		gradientColor = utils.ParseColor(data.GradientColor)
 	}
-	var emptyColor color.Color
-	if data.EmptyColor != "" {
-		emptyColor = utils.ParseColor(data.EmptyColor)
-	}
 	radius := data.CornerRadius
 	hasGradient := gradientColor != nil
 	hasRound := radius > 0
@@ -169,14 +165,9 @@ func renderGGGraph(data *theme.Graph) image.Image {
 			sx := i * (segW + gap)
 			if i < filledSteps {
 				fillBarRGBA(sx, 0, segW, imgH, barColor)
-			} else if emptyColor != nil {
-				fillBarRGBA(sx, 0, segW, imgH, emptyColor)
 			}
 		}
 	} else {
-		if emptyColor != nil {
-			fillBarRGBA(filledW, 0, imgW-filledW, imgH, emptyColor)
-		}
 		fillBarRGBA(0, 0, filledW, imgH, barColor)
 	}
 
@@ -200,13 +191,6 @@ func renderGGRadial(data *theme.Radial, fc *FontCache) image.Image {
 	}
 
 	img := image.NewNRGBA(image.Rect(0, 0, diameter, diameter))
-
-	if data.BackgroundColor != "" {
-		bgColor := utils.ParseColor(data.BackgroundColor)
-		if bgColor != nil {
-			draw.Draw(img, img.Bounds(), &image.Uniform{C: bgColor}, image.Point{}, draw.Src)
-		}
-	}
 
 	cx, cy := float64(data.Radius), float64(data.Radius)
 
@@ -232,8 +216,12 @@ func renderGGRadial(data *theme.Radial, fc *FontCache) image.Image {
 		barColor = color.White
 	}
 	var emptyColor color.Color
-	if data.EmptyColor != "" {
-		emptyColor = utils.ParseColor(data.EmptyColor)
+	if data.BackgroundColor != "" {
+		if c := utils.ParseColor(data.BackgroundColor); c != nil {
+			if _, _, _, a := c.RGBA(); a > 0 {
+				emptyColor = c
+			}
+		}
 	}
 	var gradientColor color.Color
 	if data.GradientColor != "" {

@@ -235,7 +235,6 @@ type Graph struct {
 	MinValue      int    `mapstructure:"MIN_VALUE"`
 	MaxValue      int    `mapstructure:"MAX_VALUE"`
 	BarColor      color.Color
-	EmptyColor    color.Color // color for unfilled track; nil = transparent
 	GradientColor color.Color // vertical gradient top color (nil = no gradient)
 	BarOutline    bool        `mapstructure:"BAR_OUTLINE"`
 	BorderWidth   int         `mapstructure:"BORDER_WIDTH"`   // border thickness around full rect
@@ -261,7 +260,6 @@ type Radial struct {
 	BlockAngle    int  `mapstructure:"BLOCK_ANGLE"`   // degrees per block (overrides AngleSteps)
 	Clockwise     bool `mapstructure:"CLOCKWISE"`
 	BarColor      color.Color
-	EmptyColor    color.Color // color for unfilled track; nil = transparent
 	GradientColor color.Color // vertical gradient top color (nil = no gradient)
 	Round         bool        `mapstructure:"ROUND"`        // rounded arc endpoints
 	Revert        bool        `mapstructure:"REVERT"`       // swap bar/empty colors

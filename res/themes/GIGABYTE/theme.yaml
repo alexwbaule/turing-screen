@@ -64,7 +64,7 @@ STATS:
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 246, 139, 29
-        BACKGROUND_COLOR: 255,255,255,2555
+        BACKGROUND_COLOR: 255, 255, 255
         BAR_OUTLINE: false
       RADIAL:
         SHOW: true
@@ -81,7 +81,7 @@ STATS:
         ANGLE_SEP: 0
         CLOCKWISE: true
         BAR_COLOR: 255, 255, 255
-        EMPTY_COLOR: 255,152,0
+        BACKGROUND_COLOR: 255, 152, 0
         SHOW_TEXT: false
         SHOW_UNIT: false
       TEXT:
@@ -139,7 +139,7 @@ STATS:
         ANGLE_SEP: 0
         CLOCKWISE: true
         BAR_COLOR: 255, 255, 255
-        EMPTY_COLOR: 255,152,0,255
+        BACKGROUND_COLOR: 255, 152, 0
         SHOW_TEXT: false
         SHOW_UNIT: false
       TEXT:

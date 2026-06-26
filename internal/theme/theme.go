@@ -125,7 +125,6 @@ type Graph struct {
 	MinValue        int         `yaml:"MIN_VALUE"`
 	MaxValue        int         `yaml:"MAX_VALUE"`
 	BarColor        string      `yaml:"BAR_COLOR"`
-	EmptyColor      string      `yaml:"EMPTY_COLOR,omitempty"`
 	BackgroundColor string      `yaml:"BACKGROUND_COLOR,omitempty"`
 	GradientColor   string      `yaml:"GRADIENT_COLOR,omitempty"`
 	BarOutline      bool        `yaml:"BAR_OUTLINE"`
@@ -154,7 +153,6 @@ type Radial struct {
 	BlockAngle      int         `yaml:"BLOCK_ANGLE,omitempty"`
 	Clockwise       bool        `yaml:"CLOCKWISE"`
 	BarColor        string      `yaml:"BAR_COLOR"`
-	EmptyColor      string      `yaml:"EMPTY_COLOR,omitempty"`
 	BackgroundColor string      `yaml:"BACKGROUND_COLOR,omitempty"`
 	GradientColor   string      `yaml:"GRADIENT_COLOR,omitempty"`
 	Round           bool        `yaml:"ROUND,omitempty"`

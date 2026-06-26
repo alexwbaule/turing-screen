@@ -249,27 +249,14 @@ func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image 
 	if steps > 0 && stat.StepGap > 0 {
 		b.drawSegmentedBar(numb, stat, direction, filledSize, steps, fillBar)
 	} else {
-		hasEmpty := stat.EmptyColor != nil
 		switch direction {
 		case "left":
-			if hasEmpty {
-				fillBar(stat.X+filledSize, stat.Y, stat.Width-filledSize, stat.Height, stat.EmptyColor)
-			}
 			fillBar(stat.X, stat.Y, filledSize, stat.Height, stat.BarColor)
 		case "right":
-			if hasEmpty {
-				fillBar(stat.X, stat.Y, stat.Width-filledSize, stat.Height, stat.EmptyColor)
-			}
 			fillBar(stat.X+stat.Width-filledSize, stat.Y, filledSize, stat.Height, stat.BarColor)
 		case "up":
-			if hasEmpty {
-				fillBar(stat.X, stat.Y, stat.Width, stat.Height-filledSize, stat.EmptyColor)
-			}
 			fillBar(stat.X, stat.Y+stat.Height-filledSize, stat.Width, filledSize, stat.BarColor)
 		case "down":
-			if hasEmpty {
-				fillBar(stat.X, stat.Y+filledSize, stat.Width, stat.Height-filledSize, stat.EmptyColor)
-			}
 			fillBar(stat.X, stat.Y, stat.Width, filledSize, stat.BarColor)
 		}
 	}
@@ -289,7 +276,6 @@ func (b *Builder) DrawProgressBar(value float64, stat *theme.Graph) image.Image 
 
 func (b *Builder) drawSegmentedBar(numb *image.NRGBA, stat *theme.Graph, direction string, filledSize, steps int, fillBar func(x, y, w, h int, clr color.Color)) {
 	gap := stat.StepGap
-	hasEmpty := stat.EmptyColor != nil
 
 	switch direction {
 	case "left", "right":
@@ -310,8 +296,6 @@ func (b *Builder) drawSegmentedBar(numb *image.NRGBA, stat *theme.Graph, directi
 			}
 			if i < filledSteps {
 				fillBar(sx, stat.Y, segW, stat.Height, stat.BarColor)
-			} else if hasEmpty {
-				fillBar(sx, stat.Y, segW, stat.Height, stat.EmptyColor)
 			}
 		}
 	case "up", "down":
@@ -332,8 +316,6 @@ func (b *Builder) drawSegmentedBar(numb *image.NRGBA, stat *theme.Graph, directi
 			}
 			if i < filledSteps {
 				fillBar(stat.X, sy, stat.Width, segH, stat.BarColor)
-			} else if hasEmpty {
-				fillBar(stat.X, sy, stat.Width, segH, stat.EmptyColor)
 			}
 		}
 	}
@@ -397,7 +379,12 @@ func (b *Builder) DrawRadialProgressBar(value float64, stat *theme.Radial) image
 	arcRadius := float64(stat.Radius - (stat.Width / 2))
 
 	barClr := stat.BarColor
-	emptyClr := stat.EmptyColor
+	var emptyClr color.Color
+	if bgClr := stat.BackgroundStyle.BackgroundColor; bgClr != nil {
+		if _, _, _, a := bgClr.RGBA(); a > 0 {
+			emptyClr = bgClr
+		}
+	}
 	if stat.Revert {
 		barClr, emptyClr = emptyClr, barClr
 	}

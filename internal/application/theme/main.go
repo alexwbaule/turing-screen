@@ -246,11 +246,6 @@ func translateGraph(file string, data map[string]interface{}) (interface{}, erro
 		barColor = color.Transparent
 	}
 
-	var emptyColor color.Color
-	if val, ok := data["empty_color"].(string); ok {
-		emptyColor = utils.ConvertToColor(val, color.Transparent)
-	}
-
 	var gradientColor color.Color
 	if val, ok := data["gradient_color"].(string); ok {
 		gradientColor = utils.ConvertToColor(val, color.Transparent)
@@ -298,7 +293,6 @@ func translateGraph(file string, data map[string]interface{}) (interface{}, erro
 		MinValue:        data["min_value"].(int),
 		MaxValue:        data["max_value"].(int),
 		BarColor:        barColor,
-		EmptyColor:      emptyColor,
 		GradientColor:   gradientColor,
 		BarOutline:      data["bar_outline"].(bool),
 		Steps:           steps,
@@ -324,11 +318,6 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		barColor = utils.ConvertToColor(val, color.Transparent)
 	} else {
 		barColor = color.Transparent
-	}
-
-	var emptyColor color.Color
-	if val, ok := data["empty_color"].(string); ok {
-		emptyColor = utils.ConvertToColor(val, color.Transparent)
 	}
 
 	var gradientColor color.Color
@@ -383,7 +372,6 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		BlockAngle:      blockAngle,
 		Clockwise:       data["clockwise"].(bool),
 		BarColor:        barColor,
-		EmptyColor:      emptyColor,
 		GradientColor:   gradientColor,
 		Round:           round,
 		Revert:          revert,

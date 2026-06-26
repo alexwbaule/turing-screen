@@ -59,8 +59,6 @@ type PropertiesPanel struct {
 	graphMaxEntry            *widget.Entry
 	graphBarColorEntry       *widget.Entry
 	graphBarColorBtn         *widget.Button
-	graphEmptyColorEntry     *widget.Entry
-	graphEmptyColorBtn       *widget.Button
 	graphBgColorEntry        *widget.Entry
 	graphBgColorBtn          *widget.Button
 	graphGradientColorEntry  *widget.Entry
@@ -89,8 +87,6 @@ type PropertiesPanel struct {
 	radialRevertValueCheck   *widget.Check
 	radialBarColorEntry      *widget.Entry
 	radialBarColorBtn        *widget.Button
-	radialEmptyColorEntry    *widget.Entry
-	radialEmptyColorBtn      *widget.Button
 	radialBgColorEntry       *widget.Entry
 	radialBgColorBtn         *widget.Button
 	radialGradientColorEntry *widget.Entry
@@ -373,24 +369,6 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 			p.scheduleRefresh(dg)
 		}
 	})
-	p.graphEmptyColorEntry = widget.NewEntry()
-	p.graphEmptyColorEntry.OnChanged = func(s string) {
-		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
-			dg.GraphData.EmptyColor = s
-			p.scheduleRefresh(dg)
-		}
-	}
-	p.graphEmptyColorBtn = widget.NewButton("Picker", func() {
-		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
-			picker := dialog.NewColorPicker("Cor Vazia", "", func(c color.Color) {
-				val := utils.FormatColor(c)
-				p.graphEmptyColorEntry.SetText(val)
-				dg.GraphData.EmptyColor = val
-				dg.Refresh()
-			}, p.app.activeWindow())
-			picker.Show()
-		}
-	})
 	p.graphGradientColorEntry = widget.NewEntry()
 	p.graphGradientColorEntry.OnChanged = func(s string) {
 		if dg, ok := p.selectedWidget.(*DraggableGraph); ok {
@@ -447,8 +425,6 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 		widget.NewLabel("Direção:"), p.graphDirectionSelect,
 		widget.NewLabel("Cor da Barra (R,G,B):"),
 		container.NewBorder(nil, nil, nil, p.graphBarColorBtn, p.graphBarColorEntry),
-		widget.NewLabel("Cor Vazia (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.graphEmptyColorBtn, p.graphEmptyColorEntry),
 		widget.NewLabel("Cor de Fundo (R,G,B):"),
 		container.NewBorder(nil, nil, nil, p.graphBgColorBtn, p.graphBgColorEntry),
 		widget.NewLabel("Gradiente (R,G,B):"),
@@ -528,24 +504,6 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 				val := utils.FormatColor(c)
 				p.radialBarColorEntry.SetText(val)
 				dr.RadialData.BarColor = val
-				dr.Refresh()
-			}, p.app.activeWindow())
-			picker.Show()
-		}
-	})
-	p.radialEmptyColorEntry = widget.NewEntry()
-	p.radialEmptyColorEntry.OnChanged = func(s string) {
-		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
-			dr.RadialData.EmptyColor = s
-			p.scheduleRefresh(dr)
-		}
-	}
-	p.radialEmptyColorBtn = widget.NewButton("Picker", func() {
-		if dr, ok := p.selectedWidget.(*DraggableRadial); ok {
-			picker := dialog.NewColorPicker("Cor Vazia", "", func(c color.Color) {
-				val := utils.FormatColor(c)
-				p.radialEmptyColorEntry.SetText(val)
-				dr.RadialData.EmptyColor = val
 				dr.Refresh()
 			}, p.app.activeWindow())
 			picker.Show()
@@ -663,8 +621,6 @@ func buildProperties(app *EditorApp) *PropertiesPanel {
 		p.radialRevertValueCheck,
 		widget.NewLabel("Cor do Arco (R,G,B):"),
 		container.NewBorder(nil, nil, nil, p.radialBarColorBtn, p.radialBarColorEntry),
-		widget.NewLabel("Cor Vazia (R,G,B):"),
-		container.NewBorder(nil, nil, nil, p.radialEmptyColorBtn, p.radialEmptyColorEntry),
 		widget.NewLabel("Cor de Fundo (R,G,B):"),
 		container.NewBorder(nil, nil, nil, p.radialBgColorBtn, p.radialBgColorEntry),
 		widget.NewLabel("Gradiente (R,G,B):"),
@@ -927,7 +883,6 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.graphMaxEntry.SetText(strconv.Itoa(v.GraphData.MaxValue))
 		p.graphDirectionSelect.SetSelected(v.GraphData.Direction)
 		p.graphBarColorEntry.SetText(v.GraphData.BarColor)
-		p.graphEmptyColorEntry.SetText(v.GraphData.EmptyColor)
 		p.graphBgColorEntry.SetText(v.GraphData.BackgroundColor)
 		p.graphGradientColorEntry.SetText(v.GraphData.GradientColor)
 		p.graphOutlineCheck.SetChecked(v.GraphData.BarOutline)
@@ -957,7 +912,6 @@ func (p *PropertiesPanel) Update(obj fyne.CanvasObject) {
 		p.radialRevertCheck.SetChecked(v.RadialData.Revert)
 		p.radialRevertValueCheck.SetChecked(v.RadialData.RevertValue)
 		p.radialBarColorEntry.SetText(v.RadialData.BarColor)
-		p.radialEmptyColorEntry.SetText(v.RadialData.EmptyColor)
 		p.radialBgColorEntry.SetText(v.RadialData.BackgroundColor)
 		p.radialGradientColorEntry.SetText(v.RadialData.GradientColor)
 		p.radialShowTextCheck.SetChecked(v.RadialData.ShowText)
