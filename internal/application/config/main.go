@@ -89,3 +89,28 @@ func (c *Config) Reload() error {
 	c.device = &config
 	return nil
 }
+
+// WriteThemeName persists device.theme to the config file on disk.
+//
+// The daemon reloads the theme from conf/config.yaml whenever it restarts the
+// sensor loop (see controller.ApplyTheme), so any caller that wants a theme
+// switch to survive the restart must write the name here first. This keeps the
+// GUI as a pure socket client: it only sends theme.apply and the daemon owns
+// its own config persistence.
+//
+// Uses a standalone viper instance so it never disturbs the global viper state
+// that the getters above rely on.
+func WriteThemeName(name string) error {
+	v := viper.New()
+	v.SetConfigType("yaml")
+	v.SetConfigFile(defaultConfig)
+	if err := v.ReadInConfig(); err != nil {
+		return fmt.Errorf("error reading config file: %w", err)
+	}
+	v.Set("device.theme", name)
+	if err := v.WriteConfig(); err != nil {
+		return fmt.Errorf("error writing config file: %w", err)
+	}
+	return nil
+}
+

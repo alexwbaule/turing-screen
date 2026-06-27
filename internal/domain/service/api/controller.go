@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alexwbaule/turing-screen/internal/application/config"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	entityTheme "github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
@@ -432,6 +433,12 @@ func (dc *DaemonController) PreviewImage(imgData []byte) error {
 }
 
 func (dc *DaemonController) ApplyTheme(name string) error {
+	// Persist the theme choice to conf/config.yaml. The restart below re-reads
+	// the theme name from disk, so we must write it before resuming sensors.
+	if err := config.WriteThemeName(name); err != nil {
+		return fmt.Errorf("failed to persist theme %q: %w", name, err)
+	}
+
 	// Stop sensors completely before switching theme (SetModeEditor is synchronous).
 	if err := dc.SetModeEditor(); err != nil {
 		return err
@@ -443,8 +450,7 @@ func (dc *DaemonController) ApplyTheme(name string) error {
 
 	dc.log.Infof("API: theme set to %s, restarting...", name)
 
-	// Resume — startSensors reloads config from disk, so the caller must have
-	// written the new theme name to config before calling this.
+	// Resume — startSensors reloads config from disk, which now has the new theme.
 	return dc.SetModeNormal()
 }
 
