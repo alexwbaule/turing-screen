@@ -23,6 +23,83 @@ SELECTION_COLOR = (0.8, 0.8, 0.8, 1.0)
 SELECTION_WIDTH = 1.5
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Font cache
+#
+# The editor can't derive a font's Pango family from its filename: the file
+# "HelveticaNeueLTPro-Blk.otf" has the internal family "Helvetica Neue LT Pro"
+# and weight Black. Guessing family = filename stem makes Pango fall back to the
+# default font. fontconfig already indexes res/fonts (via _register_fonts), so we
+# read the real family + weight once at startup and cache them keyed by the theme
+# font path (e.g. "turtheme/HelveticaNeueLTPro-Blk.otf").
+# ──────────────────────────────────────────────────────────────────────────────
+
+_FONT_CACHE: dict[str, tuple[str, int]] = {}  # rel font path → (family, Pango weight)
+
+# fontconfig numeric weight → Pango weight
+_FC_WEIGHT_TO_PANGO = [
+    (0,   Pango.Weight.THIN),
+    (40,  Pango.Weight.ULTRALIGHT),
+    (50,  Pango.Weight.LIGHT),
+    (55,  Pango.Weight.SEMILIGHT),
+    (75,  Pango.Weight.BOOK),
+    (80,  Pango.Weight.NORMAL),
+    (100, Pango.Weight.MEDIUM),
+    (180, Pango.Weight.SEMIBOLD),
+    (200, Pango.Weight.BOLD),
+    (205, Pango.Weight.ULTRABOLD),
+    (210, Pango.Weight.HEAVY),
+]
+
+
+def _fc_to_pango_weight(weight_str: str) -> int:
+    try:
+        v = int((weight_str or "").split(",")[0])
+    except ValueError:
+        return Pango.Weight.NORMAL
+    best, best_diff = Pango.Weight.NORMAL, None
+    for fc, pw in _FC_WEIGHT_TO_PANGO:
+        d = abs(fc - v)
+        if best_diff is None or d < best_diff:
+            best, best_diff = pw, d
+    return best
+
+
+def load_font_cache(fonts_dir: str) -> None:
+    """Populate _FONT_CACHE from fontconfig. Call once at startup, after
+    _register_fonts has made fontconfig aware of fonts_dir.
+
+    fontconfig may index the fonts under a different absolute path than the
+    editor's own fonts_dir (installed /opt/.../res/fonts vs a dev checkout), so
+    we key by the suffix after ``res/fonts/`` and by basename — both are
+    identical regardless of where the tree lives."""
+    import subprocess
+    _FONT_CACHE.clear()
+    if not fonts_dir or not os.path.isdir(fonts_dir):
+        return
+    try:
+        out = subprocess.run(
+            ["fc-list", "--format=%{file}\t%{family}\t%{weight}\n"],
+            capture_output=True, text=True, timeout=20,
+        ).stdout
+    except Exception:
+        return
+    marker = os.sep + "res" + os.sep + "fonts" + os.sep
+    for line in out.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 3:
+            continue
+        fpath, family, weight = parts[0], parts[1], parts[2]
+        if marker not in fpath:
+            continue
+        fam = family.split(",")[0].strip()
+        if not fam:
+            continue
+        entry = (fam, _fc_to_pango_weight(weight))
+        rel = fpath.split(marker, 1)[1]                 # e.g. turtheme/Foo.otf
+        _FONT_CACHE[rel] = entry
+        _FONT_CACHE[os.path.basename(fpath)] = entry   # basename fallback
+
+# ──────────────────────────────────────────────────────────────────────────────
 # helpers
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -263,8 +340,19 @@ class DraggableText(_DraggableBase):
     def _make_font_desc(self) -> Pango.FontDescription:
         fd = Pango.FontDescription()
         fd.set_absolute_size(max(1, self.data.FONT_SIZE) * Pango.SCALE)
-        if self.data.FONT:
-            stem = os.path.splitext(os.path.basename(self.data.FONT))[0]
+        font = self.data.FONT
+        if font:
+            # Prefer the real family + weight read from fontconfig (handles
+            # fonts whose internal name differs from the filename, and the
+            # correct weight variant — e.g. Black vs Regular of the same family).
+            cached = _FONT_CACHE.get(font) or _FONT_CACHE.get(os.path.basename(font))
+            if cached:
+                family, weight = cached
+                fd.set_family(family)
+                fd.set_weight(weight)
+                return fd
+            # Fallback: filename heuristic (only correct when stem == family).
+            stem = os.path.splitext(os.path.basename(font))[0]
             parts = stem.split("-")
             fd.set_family(parts[0])
             if len(parts) > 1:

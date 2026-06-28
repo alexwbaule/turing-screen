@@ -12,6 +12,7 @@ from ui.canvas import ThemeCanvas
 from ui.properties import PropertiesPanel
 from ui.layers_panel import LayersPanel
 from ui.toolbox import Toolbox
+from ui.draggable import load_font_cache
 from theme.models import Theme
 
 log = logging.getLogger(__name__)
@@ -186,6 +187,10 @@ class EditorApp:
             "res", "fonts",
         )
         _register_fonts(fonts_dir)
+        # Build the font-path → (family, weight) cache from fontconfig so the
+        # preview renders the real font (e.g. "Helvetica Neue LT Pro" Black),
+        # not the default fallback.
+        load_font_cache(fonts_dir)
 
         self._main_window = Adw.ApplicationWindow(application=app)
         self._main_window.set_title("Turing Screen")
