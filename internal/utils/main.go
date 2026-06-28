@@ -151,38 +151,43 @@ func ParsePath(path string) string {
 	newDir := "/root/video"
 	return filepath.Join(newDir, fileName)
 }
-
 func ConvertToColor(s string, dft color.Color) color.Color {
-	rgba := strings.SplitN(s, ",", 4)
-
-	if len(rgba) == 3 {
-		rgba = append(rgba, "255")
-	}
-	if len(rgba) != 4 {
-		return dft
-	}
-	r, err := strconv.Atoi(strings.TrimSpace(rgba[0]))
-	if err != nil {
-		return dft
-	}
-	g, err := strconv.Atoi(strings.TrimSpace(rgba[1]))
-	if err != nil {
-		return dft
-	}
-	b, err := strconv.Atoi(strings.TrimSpace(rgba[2]))
-	if err != nil {
-		return dft
-	}
-	a, err := strconv.Atoi(strings.TrimSpace(rgba[3]))
-	if err != nil {
-		return dft
-	}
-	return color.RGBA{
-		R: uint8(r),
-		G: uint8(g),
-		B: uint8(b),
-		A: uint8(a),
-	}
+    // 1. Remove todos os espaços da string antes do split
+    s = strings.ReplaceAll(s, " ", "")
+    
+    rgba := strings.SplitN(s, ",", 4)
+    
+    if len(rgba) == 3 {
+        rgba = append(rgba, "255")
+    }
+    if len(rgba) != 4 {
+        return dft
+    }
+    
+    // 2. Agora os itens já estão limpos, basta converter diretamente
+    r, err := strconv.Atoi(rgba[0])
+    if err != nil {
+        return dft 
+    }   
+    g, err := strconv.Atoi(rgba[1])
+    if err != nil {
+        return dft
+    }
+    b, err := strconv.Atoi(rgba[2])
+    if err != nil {
+        return dft
+    }   
+    a, err := strconv.Atoi(rgba[3])
+    if err != nil {
+        return dft
+    }   
+    
+    return color.RGBA{
+        R: uint8(r),
+        G: uint8(g),
+        B: uint8(b),
+        A: uint8(a),
+    }
 }
 
 func Radians(degrees int) float64 {
