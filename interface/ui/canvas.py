@@ -10,11 +10,22 @@ from typing import Optional
 from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 
 from theme.models import (
-    Theme, Text, Graph, Radial, Chart, StaticImage,
+    Theme, Text, Graph, Radial, Chart, Gauge, StatusBar, StaticImage,
 )
 from ui.draggable import (
-    DraggableText, DraggableGraph, DraggableRadial, DraggableChart, _DraggableBase,
+    DraggableText, DraggableGraph, DraggableRadial, DraggableChart,
+    DraggableGauge, DraggableStatusBar, _DraggableBase,
 )
+
+_KIND_TO_SUFFIX = {
+    "text":       "TEXT",
+    "graph":      "GRAPH",
+    "radial":     "RADIAL",
+    "chart":      "CHART",
+    "gauge":      "GAUGE",
+    "status_bar": "STATUS_BAR",
+}
+_KNOWN_SUFFIXES = {"TEXT", "PERCENT_TEXT", "GRAPH", "RADIAL", "CHART", "GAUGE", "STATUS_BAR"}
 
 log = logging.getLogger(__name__)
 
@@ -217,9 +228,6 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             self._add_text_element(stats.Volume.Text, "STATS.VOLUME.TEXT")
 
     def _load_measurement(self, m, base: str):
-        # m.SHOW controls whether the daemon sends live data to the display —
-        # NOT whether to render in the editor. Individual element SHOW flags
-        # (Graph.SHOW, Text.SHOW, …) control editor visibility.
         if m.Text:
             self._add_text_element(m.Text, base + ".TEXT")
         if m.PercentText:
@@ -230,6 +238,10 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             self._add_radial_element(m.Radial, base + ".RADIAL")
         if m.Chart:
             self._add_chart_element(m.Chart, base + ".CHART")
+        if hasattr(m, "Gauge") and m.Gauge:
+            self._add_gauge_element(m.Gauge, base + ".GAUGE")
+        if hasattr(m, "StatusBar") and m.StatusBar:
+            self._add_statusbar_element(m.StatusBar, base + ".STATUS_BAR")
 
     # ------------------------------------------------------------------
     # Background images
@@ -335,6 +347,114 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         except Exception:
             log.exception("Falha ao criar chart '%s'", path)
 
+    def _add_gauge_element(self, data: Gauge, path: str):
+        if data.SHOW is False:
+            return
+        try:
+            elem = DraggableGauge(data, path, self._canvas_w, self._canvas_h)
+            self._add_element(elem)
+        except Exception:
+            log.exception("Falha ao criar gauge '%s'", path)
+
+    def _add_statusbar_element(self, data: StatusBar, path: str):
+        if data.SHOW is False:
+            return
+        try:
+            elem = DraggableStatusBar(data, path, self._canvas_w, self._canvas_h)
+            self._add_element(elem)
+        except Exception:
+            log.exception("Falha ao criar statusbar '%s'", path)
+
+    def swap_element_type(self, elem: _DraggableBase, new_type: str):
+        """Replace elem with a new element of new_type, preserving shared fields."""
+        if elem not in self._elements:
+            return
+        old = elem.data
+        x, y = elem.get_model_position()
+
+        # Shared field extraction helpers
+        def _get(attr, default=None):
+            return getattr(old, attr, default)
+
+        index   = _get("INDEX", 0)
+        show    = _get("SHOW", True)
+        min_val = _get("MIN_VALUE", 0)
+        max_val = _get("MAX_VALUE", 100)
+        width   = _get("WIDTH", 200)
+        height  = _get("HEIGHT", 100)
+        bg      = _get("BACKGROUND_COLOR", "")
+        grad    = _get("GRADIENT_COLOR", "")
+        bar     = (_get("BAR_COLOR") or _get("NEEDLE_COLOR") or
+                   _get("FILL_COLOR") or _get("FONT_COLOR") or "0,255,0")
+
+        # Update yaml_path suffix to match new type
+        old_path = elem.yaml_path
+        new_suffix = _KIND_TO_SUFFIX.get(new_type)
+        if new_suffix:
+            parts = old_path.rsplit(".", 1)
+            if len(parts) == 2 and parts[1] in _KNOWN_SUFFIXES:
+                path = parts[0] + "." + new_suffix
+            else:
+                path = old_path + "." + new_suffix
+        else:
+            path = old_path
+
+        stack_idx = self._elements.index(elem)
+
+        if new_type == "text":
+            data = Text(X=x, Y=y, SHOW=show, INDEX=index,
+                        FONT_COLOR=bar, BACKGROUND_COLOR=bg)
+            new_elem = DraggableText(data, path, self._canvas_w, self._canvas_h)
+        elif new_type == "graph":
+            data = Graph(X=x, Y=y, SHOW=show, INDEX=index,
+                         WIDTH=width, HEIGHT=height,
+                         MIN_VALUE=min_val, MAX_VALUE=max_val,
+                         BAR_COLOR=bar, BACKGROUND_COLOR=bg, GRADIENT_COLOR=grad)
+            new_elem = DraggableGraph(data, path, self._canvas_w, self._canvas_h)
+        elif new_type == "radial":
+            data = Radial(X=x, Y=y, SHOW=show, INDEX=index,
+                          MIN_VALUE=min_val, MAX_VALUE=max_val,
+                          BAR_COLOR=bar, BACKGROUND_COLOR=bg, GRADIENT_COLOR=grad)
+            new_elem = DraggableRadial(data, path, self._canvas_w, self._canvas_h)
+        elif new_type == "chart":
+            data = Chart(X=x, Y=y, SHOW=show, INDEX=index,
+                         WIDTH=width, HEIGHT=height,
+                         MIN_VALUE=min_val, MAX_VALUE=max_val,
+                         FILL_COLOR=bar)
+            new_elem = DraggableChart(data, path, self._canvas_w, self._canvas_h)
+        elif new_type == "gauge":
+            data = Gauge(X=x, Y=y, SHOW=show, INDEX=index,
+                         MIN_VALUE=min_val, MAX_VALUE=max_val,
+                         NEEDLE_COLOR=bar, BACKGROUND_COLOR=bg)
+            new_elem = DraggableGauge(data, path, self._canvas_w, self._canvas_h)
+        elif new_type == "status_bar":
+            data = StatusBar(X=x, Y=y, SHOW=show, INDEX=index,
+                             WIDTH=width, HEIGHT=height,
+                             MIN_VALUE=min_val, MAX_VALUE=max_val,
+                             BAR_COLOR=bar, BACKGROUND_COLOR=bg)
+            new_elem = DraggableStatusBar(data, path, self._canvas_w, self._canvas_h)
+        else:
+            return
+
+        # Remove old, insert new at same z-order position
+        self._fixed.remove(elem.widget)
+        self._elements.remove(elem)
+        if self._selected is elem:
+            self._selected = None
+
+        new_elem._fixed = self._fixed
+        new_elem.set_on_selected(self._on_element_selected)
+        new_elem.set_on_drag_end(self._on_element_drag_end)
+        self._elements.insert(stack_idx, new_elem)
+
+        # Re-stack all elements to restore correct z-order
+        for e in self._elements:
+            self._fixed.remove(e.widget)
+            self._fixed.put(e.widget, e._x, e._y)
+
+        self._on_element_selected(new_elem)
+        self._layers.refresh(self._theme, self._elements)
+
     def remove_element(self, elem: _DraggableBase):
         if elem in self._elements:
             self._fixed.remove(elem.widget)
@@ -359,6 +479,12 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         elif kind == "chart":
             data = Chart(X=cx, Y=cy, WIDTH=200, HEIGHT=100, SHOW=True, FILL_COLOR="0,255,0")
             elem = DraggableChart(data, yaml_path, self._canvas_w, self._canvas_h)
+        elif kind == "gauge":
+            data = Gauge(X=cx, Y=cy, RADIUS=80, SHOW=True, NEEDLE_COLOR="255,0,0")
+            elem = DraggableGauge(data, yaml_path, self._canvas_w, self._canvas_h)
+        elif kind == "status_bar":
+            data = StatusBar(X=cx, Y=cy, WIDTH=200, HEIGHT=20, SHOW=True, BAR_COLOR="0,255,0")
+            elem = DraggableStatusBar(data, yaml_path, self._canvas_w, self._canvas_h)
         else:
             return
         self._add_element(elem)

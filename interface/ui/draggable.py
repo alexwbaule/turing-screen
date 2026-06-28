@@ -14,7 +14,7 @@ from typing import Callable, Optional, TYPE_CHECKING
 import cairo
 from gi.repository import Gtk, GLib, Pango, PangoCairo
 
-from theme.models import Text, Graph, Radial, Chart
+from theme.models import Text, Graph, Radial, Chart, Gauge, StatusBar
 
 if TYPE_CHECKING:
     pass
@@ -601,6 +601,114 @@ class DraggableChart(_DraggableBase):
             cr.set_line_width(bw)
             cr.rectangle(bw / 2, bw / 2, w - bw, h - bw)
             cr.stroke()
+
+        self._draw_selection(cr, w, h)
+
+    def _commit_position(self):
+        self.data.X = int(self._x)
+        self.data.Y = int(self._y)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DraggableGauge
+# ──────────────────────────────────────────────────────────────────────────────
+
+class DraggableGauge(_DraggableBase):
+
+    def __init__(self, data: Gauge, yaml_path: str,
+                 canvas_w: int = 1280, canvas_h: int = 720):
+        super().__init__(canvas_w, canvas_h)
+        self.data = data
+        self.yaml_path = yaml_path
+        size = (data.RADIUS or 80) * 2
+        self.widget.set_size_request(size, size)
+        r = data.RADIUS or 80
+        self.set_position(data.X - r, data.Y - r)
+
+    def invalidate(self):
+        self.widget.queue_draw()
+
+    def get_model_position(self) -> tuple[int, int]:
+        r = self.data.RADIUS or 80
+        return int(self._x + r), int(self._y + r)
+
+    def _draw(self, area, cr, w, h):
+        cx, cy = w / 2, h / 2
+        r = self.data.RADIUS or 80
+
+        bg = _parse_color(self.data.BACKGROUND_COLOR, (0, 0, 0, 0))
+        if bg[3] > 0:
+            cr.set_source_rgba(*bg)
+            cr.arc(cx, cy, r, 0, 2 * math.pi)
+            cr.fill()
+
+        amin = math.radians(self.data.ANGLE_START - 90)
+        amax = math.radians(180 + self.data.ANGLE_START - 90 + (self.data.ANGLE_END or 0))
+        cr.set_source_rgba(0.3, 0.3, 0.3, 1.0)
+        cr.set_line_width(2)
+        cr.arc(cx, cy, r - 4, amin, amax)
+        cr.stroke()
+
+        ratio = 0.75
+        angle = amin + (amax - amin) * ratio
+        needle_r = r - 6
+        nx = cx + needle_r * math.cos(angle)
+        ny = cy + needle_r * math.sin(angle)
+        needle_color = _parse_color(self.data.NEEDLE_COLOR, (1.0, 0.0, 0.0, 1.0))
+        cr.set_source_rgba(*needle_color)
+        cr.set_line_width(self.data.NEEDLE_WIDTH or 3)
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        cr.move_to(cx, cy)
+        cr.line_to(nx, ny)
+        cr.stroke()
+
+        cr.arc(cx, cy, max(3, (self.data.NEEDLE_WIDTH or 3)), 0, 2 * math.pi)
+        cr.fill()
+
+        self._draw_selection(cr, w, h)
+
+    def _commit_position(self):
+        r = self.data.RADIUS or 80
+        self.data.X = int(self._x + r)
+        self.data.Y = int(self._y + r)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DraggableStatusBar
+# ──────────────────────────────────────────────────────────────────────────────
+
+class DraggableStatusBar(_DraggableBase):
+
+    def __init__(self, data: StatusBar, yaml_path: str,
+                 canvas_w: int = 1280, canvas_h: int = 720):
+        super().__init__(canvas_w, canvas_h)
+        self.data = data
+        self.yaml_path = yaml_path
+        self.widget.set_size_request(data.WIDTH or 200, data.HEIGHT or 20)
+        self.set_position(data.X, data.Y)
+
+    def invalidate(self):
+        self.widget.queue_draw()
+
+    def _draw(self, area, cr, w, h):
+        bg = _parse_color(self.data.BACKGROUND_COLOR, (0.15, 0.15, 0.15, 1.0))
+        if bg[3] > 0:
+            cr.set_source_rgba(*bg)
+            cr.rectangle(0, 0, w, h)
+            cr.fill()
+
+        ratio = 0.75
+        bar_w = ratio * w
+        bar = _parse_color(self.data.BAR_COLOR, (0.0, 1.0, 0.0, 1.0))
+        cr.set_source_rgba(*bar)
+        cr.rectangle(0, 0, bar_w, h)
+        cr.fill()
+
+        ind_r = self.data.INDICATOR_RADIUS or max(3, int(h / 2))
+        ind_color = _parse_color(self.data.INDICATOR_COLOR, (1.0, 1.0, 1.0, 1.0))
+        cr.set_source_rgba(*ind_color)
+        cr.arc(bar_w, h / 2, ind_r, 0, 2 * math.pi)
+        cr.fill()
 
         self._draw_selection(cr, w, h)
 

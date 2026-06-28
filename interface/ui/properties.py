@@ -44,11 +44,15 @@ class PropertiesPanel(Gtk.Box):
         self.set_size_request(280, -1)
         self._current = None
         self._updating = False
-        self._on_delete = None   # set by canvas/home
+        self._on_delete = None
+        self._on_type_change = None
         self._build_ui()
 
     def set_on_delete(self, cb):
         self._on_delete = cb
+
+    def set_on_type_change(self, cb):
+        self._on_type_change = cb
 
     # ── UI skeleton ────────────────────────────────────────────────────────────
 
@@ -93,7 +97,8 @@ class PropertiesPanel(Gtk.Box):
             self._content.append(self._placeholder)
             return
 
-        from ui.draggable import DraggableText, DraggableGraph, DraggableRadial, DraggableChart
+        from ui.draggable import (DraggableText, DraggableGraph, DraggableRadial,
+                                   DraggableChart, DraggableGauge, DraggableStatusBar)
         self._header.set_label(f"Properties — {element.yaml_path.split('.')[-1]}")
 
         # Common header: path info + delete
@@ -107,6 +112,10 @@ class PropertiesPanel(Gtk.Box):
             self._build_radial_props(element)
         elif isinstance(element, DraggableChart):
             self._build_chart_props(element)
+        elif isinstance(element, DraggableGauge):
+            self._build_gauge_props(element)
+        elif isinstance(element, DraggableStatusBar):
+            self._build_statusbar_props(element)
 
     def update_position(self, element):
         if element is not self._current:
@@ -160,6 +169,43 @@ class PropertiesPanel(Gtk.Box):
         btn.connect("color-set", lambda b: on_color(_rgba_to_str(b.get_rgba())))
         return btn
 
+    def _optional_color_row(self, parent: Gtk.Box, label: str, data, attr: str,
+                             default: str = "0,0,0", refresh_cb=None):
+        """Row with [☐ ColorButton].  Unchecked → attr = '' (ignored by daemon)."""
+        current = (getattr(data, attr, "") or "").strip()
+        enabled = bool(current)
+
+        btn = Gtk.ColorButton()
+        btn.set_use_alpha(False)
+        btn.set_rgba(_str_to_rgba(current if enabled else default, default))
+        btn.set_hexpand(True)
+        btn.set_sensitive(enabled)
+
+        chk = Gtk.CheckButton()
+        chk.set_active(enabled)
+        chk.set_tooltip_text("Enable this color (uncheck → ignored)")
+
+        def on_color(_b):
+            if chk.get_active():
+                setattr(data, attr, _rgba_to_str(btn.get_rgba()))
+                if refresh_cb:
+                    refresh_cb()
+
+        def on_toggle(_b):
+            active = _b.get_active()
+            btn.set_sensitive(active)
+            setattr(data, attr, _rgba_to_str(btn.get_rgba()) if active else "")
+            if refresh_cb:
+                refresh_cb()
+
+        btn.connect("color-set", on_color)
+        chk.connect("toggled", on_toggle)
+
+        inner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+        inner.append(chk)
+        inner.append(btn)
+        parent.append(self._row(label, inner))
+
     def _toggle(self, active: bool, label: str, changed_cb) -> Gtk.CheckButton:
         cb = Gtk.CheckButton(label=label)
         cb.set_active(bool(active))
@@ -203,6 +249,9 @@ class PropertiesPanel(Gtk.Box):
     # ── Common header ──────────────────────────────────────────────────────────
 
     def _build_common_header(self, element):
+        from ui.draggable import (DraggableText, DraggableGraph, DraggableRadial,
+                                   DraggableChart, DraggableGauge, DraggableStatusBar)
+
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         box.set_margin_bottom(6)
 
@@ -213,6 +262,45 @@ class PropertiesPanel(Gtk.Box):
         path_lbl.add_css_class("dim-label")
         path_lbl.set_selectable(True)
         box.append(path_lbl)
+
+        # Type switcher dropdown
+        _type_map = [
+            (DraggableText,      "text"),
+            (DraggableGraph,     "graph"),
+            (DraggableRadial,    "radial"),
+            (DraggableChart,     "chart"),
+            (DraggableGauge,     "gauge"),
+            (DraggableStatusBar, "status_bar"),
+        ]
+        TYPES = [t for _, t in _type_map]
+        current_type = next((t for cls, t in _type_map if isinstance(element, cls)), "text")
+
+        dd = Gtk.DropDown.new_from_strings(TYPES)
+        dd.set_hexpand(True)
+        self._updating = True
+        try:
+            dd.set_selected(TYPES.index(current_type))
+        except ValueError:
+            dd.set_selected(0)
+        self._updating = False
+
+        def _on_type_selected(d, _):
+            if self._updating:
+                return
+            new_type = TYPES[d.get_selected()]
+            if new_type != current_type and self._on_type_change:
+                self._on_type_change(element, new_type)
+
+        dd.connect("notify::selected", _on_type_selected)
+
+        type_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        lbl = Gtk.Label(label="Type")
+        lbl.set_width_chars(13)
+        lbl.set_halign(Gtk.Align.END)
+        lbl.add_css_class("dim-label")
+        type_row.append(lbl)
+        type_row.append(dd)
+        box.append(type_row)
 
         # Delete button
         del_btn = Gtk.Button(label="Delete element")
@@ -252,7 +340,7 @@ class PropertiesPanel(Gtk.Box):
         self._append_row(inner, "Font file", self._entry(data.FONT, lambda e: [setattr(data, "FONT", e.get_text()), refresh()]))
         self._append_row(inner, "Size", self._spin(data.FONT_SIZE or 16, 4, 500, lambda s: [setattr(data, "FONT_SIZE", int(s.get_value())), refresh()]))
         self._append_row(inner, "Color", self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
-        self._append_row(inner, "Background", self._color_btn(data.BACKGROUND_COLOR, lambda c: [setattr(data, "BACKGROUND_COLOR", c), refresh()], "0,0,0"), expand=False)
+        self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "0,0,0", refresh)
         self._content.append(exp)
 
         # Layout
@@ -286,11 +374,11 @@ class PropertiesPanel(Gtk.Box):
 
         # Appearance
         exp, inner = self._expander("Appearance")
-        self._append_row(inner, "Bar color",    self._color_btn(data.BAR_COLOR,        lambda c: [setattr(data, "BAR_COLOR", c), refresh()],        "0,255,0"),   expand=False)
-        self._append_row(inner, "Background",   self._color_btn(data.BACKGROUND_COLOR, lambda c: [setattr(data, "BACKGROUND_COLOR", c), refresh()], "26,26,26"), expand=False)
-        self._append_row(inner, "Gradient",     self._color_btn(data.GRADIENT_COLOR,   lambda c: [setattr(data, "GRADIENT_COLOR", c), refresh()],   "0,0,0"),    expand=False)
-        inner.append(self._toggle(bool(data.BAR_OUTLINE),   "Bar outline",    lambda v: [setattr(data, "BAR_OUTLINE", v), refresh()]))
-        inner.append(self._toggle(bool(data.REVERT_VALUE),  "Revert value",   lambda v: [setattr(data, "REVERT_VALUE", v), refresh()]))
+        self._append_row(inner, "Bar color", self._color_btn(data.BAR_COLOR, lambda c: [setattr(data, "BAR_COLOR", c), refresh()], "0,255,0"), expand=False)
+        self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "26,26,26", refresh)
+        self._optional_color_row(inner, "Gradient",   data, "GRADIENT_COLOR",   "0,0,0",   refresh)
+        inner.append(self._toggle(bool(data.BAR_OUTLINE),  "Bar outline",  lambda v: [setattr(data, "BAR_OUTLINE", v), refresh()]))
+        inner.append(self._toggle(bool(data.REVERT_VALUE), "Revert value", lambda v: [setattr(data, "REVERT_VALUE", v), refresh()]))
         self._content.append(exp)
 
         # Range
@@ -358,9 +446,9 @@ class PropertiesPanel(Gtk.Box):
 
         # Appearance
         exp, inner = self._expander("Appearance")
-        self._append_row(inner, "Bar color",  self._color_btn(data.BAR_COLOR,        lambda c: [setattr(data, "BAR_COLOR",        c), refresh()], "0,255,0"),   expand=False)
-        self._append_row(inner, "Background", self._color_btn(data.BACKGROUND_COLOR, lambda c: [setattr(data, "BACKGROUND_COLOR", c), refresh()], "26,26,26"), expand=False)
-        self._append_row(inner, "Gradient",   self._color_btn(data.GRADIENT_COLOR,   lambda c: [setattr(data, "GRADIENT_COLOR",   c), refresh()], "0,0,0"),    expand=False)
+        self._append_row(inner, "Bar color", self._color_btn(data.BAR_COLOR, lambda c: [setattr(data, "BAR_COLOR", c), refresh()], "0,255,0"), expand=False)
+        self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "26,26,26", refresh)
+        self._optional_color_row(inner, "Gradient",   data, "GRADIENT_COLOR",   "0,0,0",   refresh)
         self._content.append(exp)
 
         # Text inside ring
@@ -408,4 +496,96 @@ class PropertiesPanel(Gtk.Box):
         self._append_row(inner, "Fill color", self._color_btn(data.FILL_COLOR, lambda c: [setattr(data, "FILL_COLOR", c), refresh()], "0,204,0"), expand=False)
         self._append_row(inner, "Line color", self._color_btn(data.LINE_COLOR, lambda c: [setattr(data, "LINE_COLOR", c), refresh()], "0,255,0"), expand=False)
         self._append_row(inner, "Border width", self._spin(data.BORDER_WIDTH or 0, 0, 20, lambda s: [setattr(data, "BORDER_WIDTH", int(s.get_value())), refresh()]))
+        self._content.append(exp)
+
+    # ── Gauge ──────────────────────────────────────────────────────────────────
+
+    def _build_gauge_props(self, elem):
+        data = elem.data
+
+        def refresh():
+            if not self._updating:
+                elem.invalidate()
+
+        def _move():
+            r = data.RADIUS or 80
+            elem.set_position(data.X - r, data.Y - r)
+            refresh()
+
+        def _resize_radius(v):
+            setattr(data, "RADIUS", v)
+            elem.widget.set_size_request(v * 2, v * 2)
+            _move()
+
+        # Position
+        exp, inner = self._expander("Position")
+        self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), _move()])
+        self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), _move()])
+        self._append_row(inner, "X (center)", self._x_spin)
+        self._append_row(inner, "Y (center)", self._y_spin)
+        self._content.append(exp)
+
+        # Geometry
+        exp, inner = self._expander("Geometry")
+        self._append_row(inner, "Radius",       self._spin(data.RADIUS or 80,       10, 500,  lambda s: _resize_radius(int(s.get_value()))))
+        self._append_row(inner, "Needle width", self._spin(data.NEEDLE_WIDTH or 4,  1,  20,   lambda s: [setattr(data, "NEEDLE_WIDTH", int(s.get_value())), refresh()]))
+        self._append_row(inner, "Min",          self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
+        self._append_row(inner, "Max",          self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
+        self._content.append(exp)
+
+        # Angles
+        exp, inner = self._expander("Angles")
+        self._append_row(inner, "Start °", self._spin(data.ANGLE_START or -210, -360, 360, lambda s: [setattr(data, "ANGLE_START", int(s.get_value())), refresh()]))
+        self._append_row(inner, "End °",   self._spin(data.ANGLE_END   or  30,  -360, 360, lambda s: [setattr(data, "ANGLE_END",   int(s.get_value())), refresh()]))
+        self._content.append(exp)
+
+        # Appearance
+        exp, inner = self._expander("Appearance")
+        self._append_row(inner, "Needle color", self._color_btn(data.NEEDLE_COLOR, lambda c: [setattr(data, "NEEDLE_COLOR", c), refresh()], "255,0,0"), expand=False)
+        self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "26,26,26", refresh)
+        self._content.append(exp)
+
+        # Center text
+        exp, inner = self._expander("Center text", expanded=False)
+        inner.append(self._toggle(bool(data.SHOW_TEXT), "Show text", lambda v: [setattr(data, "SHOW_TEXT", v), refresh()]))
+        inner.append(self._toggle(bool(data.SHOW_UNIT), "Show unit", lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
+        self._append_row(inner, "Font file",  self._entry(data.FONT or "", lambda e: [setattr(data, "FONT", e.get_text()), refresh()]))
+        self._append_row(inner, "Font color", self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
+        self._content.append(exp)
+
+    # ── StatusBar ──────────────────────────────────────────────────────────────
+
+    def _build_statusbar_props(self, elem):
+        data = elem.data
+
+        def refresh():
+            if not self._updating:
+                elem.invalidate()
+
+        def resize():
+            elem.widget.set_size_request(data.WIDTH or 200, data.HEIGHT or 20)
+            refresh()
+
+        # Position & Size
+        exp, inner = self._expander("Position & Size")
+        self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
+        self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
+        self._append_row(inner, "X", self._x_spin)
+        self._append_row(inner, "Y", self._y_spin)
+        self._append_row(inner, "Width",  self._spin(data.WIDTH  or 200, 10, 9999, lambda s: [setattr(data, "WIDTH",  int(s.get_value())), resize()]))
+        self._append_row(inner, "Height", self._spin(data.HEIGHT or 20,  4,  500,  lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
+        self._content.append(exp)
+
+        # Range
+        exp, inner = self._expander("Range")
+        self._append_row(inner, "Min", self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
+        self._append_row(inner, "Max", self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
+        self._content.append(exp)
+
+        # Appearance
+        exp, inner = self._expander("Appearance")
+        self._append_row(inner, "Bar color",       self._color_btn(data.BAR_COLOR,       lambda c: [setattr(data, "BAR_COLOR",       c), refresh()], "0,255,0"),   expand=False)
+        self._append_row(inner, "Indicator color", self._color_btn(data.INDICATOR_COLOR, lambda c: [setattr(data, "INDICATOR_COLOR", c), refresh()], "255,255,255"), expand=False)
+        self._append_row(inner, "Indicator radius", self._spin(data.INDICATOR_RADIUS or 0, 0, 50, lambda s: [setattr(data, "INDICATOR_RADIUS", int(s.get_value())), refresh()]))
+        self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "26,26,26", refresh)
         self._content.append(exp)

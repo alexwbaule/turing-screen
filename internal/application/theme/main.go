@@ -109,6 +109,23 @@ func Hook(file string, reverse bool) mapstructure.DecodeHookFunc {
 	}
 }
 
+// parseOptionalColor parses a "r, g, b" or "#RRGGBB" string only when non-empty
+// and only when the resulting color has alpha > 0. Returns nil otherwise, which
+// lets callers distinguish "no color" from "transparent" and avoids enabling
+// gradient mode when GRADIENT_COLOR is '' in the YAML.
+func parseOptionalColor(data map[string]interface{}, key string) color.Color {
+	val, ok := data[key].(string)
+	if !ok || val == "" {
+		return nil
+	}
+	c := utils.ConvertToColor(val, color.Transparent)
+	_, _, _, a := c.RGBA()
+	if a == 0 {
+		return nil
+	}
+	return c
+}
+
 func parseLayout(data map[string]interface{}) theme.Layout {
 	x := 0
 	if val, ok := data["x"].(int); ok {
@@ -246,10 +263,7 @@ func translateGraph(file string, data map[string]interface{}) (interface{}, erro
 		barColor = color.Transparent
 	}
 
-	var gradientColor color.Color
-	if val, ok := data["gradient_color"].(string); ok {
-		gradientColor = utils.ConvertToColor(val, color.Transparent)
-	}
+	gradientColor := parseOptionalColor(data, "gradient_color")
 
 	show := false
 	if val, ok := data["show"].(bool); ok {
@@ -320,10 +334,7 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		barColor = color.Transparent
 	}
 
-	var gradientColor color.Color
-	if val, ok := data["gradient_color"].(string); ok {
-		gradientColor = utils.ConvertToColor(val, color.Transparent)
-	}
+	gradientColor := parseOptionalColor(data, "gradient_color")
 
 	show := false
 	if val, ok := data["show"].(bool); ok {

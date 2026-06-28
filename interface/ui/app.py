@@ -267,6 +267,8 @@ class EditorApp:
         # Wire delete button in properties panel → canvas.remove_element
         if hasattr(self._props, "set_on_delete"):
             self._props.set_on_delete(self._canvas.remove_element)
+        if hasattr(self._props, "set_on_type_change"):
+            self._props.set_on_type_change(self._canvas.swap_element_type)
 
         # Toolbox (esquerda)
         self._toolbox = Toolbox(add_element_cb=self._canvas.add_new_element)
@@ -301,11 +303,6 @@ class EditorApp:
         save_btn.add_css_class("suggested-action")
         save_btn.connect("clicked", self._on_save)
         header.pack_end(save_btn)
-
-        preview_btn = Gtk.Button(label="Enviar para tela")
-        preview_btn.set_tooltip_text("Envia preview para o device via WebSocket")
-        preview_btn.connect("clicked", self._on_send_preview)
-        header.pack_end(preview_btn)
 
         # Menus Arquivo e Editar (equivalente ao buildMainMenu do Go)
         arquivo_btn = Gtk.MenuButton(label="Arquivo")
@@ -553,10 +550,6 @@ class EditorApp:
             self._toast("Tema salvo com sucesso.")
         except Exception as e:
             self._show_error(f"Falha ao salvar:\n{e}")
-
-    def _on_send_preview(self, _btn):
-        log.info("Send preview: não implementado ainda")
-        self._toast("Preview ainda não implementado.")
 
     # ------------------------------------------------------------------
     # Helpers

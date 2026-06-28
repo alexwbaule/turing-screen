@@ -1,107 +1,135 @@
 """
-Toolbox — buttons to add new elements to the canvas.
-One section per sensor category (CPU, GPU, Memory, Disk, Net, Date, Static).
+Toolbox — painel esquerdo do editor de temas.
+
+Dividido em dois painéis separados por um separador (espelhando Properties+Layers
+no lado direito):
+
+  ┌─────────────────┐
+  │  Add Element    │  ← accordion por categoria; cada sensor é um botão
+  ├─────────────────┤
+  │  Representação  │  ← radio buttons para escolher o tipo de exibição
+  └─────────────────┘
+
+Clicar num sensor cria um elemento do tipo atualmente selecionado na
+seção "Representação". Sensores text-only (Load, Condition, Volume…)
+ignoram o seletor e sempre criam Text.
 """
 from gi.repository import Gtk
 
+# ---------------------------------------------------------------------------
+# Mapeamento tipo → (sufixo YAML, kind para canvas)
+# ---------------------------------------------------------------------------
+_TYPES = [
+    ("Text",        "TEXT",        "text"),
+    ("% Text",      "PERCENT_TEXT","text"),
+    ("Graph",       "GRAPH",       "graph"),
+    ("Radial",      "RADIAL",      "radial"),
+    ("Chart",       "CHART",       "chart"),
+    ("Gauge",       "GAUGE",       "gauge"),
+    ("Status Bar",  "STATUS_BAR",  "status_bar"),
+]
 
-# Maps (label, yaml_path_hint, element_type) per category
+# ---------------------------------------------------------------------------
+# Definição das seções do accordion
+# Cada sensor: (label, base_path, text_only)
+#   text_only=True  → base_path já é o caminho completo; ignora tipo selecionado
+#   text_only=False → base_path + "." + sufixo do tipo selecionado
+# ---------------------------------------------------------------------------
 _SECTIONS = [
     ("Texto Estático", [
-        ("Texto Estático", "static_texts.LABEL", "text"),
+        ("Texto",       "static_texts.LABEL",              True),
     ]),
     ("CPU", [
-        ("% Graph",       "STATS.CPU.PERCENTAGE.GRAPH",      "graph"),
-        ("% Text",        "STATS.CPU.PERCENTAGE.TEXT",       "text"),
-        ("% Radial",      "STATS.CPU.PERCENTAGE.RADIAL",     "radial"),
-        ("% Chart",       "STATS.CPU.PERCENTAGE.CHART",      "chart"),
-        ("Temperatura",   "STATS.CPU.TEMPERATURE.TEXT",      "text"),
-        ("Frequência",    "STATS.CPU.FREQUENCY.TEXT",        "text"),
-        ("Fan",           "STATS.CPU.FAN.TEXT",              "text"),
-        ("Power",         "STATS.CPU.POWER.TEXT",            "text"),
-        ("Voltage",       "STATS.CPU.VOLTAGE.TEXT",          "text"),
-        ("Load 1min",     "STATS.CPU.LOAD.ONE.TEXT",         "text"),
-        ("Load 5min",     "STATS.CPU.LOAD.FIVE.TEXT",        "text"),
-        ("Load 15min",    "STATS.CPU.LOAD.FIFTEEN.TEXT",     "text"),
+        ("Percentage",  "STATS.CPU.PERCENTAGE",            False),
+        ("Temperature", "STATS.CPU.TEMPERATURE",           False),
+        ("Frequency",   "STATS.CPU.FREQUENCY",             False),
+        ("Fan",         "STATS.CPU.FAN",                   False),
+        ("Power",       "STATS.CPU.POWER",                 False),
+        ("Voltage",     "STATS.CPU.VOLTAGE",               False),
+        ("Load 1min",   "STATS.CPU.LOAD.ONE.TEXT",         True),
+        ("Load 5min",   "STATS.CPU.LOAD.FIVE.TEXT",        True),
+        ("Load 15min",  "STATS.CPU.LOAD.FIFTEEN.TEXT",     True),
     ]),
     ("GPU", [
-        ("% Graph",       "STATS.GPU.PERCENTAGE.GRAPH",      "graph"),
-        ("% Text",        "STATS.GPU.PERCENTAGE.TEXT",       "text"),
-        ("% Radial",      "STATS.GPU.PERCENTAGE.RADIAL",     "radial"),
-        ("% Chart",       "STATS.GPU.PERCENTAGE.CHART",      "chart"),
-        ("Temperatura",   "STATS.GPU.TEMPERATURE.TEXT",      "text"),
-        ("Memória",       "STATS.GPU.MEMORY.TEXT",           "text"),
-        ("Power",         "STATS.GPU.POWER.TEXT",            "text"),
-        ("Frequência",    "STATS.GPU.FREQUENCY.TEXT",        "text"),
-        ("Voltage",       "STATS.GPU.VOLTAGE.TEXT",          "text"),
-        ("Fan",           "STATS.GPU.FAN.TEXT",              "text"),
+        ("Percentage",  "STATS.GPU.PERCENTAGE",            False),
+        ("Memory",      "STATS.GPU.MEMORY",                False),
+        ("Temperature", "STATS.GPU.TEMPERATURE",           False),
+        ("Power",       "STATS.GPU.POWER",                 False),
+        ("Frequency",   "STATS.GPU.FREQUENCY",             False),
+        ("Voltage",     "STATS.GPU.VOLTAGE",               False),
+        ("Fan",         "STATS.GPU.FAN",                   False),
     ]),
     ("Memória Virtual", [
-        ("% Text",        "STATS.MEMORY.VIRTUAL.PERCENT_TEXT", "text"),
-        ("Graph",         "STATS.MEMORY.VIRTUAL.GRAPH",        "graph"),
-        ("Radial",        "STATS.MEMORY.VIRTUAL.RADIAL",       "radial"),
-        ("Chart",         "STATS.MEMORY.VIRTUAL.CHART",        "chart"),
-        ("Usada",         "STATS.MEMORY.VIRTUAL.USED",         "text"),
-        ("Livre",         "STATS.MEMORY.VIRTUAL.FREE",         "text"),
+        ("Uso",         "STATS.MEMORY.VIRTUAL",            False),
+        ("Usada",       "STATS.MEMORY.VIRTUAL.USED",       True),
+        ("Livre",       "STATS.MEMORY.VIRTUAL.FREE",       True),
+        ("% Texto",     "STATS.MEMORY.VIRTUAL.PERCENT_TEXT", True),
     ]),
     ("Swap", [
-        ("% Text",        "STATS.MEMORY.SWAP.PERCENT_TEXT",    "text"),
-        ("Graph",         "STATS.MEMORY.SWAP.GRAPH",           "graph"),
-        ("Radial",        "STATS.MEMORY.SWAP.RADIAL",          "radial"),
-        ("Chart",         "STATS.MEMORY.SWAP.CHART",           "chart"),
+        ("Uso",         "STATS.MEMORY.SWAP",               False),
+        ("% Texto",     "STATS.MEMORY.SWAP.PERCENT_TEXT",  True),
     ]),
     ("Disco", [
-        ("Usado %",       "STATS.DISK.USED.PERCENT_TEXT",      "text"),
-        ("Livre",         "STATS.DISK.FREE.TEXT",              "text"),
-        ("Total",         "STATS.DISK.TOTAL.TEXT",             "text"),
-        ("Temperatura",   "STATS.DISK.TEMPERATURE.TEXT",       "text"),
+        ("Usado",       "STATS.DISK.USED",                 False),
+        ("Livre",       "STATS.DISK.FREE",                 False),
+        ("Total",       "STATS.DISK.TOTAL",                False),
+        ("Temperatura", "STATS.DISK.TEMPERATURE",          False),
     ]),
     ("Rede Ethernet", [
-        ("Upload",        "STATS.NET.ETH.UPLOAD.TEXT",         "text"),
-        ("Download",      "STATS.NET.ETH.DOWNLOAD.TEXT",       "text"),
-        ("Total Up",      "STATS.NET.ETH.UPLOADED.TEXT",       "text"),
-        ("Total Down",    "STATS.NET.ETH.DOWNLOADED.TEXT",     "text"),
+        ("Upload",      "STATS.NET.ETH.UPLOAD",            False),
+        ("Download",    "STATS.NET.ETH.DOWNLOAD",          False),
+        ("Total Up",    "STATS.NET.ETH.UPLOADED",          False),
+        ("Total Down",  "STATS.NET.ETH.DOWNLOADED",        False),
     ]),
     ("Rede WiFi", [
-        ("Upload",        "STATS.NET.WLO.UPLOAD.TEXT",         "text"),
-        ("Download",      "STATS.NET.WLO.DOWNLOAD.TEXT",       "text"),
-        ("Total Up",      "STATS.NET.WLO.UPLOADED.TEXT",       "text"),
-        ("Total Down",    "STATS.NET.WLO.DOWNLOADED.TEXT",     "text"),
+        ("Upload",      "STATS.NET.WLO.UPLOAD",            False),
+        ("Download",    "STATS.NET.WLO.DOWNLOAD",          False),
+        ("Total Up",    "STATS.NET.WLO.UPLOADED",          False),
+        ("Total Down",  "STATS.NET.WLO.DOWNLOADED",        False),
     ]),
     ("Data / Hora", [
-        ("Hora",          "STATS.DATE.HOUR.TEXT",              "text"),
-        ("Dia",           "STATS.DATE.DAY.TEXT",               "text"),
+        ("Hora",        "STATS.DATE.HOUR",                 False),
+        ("Dia",         "STATS.DATE.DAY",                  False),
     ]),
     ("Clima", [
-        ("Temperatura",   "STATS.WEATHER.TEMPERATURE.TEXT",    "text"),
-        ("Condição",      "STATS.WEATHER.CONDITION",           "text"),
+        ("Temperatura", "STATS.WEATHER.TEMPERATURE",       False),
+        ("Condição",    "STATS.WEATHER.CONDITION",         True),
     ]),
     ("Volume", [
-        ("Volume",        "STATS.VOLUME.TEXT",                 "text"),
+        ("Volume",      "STATS.VOLUME.TEXT",               True),
     ]),
 ]
 
 
 class Toolbox(Gtk.Box):
     """
-    Left sidebar with collapsible sections. Each button calls
-    add_element_cb(yaml_path, element_type).
+    Left sidebar: sensor accordion (top) + representation type picker (bottom).
     """
 
     def __init__(self, add_element_cb):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.set_size_request(180, -1)
         self._add_cb = add_element_cb
+        self._selected_type_idx = 0   # index into _TYPES (default: Text)
         self._build_ui()
 
+    # ------------------------------------------------------------------
+
     def _build_ui(self):
-        lbl = Gtk.Label(label="Add Element")
-        lbl.add_css_class("heading")
-        lbl.set_halign(Gtk.Align.START)
-        lbl.set_margin_top(8)
-        lbl.set_margin_start(8)
-        lbl.set_margin_bottom(4)
-        self.append(lbl)
+        self._build_sensor_panel()
+        self.append(Gtk.Separator())
+        self._build_type_panel()
+
+    # ── Sensor accordion ──────────────────────────────────────────────
+
+    def _build_sensor_panel(self):
+        header = Gtk.Label(label="Add Element")
+        header.add_css_class("heading")
+        header.set_halign(Gtk.Align.START)
+        header.set_margin_top(8)
+        header.set_margin_start(8)
+        header.set_margin_bottom(4)
+        self.append(header)
 
         scroll = Gtk.ScrolledWindow()
         scroll.set_vexpand(True)
@@ -109,31 +137,69 @@ class Toolbox(Gtk.Box):
 
         inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
 
-        for section_title, items in _SECTIONS:
-            expander = Gtk.Expander(label=section_title)
-            expander.set_margin_start(4)
-            expander.set_margin_top(2)
+        for section_title, sensors in _SECTIONS:
+            exp = Gtk.Expander(label=section_title)
+            exp.set_margin_start(4)
+            exp.set_margin_top(2)
 
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
             vbox.set_margin_start(12)
             vbox.set_margin_top(4)
             vbox.set_margin_bottom(4)
 
-            for label, path, kind in items:
+            for label, base_path, text_only in sensors:
                 btn = Gtk.Button(label=label)
                 btn.set_halign(Gtk.Align.START)
                 btn.add_css_class("flat")
-                # capture loop vars
-                btn.connect("clicked", self._make_handler(path, kind))
+                btn.connect("clicked", self._make_sensor_handler(base_path, text_only))
                 vbox.append(btn)
 
-            expander.set_child(vbox)
-            inner.append(expander)
+            exp.set_child(vbox)
+            inner.append(exp)
 
         scroll.set_child(inner)
         self.append(scroll)
 
-    def _make_handler(self, path: str, kind: str):
+    def _make_sensor_handler(self, base_path: str, text_only: bool):
         def handler(_btn):
-            self._add_cb(path, kind)
+            if text_only:
+                self._add_cb(base_path, "text")
+            else:
+                _, suffix, kind = _TYPES[self._selected_type_idx]
+                self._add_cb(base_path + "." + suffix, kind)
+        return handler
+
+    # ── Type picker ───────────────────────────────────────────────────
+
+    def _build_type_panel(self):
+        header = Gtk.Label(label="Representação")
+        header.add_css_class("heading")
+        header.set_halign(Gtk.Align.START)
+        header.set_margin_top(8)
+        header.set_margin_start(8)
+        header.set_margin_bottom(4)
+        self.append(header)
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        vbox.set_margin_start(8)
+        vbox.set_margin_end(8)
+        vbox.set_margin_bottom(8)
+
+        first_btn = None
+        for i, (label, _suffix, _kind) in enumerate(_TYPES):
+            rb = Gtk.CheckButton(label=label)
+            if first_btn is None:
+                first_btn = rb
+                rb.set_active(True)
+            else:
+                rb.set_group(first_btn)
+            rb.connect("toggled", self._make_type_handler(i))
+            vbox.append(rb)
+
+        self.append(vbox)
+
+    def _make_type_handler(self, idx: int):
+        def handler(btn):
+            if btn.get_active():
+                self._selected_type_idx = idx
         return handler

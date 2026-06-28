@@ -455,6 +455,12 @@ func (c *Compositor) drawRadialOnFrame(frame *image.NRGBA, value float64, stat *
 	amin := utils.Radians(stat.AngleStart - 90)
 	amax := utils.Radians(180 + stat.AngleStart - 90 + stat.AngleEnd)
 	totalArc := amax - amin
+	// Clamp full-circle configs (AngleEnd=360 yields totalArc=3π due to the
+	// formula; cap at 2π so the arc never exceeds one revolution).
+	if totalArc > 2*math.Pi-0.001 {
+		totalArc = 2 * math.Pi
+		amax = amin + totalArc
+	}
 	filledAngle := totalArc * ratio
 
 	var cur float64
