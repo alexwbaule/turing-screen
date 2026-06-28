@@ -316,6 +316,14 @@ class DraggableText(_DraggableBase):
 
         self._draw_selection(cr, tw, th)
 
+    def get_model_position(self) -> tuple[int, int]:
+        """Text stores the alignment anchor (left/center/right) in data.X — not
+        the widget's top-left. The properties spinners edit data.X directly, so
+        report that rather than self._x, otherwise a click (which fires
+        drag-end → update_position) would rewrite the spin to the left-edge
+        coordinate and make the value jump on every selection."""
+        return self.data.X, self.data.Y
+
     def _commit_position(self):
         align = (self.data.ALIGN or "LEFT").upper()
         w = self.widget.get_allocated_width()

@@ -832,6 +832,9 @@ func drawArcGradientNRGBA(dst *image.NRGBA, cx, cy, radius, startAngle, endAngle
 		maxY = bounds.Max.Y
 	}
 
+	// See drawArcNRGBA: a full revolution collapses under the modulo, so draw
+	// the whole ring when the span is ~2π.
+	fullCircle := endAngle-startAngle >= 2*math.Pi-0.001
 	totalH := float64(maxY - minY)
 	twoPi := 2 * math.Pi
 	for py := minY; py < maxY; py++ {
@@ -842,21 +845,23 @@ func drawArcGradientNRGBA(dst *image.NRGBA, cx, cy, radius, startAngle, endAngle
 			if dist < innerR || dist > outerR {
 				continue
 			}
-			angle := math.Mod(math.Atan2(dy, dx)+twoPi, twoPi)
-			s := math.Mod(startAngle+twoPi, twoPi)
-			e := math.Mod(endAngle+twoPi, twoPi)
-			inArc := false
-			if s <= e {
-				if angle >= s && angle <= e {
-					inArc = true
+			if !fullCircle {
+				angle := math.Mod(math.Atan2(dy, dx)+twoPi, twoPi)
+				s := math.Mod(startAngle+twoPi, twoPi)
+				e := math.Mod(endAngle+twoPi, twoPi)
+				inArc := false
+				if s <= e {
+					if angle >= s && angle <= e {
+						inArc = true
+					}
+				} else {
+					if angle >= s || angle <= e {
+						inArc = true
+					}
 				}
-			} else {
-				if angle >= s || angle <= e {
-					inArc = true
+				if !inArc {
+					continue
 				}
-			}
-			if !inArc {
-				continue
 			}
 			t := 0.0
 			if totalH > 0 {
@@ -967,6 +972,11 @@ func drawArcNRGBA(dst *image.NRGBA, cx, cy, radius, startAngle, endAngle float64
 		maxY = bounds.Max.Y
 	}
 
+	// A full (or near-full) revolution collapses under the [0, 2π) modulo below:
+	// start and end both map to the same angle, so the arc would render as a
+	// single point. Detect it up front and draw the whole ring. This is what
+	// makes a 0–360° radial's background actually appear.
+	fullCircle := endAngle-startAngle >= 2*math.Pi-0.001
 	twoPi := 2 * math.Pi
 	for py := minY; py < maxY; py++ {
 		for px := minX; px < maxX; px++ {
@@ -974,6 +984,10 @@ func drawArcNRGBA(dst *image.NRGBA, cx, cy, radius, startAngle, endAngle float64
 			dy := float64(py) + 0.5 - cy
 			dist := math.Sqrt(dx*dx + dy*dy)
 			if dist < innerR || dist > outerR {
+				continue
+			}
+			if fullCircle {
+				dst.SetNRGBA(px, py, nc)
 				continue
 			}
 			angle := math.Mod(math.Atan2(dy, dx)+twoPi, twoPi)
