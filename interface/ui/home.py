@@ -36,6 +36,7 @@ class HomePage:
         self._themes: list[str] = []
         self._current_index: int = 0
         self._active_theme: str = ""
+        self._user_navigated: bool = False  # set once the user uses the arrows
         self._last_mode: str = ""
         self._connected: bool = False
         self._device_type: str = ""
@@ -260,6 +261,7 @@ class HomePage:
     def _navigate(self, direction: int):
         if not self._themes:
             return
+        self._user_navigated = True
         self._current_index = (self._current_index + direction) % len(self._themes)
         self._update_display()
 
@@ -391,6 +393,10 @@ class HomePage:
 
         if theme and theme != self._active_theme:
             self._active_theme = theme
+            # Start on the daemon's active theme instead of the first in the
+            # list — but only until the user navigates manually.
+            if not self._user_navigated and theme in self._themes:
+                self._current_index = self._themes.index(theme)
             self._update_display()
 
     # ------------------------------------------------------------------

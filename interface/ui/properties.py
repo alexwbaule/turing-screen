@@ -263,7 +263,8 @@ class PropertiesPanel(Gtk.Box):
         path_lbl.set_selectable(True)
         box.append(path_lbl)
 
-        # Type switcher dropdown
+        # Type switcher dropdown. Text and % Text are both DraggableText, so the
+        # current one is told apart by the yaml_path suffix (.PERCENT_TEXT vs .TEXT).
         _type_map = [
             (DraggableText,      "text"),
             (DraggableGraph,     "graph"),
@@ -272,14 +273,34 @@ class PropertiesPanel(Gtk.Box):
             (DraggableGauge,     "gauge"),
             (DraggableStatusBar, "status_bar"),
         ]
-        TYPES = [t for _, t in _type_map]
-        current_type = next((t for cls, t in _type_map if isinstance(element, cls)), "text")
+        if isinstance(element, DraggableText) and element.yaml_path.endswith(".PERCENT_TEXT"):
+            current_type = "percent_text"
+        else:
+            current_type = next((t for cls, t in _type_map if isinstance(element, cls)), "text")
 
-        dd = Gtk.DropDown.new_from_strings(TYPES)
+        # Display labels vs the kind sent to the callback. "% Text" only makes
+        # sense for measurement-backed elements (those with a Text/PercentText
+        # slot pair) — hide it otherwise.
+        _all_opts = [
+            ("Text",       "text"),
+            ("% Text",     "percent_text"),
+            ("Graph",      "graph"),
+            ("Radial",     "radial"),
+            ("Chart",      "chart"),
+            ("Gauge",      "gauge"),
+            ("Status Bar", "status_bar"),
+        ]
+        has_measurement = bool(getattr(element, "_measurement", None))
+        opts = [(lbl, k) for lbl, k in _all_opts
+                if k != "percent_text" or has_measurement]
+        labels = [lbl for lbl, _ in opts]
+        kinds = [k for _, k in opts]
+
+        dd = Gtk.DropDown.new_from_strings(labels)
         dd.set_hexpand(True)
         self._updating = True
         try:
-            dd.set_selected(TYPES.index(current_type))
+            dd.set_selected(kinds.index(current_type))
         except ValueError:
             dd.set_selected(0)
         self._updating = False
@@ -287,7 +308,7 @@ class PropertiesPanel(Gtk.Box):
         def _on_type_selected(d, _):
             if self._updating:
                 return
-            new_type = TYPES[d.get_selected()]
+            new_type = kinds[d.get_selected()]
             if new_type != current_type and self._on_type_change:
                 self._on_type_change(element, new_type)
 
