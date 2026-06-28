@@ -64,26 +64,6 @@ STATS:
   CPU:
     PERCENTAGE:
       SHOW: false
-      GRAPH:
-        SHOW: true
-        X: 835
-        Y: 561
-        WIDTH: 345
-        HEIGHT: 31
-        MIN_VALUE: 0
-        MAX_VALUE: 100
-        BAR_COLOR: 246, 139, 29
-        BACKGROUND_COLOR: 255, 255, 255
-        GRADIENT_COLOR: ''
-        BAR_OUTLINE: false
-        BORDER_WIDTH: 0
-        CORNER_RADIUS: 0
-        STEPS: 0
-        STEP_GAP: 0
-        BLOCK_WIDTH: 0
-        REVERT_VALUE: false
-        DIRECTION: ''
-        INDEX: 16
       RADIAL:
         SHOW: true
         X: 367
@@ -263,6 +243,26 @@ STATS:
   DISK:
     USED:
       SHOW: false
+      GRAPH:
+        SHOW: true
+        X: 835
+        Y: 561
+        WIDTH: 345
+        HEIGHT: 31
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 246, 139, 29
+        BACKGROUND_COLOR: 255, 255, 255
+        GRADIENT_COLOR: ''
+        BAR_OUTLINE: false
+        BORDER_WIDTH: 0
+        CORNER_RADIUS: 0
+        STEPS: 0
+        STEP_GAP: 0
+        BLOCK_WIDTH: 0
+        REVERT_VALUE: false
+        DIRECTION: ''
+        INDEX: 16
       PERCENT_TEXT:
         X: 1102
         Y: 635

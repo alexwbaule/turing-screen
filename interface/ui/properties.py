@@ -322,8 +322,13 @@ class PropertiesPanel(Gtk.Box):
 
         # Position
         exp, inner = self._expander("Position")
-        self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
-        self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
+        # data.X is the ALIGN anchor (left/center/right edge), not the widget
+        # top-left — so we must NOT set_position(data.X, data.Y) here (that would
+        # place the left edge at the anchor and shift the text on every release).
+        # refresh() → invalidate() re-anchors via _anchor_to_left, and is guarded
+        # by _updating so update_position's programmatic set_value won't move it.
+        self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), refresh()])
+        self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), refresh()])
         self._append_row(inner, "X", self._x_spin)
         self._append_row(inner, "Y", self._y_spin)
         self._content.append(exp)
