@@ -153,24 +153,27 @@ func ParsePath(path string) string {
 }
 
 func ConvertToColor(s string, dft color.Color) color.Color {
-	rgba := strings.SplitN(s, ", ", 4)
+	rgba := strings.SplitN(s, ",", 4)
 
 	if len(rgba) == 3 {
 		rgba = append(rgba, "255")
 	}
-	r, err := strconv.Atoi(rgba[0])
+	if len(rgba) != 4 {
+		return dft
+	}
+	r, err := strconv.Atoi(strings.TrimSpace(rgba[0]))
 	if err != nil {
 		return dft
 	}
-	g, err := strconv.Atoi(rgba[1])
+	g, err := strconv.Atoi(strings.TrimSpace(rgba[1]))
 	if err != nil {
 		return dft
 	}
-	b, err := strconv.Atoi(rgba[2])
+	b, err := strconv.Atoi(strings.TrimSpace(rgba[2]))
 	if err != nil {
 		return dft
 	}
-	a, err := strconv.Atoi(rgba[3])
+	a, err := strconv.Atoi(strings.TrimSpace(rgba[3]))
 	if err != nil {
 		return dft
 	}
