@@ -14,7 +14,7 @@ from theme.models import (
 )
 from ui.draggable import (
     DraggableText, DraggableGraph, DraggableRadial, DraggableChart,
-    DraggableGauge, DraggableStatusBar, _DraggableBase,
+    DraggableGauge, DraggableStatusBar, DraggableImage, _DraggableBase,
 )
 
 _KIND_TO_SUFFIX = {
@@ -276,25 +276,34 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         if not os.path.exists(path):
             log.warning("Background image not found: %s", path)
             return
+        if key == "BACKGROUND":
+            # Pinned backdrop — always behind everything. Kept as a Picture.
+            try:
+                scaled = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                    path, img_data.WIDTH or self._canvas_w,
+                    img_data.HEIGHT or self._canvas_h, False)
+                texture = Gdk.Texture.new_for_pixbuf(scaled)
+                pic = Gtk.Picture.new_for_paintable(texture)
+                pic.set_size_request(img_data.WIDTH or self._canvas_w,
+                                      img_data.HEIGHT or self._canvas_h)
+                pic.set_content_fit(Gtk.ContentFit.FILL)
+                self._fixed.put(pic, img_data.X, img_data.Y)
+                click = Gtk.GestureClick()
+                click.connect("pressed", lambda *_: self._select_bg(key))
+                pic.add_controller(click)
+                self._bg_imgs[key] = {"pic": pic, "img": img_data, "texture": texture}
+            except Exception as e:
+                log.error("Failed to load background %s: %s", path, e)
+            return
+        # Non-BACKGROUND image → z-ordered element (sits above/below widgets by
+        # INDEX), matching how the daemon renders it.
         try:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                path, img_data.WIDTH or self._canvas_w,
-                img_data.HEIGHT or self._canvas_h, False
-            )
-            texture = Gdk.Texture.new_for_pixbuf(pixbuf)
-            pic = Gtk.Picture.new_for_paintable(texture)
-            pic.set_size_request(img_data.WIDTH or self._canvas_w,
-                                  img_data.HEIGHT or self._canvas_h)
-            pic.set_content_fit(Gtk.ContentFit.FILL)
-            self._fixed.put(pic, img_data.X, img_data.Y)
-            # Make background images selectable so their properties (X/Y/Size)
-            # can be edited.
-            click = Gtk.GestureClick()
-            click.connect("pressed", lambda *_: self._select_bg(key))
-            pic.add_controller(click)
-            self._bg_imgs[key] = {"pic": pic, "img": img_data, "texture": texture}
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
+            elem = DraggableImage(img_data, pixbuf, f"static_images.{key}",
+                                  self._canvas_w, self._canvas_h)
+            self._add_element(elem)
         except Exception as e:
-            log.error("Failed to load background %s: %s", path, e)
+            log.error("Failed to load image %s: %s", path, e)
 
     def _apply_bg_geometry(self, key: str):
         """Move/resize a background picture to match its StaticImage X/Y/W/H."""
@@ -337,7 +346,7 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         except Exception:
             w, h = self._canvas_w, self._canvas_h
         self._theme.static_images[key] = StaticImage(
-            PATH=os.path.basename(path), X=0, Y=0, WIDTH=w, HEIGHT=h
+            PATH=os.path.basename(path), X=0, Y=0, WIDTH=w, HEIGHT=h, INDEX=9999
         )
         self.load_theme(self._theme, os.path.dirname(path) or self._theme_dir)
 
@@ -567,6 +576,12 @@ class ThemeCanvas(Gtk.ScrolledWindow):
 
     def remove_element(self, elem: _DraggableBase):
         if elem in self._elements:
+            # A layer image lives in theme.static_images too — drop it there so
+            # the deletion survives save/reload.
+            if isinstance(elem, DraggableImage) and elem.yaml_path.startswith("static_images."):
+                key = elem.yaml_path.split(".", 1)[1]
+                if self._theme and key in (self._theme.static_images or {}):
+                    del self._theme.static_images[key]
             self._fixed.remove(elem.widget)
             self._elements.remove(elem)
             if self._selected is elem:

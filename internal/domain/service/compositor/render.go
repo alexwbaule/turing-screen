@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 	"math"
 	"sort"
 	"strings"
@@ -163,6 +164,22 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 			idx := stats.Volume.Text.Index
 			items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, stats.Volume.Text) }})
 		}
+	}
+
+	// Free (non-BACKGROUND) images — z-ordered with the widgets by Index.
+	for _, li := range c.builder.GetLayerImages() {
+		if li.BackgroundImage == nil {
+			continue
+		}
+		limg := li.BackgroundImage
+		lx, ly := li.X, li.Y
+		items = append(items, drawItem{
+			index: li.Index,
+			drawFunc: func(f *image.NRGBA) {
+				r := image.Rect(lx, ly, lx+limg.Bounds().Dx(), ly+limg.Bounds().Dy())
+				draw.Draw(f, r, limg, limg.Bounds().Min, draw.Over)
+			},
+		})
 	}
 
 	// Sort by INDEX (lower index = drawn first = behind)

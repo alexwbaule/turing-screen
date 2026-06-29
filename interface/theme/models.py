@@ -234,6 +234,7 @@ class StaticImage:
     Y: int = 0
     WIDTH: int = 0
     HEIGHT: int = 0
+    INDEX: int = 0
 
     @classmethod
     def from_dict(cls, d):

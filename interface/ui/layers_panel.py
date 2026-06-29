@@ -65,16 +65,19 @@ class LayersPanel(Gtk.Box):
         if theme and theme.video:
             self._add_entry("🎬 VIDEO", "video", None)
 
-        # Background layers (in sorted key order)
-        if theme and theme.static_images:
-            for key in sorted(theme.static_images.keys()):
-                img = theme.static_images[key]
-                label = f"🖼 {key}  ({os.path.basename(img.PATH)})"
-                self._add_entry(label, "layer", key)
+        # Pinned background (only the BACKGROUND image; other images are
+        # z-ordered elements and appear in the canvas-elements list below).
+        if theme and theme.static_images and "BACKGROUND" in theme.static_images:
+            img = theme.static_images["BACKGROUND"]
+            self._add_entry(f"🖼 BACKGROUND  ({os.path.basename(img.PATH)})", "layer", "BACKGROUND")
 
-        # Canvas elements
+        # Canvas elements (widgets + non-BACKGROUND images)
         for elem in canvas_elements:
-            label = f"📝 {elem.yaml_path}"
+            yp = elem.yaml_path
+            if yp.startswith("static_images."):
+                label = f"🖼 {yp.split('.', 1)[1]}"
+            else:
+                label = f"📝 {yp}"
             self._add_entry(label, "widget", elem)
 
     def select_element(self, elem):

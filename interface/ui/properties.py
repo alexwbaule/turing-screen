@@ -100,7 +100,8 @@ class PropertiesPanel(Gtk.Box):
             return
 
         from ui.draggable import (DraggableText, DraggableGraph, DraggableRadial,
-                                   DraggableChart, DraggableGauge, DraggableStatusBar)
+                                   DraggableChart, DraggableGauge, DraggableStatusBar,
+                                   DraggableImage)
         self._header.set_label(f"Properties — {element.yaml_path.split('.')[-1]}")
 
         # Common header: path info + delete
@@ -118,6 +119,8 @@ class PropertiesPanel(Gtk.Box):
             self._build_gauge_props(element)
         elif isinstance(element, DraggableStatusBar):
             self._build_statusbar_props(element)
+        elif isinstance(element, DraggableImage):
+            self._build_image_props(element)
 
     def update_position(self, element):
         if element is not self._current:
@@ -283,7 +286,8 @@ class PropertiesPanel(Gtk.Box):
 
     def _build_common_header(self, element):
         from ui.draggable import (DraggableText, DraggableGraph, DraggableRadial,
-                                   DraggableChart, DraggableGauge, DraggableStatusBar)
+                                   DraggableChart, DraggableGauge, DraggableStatusBar,
+                                   DraggableImage)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         box.set_margin_bottom(6)
@@ -296,65 +300,67 @@ class PropertiesPanel(Gtk.Box):
         path_lbl.set_selectable(True)
         box.append(path_lbl)
 
-        # Type switcher dropdown. Text and % Text are both DraggableText, so the
-        # current one is told apart by the yaml_path suffix (.PERCENT_TEXT vs .TEXT).
-        _type_map = [
-            (DraggableText,      "text"),
-            (DraggableGraph,     "graph"),
-            (DraggableRadial,    "radial"),
-            (DraggableChart,     "chart"),
-            (DraggableGauge,     "gauge"),
-            (DraggableStatusBar, "status_bar"),
-        ]
-        if isinstance(element, DraggableText) and element.yaml_path.endswith(".PERCENT_TEXT"):
-            current_type = "percent_text"
-        else:
-            current_type = next((t for cls, t in _type_map if isinstance(element, cls)), "text")
+        # Type switcher dropdown (not for images — they aren't type-swappable).
+        # Text and % Text are both DraggableText, so the current one is told
+        # apart by the yaml_path suffix (.PERCENT_TEXT vs .TEXT).
+        if not isinstance(element, DraggableImage):
+            _type_map = [
+                (DraggableText,      "text"),
+                (DraggableGraph,     "graph"),
+                (DraggableRadial,    "radial"),
+                (DraggableChart,     "chart"),
+                (DraggableGauge,     "gauge"),
+                (DraggableStatusBar, "status_bar"),
+            ]
+            if isinstance(element, DraggableText) and element.yaml_path.endswith(".PERCENT_TEXT"):
+                current_type = "percent_text"
+            else:
+                current_type = next((t for cls, t in _type_map if isinstance(element, cls)), "text")
 
-        # Display labels vs the kind sent to the callback. "% Text" only makes
-        # sense for measurement-backed elements (those with a Text/PercentText
-        # slot pair) — hide it otherwise.
-        _all_opts = [
-            ("Text",       "text"),
-            ("% Text",     "percent_text"),
-            ("Graph",      "graph"),
-            ("Radial",     "radial"),
-            ("Chart",      "chart"),
-            ("Gauge",      "gauge"),
-            ("Status Bar", "status_bar"),
-        ]
-        has_measurement = bool(getattr(element, "_measurement", None))
-        opts = [(lbl, k) for lbl, k in _all_opts
-                if k != "percent_text" or has_measurement]
-        labels = [lbl for lbl, _ in opts]
-        kinds = [k for _, k in opts]
+            # Display labels vs the kind sent to the callback. "% Text" only makes
+            # sense for measurement-backed elements (those with a Text/PercentText
+            # slot pair) — hide it otherwise.
+            _all_opts = [
+                ("Text",       "text"),
+                ("% Text",     "percent_text"),
+                ("Graph",      "graph"),
+                ("Radial",     "radial"),
+                ("Chart",      "chart"),
+                ("Gauge",      "gauge"),
+                ("Status Bar", "status_bar"),
+            ]
+            has_measurement = bool(getattr(element, "_measurement", None))
+            opts = [(lbl, k) for lbl, k in _all_opts
+                    if k != "percent_text" or has_measurement]
+            labels = [lbl for lbl, _ in opts]
+            kinds = [k for _, k in opts]
 
-        dd = Gtk.DropDown.new_from_strings(labels)
-        dd.set_hexpand(True)
-        self._updating = True
-        try:
-            dd.set_selected(kinds.index(current_type))
-        except ValueError:
-            dd.set_selected(0)
-        self._updating = False
+            dd = Gtk.DropDown.new_from_strings(labels)
+            dd.set_hexpand(True)
+            self._updating = True
+            try:
+                dd.set_selected(kinds.index(current_type))
+            except ValueError:
+                dd.set_selected(0)
+            self._updating = False
 
-        def _on_type_selected(d, _):
-            if self._updating:
-                return
-            new_type = kinds[d.get_selected()]
-            if new_type != current_type and self._on_type_change:
-                self._on_type_change(element, new_type)
+            def _on_type_selected(d, _):
+                if self._updating:
+                    return
+                new_type = kinds[d.get_selected()]
+                if new_type != current_type and self._on_type_change:
+                    self._on_type_change(element, new_type)
 
-        dd.connect("notify::selected", _on_type_selected)
+            dd.connect("notify::selected", _on_type_selected)
 
-        type_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        lbl = Gtk.Label(label="Type")
-        lbl.set_width_chars(13)
-        lbl.set_halign(Gtk.Align.END)
-        lbl.add_css_class("dim-label")
-        type_row.append(lbl)
-        type_row.append(dd)
-        box.append(type_row)
+            type_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            lbl = Gtk.Label(label="Type")
+            lbl.set_width_chars(13)
+            lbl.set_halign(Gtk.Align.END)
+            lbl.add_css_class("dim-label")
+            type_row.append(lbl)
+            type_row.append(dd)
+            box.append(type_row)
 
         # Delete button
         del_btn = Gtk.Button(label="Delete element")
@@ -364,6 +370,28 @@ class PropertiesPanel(Gtk.Box):
 
         self._content.append(box)
         self._content.append(Gtk.Separator())
+
+    # ── Image (non-BACKGROUND static image) ────────────────────────────────────
+
+    def _build_image_props(self, elem):
+        data = elem.data
+
+        def refresh():
+            if not self._updating:
+                elem.invalidate()
+
+        def resize():
+            elem.widget.set_size_request(data.WIDTH or 100, data.HEIGHT or 100)
+            refresh()
+
+        exp, inner = self._expander("Position & Size")
+        self._x_spin = self._spin(data.X, -9999, 9999, lambda s: [setattr(data, "X", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
+        self._y_spin = self._spin(data.Y, -9999, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
+        self._append_row(inner, "X", self._x_spin)
+        self._append_row(inner, "Y", self._y_spin)
+        self._append_row(inner, "Width",  self._spin(data.WIDTH or 100,  1, 9999, lambda s: [setattr(data, "WIDTH", int(s.get_value())), resize()]))
+        self._append_row(inner, "Height", self._spin(data.HEIGHT or 100, 1, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
+        self._content.append(exp)
 
     # ── Text ───────────────────────────────────────────────────────────────────
 
@@ -426,9 +454,27 @@ class PropertiesPanel(Gtk.Box):
         self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
         self._append_row(inner, "X", self._x_spin)
         self._append_row(inner, "Y", self._y_spin)
-        self._append_row(inner, "Width",  self._spin(data.WIDTH or 200,  10, 9999, lambda s: [setattr(data, "WIDTH", int(s.get_value())), resize()]))
-        self._append_row(inner, "Height", self._spin(data.HEIGHT or 80,  10, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
-        self._append_row(inner, "Direction", self._dropdown(["LEFT", "RIGHT", "UP", "DOWN"], data.DIRECTION or "LEFT", lambda v: [setattr(data, "DIRECTION", v), refresh()]))
+        self._graph_w_spin = self._spin(data.WIDTH or 200,  10, 9999, lambda s: [setattr(data, "WIDTH", int(s.get_value())), resize()])
+        self._graph_h_spin = self._spin(data.HEIGHT or 80, 10, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()])
+        self._append_row(inner, "Width",  self._graph_w_spin)
+        self._append_row(inner, "Height", self._graph_h_spin)
+
+        def _on_direction(v):
+            horiz = lambda d: (d or "left").lower() in ("left", "right")
+            old = data.DIRECTION
+            data.DIRECTION = v
+            # Flip W/H when crossing horizontal <-> vertical so a wide-short
+            # bar becomes a narrow-tall one (and vice-versa).
+            if horiz(old) != horiz(v):
+                data.WIDTH, data.HEIGHT = data.HEIGHT, data.WIDTH
+                self._updating = True
+                self._graph_w_spin.set_value(data.WIDTH or 200)
+                self._graph_h_spin.set_value(data.HEIGHT or 80)
+                self._updating = False
+                elem.widget.set_size_request(data.WIDTH or 200, data.HEIGHT or 80)
+            refresh()
+
+        self._append_row(inner, "Direction", self._dropdown(["LEFT", "RIGHT", "UP", "DOWN"], data.DIRECTION or "LEFT", _on_direction))
         self._content.append(exp)
 
         # Appearance

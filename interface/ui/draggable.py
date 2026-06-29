@@ -12,9 +12,9 @@ import os
 from typing import Callable, Optional, TYPE_CHECKING
 
 import cairo
-from gi.repository import Gtk, GLib, Pango, PangoCairo
+from gi.repository import Gtk, GLib, Gdk, Pango, PangoCairo
 
-from theme.models import Text, Graph, Radial, Chart, Gauge, StatusBar
+from theme.models import Text, Graph, Radial, Chart, Gauge, StatusBar, StaticImage
 
 if TYPE_CHECKING:
     pass
@@ -839,6 +839,42 @@ class DraggableStatusBar(_DraggableBase):
         cr.arc(bar_w, h / 2, ind_r, 0, 2 * math.pi)
         cr.fill()
 
+        self._draw_selection(cr, w, h)
+
+    def _commit_position(self):
+        self.data.X = int(self._x)
+        self.data.Y = int(self._y)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DraggableImage
+# ──────────────────────────────────────────────────────────────────────────────
+
+class DraggableImage(_DraggableBase):
+    """A non-BACKGROUND static image treated as a z-ordered canvas element
+    (drawn among the widgets by INDEX, so it can sit above or below them).
+    BACKGROUND images stay pinned to the backdrop and are NOT DraggableImages."""
+
+    def __init__(self, data: StaticImage, pixbuf, yaml_path: str,
+                 canvas_w: int = 1280, canvas_h: int = 720):
+        super().__init__(canvas_w, canvas_h)
+        self.data = data
+        self._pixbuf = pixbuf
+        self.yaml_path = yaml_path
+        self.widget.set_size_request(data.WIDTH or 100, data.HEIGHT or 100)
+        self.set_position(data.X, data.Y)
+
+    def invalidate(self):
+        self.widget.queue_draw()
+
+    def _draw(self, area, cr, w, h):
+        pb = self._pixbuf
+        if pb is not None:
+            cr.save()
+            cr.scale(w / max(1, pb.get_width()), h / max(1, pb.get_height()))
+            Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0)
+            cr.paint()
+            cr.restore()
         self._draw_selection(cr, w, h)
 
     def _commit_position(self):

@@ -19,10 +19,11 @@ import (
 )
 
 type Builder struct {
-	log        *logger.Logger
-	device     *device.Display
-	theme      *theme.Display
-	background *image.NRGBA // Composed background (static_images + static_texts)
+	log         *logger.Logger
+	device      *device.Display
+	theme       *theme.Display
+	background  *image.NRGBA       // Composed backdrop: only the BACKGROUND image (+ static_texts)
+	layerImages []theme.StaticImage // non-BACKGROUND images, z-ordered with widgets by Index
 }
 
 func NewBuilder(l *logger.Logger, v *device.Display, d *theme.Display) *Builder {
@@ -47,15 +48,31 @@ const tolerance = float64(2)
 func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) {
 	keys := maps.Keys(images)
 	slices.Sort(keys)
+	b.layerImages = b.layerImages[:0]
 	for _, name := range keys {
 		img := images[name]
-		r := image.Rect(img.X, img.Y, img.X+img.BackgroundImage.Bounds().Dx(), img.Y+img.BackgroundImage.Bounds().Dy())
-		draw.Draw(b.background, r, img.BackgroundImage, img.BackgroundImage.Bounds().Min, draw.Over)
+		if img.BackgroundImage == nil {
+			continue
+		}
+		if name == "BACKGROUND" {
+			// Pinned backdrop — always behind everything.
+			r := image.Rect(img.X, img.Y, img.X+img.BackgroundImage.Bounds().Dx(), img.Y+img.BackgroundImage.Bounds().Dy())
+			draw.Draw(b.background, r, img.BackgroundImage, img.BackgroundImage.Bounds().Min, draw.Over)
+		} else {
+			// Free image — z-ordered with the widgets by Index.
+			b.layerImages = append(b.layerImages, img)
+		}
 	}
 }
 
 func (b *Builder) GetBackground() *image.NRGBA {
 	return b.background
+}
+
+// GetLayerImages returns the non-BACKGROUND images, to be drawn z-ordered with
+// the widgets by Index (see Compositor.renderFrame).
+func (b *Builder) GetLayerImages() []theme.StaticImage {
+	return b.layerImages
 }
 
 func (b *Builder) BuildBackgroundTexts(images map[string]theme.StaticText) {
