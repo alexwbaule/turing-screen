@@ -5,6 +5,8 @@ Background layers are GtkPicture stacked under the elements.
 """
 import os
 import logging
+import dataclasses
+import typing
 from typing import Optional
 
 import cairo
@@ -51,6 +53,33 @@ def _replace_suffix(path: str, new_suffix: str) -> str:
     return path + "." + new_suffix
 
 log = logging.getLogger(__name__)
+
+# yaml_path components whose dataclass attribute name doesn't match
+# case-insensitively. NET paths use WLO/ETH but the attrs are Wifi/Wired.
+_PATH_ALIASES = {"WLO": "Wifi", "ETH": "Wired"}
+
+
+def _ci_field(obj, name: str):
+    """Dataclass field on obj matching `name` case-insensitively (honouring
+    NET path aliases). Returns the attribute name or None."""
+    if not dataclasses.is_dataclass(obj):
+        return None
+    target = _PATH_ALIASES.get(name.upper(), name).lower()
+    for f in dataclasses.fields(obj):
+        if f.name.lower() == target:
+            return f.name
+    return None
+
+
+def _resolved_type(obj, attr: str):
+    """Concrete class declared for `attr` on obj's dataclass (Optional unwrapped)."""
+    hints = typing.get_type_hints(type(obj))
+    tp = hints.get(attr)
+    if tp is None:
+        return None
+    if typing.get_origin(tp) is typing.Union:
+        tp = next((a for a in typing.get_args(tp) if a is not type(None)), None)
+    return tp if isinstance(tp, type) else None
 
 SCREEN_TURZX_W = 1280
 SCREEN_TURZX_H = 720
@@ -426,6 +455,47 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         self._fixed.put(elem.widget, elem._x, elem._y)
         self._elements.append(elem)
 
+    def _resolve_slot(self, path: str):
+        """Navigate self._theme by a yaml_path, creating missing intermediate
+        objects from their declared field types. Returns (parent, slot_attr)
+        for the leaf, or (None, None)."""
+        obj = self._theme
+        if obj is None:
+            return None, None
+        parts = path.split(".")
+        for part in parts[:-1]:
+            attr = _ci_field(obj, part)
+            if attr is None:
+                return None, None
+            nxt = getattr(obj, attr, None)
+            if nxt is None:
+                tp = _resolved_type(obj, attr)
+                if tp is None:
+                    return None, None
+                nxt = tp()
+                setattr(obj, attr, nxt)
+            obj = nxt
+        leaf = _ci_field(obj, parts[-1])
+        if leaf is None:
+            return None, None
+        return obj, leaf
+
+    def _attach_to_theme(self, elem: _DraggableBase):
+        """Attach a freshly-created element's data into self._theme at its
+        yaml_path. The in-memory theme is the single source of truth that save
+        serializes, so without this a new element lives only on the canvas and
+        is dropped on save."""
+        path = getattr(elem, "yaml_path", "")
+        if not self._theme or not path:
+            return
+        parent, slot = self._resolve_slot(path)
+        if parent is None:
+            log.warning("Não foi possível anexar o elemento ao tema: %s", path)
+            return
+        setattr(parent, slot, elem.data)
+        elem._measurement = parent
+        elem._slot = slot
+
     def _add_text_element(self, data: Text, path: str, measurement=None, slot=None):
         if data.SHOW is False:
             return
@@ -663,6 +733,7 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         else:
             return
         self._add_element(elem)
+        self._attach_to_theme(elem)
         self._layers.refresh(self._theme, self._elements)
         self._on_element_selected(elem)
 
