@@ -21,6 +21,7 @@ static_images:
     Y: -22
     WIDTH: 1296
     HEIGHT: 777
+    INDEX: 2
 STATS:
   CPU:
     PERCENTAGE:

@@ -179,8 +179,11 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         # Elements in z-order (already sorted). Suppress selection highlights so
         # the preview is clean, without disturbing live selection state.
         for elem in self._elements:
-            ew = elem.widget.get_allocated_width() or 1
-            eh = elem.widget.get_allocated_height() or 1
+            # get_allocated_width() is 0 before the widget is laid out; use the
+            # preferred (requested) size so off-screen renders produce correct output.
+            min_req, _ = elem.widget.get_preferred_size()
+            ew = min_req.width or elem.widget.get_allocated_width() or 1
+            eh = min_req.height or elem.widget.get_allocated_height() or 1
             was_sel = getattr(elem, "_selected", False)
             elem._selected = False
             cr.save()
