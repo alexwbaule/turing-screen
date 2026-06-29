@@ -57,8 +57,16 @@ def _to_dict(obj):
                 continue
             if isinstance(val, dict) and not val:
                 continue
+            # INDEX: 0 is the default — omit it so the YAML stays clean.
+            # (The daemon and editor both default missing INDEX to 0.)
+            if f.name == "INDEX" and val == 0:
+                continue
             if isinstance(val, bool):
                 result[f.name] = val
+                continue
+            # Empty strings are equivalent to "not set" for every color/font/
+            # direction field — omit them to avoid cluttering the YAML.
+            if isinstance(val, str) and not val:
                 continue
             serialized = _to_dict(val)
             if serialized is not None:
