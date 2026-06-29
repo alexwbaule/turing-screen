@@ -199,10 +199,15 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         surface.write_to_png(path)
 
     def capture_z_order(self):
-        """Write current stack position as INDEX on each element's data."""
+        """Write current stack position as INDEX on each element's data.
+
+        Starts at 1, not 0: INDEX 0 is reserved for the background base layer,
+        so sensor widgets/overlays beginning at 0 collide with it and render
+        wrong.  1-based matches the hand-authored themes.
+        """
         for i, elem in enumerate(self._elements):
             if hasattr(elem.data, "INDEX"):
-                elem.data.INDEX = i
+                elem.data.INDEX = i + 1
 
     def _load_stats(self, stats):
         if stats.CPU:

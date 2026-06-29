@@ -31,12 +31,12 @@ STATS:
         INDEX: 1
         X: 448
         Y: 371
-        RADIUS: 289
+        RADIUS: 342
         WIDTH: 110
         MIN_VALUE: 0
         MAX_VALUE: 100
-        ANGLE_START: 212
-        ANGLE_END: 60
+        ANGLE_START: 210
+        ANGLE_END: 195
         ANGLE_STEPS: 1
         ANGLE_SEP: 0
         CLOCKWISE: true
