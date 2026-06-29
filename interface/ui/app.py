@@ -551,6 +551,14 @@ class EditorApp:
         path = os.path.join(self._theme_dir, "theme.yaml")
         try:
             self._current_theme.save(path)
+            # Regenerate the home-screen preview from the current canvas so it
+            # reflects the edited theme (background + all widgets in z-order).
+            if self._canvas:
+                try:
+                    self._canvas.render_to_png(
+                        os.path.join(self._theme_dir, "background.png"))
+                except Exception as ex:
+                    log.warning("Falha ao gerar preview: %s", ex)
             log.info("Tema salvo em %s", path)
             self._toast("Tema salvo com sucesso.")
         except Exception as e:

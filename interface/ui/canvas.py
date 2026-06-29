@@ -7,6 +7,7 @@ import os
 import logging
 from typing import Optional
 
+import cairo
 from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 
 from theme.models import (
@@ -154,6 +155,46 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             self._fixed.remove(elem.widget)
             self._fixed.put(elem.widget, elem._x, elem._y)
 
+    def render_to_png(self, path: str):
+        """Composite the current canvas (background + all elements in z-order)
+        to a PNG. Used to regenerate the theme's home-screen preview on save."""
+        w, h = self._canvas_w, self._canvas_h
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        cr = cairo.Context(surface)
+
+        # Backdrop (BACKGROUND image), if any.
+        info = self._bg_imgs.get("BACKGROUND")
+        if info and info.get("pixbuf") is not None:
+            pb = info["pixbuf"]
+            img = info["img"]
+            iw = img.WIDTH or w
+            ih = img.HEIGHT or h
+            cr.save()
+            cr.translate(img.X, img.Y)
+            cr.scale(iw / max(1, pb.get_width()), ih / max(1, pb.get_height()))
+            Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0)
+            cr.paint()
+            cr.restore()
+
+        # Elements in z-order (already sorted). Suppress selection highlights so
+        # the preview is clean, without disturbing live selection state.
+        for elem in self._elements:
+            ew = elem.widget.get_allocated_width() or 1
+            eh = elem.widget.get_allocated_height() or 1
+            was_sel = getattr(elem, "_selected", False)
+            elem._selected = False
+            cr.save()
+            cr.translate(elem._x, elem._y)
+            try:
+                elem._draw(None, cr, ew, eh)
+            except Exception:
+                log.exception("render_to_png: falha ao desenhar %s",
+                              getattr(elem, "yaml_path", "?"))
+            cr.restore()
+            elem._selected = was_sel
+
+        surface.write_to_png(path)
+
     def capture_z_order(self):
         """Write current stack position as INDEX on each element's data."""
         for i, elem in enumerate(self._elements):
@@ -291,7 +332,8 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                 click = Gtk.GestureClick()
                 click.connect("pressed", lambda *_: self._select_bg(key))
                 pic.add_controller(click)
-                self._bg_imgs[key] = {"pic": pic, "img": img_data, "texture": texture}
+                self._bg_imgs[key] = {"pic": pic, "img": img_data,
+                                      "texture": texture, "pixbuf": scaled}
             except Exception as e:
                 log.error("Failed to load background %s: %s", path, e)
             return

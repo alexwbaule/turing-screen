@@ -65,7 +65,24 @@ func TestTheme2Render(t *testing.T) {
 	drawRadial(fC)
 	savePNG(t, "/tmp/theme2_C_radial_front.png", fC)
 
-	t.Log("wrote /tmp/theme2_A_radial_only.png, /tmp/theme2_B_radial_behind.png, /tmp/theme2_C_radial_front.png")
+	// Case D: radial WITH a gradient, behind LAYER_2 — does the gradient path
+	// render the arc, or make it disappear?
+	radialG := &theme.Radial{}
+	*radialG = *radial
+	radialG.GradientColor = color.NRGBA{R: 255, G: 0, B: 0, A: 255} // red→blue vertical gradient
+	drawRadialG := func(f *image.NRGBA) { c.drawRadialOnFrame(f, 100, radialG) }
+	fD := image.NewNRGBA(image.Rect(0, 0, W, H))
+	copy(fD.Pix, backdrop.Pix)
+	drawRadialG(fD)
+	drawLayer(fD)
+	savePNG(t, "/tmp/theme2_D_radial_gradient_behind.png", fD)
+	// and gradient-only (no layer) for comparison
+	fE := image.NewNRGBA(image.Rect(0, 0, W, H))
+	copy(fE.Pix, backdrop.Pix)
+	drawRadialG(fE)
+	savePNG(t, "/tmp/theme2_E_radial_gradient_only.png", fE)
+
+	t.Log("wrote /tmp/theme2_{A,B,C,D,E}.png")
 }
 
 func loadImg(path string) (image.Image, error) {

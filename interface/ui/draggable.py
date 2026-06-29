@@ -597,6 +597,13 @@ class DraggableRadial(_DraggableBase):
             if c[3] > 0:
                 empty_rgba = c
 
+        # Gradient (top color) — mirrors the daemon's vertical gradient.
+        grad_rgba = None
+        if self.data.GRADIENT_COLOR:
+            gc = _parse_color(self.data.GRADIENT_COLOR, (0, 0, 0, 0))
+            if gc[3] > 0:
+                grad_rgba = gc
+
         if self.data.REVERT:
             bar_rgba, empty_rgba = empty_rgba, bar_rgba
 
@@ -606,7 +613,13 @@ class DraggableRadial(_DraggableBase):
         def draw_arc(a1, a2, color):
             if color is None or a2 <= a1:
                 return
-            cr.set_source_rgba(*color)
+            if grad_rgba is not None:
+                pat = cairo.LinearGradient(cx, cy - r, cx, cy + r)
+                pat.add_color_stop_rgba(0, *grad_rgba)   # top
+                pat.add_color_stop_rgba(1, *color)       # bottom
+                cr.set_source(pat)
+            else:
+                cr.set_source_rgba(*color)
             if self.data.CLOCKWISE:
                 cr.arc(cx, cy, track_r, a1, a2)
             else:
