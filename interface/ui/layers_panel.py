@@ -56,29 +56,33 @@ class LayersPanel(Gtk.Box):
     # ------------------------------------------------------------------
 
     def refresh(self, theme, canvas_elements: list):
-        """Rebuild list from current theme + canvas elements."""
+        """Rebuild list from current theme + canvas elements.
+
+        Displayed in conventional layer-panel order: frontmost element at the
+        top, backmost at the bottom.  canvas_elements arrives sorted by INDEX
+        (lowest first = most behind), so we reverse it for display.
+        """
         self._entries.clear()
         while self._listbox.get_first_child():
             self._listbox.remove(self._listbox.get_first_child())
 
-        # Video (if present)
+        # Video (if present) — always rendered last, pinned at top.
         if theme and theme.video:
             self._add_entry("🎬 VIDEO", "video", None)
 
-        # Pinned background (only the BACKGROUND image; other images are
-        # z-ordered elements and appear in the canvas-elements list below).
-        if theme and theme.static_images and "BACKGROUND" in theme.static_images:
-            img = theme.static_images["BACKGROUND"]
-            self._add_entry(f"🖼 BACKGROUND  ({os.path.basename(img.PATH)})", "layer", "BACKGROUND")
-
-        # Canvas elements (widgets + non-BACKGROUND images)
-        for elem in canvas_elements:
+        # Canvas elements in reverse z-order: highest INDEX (frontmost) at top.
+        for elem in reversed(canvas_elements):
             yp = elem.yaml_path
             if yp.startswith("static_images."):
                 label = f"🖼 {yp.split('.', 1)[1]}"
             else:
                 label = f"📝 {yp}"
             self._add_entry(label, "widget", elem)
+
+        # Pinned backdrop — always behind everything, shown at the bottom.
+        if theme and theme.static_images and "BACKGROUND" in theme.static_images:
+            img = theme.static_images["BACKGROUND"]
+            self._add_entry(f"🖼 BACKGROUND  ({os.path.basename(img.PATH)})", "layer", "BACKGROUND")
 
     def select_element(self, elem):
         """Highlight the row matching elem (called from canvas on click)."""
@@ -175,10 +179,12 @@ class LayersPanel(Gtk.Box):
             self._canvas.remove_element(entry["widget"])
 
     def _on_move_up(self, _btn):
-        self._move_selected(-1)
+        # "Up" = bring forward = higher INDEX in the stack.
+        self._move_selected(+1)
 
     def _on_move_down(self, _btn):
-        self._move_selected(+1)
+        # "Down" = push behind = lower INDEX in the stack.
+        self._move_selected(-1)
 
     def _move_selected(self, direction: int):
         i = self._selected_index
