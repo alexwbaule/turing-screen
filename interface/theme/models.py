@@ -46,7 +46,7 @@ def _from_dict(cls, data):
 
 
 def _to_dict(obj):
-    """Recursively convert a dataclass to a plain dict, omitting None / empty."""
+    """Recursively convert a dataclass to a plain dict, omitting noise."""
     if obj is None:
         return None
     if dataclasses.is_dataclass(obj):
@@ -57,15 +57,24 @@ def _to_dict(obj):
                 continue
             if isinstance(val, dict) and not val:
                 continue
-            # INDEX: 0 is the default — omit it so the YAML stays clean.
-            # (The daemon and editor both default missing INDEX to 0.)
+            # INDEX: 0 is the daemon default — omit it to keep YAML clean.
             if f.name == "INDEX" and val == 0:
                 continue
             if isinstance(val, bool):
+                # Skip False flags whose Python default is also False — they
+                # equal Go's zero value and add noise when not set explicitly.
+                if not val and f.default is False:
+                    continue
                 result[f.name] = val
                 continue
-            # Empty strings are equivalent to "not set" for every color/font/
-            # direction field — omit them to avoid cluttering the YAML.
+            # Enhancement integers that mean "disabled" when 0 — skip them so
+            # they don't appear as noise when the theme never set them.
+            if isinstance(val, int) and val == 0 and f.name in {
+                "BLOCK_ANGLE", "BORDER_WIDTH", "CORNER_RADIUS",
+                "STEPS", "STEP_GAP", "BLOCK_WIDTH",
+            }:
+                continue
+            # Empty strings are "not set" for every color/font/direction field.
             if isinstance(val, str) and not val:
                 continue
             serialized = _to_dict(val)
@@ -85,24 +94,24 @@ def _to_dict(obj):
 
 
 # ---------------------------------------------------------------------------
-# Leaf types
+# Leaf types — field order matches expected YAML output order
 # ---------------------------------------------------------------------------
 
 @dataclass
 class Text:
+    SHOW: bool = True
+    INDEX: int = 0
     X: int = 0
     Y: int = 0
-    SHOW: bool = True
-    SHOW_UNIT: bool = False
-    TEXT: str = ""
-    PLACEHOLDER: str = ""
     FONT: str = ""
     FONT_SIZE: int = 16
-    FONT_COLOR: str = "#FFFFFF"
-    BACKGROUND_COLOR: str = ""
-    ALIGN: str = "LEFT"
+    FONT_COLOR: str = ""
+    SHOW_UNIT: bool = False
+    PLACEHOLDER: str = ""
+    TEXT: str = ""
+    ALIGN: str = ""
     FORMAT: str = ""
-    INDEX: int = 0
+    BACKGROUND_COLOR: str = ""
 
     @classmethod
     def from_dict(cls, d):
@@ -112,6 +121,7 @@ class Text:
 @dataclass
 class Graph:
     SHOW: bool = True
+    INDEX: int = 0
     X: int = 0
     Y: int = 0
     WIDTH: int = 200
@@ -119,9 +129,9 @@ class Graph:
     MIN_VALUE: int = 0
     MAX_VALUE: int = 100
     BAR_COLOR: str = "#00FF00"
+    BAR_OUTLINE: bool = False
     BACKGROUND_COLOR: str = ""
     GRADIENT_COLOR: str = ""
-    BAR_OUTLINE: bool = False
     BORDER_WIDTH: int = 0
     CORNER_RADIUS: int = 0
     STEPS: int = 0
@@ -129,7 +139,6 @@ class Graph:
     BLOCK_WIDTH: int = 0
     REVERT_VALUE: bool = False
     DIRECTION: str = ""
-    INDEX: int = 0
 
     @classmethod
     def from_dict(cls, d):
@@ -139,6 +148,7 @@ class Graph:
 @dataclass
 class Radial:
     SHOW: bool = True
+    INDEX: int = 0
     X: int = 0
     Y: int = 0
     RADIUS: int = 80
@@ -149,19 +159,18 @@ class Radial:
     ANGLE_END: int = 30
     ANGLE_STEPS: int = 0
     ANGLE_SEP: int = 0
-    BLOCK_ANGLE: int = 0
     CLOCKWISE: bool = True
     BAR_COLOR: str = "#00FF00"
     BACKGROUND_COLOR: str = ""
     GRADIENT_COLOR: str = ""
+    BLOCK_ANGLE: int = 0
     ROUND: bool = False
     REVERT: bool = False
     REVERT_VALUE: bool = False
     SHOW_TEXT: bool = False
     SHOW_UNIT: bool = False
     FONT: str = ""
-    FONT_COLOR: str = "#FFFFFF"
-    INDEX: int = 0
+    FONT_COLOR: str = ""
 
     @classmethod
     def from_dict(cls, d):
@@ -171,6 +180,7 @@ class Radial:
 @dataclass
 class Chart:
     SHOW: bool = True
+    INDEX: int = 0
     STYLE: str = ""
     X: int = 0
     Y: int = 0
@@ -184,7 +194,6 @@ class Chart:
     LINE_COLOR: str = "#00FF00"
     BORDER_WIDTH: int = 0
     MAX_SAMPLES: int = 0
-    INDEX: int = 0
 
     @classmethod
     def from_dict(cls, d):
@@ -194,6 +203,7 @@ class Chart:
 @dataclass
 class Gauge:
     SHOW: bool = True
+    INDEX: int = 0
     X: int = 0
     Y: int = 0
     RADIUS: int = 80
@@ -206,9 +216,8 @@ class Gauge:
     SHOW_TEXT: bool = False
     SHOW_UNIT: bool = False
     FONT: str = ""
-    FONT_COLOR: str = "#FFFFFF"
+    FONT_COLOR: str = ""
     BACKGROUND_COLOR: str = ""
-    INDEX: int = 0
 
     @classmethod
     def from_dict(cls, d):
@@ -218,6 +227,7 @@ class Gauge:
 @dataclass
 class StatusBar:
     SHOW: bool = True
+    INDEX: int = 0
     X: int = 0
     Y: int = 0
     WIDTH: int = 200
@@ -228,7 +238,6 @@ class StatusBar:
     INDICATOR_COLOR: str = "#FFFFFF"
     INDICATOR_RADIUS: int = 0
     BACKGROUND_COLOR: str = ""
-    INDEX: int = 0
 
     @classmethod
     def from_dict(cls, d):
@@ -279,8 +288,6 @@ class Measurement:
     Text: Optional[Text] = None
     PercentText: Optional[Text] = None
 
-    # yaml keys differ from field names for Graph/Radial/etc:
-    # YAML uses GRAPH, RADIAL, GAUGE, STATUS_BAR, CHART, TEXT, PERCENT_TEXT
     @classmethod
     def from_dict(cls, d):
         if not d:
@@ -298,13 +305,15 @@ class Measurement:
         )
 
     def to_dict(self):
-        d = {"SHOW": self.SHOW}
+        d = {}
+        # Do NOT write SHOW — Go's Mesurement struct has no SHOW field.
         if self.INDEX:
             d["INDEX"] = self.INDEX
-        if self.Graph:
-            d["GRAPH"] = _to_dict(self.Graph)
+        # Radial before Graph to match conventional YAML order.
         if self.Radial:
             d["RADIAL"] = _to_dict(self.Radial)
+        if self.Graph:
+            d["GRAPH"] = _to_dict(self.Graph)
         if self.Gauge:
             d["GAUGE"] = _to_dict(self.Gauge)
         if self.StatusBar:
@@ -347,11 +356,12 @@ class MemMeasurement:
         )
 
     def to_dict(self):
-        d = {"SHOW": self.SHOW}
-        if self.Graph:
-            d["GRAPH"] = _to_dict(self.Graph)
+        d = {}
+        # Do NOT write SHOW — Go's Mesurement struct has no SHOW field.
         if self.Radial:
             d["RADIAL"] = _to_dict(self.Radial)
+        if self.Graph:
+            d["GRAPH"] = _to_dict(self.Graph)
         if self.Chart:
             d["CHART"] = _to_dict(self.Chart)
         if self.Used:
@@ -414,9 +424,9 @@ class Load:
 @dataclass
 class CPU:
     Percentage: Optional[Measurement] = None
+    Temperature: Optional[Measurement] = None
     Frequency: Optional[Measurement] = None
     Load: Optional[Load] = None
-    Temperature: Optional[Measurement] = None
     Fan: Optional[Measurement] = None
     Power: Optional[Measurement] = None
     Voltage: Optional[Measurement] = None
@@ -427,9 +437,9 @@ class CPU:
             return None
         return cls(
             Percentage=Measurement.from_dict(d.get("PERCENTAGE")),
+            Temperature=Measurement.from_dict(d.get("TEMPERATURE")),
             Frequency=Measurement.from_dict(d.get("FREQUENCY")),
             Load=Load.from_dict(d.get("LOAD")),
-            Temperature=Measurement.from_dict(d.get("TEMPERATURE")),
             Fan=Measurement.from_dict(d.get("FAN")),
             Power=Measurement.from_dict(d.get("POWER")),
             Voltage=Measurement.from_dict(d.get("VOLTAGE")),
@@ -438,11 +448,11 @@ class CPU:
 
 @dataclass
 class GPU:
-    Percentage: Optional[Measurement] = None
-    Memory: Optional[Measurement] = None
-    Temperature: Optional[Measurement] = None
-    Power: Optional[Measurement] = None
     Frequency: Optional[Measurement] = None
+    Temperature: Optional[Measurement] = None
+    Percentage: Optional[Measurement] = None
+    Power: Optional[Measurement] = None
+    Memory: Optional[Measurement] = None
     Voltage: Optional[Measurement] = None
     Fan: Optional[Measurement] = None
 
@@ -451,11 +461,11 @@ class GPU:
         if not d:
             return None
         return cls(
-            Percentage=Measurement.from_dict(d.get("PERCENTAGE")),
-            Memory=Measurement.from_dict(d.get("MEMORY")),
-            Temperature=Measurement.from_dict(d.get("TEMPERATURE")),
-            Power=Measurement.from_dict(d.get("POWER")),
             Frequency=Measurement.from_dict(d.get("FREQUENCY")),
+            Temperature=Measurement.from_dict(d.get("TEMPERATURE")),
+            Percentage=Measurement.from_dict(d.get("PERCENTAGE")),
+            Power=Measurement.from_dict(d.get("POWER")),
+            Memory=Measurement.from_dict(d.get("MEMORY")),
             Voltage=Measurement.from_dict(d.get("VOLTAGE")),
             Fan=Measurement.from_dict(d.get("FAN")),
         )
@@ -601,9 +611,9 @@ class Stats:
 class Display:
     SIZE: str = "TURZX"
     ORIENTATION: str = "landscape"
+    RGB_LED: str = ""
     WIDTH: int = 1280
     HEIGHT: int = 720
-    RGB_LED: str = ""
 
     @classmethod
     def from_dict(cls, d):
@@ -695,35 +705,45 @@ class Theme:
 
     def _cpu_to_dict(self, cpu):
         d = {}
-        if cpu.Percentage:
-            d["PERCENTAGE"] = self._measurement_to_dict(cpu.Percentage)
-        if cpu.Frequency:
-            d["FREQUENCY"] = self._measurement_to_dict(cpu.Frequency)
-        if cpu.Load:
-            ld = {}
-            if cpu.Load.One and cpu.Load.One.Text:
-                ld["ONE"] = {"TEXT": _to_dict(cpu.Load.One.Text)}
-            if cpu.Load.Five and cpu.Load.Five.Text:
-                ld["FIVE"] = {"TEXT": _to_dict(cpu.Load.Five.Text)}
-            if cpu.Load.Fifteen and cpu.Load.Fifteen.Text:
-                ld["FIFTEEN"] = {"TEXT": _to_dict(cpu.Load.Fifteen.Text)}
-            if ld:
-                d["LOAD"] = ld
-        if cpu.Temperature:
-            d["TEMPERATURE"] = self._measurement_to_dict(cpu.Temperature)
-        if cpu.Fan:
-            d["FAN"] = self._measurement_to_dict(cpu.Fan)
-        if cpu.Power:
-            d["POWER"] = self._measurement_to_dict(cpu.Power)
-        if cpu.Voltage:
-            d["VOLTAGE"] = self._measurement_to_dict(cpu.Voltage)
+        # Order matches the conventional theme YAML layout.
+        for attr, key in [
+            ("Percentage",  "PERCENTAGE"),
+            ("Temperature", "TEMPERATURE"),
+            ("Frequency",   "FREQUENCY"),
+            ("Load",        None),
+            ("Fan",         "FAN"),
+            ("Power",       "POWER"),
+            ("Voltage",     "VOLTAGE"),
+        ]:
+            if attr == "Load":
+                if cpu.Load:
+                    ld = {}
+                    if cpu.Load.One and cpu.Load.One.Text:
+                        ld["ONE"] = {"TEXT": _to_dict(cpu.Load.One.Text)}
+                    if cpu.Load.Five and cpu.Load.Five.Text:
+                        ld["FIVE"] = {"TEXT": _to_dict(cpu.Load.Five.Text)}
+                    if cpu.Load.Fifteen and cpu.Load.Fifteen.Text:
+                        ld["FIFTEEN"] = {"TEXT": _to_dict(cpu.Load.Fifteen.Text)}
+                    if ld:
+                        d["LOAD"] = ld
+            else:
+                m = getattr(cpu, attr)
+                if m:
+                    d[key] = self._measurement_to_dict(m)
         return d
 
     def _gpu_to_dict(self, gpu):
         d = {}
-        for attr, key in [("Percentage", "PERCENTAGE"), ("Memory", "MEMORY"),
-                           ("Temperature", "TEMPERATURE"), ("Power", "POWER"),
-                           ("Frequency", "FREQUENCY"), ("Voltage", "VOLTAGE"), ("Fan", "FAN")]:
+        # Order matches the conventional theme YAML layout.
+        for attr, key in [
+            ("Frequency",   "FREQUENCY"),
+            ("Temperature", "TEMPERATURE"),
+            ("Percentage",  "PERCENTAGE"),
+            ("Power",       "POWER"),
+            ("Memory",      "MEMORY"),
+            ("Voltage",     "VOLTAGE"),
+            ("Fan",         "FAN"),
+        ]:
             m = getattr(gpu, attr)
             if m:
                 d[key] = self._measurement_to_dict(m)
