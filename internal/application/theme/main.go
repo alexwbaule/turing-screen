@@ -66,6 +66,32 @@ func NewTheme(cfg *config.Config, l *logger.Logger) (*Theme, error) {
 	}, nil
 }
 
+// getInt / getBool / getString read an optional key from a decoded theme map
+// without panicking when the key is absent. A theme may legitimately omit
+// optional fields (e.g. BAR_OUTLINE), and Go's zero value is the sensible
+// default for every one of them — so returning 0/false/"" on a miss matches
+// the daemon's expected behaviour instead of crashing on a nil interface.
+func getInt(data map[string]interface{}, key string) int {
+	if val, ok := data[key].(int); ok {
+		return val
+	}
+	return 0
+}
+
+func getBool(data map[string]interface{}, key string) bool {
+	if val, ok := data[key].(bool); ok {
+		return val
+	}
+	return false
+}
+
+func getString(data map[string]interface{}, key string) string {
+	if val, ok := data[key].(string); ok {
+		return val
+	}
+	return ""
+}
+
 func Hook(file string, reverse bool) mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
@@ -304,11 +330,11 @@ func translateGraph(file string, data map[string]interface{}) (interface{}, erro
 		BackgroundStyle: bgStyle,
 		Show:            show,
 		Direction:       direction,
-		MinValue:        data["min_value"].(int),
-		MaxValue:        data["max_value"].(int),
+		MinValue:        getInt(data, "min_value"),
+		MaxValue:        getInt(data, "max_value"),
 		BarColor:        barColor,
 		GradientColor:   gradientColor,
-		BarOutline:      data["bar_outline"].(bool),
+		BarOutline:      getBool(data, "bar_outline"),
 		Steps:           steps,
 		StepGap:         stepGap,
 		BlockWidth:      blockWidth,
@@ -373,15 +399,15 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		BackgroundStyle: bgStyle,
 		TextStyle:       textStyle,
 		Show:            show,
-		Radius:          data["radius"].(int),
-		MinValue:        data["min_value"].(int),
-		MaxValue:        data["max_value"].(int),
-		AngleStart:      data["angle_start"].(int),
-		AngleEnd:        data["angle_end"].(int),
-		AngleSteps:      data["angle_steps"].(int),
-		AngleSep:        data["angle_sep"].(int),
+		Radius:          getInt(data, "radius"),
+		MinValue:        getInt(data, "min_value"),
+		MaxValue:        getInt(data, "max_value"),
+		AngleStart:      getInt(data, "angle_start"),
+		AngleEnd:        getInt(data, "angle_end"),
+		AngleSteps:      getInt(data, "angle_steps"),
+		AngleSep:        getInt(data, "angle_sep"),
 		BlockAngle:      blockAngle,
-		Clockwise:       data["clockwise"].(bool),
+		Clockwise:       getBool(data, "clockwise"),
 		BarColor:        barColor,
 		GradientColor:   gradientColor,
 		Round:           round,
@@ -472,7 +498,7 @@ func translateStaticText(file string, data map[string]interface{}) (interface{},
 		Layout:          layout,
 		TextStyle:       textStyle,
 		BackgroundStyle: bgStyle,
-		Text:            data["text"].(string),
+		Text:            getString(data, "text"),
 	}
 	return v, nil
 }
@@ -556,12 +582,12 @@ func translateGauge(file string, data map[string]interface{}) (interface{}, erro
 		BackgroundStyle: bgStyle,
 		TextStyle:       textStyle,
 		Show:            show,
-		Radius:          data["radius"].(int),
+		Radius:          getInt(data, "radius"),
 		NeedleWidth:     needleWidth,
-		MinValue:        data["min_value"].(int),
-		MaxValue:        data["max_value"].(int),
-		AngleStart:      data["angle_start"].(int),
-		AngleEnd:        data["angle_end"].(int),
+		MinValue:        getInt(data, "min_value"),
+		MaxValue:        getInt(data, "max_value"),
+		AngleStart:      getInt(data, "angle_start"),
+		AngleEnd:        getInt(data, "angle_end"),
 		NeedleColor:     needleColor,
 		ShowText:        showText,
 		ShowUnit:        showUnit,
@@ -604,8 +630,8 @@ func translateStatusBar(file string, data map[string]interface{}) (interface{}, 
 		Layout:          layout,
 		BackgroundStyle: bgStyle,
 		Show:            show,
-		MinValue:        data["min_value"].(int),
-		MaxValue:        data["max_value"].(int),
+		MinValue:        getInt(data, "min_value"),
+		MaxValue:        getInt(data, "max_value"),
 		BarColor:        barColor,
 		IndicatorColor:  indicatorColor,
 		IndicatorRadius: indicatorRadius,
@@ -666,8 +692,8 @@ func translateChart(file string, data map[string]interface{}) (interface{}, erro
 		BackgroundStyle: bgStyle,
 		Show:            show,
 		Style:           style,
-		MinValue:        data["min_value"].(int),
-		MaxValue:        data["max_value"].(int),
+		MinValue:        getInt(data, "min_value"),
+		MaxValue:        getInt(data, "max_value"),
 		ColumnWidth:     columnWidth,
 		ColumnGap:       columnGap,
 		FillColor:       fillColor,

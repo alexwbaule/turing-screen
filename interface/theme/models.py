@@ -10,7 +10,12 @@ import yaml
 # ---------------------------------------------------------------------------
 
 def _from_dict(cls, data):
-    """Recursively build a dataclass from a plain dict, ignoring unknown keys."""
+    """Recursively build a dataclass from a plain dict, ignoring unknown keys.
+
+    Also records which fields were present in the source (``_set_fields``) so
+    that serialization can reproduce the original structure instead of emitting
+    every dataclass default as noise.
+    """
     if data is None:
         return None
     if not isinstance(data, dict):
@@ -42,41 +47,75 @@ def _from_dict(cls, data):
 
         kwargs[f.name] = val
 
-    return cls(**kwargs)
+    obj = cls(**kwargs)
+    obj._set_fields = set(kwargs.keys())
+    return obj
+
+
+def _is_default_value(f, val):
+    """True when ``val`` equals the field's declared default (or factory output)."""
+    if f.default is not dataclasses.MISSING:
+        return val == f.default
+    if f.default_factory is not dataclasses.MISSING:
+        try:
+            return val == f.default_factory()
+        except Exception:
+            return False
+    return False
+
+
+# Enhancement fields whose zero/false value is pure noise ("off" by default) —
+# never worth writing for a freshly created element.  Does NOT include fields
+# like RADIUS/MIN_VALUE/SHOW_TEXT whose default is still a meaningful value.
+_NOISE_ZERO_INT = frozenset({
+    "BLOCK_ANGLE", "BORDER_WIDTH", "CORNER_RADIUS",
+    "STEPS", "STEP_GAP", "BLOCK_WIDTH", "INDEX",
+})
+_NOISE_FALSE_BOOL = frozenset({"ROUND", "REVERT", "REVERT_VALUE"})
+
+
+def _is_noise_default(f, val):
+    if isinstance(val, bool):
+        return (not val) and f.name in _NOISE_FALSE_BOOL
+    if isinstance(val, int) and val == 0:
+        return f.name in _NOISE_ZERO_INT
+    return False
 
 
 def _to_dict(obj):
-    """Recursively convert a dataclass to a plain dict, omitting noise."""
+    """Recursively convert a dataclass to a plain dict.
+
+    Two regimes:
+
+    * **Loaded from source** (``_set_fields`` set): reproduce the original
+      field set exactly — emit every source field, plus any field the editor
+      moved off its default; drop defaults that were never in the source.  This
+      is what lets a round-trip match the original file (even quirks like
+      SHOW_TEXT:false present in one block but absent in another) and keeps a
+      single edit from rewriting unrelated fields.
+
+    * **Newly created** (no ``_set_fields``): keep every meaningful field even
+      when it equals the dataclass default (RADIUS:80 on a freshly added dial
+      must survive), and only drop pure-noise enhancement defaults.
+    """
     if obj is None:
         return None
     if dataclasses.is_dataclass(obj):
+        set_fields = getattr(obj, "_set_fields", None)
         result = {}
         for f in dataclasses.fields(obj):
             val = getattr(obj, f.name)
             if val is None:
                 continue
-            if isinstance(val, dict) and not val:
+            # Empty dicts / strings are never meaningful theme values.
+            if isinstance(val, (dict, str)) and not val:
                 continue
-            # INDEX: 0 is the daemon default — omit it to keep YAML clean.
-            if f.name == "INDEX" and val == 0:
-                continue
-            if isinstance(val, bool):
-                # Skip False flags whose Python default is also False — they
-                # equal Go's zero value and add noise when not set explicitly.
-                if not val and f.default is False:
+            if set_fields is not None:
+                if f.name not in set_fields and _is_default_value(f, val):
                     continue
-                result[f.name] = val
-                continue
-            # Enhancement integers that mean "disabled" when 0 — skip them so
-            # they don't appear as noise when the theme never set them.
-            if isinstance(val, int) and val == 0 and f.name in {
-                "BLOCK_ANGLE", "BORDER_WIDTH", "CORNER_RADIUS",
-                "STEPS", "STEP_GAP", "BLOCK_WIDTH",
-            }:
-                continue
-            # Empty strings are "not set" for every color/font/direction field.
-            if isinstance(val, str) and not val:
-                continue
+            else:
+                if _is_noise_default(f, val):
+                    continue
             serialized = _to_dict(val)
             if serialized is not None:
                 result[f.name] = serialized
