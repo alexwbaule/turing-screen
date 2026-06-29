@@ -175,13 +175,18 @@ class LayersPanel(Gtk.Box):
             self._canvas.remove_element(entry["widget"])
 
     def _on_move_up(self, _btn):
-        i = self._selected_index
-        if i <= 0:
-            return
-        self._canvas.reorder_layer(i, i - 1)
+        self._move_selected(-1)
 
     def _on_move_down(self, _btn):
+        self._move_selected(+1)
+
+    def _move_selected(self, direction: int):
         i = self._selected_index
-        if i < 0 or i >= len(self._entries) - 1:
+        if i < 0 or i >= len(self._entries):
             return
-        self._canvas.reorder_layer(i, i + 1)
+        entry = self._entries[i]
+        # Only widgets (incl. layer images) are reorderable; video/BACKGROUND
+        # are pinned.
+        if entry.get("kind") != "widget":
+            return
+        self._canvas.reorder_element(entry["widget"], direction)

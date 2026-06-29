@@ -638,21 +638,27 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         if hasattr(self._props, "show_layer_info"):
             self._props.show_layer_info(key, path, on_change)
 
-    def reorder_layer(self, from_idx: int, to_idx: int):
-        """Called by layers panel up/down buttons. Moves element in stack."""
-        # Layers panel index includes bg images and video; find widget-only entries
-        widget_elements = self._elements[:]
-        if 0 <= from_idx < len(widget_elements) and 0 <= to_idx < len(widget_elements):
-            elem = widget_elements.pop(from_idx)
-            widget_elements.insert(to_idx, elem)
-            self._elements[:] = widget_elements
-            # Re-stack all elements in new order
-            for e in self._elements:
-                self._fixed.remove(e.widget)
-                self._fixed.put(e.widget, e._x, e._y)
-            self.capture_z_order()
-            if self._layers and self._theme:
-                self._layers.refresh(self._theme, self._elements)
+    def reorder_element(self, elem: _DraggableBase, direction: int):
+        """Move elem one step up/down in the z-order stack and rewrite INDEX.
+        Operates on the element reference directly (the layers-panel list also
+        contains video/BACKGROUND entries, so list indices don't map 1:1 to the
+        widget-only _elements list)."""
+        try:
+            i = self._elements.index(elem)
+        except ValueError:
+            return
+        j = i + direction
+        if not (0 <= j < len(self._elements)):
+            return
+        self._elements[i], self._elements[j] = self._elements[j], self._elements[i]
+        # Re-stack all elements in the new order
+        for e in self._elements:
+            self._fixed.remove(e.widget)
+            self._fixed.put(e.widget, e._x, e._y)
+        self.capture_z_order()
+        if self._layers and self._theme:
+            self._layers.refresh(self._theme, self._elements)
+            self._layers.select_element(elem)  # keep the moved element highlighted
 
     # ------------------------------------------------------------------
     # Event callbacks
