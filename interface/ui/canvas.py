@@ -79,7 +79,9 @@ class ThemeCanvas(Gtk.ScrolledWindow):
 
         self._elements: list[_DraggableBase] = []
         self._selected: Optional[_DraggableBase] = None
-        self._bg_pictures: list[Gtk.Picture] = []
+        # Background images: key → {"pic", "img", "texture"}
+        self._bg_imgs: dict[str, dict] = {}
+        self._selected_bg: Optional[str] = None
         self._video_player = None
 
         self._build_canvas()
@@ -285,9 +287,41 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                                   img_data.HEIGHT or self._canvas_h)
             pic.set_content_fit(Gtk.ContentFit.FILL)
             self._fixed.put(pic, img_data.X, img_data.Y)
-            self._bg_pictures.append(pic)
+            # Make background images selectable so their properties (X/Y/Size)
+            # can be edited.
+            click = Gtk.GestureClick()
+            click.connect("pressed", lambda *_: self._select_bg(key))
+            pic.add_controller(click)
+            self._bg_imgs[key] = {"pic": pic, "img": img_data, "texture": texture}
         except Exception as e:
             log.error("Failed to load background %s: %s", path, e)
+
+    def _apply_bg_geometry(self, key: str):
+        """Move/resize a background picture to match its StaticImage X/Y/W/H."""
+        info = self._bg_imgs.get(key)
+        if not info:
+            return
+        img = info["img"]
+        pic = info["pic"]
+        w = img.WIDTH or self._canvas_w
+        h = img.HEIGHT or self._canvas_h
+        pic.set_size_request(w, h)
+        self._fixed.move(pic, img.X, img.Y)
+
+    def _select_bg(self, key: str):
+        # Selecting a background image clears any selected element.
+        self.select_element(None)
+        self._selected_bg = key
+        img = self._bg_imgs.get(key, {}).get("img")
+        if img is not None and self._props is not None:
+            self._props.update_bg_image(key, img, lambda: self._apply_bg_geometry(key))
+        if self._layers is not None:
+            self._layers.select_bg(key)
+
+    def select_bg_image(self, key: str):
+        """Public entry for the layers panel to select a background image."""
+        if key in self._bg_imgs:
+            self._select_bg(key)
 
     def add_background_layer(self, path: str):
         if not self._theme:
@@ -572,6 +606,8 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             self._selected.set_selected(False)
         self._selected = elem
         if elem:
+            # Selecting an element clears any selected background image.
+            self._selected_bg = None
             elem.set_selected(True)
         self._props.update(elem)
 
@@ -632,6 +668,7 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         for elem in self._elements:
             self._fixed.remove(elem.widget)
         self._elements.clear()
-        for pic in self._bg_pictures:
-            self._fixed.remove(pic)
-        self._bg_pictures.clear()
+        for info in self._bg_imgs.values():
+            self._fixed.remove(info["pic"])
+        self._bg_imgs.clear()
+        self._selected_bg = None

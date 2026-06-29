@@ -476,25 +476,58 @@ class DraggableGraph(_DraggableBase):
                 cr.rectangle(fx, fy, fw, fh)
             cr.fill()
 
+        # Direction: the daemon draws left/right (horizontal) or up/down
+        # (vertical). Default is "left". Mirror its geometry so the preview
+        # matches what the device renders.
+        direction = (self.data.DIRECTION or "left").lower()
+        if direction not in ("left", "right", "up", "down"):
+            direction = "left"
+        horizontal = direction in ("left", "right")
+
         # Steps / blocks logic — mirrors Go's renderGGGraph
         steps = self.data.STEPS or 0
-        block_w = self.data.BLOCK_WIDTH or 0
+        block = self.data.BLOCK_WIDTH or 0
         step_gap = self.data.STEP_GAP or 0
-        if block_w > 0:
-            steps = max(1, int(w) // max(1, block_w + step_gap))
+        if block > 0:
+            axis = w if horizontal else h
+            steps = max(1, int(axis) // max(1, block + step_gap))
+
+        track_bg = bg if bg[3] > 0 else None
 
         if steps > 1 and step_gap > 0:
-            seg_w = block_w if block_w > 0 else max(1, (int(w) - (steps - 1) * step_gap) // steps)
             filled_steps = round(ratio * steps)
-            for i in range(steps):
-                sx = i * (seg_w + step_gap)
-                color = bar if i < filled_steps else (bg if bg[3] > 0 else None)
-                _fill(sx, 0, seg_w, h, color)
-        else:
-            filled_w = round(ratio * w)
-            if bg[3] > 0:
-                _fill(filled_w, 0, w - filled_w, h, bg)
-            _fill(0, 0, filled_w, h, bar)
+            if horizontal:
+                seg = block if block > 0 else max(1, (int(w) - (steps - 1) * step_gap) // steps)
+                for i in range(steps):
+                    sx = i * (seg + step_gap) if direction == "left" \
+                        else int(w) - (i + 1) * seg - i * step_gap
+                    _fill(sx, 0, seg, h, bar if i < filled_steps else track_bg)
+            else:  # up / down
+                seg = block if block > 0 else max(1, (int(h) - (steps - 1) * step_gap) // steps)
+                for i in range(steps):
+                    sy = i * (seg + step_gap) if direction == "down" \
+                        else int(h) - (i + 1) * seg - i * step_gap
+                    _fill(0, sy, w, seg, bar if i < filled_steps else track_bg)
+        elif horizontal:
+            filled = round(ratio * w)
+            if direction == "left":
+                if track_bg:
+                    _fill(filled, 0, w - filled, h, track_bg)
+                _fill(0, 0, filled, h, bar)
+            else:  # right
+                if track_bg:
+                    _fill(0, 0, w - filled, h, track_bg)
+                _fill(w - filled, 0, filled, h, bar)
+        else:  # up / down
+            filled = round(ratio * h)
+            if direction == "down":
+                if track_bg:
+                    _fill(0, filled, w, h - filled, track_bg)
+                _fill(0, 0, w, filled, bar)
+            else:  # up
+                if track_bg:
+                    _fill(0, 0, w, h - filled, track_bg)
+                _fill(0, h - filled, w, filled, bar)
 
         # Border
         bw = self.data.BORDER_WIDTH or 0

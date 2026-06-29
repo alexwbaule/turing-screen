@@ -2,6 +2,8 @@
 Properties panel — shows editable fields for the selected canvas element.
 Mirrors properties.go from the Fyne version with full field parity.
 """
+import os
+
 from gi.repository import Gtk, Gdk, Pango
 
 
@@ -126,6 +128,37 @@ class PropertiesPanel(Gtk.Box):
             self._x_spin.set_value(x)
             self._y_spin.set_value(y)
             self._updating = False
+
+    def update_bg_image(self, key: str, img, refresh_cb):
+        """Show editable properties for a background image (StaticImage)."""
+        self._current = None
+        self._clear_content()
+        self._header.set_label(f"Background — {key}")
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        box.set_margin_bottom(6)
+        path_lbl = Gtk.Label(label=f"{key}  ({os.path.basename(img.PATH or '')})")
+        path_lbl.set_halign(Gtk.Align.START)
+        path_lbl.set_ellipsize(Pango.EllipsizeMode.START)
+        path_lbl.add_css_class("dim-label")
+        path_lbl.set_selectable(True)
+        box.append(path_lbl)
+        self._content.append(box)
+
+        exp, inner = self._expander("Position & Size")
+        self._x_spin = self._spin(img.X or 0, -9999, 9999,
+                                  lambda s: [setattr(img, "X", int(s.get_value())), refresh_cb()])
+        self._y_spin = self._spin(img.Y or 0, -9999, 9999,
+                                  lambda s: [setattr(img, "Y", int(s.get_value())), refresh_cb()])
+        self._append_row(inner, "X", self._x_spin)
+        self._append_row(inner, "Y", self._y_spin)
+        self._append_row(inner, "Width",
+                         self._spin(img.WIDTH or 1, 1, 9999,
+                                    lambda s: [setattr(img, "WIDTH", int(s.get_value())), refresh_cb()]))
+        self._append_row(inner, "Height",
+                         self._spin(img.HEIGHT or 1, 1, 9999,
+                                    lambda s: [setattr(img, "HEIGHT", int(s.get_value())), refresh_cb()]))
+        self._content.append(exp)
 
     # ── Widget factories ───────────────────────────────────────────────────────
 
@@ -395,7 +428,7 @@ class PropertiesPanel(Gtk.Box):
         self._append_row(inner, "Y", self._y_spin)
         self._append_row(inner, "Width",  self._spin(data.WIDTH or 200,  10, 9999, lambda s: [setattr(data, "WIDTH", int(s.get_value())), resize()]))
         self._append_row(inner, "Height", self._spin(data.HEIGHT or 80,  10, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
-        self._append_row(inner, "Direction", self._dropdown(["HORIZONTAL", "VERTICAL"], data.DIRECTION or "HORIZONTAL", lambda v: [setattr(data, "DIRECTION", v), refresh()]))
+        self._append_row(inner, "Direction", self._dropdown(["LEFT", "RIGHT", "UP", "DOWN"], data.DIRECTION or "LEFT", lambda v: [setattr(data, "DIRECTION", v), refresh()]))
         self._content.append(exp)
 
         # Appearance

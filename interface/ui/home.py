@@ -147,6 +147,11 @@ class HomePage:
         actions.set_margin_top(8)
         actions.set_margin_bottom(8)
 
+        self._new_theme_btn = Gtk.Button(label="Novo Tema")
+        self._new_theme_btn.set_tooltip_text("Criar um novo tema em branco")
+        self._new_theme_btn.connect("clicked", self._on_new_theme)
+        actions.append(self._new_theme_btn)
+
         self._activate_btn = Gtk.Button(label="Ativar")
         self._activate_btn.add_css_class("suggested-action")
         self._activate_btn.set_sensitive(False)
@@ -157,6 +162,13 @@ class HomePage:
         self._edit_btn.set_sensitive(False)
         self._edit_btn.connect("clicked", self._on_open_editor)
         actions.append(self._edit_btn)
+
+        self._delete_btn = Gtk.Button(label="Excluir")
+        self._delete_btn.add_css_class("destructive-action")
+        self._delete_btn.set_sensitive(False)
+        self._delete_btn.set_tooltip_text("Apagar o tema do disco (não pode ser desfeito)")
+        self._delete_btn.connect("clicked", self._on_delete)
+        actions.append(self._delete_btn)
 
         body.append(actions)
 
@@ -270,12 +282,22 @@ class HomePage:
             self._theme_label.set_label("Nenhum tema encontrado")
             self._activate_btn.set_sensitive(False)
             self._edit_btn.set_sensitive(False)
+            self._delete_btn.set_sensitive(False)
             self._preview_placeholder.set_visible(True)
             return
 
         name = self._themes[self._current_index]
         self._theme_label.set_label(f"  {name}  ")
         self._edit_btn.set_sensitive(True)
+
+        # Can't delete the active theme — the daemon references it and the
+        # config points at it; deleting would leave a dangling reference.
+        is_active = name == self._active_theme
+        self._delete_btn.set_sensitive(not is_active)
+        self._delete_btn.set_tooltip_text(
+            "Ative outro tema antes de excluir este." if is_active
+            else "Apagar o tema do disco (não pode ser desfeito)"
+        )
 
         if name == self._active_theme:
             self._activate_btn.set_label("Ativo")
@@ -440,6 +462,118 @@ class HomePage:
         if not self._themes:
             return
         self._open_editor(self._themes[self._current_index])
+
+    def _on_new_theme(self, _btn):
+        dlg = Adw.AlertDialog()
+        dlg.set_heading("Novo tema")
+        dlg.set_body("Nome do novo tema:")
+        entry = Gtk.Entry()
+        entry.set_placeholder_text("ex: MeuTema")
+        try:
+            dlg.set_extra_child(entry)
+        except AttributeError:
+            # Older libadwaita without extra_child — fall back to body-only.
+            pass
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("create", "Criar")
+        dlg.set_response_appearance("create", Adw.ResponseAppearance.SUGGESTED)
+        try:
+            dlg.set_default_response("create")
+        except AttributeError:
+            pass
+
+        def on_resp(d, r):
+            if r == "create":
+                self._do_create_theme(entry.get_text().strip())
+        dlg.connect("response", on_resp)
+        parent = self._toolbar_view.get_root()
+        if parent:
+            dlg.present(parent)
+
+    def _do_create_theme(self, name: str):
+        import re
+        from theme.models import Theme, Display
+        # Sanitize: letters, digits, spaces, dash, underscore only.
+        clean = re.sub(r"[^\w\- ]", "", name).strip()
+        if not clean:
+            self._show_message("Nome inválido",
+                               "Informe um nome válido para o tema.")
+            return
+        theme_dir = os.path.join(self._themes_base, clean)
+        if os.path.exists(theme_dir):
+            self._show_message("Já existe",
+                               f"Já existe um tema chamado '{clean}'.")
+            return
+        try:
+            os.makedirs(theme_dir, exist_ok=True)
+            theme = Theme(display=Display(SIZE='5"', ORIENTATION="landscape",
+                                          WIDTH=1280, HEIGHT=720))
+            theme.save(os.path.join(theme_dir, "theme.yaml"))
+        except Exception as e:
+            self._show_message("Falha ao criar",
+                               f"{e}\n\nVerifique as permissões em {self._themes_base}.")
+            return
+        log.info("Novo tema criado: %s", theme_dir)
+        self._load_themes_from_disk()
+        self._preview_cache.clear()
+        if clean in self._themes:
+            self._current_index = self._themes.index(clean)
+        self._update_display()
+        # Jump straight into the editor for the new blank theme.
+        self._open_editor(clean)
+
+    def _show_message(self, heading: str, body: str):
+        dlg = Adw.AlertDialog()
+        dlg.set_heading(heading)
+        dlg.set_body(body)
+        dlg.add_response("ok", "OK")
+        parent = self._toolbar_view.get_root()
+        if parent:
+            dlg.present(parent)
+
+    def _on_delete(self, _btn):
+        if not self._themes:
+            return
+        name = self._themes[self._current_index]
+        if name == self._active_theme:
+            return  # button is disabled in this case; defensive guard
+
+        dlg = Adw.AlertDialog()
+        dlg.set_heading("Excluir tema")
+        dlg.set_body(
+            f"Excluir o tema '{name}' e todos os seus arquivos em "
+            f"res/themes/{name}?\n\nEsta ação não pode ser desfeita."
+        )
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("delete", "Excluir")
+        dlg.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
+        dlg.connect("response",
+                    lambda d, r: self._do_delete(name) if r == "delete" else None)
+        parent = self._toolbar_view.get_root()
+        if parent:
+            dlg.present(parent)
+
+    def _do_delete(self, name: str):
+        import shutil
+        theme_dir = os.path.join(self._themes_base, name)
+        try:
+            shutil.rmtree(theme_dir)
+        except Exception as e:
+            err = Adw.AlertDialog()
+            err.set_heading("Falha ao excluir")
+            err.set_body(f"{e}\n\nVerifique as permissões em {self._themes_base}.")
+            err.add_response("ok", "OK")
+            parent = self._toolbar_view.get_root()
+            if parent:
+                err.present(parent)
+            return
+        log.info("Tema excluído: %s", theme_dir)
+        # Clamp index (the deleted theme may have been last) then reload.
+        self._load_themes_from_disk()
+        if self._current_index >= len(self._themes):
+            self._current_index = max(0, len(self._themes) - 1)
+        self._preview_cache.clear()
+        self._update_display()
 
     def _on_play(self, _btn):
         self._ws.send("mode.normal", None)

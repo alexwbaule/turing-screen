@@ -84,6 +84,13 @@ class LayersPanel(Gtk.Box):
                 self._set_selected(i, notify_canvas=False)
                 return
 
+    def select_bg(self, key):
+        """Highlight the background-layer row matching key (no canvas callback)."""
+        for i, entry in enumerate(self._entries):
+            if entry.get("kind") == "layer" and entry.get("key") == key:
+                self._set_selected(i, notify_canvas=False)
+                return
+
     # ------------------------------------------------------------------
     # Internal
     # ------------------------------------------------------------------
@@ -114,6 +121,8 @@ class LayersPanel(Gtk.Box):
             entry = self._entries[index]
             if entry["kind"] == "widget":
                 self._canvas.select_element(entry["widget"])
+            elif entry["kind"] == "layer":
+                self._canvas.select_bg_image(entry["key"])
             else:
                 self._canvas.select_element(None)
 
