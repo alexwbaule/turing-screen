@@ -317,9 +317,9 @@ class PropertiesPanel(Gtk.Box):
             else:
                 current_type = next((t for cls, t in _type_map if isinstance(element, cls)), "text")
 
-            # Display labels vs the kind sent to the callback. "% Text" only makes
-            # sense for measurement-backed elements (those with a Text/PercentText
-            # slot pair) — hide it otherwise.
+            # Display labels vs the kind sent to the callback. "% Text" is always
+            # available so a PercentText element is shown/switched correctly even
+            # when it has no Text/PercentText slot pair (e.g. Memory measurements).
             _all_opts = [
                 ("Text",       "text"),
                 ("% Text",     "percent_text"),
@@ -329,9 +329,7 @@ class PropertiesPanel(Gtk.Box):
                 ("Gauge",      "gauge"),
                 ("Status Bar", "status_bar"),
             ]
-            has_measurement = bool(getattr(element, "_measurement", None))
-            opts = [(lbl, k) for lbl, k in _all_opts
-                    if k != "percent_text" or has_measurement]
+            opts = _all_opts
             labels = [lbl for lbl, _ in opts]
             kinds = [k for _, k in opts]
 
