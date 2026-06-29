@@ -71,6 +71,9 @@ class PropertiesPanel(Gtk.Box):
         scroll = Gtk.ScrolledWindow()
         scroll.set_vexpand(True)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        # Non-overlay scrollbar: it reserves its own column instead of floating
+        # over the content, so it no longer covers each SpinButton's +/- steppers.
+        scroll.set_overlay_scrolling(False)
 
         self._content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         self._content.set_margin_top(8)

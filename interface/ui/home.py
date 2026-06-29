@@ -21,6 +21,37 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GLib, Adw, Gio
 log = logging.getLogger(__name__)
 
 
+# Preview-thumbnail candidates, in priority order. Must match the Go home
+# screen (home.go): a video frame (assets/image_0.png) wins, else the static
+# background.png in any case.
+_PREVIEW_CANDIDATES = (
+    ("assets", "image_0.png"),
+    ("background.png",),
+    ("Background.png",),
+    ("BACKGROUND.png",),
+)
+
+
+def preview_read_path(theme_dir: str) -> str | None:
+    """First existing preview file in priority order, or None."""
+    for parts in _PREVIEW_CANDIDATES:
+        p = os.path.join(theme_dir, *parts)
+        if os.path.exists(p):
+            return p
+    return None
+
+
+def preview_write_path(theme_dir: str) -> str:
+    """Where to write a regenerated preview so the loader actually picks it up.
+
+    The loader reads the first existing candidate, so we must overwrite that
+    same file (e.g. ``assets/image_0.png``) — writing ``background.png`` while
+    ``image_0.png`` exists would be silently shadowed and never shown.  Falls
+    back to ``background.png`` when no preview exists yet.
+    """
+    return preview_read_path(theme_dir) or os.path.join(theme_dir, "background.png")
+
+
 class HomePage:
     """
     Não subclassa Adw.ToolbarView (tipo final no GObject).
@@ -344,15 +375,7 @@ class HomePage:
         # Mesma ordem exata do Go (home.go):
         #   1. assets/image_0.png  (frame extraído do vídeo)
         #   2. background.png
-        for candidate in (
-            os.path.join(theme_dir, "assets", "image_0.png"),
-            os.path.join(theme_dir, "background.png"),
-            os.path.join(theme_dir, "Background.png"),
-            os.path.join(theme_dir, "BACKGROUND.png"),
-        ):
-            if os.path.exists(candidate):
-                return candidate
-        return None
+        return preview_read_path(theme_dir)
 
     def _apply_preview_texture(self, name: str, texture: Gdk.Texture | None):
         self._preview_spinner.stop()

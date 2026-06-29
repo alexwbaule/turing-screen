@@ -7,7 +7,7 @@ import logging
 from gi.repository import Gtk, Adw, GLib, Gio, Gdk
 
 from ws_client import WSClient
-from ui.home import HomePage
+from ui.home import HomePage, preview_write_path
 from ui.canvas import ThemeCanvas
 from ui.properties import PropertiesPanel
 from ui.layers_panel import LayersPanel
@@ -440,6 +440,16 @@ class EditorApp:
         self.capture_z_order()
         try:
             self._current_theme.save(path)
+            # Regenerate the preview (same path logic as Save) and drop the
+            # cache so the home page reflects the newly saved theme.
+            if self._canvas:
+                try:
+                    self._canvas.render_to_png(
+                        preview_write_path(self._theme_dir))
+                except Exception as ex:
+                    log.warning("Falha ao gerar preview: %s", ex)
+            if self._home:
+                self._home.notify_theme_list_dirty()
             self._toast(f"Salvo em {os.path.basename(path)}")
         except Exception as e:
             self._show_error(f"Falha ao salvar:\n{e}")
@@ -553,12 +563,18 @@ class EditorApp:
             self._current_theme.save(path)
             # Regenerate the home-screen preview from the current canvas so it
             # reflects the edited theme (background + all widgets in z-order).
+            # Write to the preview path the loader actually reads (e.g.
+            # assets/image_0.png when present) — background.png would be
+            # shadowed and the edit wouldn't show up.
             if self._canvas:
                 try:
                     self._canvas.render_to_png(
-                        os.path.join(self._theme_dir, "background.png"))
+                        preview_write_path(self._theme_dir))
                 except Exception as ex:
                     log.warning("Falha ao gerar preview: %s", ex)
+            # Drop the cached preview so the home page reloads it from disk.
+            if self._home:
+                self._home.notify_theme_list_dirty()
             log.info("Tema salvo em %s", path)
             self._toast("Tema salvo com sucesso.")
         except Exception as e:
