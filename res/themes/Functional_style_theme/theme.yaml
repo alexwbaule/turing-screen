@@ -1,0 +1,151 @@
+# Auto-converted from .turtheme
+# Source: Functional_style_theme
+# Resolution: 720x1280 (reverse_portrait)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: reverse_portrait
+  RGB_LED: 255, 255, 255
+  WIDTH: 720
+  HEIGHT: 1280
+video:
+  PATH: video/Float.mp407050424.h264
+  X: 0
+  Y: 0
+  WIDTH: 720
+  HEIGHT: 1280
+static_images:
+  BACKGROUND:
+    PATH: assets/image_4.png
+    X: 0
+    Y: 0
+    WIDTH: 721
+    HEIGHT: 1281
+static_texts:
+  WATERPUMP_LABEL:
+    TEXT: Water Pump
+    X: 637
+    Y: 1010
+    FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+    FONT_SIZE: 36
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+STATS:
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 1
+        X: 6
+        Y: 940
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 69
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: left
+    MEMORY:
+      TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 212
+        Y: 1235
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 8888M
+        ALIGN: right
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 279
+        Y: 940
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 69
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: left
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      USED:
+        SHOW: true
+        INDEX: 3
+        X: 77
+        Y: 1069
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 41
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '8888'
+        ALIGN: left
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 514
+        Y: 35
+        FONT: turtheme/HelveticaNeueLTPro-BlkCn.otf
+        FONT_SIZE: 69
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '12:00'
+        ALIGN: left
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        INDEX: 9
+        X: 277
+        Y: 35
+        FONT: turtheme/HelveticaNeueLTPro-BlkCn.otf
+        FONT_SIZE: 69
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '12'
+        ALIGN: center
+        FORMAT: medium
+  DISK:
+    INTERVAL: 10
+    USED:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 6
+        X: 206
+        Y: 124
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 33
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: right
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 7
+        X: 395
+        Y: 124
+        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+        FONT_SIZE: 32
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
+  VOLUME:
+    TEXT:
+      SHOW: true
+      INDEX: 8
+      X: 640
+      Y: 1099
+      FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+      FONT_SIZE: 36
+      FONT_COLOR: 255, 255, 255
+      SHOW_UNIT: true
+      PLACEHOLDER: 100%
+      ALIGN: center

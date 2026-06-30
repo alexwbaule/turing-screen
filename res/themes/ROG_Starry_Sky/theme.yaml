@@ -1,0 +1,363 @@
+# Auto-converted from .turtheme
+# Source: ROG_Starry_Sky
+# Resolution: 1280x720 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 720
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 720
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 1280
+    HEIGHT: 720
+static_texts:
+  CPUMODEL:
+    TEXT: '{{CPU_MODEL}}'
+    X: 158
+    Y: 78
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 37
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  GPUMODEL:
+    TEXT: '{{GPU_MODEL}}'
+    X: 692
+    Y: 77
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 41
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  RAM:
+    TEXT: RAM
+    X: 160
+    Y: 366
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 36
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  RAMMODEL:
+    TEXT: '{{MEM_TOTAL}}'
+    X: 247
+    Y: 364
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 36
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  C:
+    TEXT: C：
+    X: 461
+    Y: 406
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 32
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  SSD:
+    TEXT: SSD
+    X: 609
+    Y: 360
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 35
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 262
+        Y: 194
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 65
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: center
+      RADIAL:
+        SHOW: true
+        INDEX: 6
+        X: 256
+        Y: 233
+        RADIUS: 85
+        WIDTH: 25
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 32
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 121, 189, 206
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 559
+        Y: 187
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 35
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 7
+        X: 376
+        Y: 163
+        WIDTH: 200
+        HEIGHT: 26
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 121, 189, 206
+        BAR_OUTLINE: false
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 583
+        Y: 265
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 33
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '4800'
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 8
+        X: 376
+        Y: 240
+        WIDTH: 200
+        HEIGHT: 26
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 121, 189, 206
+        BAR_OUTLINE: false
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      RADIAL:
+        SHOW: true
+        INDEX: 9
+        X: 792
+        Y: 233
+        RADIUS: 85
+        WIDTH: 25
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 32
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 121, 189, 206
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+      TEXT:
+        SHOW: true
+        INDEX: 15
+        X: 794
+        Y: 189
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 66
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: center
+    TEMPERATURE:
+      GRAPH:
+        SHOW: true
+        INDEX: 10
+        X: 911
+        Y: 160
+        WIDTH: 200
+        HEIGHT: 26
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 121, 189, 206
+        BAR_OUTLINE: false
+      TEXT:
+        SHOW: true
+        INDEX: 12
+        X: 1096
+        Y: 186
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 37
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
+    MEMORY:
+      GRAPH:
+        SHOW: true
+        INDEX: 11
+        X: 912
+        Y: 241
+        WIDTH: 200
+        HEIGHT: 26
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 121, 189, 206
+        BAR_OUTLINE: false
+      TEXT:
+        SHOW: true
+        INDEX: 13
+        X: 1125
+        Y: 264
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 36
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '8888'
+        ALIGN: right
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 18
+        X: 260
+        Y: 482
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 65
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: center
+      RADIAL:
+        SHOW: true
+        INDEX: 19
+        X: 258
+        Y: 521
+        RADIUS: 85
+        WIDTH: 25
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 32
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 121, 189, 206
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+  DISK:
+    INTERVAL: 10
+    USED:
+      GRAPH:
+        SHOW: true
+        INDEX: 20
+        X: 504
+        Y: 416
+        WIDTH: 232
+        HEIGHT: 25
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 121, 189, 206
+        BAR_OUTLINE: false
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 23
+        X: 737
+        Y: 457
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 33
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: right
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 22
+        X: 574
+        Y: 454
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 37
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: right
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 24
+          X: 499
+          Y: 579
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 25
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: left
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 25
+          X: 651
+          Y: 579
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 25
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: left
+  VOLUME:
+    RADIAL:
+      SHOW: true
+      INDEX: 27
+      X: 832
+      Y: 540
+      RADIUS: 62
+      WIDTH: 16
+      MIN_VALUE: 0
+      MAX_VALUE: 100
+      ANGLE_START: 32
+      ANGLE_END: 60
+      ANGLE_STEPS: 1
+      ANGLE_SEP: 0
+      CLOCKWISE: true
+      BAR_COLOR: 121, 189, 206
+      SHOW_TEXT: false
+      SHOW_UNIT: false
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        INDEX: 28
+        X: 1043
+        Y: 499
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 40
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '12:00'
+        ALIGN: center
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        INDEX: 29
+        X: 1047
+        Y: 558
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 40
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '2020-12-31'
+        ALIGN: center
+        FORMAT: medium

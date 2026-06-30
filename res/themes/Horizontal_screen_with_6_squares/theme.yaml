@@ -1,0 +1,98 @@
+# Auto-converted from .turtheme
+# Source: Horizontal_screen_with_6_squares
+# Resolution: 1280x720 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+  WIDTH: 1280
+  HEIGHT: 720
+static_images:
+  BACKGROUND:
+    PATH: assets/image_4.png
+    X: 0
+    Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 227
+        Y: 105
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 96
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: center
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 656
+        Y: 105
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 96
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: center
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 1068
+        Y: 105
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 84
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 4800M
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 229
+        Y: 445
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 96
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: center
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 6
+        X: 662
+        Y: 445
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 96
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 7
+        X: 1066
+        Y: 445
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 96
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: center

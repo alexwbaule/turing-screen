@@ -1,0 +1,22 @@
+_group=smart-screen
+_install_dir=/opt/smart-screen
+
+# Keep the install tree owned by the shared group. The group itself is created
+# by the turing-screen package's .install; we only chown when it already exists,
+# so installing the interface without the daemon does not fail.
+_normalize_ownership() {
+	if getent group "$_group" >/dev/null 2>&1; then
+		# Fix the entire shared tree, not just interface/ — covers the case
+		# where turing-screen was already installed but its .install didn't run
+		# (e.g. manual extraction) and res/themes files ended up root:root.
+		chown -R root:"$_group" "$_install_dir" 2>/dev/null || true
+	fi
+}
+
+post_install() {
+	_normalize_ownership
+}
+
+post_upgrade() {
+	_normalize_ownership
+}

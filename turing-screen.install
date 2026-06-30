@@ -1,0 +1,60 @@
+_group=smart-screen
+_install_dir=/opt/smart-screen
+
+_setup_group() {
+	if ! getent group "$_group" >/dev/null; then
+		groupadd --system "$_group"
+		echo "  Grupo '$_group' criado."
+	fi
+	# Normalize ownership of the WHOLE install tree to root:smart-screen.
+	# Modes set in package() control writability (res/ and conf/ are group-
+	# writable so the interface — a group member — can save themes; the daemon
+	# runs as root and owns everything consistently).
+	chown -R root:"$_group" "$_install_dir"
+	# Ensure the config file is group-writable (daemon persists device.theme here).
+	chmod 664 "$_install_dir/conf/config.yaml" 2>/dev/null || true
+}
+
+_add_user_to_group() {
+	# Auto-detect the user who invoked sudo (set by sudo in the environment).
+	local target_user="${SUDO_USER:-}"
+	if [ -z "$target_user" ]; then
+		return
+	fi
+	if ! id -nG "$target_user" 2>/dev/null | grep -qw "$_group"; then
+		usermod -aG "$_group" "$target_user"
+		echo "==> Usuário '$target_user' adicionado ao grupo '$_group'."
+		echo "    Faça re-login ou execute: newgrp $_group"
+	else
+		echo "==> Usuário '$target_user' já está no grupo '$_group'."
+	fi
+}
+
+post_install() {
+	_setup_group
+	_add_user_to_group
+	systemctl daemon-reload
+	systemctl enable --now smart-screen-go
+	systemctl enable sleep@smart-screen-go
+	echo ""
+	echo "==> turing-screen instalado e daemon iniciado."
+	echo ""
+	echo "==> GNOME: instale a extensão AppIndicator para o ícone na bandeja:"
+	echo "      https://extensions.gnome.org/extension/615/appindicator-support/"
+	echo ""
+}
+
+post_upgrade() {
+	_setup_group
+	_add_user_to_group
+	echo ""
+	echo "==> turing-screen atualizado."
+	echo "==> Reinicie o daemon: sudo systemctl restart smart-screen-go"
+	echo ""
+}
+
+pre_remove() {
+	systemctl stop    smart-screen-go         2>/dev/null || true
+	systemctl disable smart-screen-go         2>/dev/null || true
+	systemctl disable sleep@smart-screen-go   2>/dev/null || true
+}

@@ -1,0 +1,380 @@
+# Auto-converted from .turtheme
+# Source: panel_common
+# Resolution: 870x660 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 26, 80, 145
+  WIDTH: 870
+  HEIGHT: 660
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 871
+    HEIGHT: 661
+static_texts:
+  CPUMODEL:
+    TEXT: '{{CPU_MODEL}}'
+    X: 43
+    Y: 29
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 19
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  GPUMODEL:
+    TEXT: '{{GPU_MODEL}}'
+    X: 319
+    Y: 29
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 19
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  RAMMODEL:
+    TEXT: '{{MEM_TOTAL}}'
+    X: 597
+    Y: 29
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 19
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  DISK:
+    TEXT: DISK
+    X: 348
+    Y: 610
+    FONT: turtheme/KumbhSans-Regular.ttf
+    FONT_SIZE: 13
+    FONT_COLOR: 26, 80, 145
+    ALIGN: center
+  CPUCLOCK_G_LABEL:
+    TEXT: CPUCLOCK_G
+    X: 364
+    Y: 615
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: 26, 80, 145
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 1
+        X: 27
+        Y: 44
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 88
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: left
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 259
+        Y: 241
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 26, 80, 145
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 24
+        X: 55
+        Y: 218
+        WIDTH: 198
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 26, 80, 145
+        BAR_OUTLINE: false
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 259
+        Y: 308
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 26, 80, 145
+        SHOW_UNIT: true
+        PLACEHOLDER: 4800M
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 25
+        X: 55
+        Y: 286
+        WIDTH: 198
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 26, 80, 145
+        BAR_OUTLINE: false
+    FAN:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 6
+        X: 259
+        Y: 375
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 26, 80, 145
+        SHOW_UNIT: true
+        PLACEHOLDER: 1888R
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 26
+        X: 55
+        Y: 353
+        WIDTH: 198
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 26, 80, 145
+        BAR_OUTLINE: false
+    POWER:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 17
+        X: 815
+        Y: 512
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 26, 80, 145
+        SHOW_UNIT: true
+        PLACEHOLDER: 200W
+        ALIGN: right
+    VOLTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 18
+        X: 815
+        Y: 544
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 26, 80, 145
+        SHOW_UNIT: true
+        PLACEHOLDER: 1.8V
+        ALIGN: right
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 303
+        Y: 44
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 88
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: left
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 7
+        X: 539
+        Y: 241
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 115, 155, 228
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 27
+        X: 335
+        Y: 218
+        WIDTH: 198
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 115, 155, 228
+        BAR_OUTLINE: false
+    FREQUENCY:
+      TEXT:
+        SHOW: true
+        INDEX: 8
+        X: 539
+        Y: 308
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 115, 155, 228
+        SHOW_UNIT: true
+        PLACEHOLDER: 8888M
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 28
+        X: 335
+        Y: 286
+        WIDTH: 198
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 115, 155, 228
+        BAR_OUTLINE: false
+    FAN:
+      TEXT:
+        SHOW: true
+        INDEX: 9
+        X: 539
+        Y: 375
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 115, 155, 228
+        SHOW_UNIT: true
+        PLACEHOLDER: 1888R
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 29
+        X: 335
+        Y: 353
+        WIDTH: 198
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 115, 155, 228
+        BAR_OUTLINE: false
+    POWER:
+      TEXT:
+        SHOW: true
+        INDEX: 19
+        X: 815
+        Y: 576
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 26, 80, 145
+        SHOW_UNIT: true
+        PLACEHOLDER: 200W
+        ALIGN: right
+    VOLTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 20
+        X: 815
+        Y: 607
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 26, 80, 145
+        SHOW_UNIT: true
+        PLACEHOLDER: 1.8V
+        ALIGN: right
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 581
+        Y: 44
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 88
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: left
+      USED:
+        SHOW: true
+        INDEX: 10
+        X: 817
+        Y: 241
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 175, 155, 212
+        SHOW_UNIT: true
+        PLACEHOLDER: 8888M
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 30
+        X: 613
+        Y: 218
+        WIDTH: 198
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 175, 155, 212
+        BAR_OUTLINE: false
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 12
+          X: 73
+          Y: 514
+          FONT: turtheme/KumbhSans-Regular.ttf
+          FONT_SIZE: 13
+          FONT_COLOR: 26, 80, 145
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: left
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 13
+          X: 205
+          Y: 514
+          FONT: turtheme/KumbhSans-Regular.ttf
+          FONT_SIZE: 15
+          FONT_COLOR: 26, 80, 145
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: left
+  DISK:
+    INTERVAL: 10
+    USED:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 14
+        X: 359
+        Y: 559
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 240, 146, 57
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: center
+      RADIAL:
+        SHOW: true
+        INDEX: 32
+        X: 359
+        Y: 568
+        RADIUS: 24
+        WIDTH: 3
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 255, 128, 0
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 36
+        X: 518
+        Y: 610
+        FONT: turtheme/KumbhSans-Regular.ttf
+        FONT_SIZE: 13
+        FONT_COLOR: 26, 80, 145
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: left

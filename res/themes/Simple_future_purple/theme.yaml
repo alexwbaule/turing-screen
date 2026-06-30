@@ -1,0 +1,451 @@
+# Auto-converted from .turtheme
+# Source: Simple_future_purple
+# Resolution: 720x1280 (reverse_portrait)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: reverse_portrait
+  RGB_LED: 255, 255, 255
+  WIDTH: 720
+  HEIGHT: 1280
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 720
+    HEIGHT: 1280
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 720
+    HEIGHT: 1280
+static_texts:
+  CPUMODEL:
+    TEXT: '{{CPU_MODEL}}'
+    X: 35
+    Y: 71
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 21
+    FONT_COLOR: 104, 102, 116
+    ALIGN: left
+  GPUMODEL:
+    TEXT: '{{GPU_MODEL}}'
+    X: 38
+    Y: 432
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 21
+    FONT_COLOR: 104, 102, 116
+    ALIGN: left
+  C:
+    TEXT: C:/
+    X: 426
+    Y: 819
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 19
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  UL:
+    TEXT: 'UL:'
+    X: 417
+    Y: 916
+    FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+    FONT_SIZE: 25
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  DL:
+    TEXT: 'DL:'
+    X: 417
+    Y: 950
+    FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+    FONT_SIZE: 25
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  VOLUME:
+    TEXT: VOLUME
+    X: 37
+    Y: 1191
+    FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+    FONT_SIZE: 21
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 144
+        Y: 175
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 92
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: center
+      RADIAL:
+        SHOW: true
+        INDEX: 33
+        X: 140
+        Y: 228
+        RADIUS: 93
+        WIDTH: 14
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 80, 0, 121
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+    TEMPERATURE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 677
+        Y: 162
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 22
+        X: 293
+        Y: 138
+        WIDTH: 382
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 104, 102, 116
+        BAR_OUTLINE: false
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 6
+        X: 677
+        Y: 236
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 4800M
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 23
+        X: 293
+        Y: 212
+        WIDTH: 382
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 104, 102, 116
+        BAR_OUTLINE: false
+    FAN:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 7
+        X: 676
+        Y: 309
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 1888R
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 24
+        X: 294
+        Y: 283
+        WIDTH: 382
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 104, 102, 116
+        BAR_OUTLINE: false
+    POWER:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 18
+        X: 327
+        Y: 1098
+        FONT: turtheme/HelveticaNeueLTPro-Th.otf
+        FONT_SIZE: 23
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 200W
+        ALIGN: right
+    VOLTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 19
+        X: 328
+        Y: 1144
+        FONT: turtheme/HelveticaNeueLTPro-Th.otf
+        FONT_SIZE: 23
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 1.8V
+        ALIGN: right
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 143
+        Y: 537
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 92
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: center
+      RADIAL:
+        SHOW: true
+        INDEX: 34
+        X: 139
+        Y: 591
+        RADIUS: 93
+        WIDTH: 14
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 51, 0, 121
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 8
+        X: 675
+        Y: 525
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 25
+        X: 293
+        Y: 498
+        WIDTH: 382
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 104, 102, 116
+        BAR_OUTLINE: false
+    FREQUENCY:
+      TEXT:
+        SHOW: true
+        INDEX: 9
+        X: 675
+        Y: 597
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 8888M
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 26
+        X: 293
+        Y: 572
+        WIDTH: 382
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 104, 102, 116
+        BAR_OUTLINE: false
+    FAN:
+      TEXT:
+        SHOW: true
+        INDEX: 10
+        X: 675
+        Y: 669
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 1888R
+        ALIGN: right
+      GRAPH:
+        SHOW: true
+        INDEX: 27
+        X: 293
+        Y: 646
+        WIDTH: 382
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 104, 102, 116
+        BAR_OUTLINE: false
+    POWER:
+      TEXT:
+        SHOW: true
+        INDEX: 20
+        X: 674
+        Y: 1099
+        FONT: turtheme/HelveticaNeueLTPro-Th.otf
+        FONT_SIZE: 23
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 200W
+        ALIGN: right
+    VOLTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 21
+        X: 667
+        Y: 1143
+        FONT: turtheme/HelveticaNeueLTPro-Th.otf
+        FONT_SIZE: 23
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 1.8V
+        ALIGN: right
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 4
+        X: 114
+        Y: 855
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 69
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: center
+      USED:
+        SHOW: true
+        INDEX: 11
+        X: 253
+        Y: 780
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '8888'
+        ALIGN: center
+      GRAPH:
+        SHOW: true
+        INDEX: 28
+        X: 223
+        Y: 819
+        WIDTH: 155
+        HEIGHT: 50
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 104, 102, 116
+        BAR_OUTLINE: false
+      RADIAL:
+        SHOW: true
+        INDEX: 35
+        X: 111
+        Y: 897
+        RADIUS: 71
+        WIDTH: 12
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ANGLE_START: 120
+        ANGLE_END: 60
+        ANGLE_STEPS: 1
+        ANGLE_SEP: 0
+        CLOCKWISE: true
+        BAR_COLOR: 104, 102, 116
+        SHOW_TEXT: false
+        SHOW_UNIT: false
+  DISK:
+    INTERVAL: 10
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 13
+        X: 678
+        Y: 765
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 27
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: right
+    USED:
+      GRAPH:
+        SHOW: true
+        INDEX: 30
+        X: 420
+        Y: 818
+        WIDTH: 259
+        HEIGHT: 26
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 104, 102, 116
+        BAR_OUTLINE: false
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 31
+        X: 677
+        Y: 819
+        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: right
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 14
+          X: 477
+          Y: 918
+          FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+          FONT_SIZE: 24
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: left
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 15
+          X: 477
+          Y: 952
+          FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+          FONT_SIZE: 24
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: left
+  VOLUME:
+    GRAPH:
+      SHOW: true
+      INDEX: 38
+      X: 40
+      Y: 1225
+      WIDTH: 620
+      HEIGHT: 15
+      MIN_VALUE: 0
+      MAX_VALUE: 100
+      BAR_COLOR: 104, 102, 116
+      BAR_OUTLINE: false
