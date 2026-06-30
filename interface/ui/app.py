@@ -527,9 +527,12 @@ class EditorApp:
             self._canvas.select_widget_by_path(path)
 
     def capture_z_order(self):
-        """Write current stack position as INDEX on each element's data."""
+        """Write current stack position as INDEX on each element's data, then
+        sync the whole canvas into the in-memory theme so save writes exactly
+        what's on screen (no drift from adds/removes/edits)."""
         if self._canvas:
             self._canvas.capture_z_order()
+            self._canvas._sync_to_theme()
 
     def delete_selected_widget(self):
         """Delete the currently selected canvas element (with confirm dialog)."""

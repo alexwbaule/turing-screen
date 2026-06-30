@@ -277,7 +277,10 @@ func (c *Compositor) collectMemItems(percent float64, m *theme.MemMesurement) []
 	}
 	if m.PercentText != nil && m.PercentText.Show {
 		t := m.PercentText
-		s := fmt.Sprintf("%3.0f%%", percent)
+		s := fmt.Sprintf("%3.0f", percent)
+		if t.ShowUnit {
+			s += "%"
+		}
 		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, s, t) }})
 	}
 

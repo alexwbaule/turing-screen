@@ -59,14 +59,21 @@ log = logging.getLogger(__name__)
 _PATH_ALIASES = {"WLO": "Wifi", "ETH": "Wired"}
 
 
+def _norm(s: str) -> str:
+    """Normalise a key for comparison: lowercase, drop underscores/dashes.
+    YAML uses underscores (PERCENT_TEXT) while the Python attrs don't
+    (PercentText), so a plain case-fold won't match."""
+    return s.lower().replace("_", "").replace("-", "")
+
+
 def _ci_field(obj, name: str):
-    """Dataclass field on obj matching `name` case-insensitively (honouring
-    NET path aliases). Returns the attribute name or None."""
+    """Dataclass field on obj matching `name` case-insensitively, ignoring
+    underscores/dashes (honouring NET path aliases). Returns the attr or None."""
     if not dataclasses.is_dataclass(obj):
         return None
-    target = _PATH_ALIASES.get(name.upper(), name).lower()
+    target = _norm(_PATH_ALIASES.get(name.upper(), name))
     for f in dataclasses.fields(obj):
-        if f.name.lower() == target:
+        if _norm(f.name) == target:
             return f.name
     return None
 
@@ -80,6 +87,14 @@ def _resolved_type(obj, attr: str):
     if typing.get_origin(tp) is typing.Union:
         tp = next((a for a in typing.get_args(tp) if a is not type(None)), None)
     return tp if isinstance(tp, type) else None
+
+
+def _has_slot(meas, slot_attr: str) -> bool:
+    """True if `slot_attr` is a declared dataclass field on the measurement
+    (so the representation is valid for this STATS type). Checks declared
+    fields only — a dynamically-set attribute doesn't count."""
+    return (meas is not None and dataclasses.is_dataclass(meas)
+            and any(f.name == slot_attr for f in dataclasses.fields(meas)))
 
 SCREEN_TURZX_W = 1280
 SCREEN_TURZX_H = 720
@@ -150,6 +165,8 @@ class ThemeCanvas(Gtk.ScrolledWindow):
     def load_theme(self, theme: Theme, theme_dir: str):
         self._theme = theme
         self._theme_dir = theme_dir
+        if self._props and hasattr(self._props, "set_theme_dir"):
+            self._props.set_theme_dir(theme_dir)
         self._clear_all()
 
         # Canvas size from theme display
@@ -480,6 +497,30 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             return None, None
         return obj, leaf
 
+    def _slot_valid(self, path: str) -> bool:
+        """True if the path's leaf slot exists on its measurement's dataclass.
+        Navigates the existing tree; for a not-yet-created measurement it
+        instantiates the declared type transiently (never stored) just to check
+        the slot. This is the general, data-driven validity check for any STATS
+        measurement type — no per-type hardcoding."""
+        if not self._theme or not path:
+            return False
+        obj = self._theme
+        parts = path.split(".")
+        for part in parts[:-1]:
+            attr = _ci_field(obj, part)
+            if attr is None:
+                return False
+            nxt = getattr(obj, attr, None)
+            if nxt is None:
+                tp = _resolved_type(obj, attr)
+                if tp is None:
+                    return False
+                obj = tp()  # transient instance, only for type-checking
+            else:
+                obj = nxt
+        return _ci_field(obj, parts[-1]) is not None
+
     def _attach_to_theme(self, elem: _DraggableBase):
         """Attach a freshly-created element's data into self._theme at its
         yaml_path. The in-memory theme is the single source of truth that save
@@ -591,6 +632,14 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         meas = getattr(elem, "_measurement", None)
         old_slot = getattr(elem, "_slot", None)
 
+        # Refuse a swap whose target slot doesn't exist on this measurement
+        # type (e.g. Memory → 'Text': MemMeasurement has no Text slot). Checked
+        # against the real declared fields, so it's correct for every STATS.
+        new_slot = _KIND_TO_SLOT.get(new_type)
+        if meas is not None and new_slot and not _has_slot(meas, new_slot):
+            log.warning("Troca para '%s' inválida para este sensor", new_type)
+            return
+
         # text <-> percent_text: same Text model, just move the slot.
         if (isinstance(elem, DraggableText) and new_type in ("text", "percent_text")
                 and old_slot in ("Text", "PercentText")):
@@ -696,12 +745,18 @@ class ThemeCanvas(Gtk.ScrolledWindow):
 
     def remove_element(self, elem: _DraggableBase):
         if elem in self._elements:
-            # A layer image lives in theme.static_images too — drop it there so
-            # the deletion survives save/reload.
+            # Drop from the in-memory theme so the deletion survives save/reload.
             if isinstance(elem, DraggableImage) and elem.yaml_path.startswith("static_images."):
                 key = elem.yaml_path.split(".", 1)[1]
                 if self._theme and key in (self._theme.static_images or {}):
                     del self._theme.static_images[key]
+            else:
+                # STATS widget: clear its slot on the parent measurement so the
+                # removed element doesn't reappear on the next save.
+                meas = getattr(elem, "_measurement", None)
+                slot = getattr(elem, "_slot", None)
+                if meas is not None and slot and getattr(meas, slot, None) is elem.data:
+                    setattr(meas, slot, None)
             self._fixed.remove(elem.widget)
             self._elements.remove(elem)
             if self._selected is elem:
@@ -709,8 +764,28 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                 self._props.update(None)
             self._layers.refresh(self._theme, self._elements)
 
+    def _sync_to_theme(self):
+        """Re-attach every canvas element to self._theme. The in-memory theme is
+        the single source of truth that save serializes, so this guarantees the
+        written YAML matches exactly what's on the canvas — no drift from adds,
+        removes, or edits. Idempotent for already-attached elements."""
+        if not self._theme:
+            return
+        for elem in self._elements:
+            if isinstance(elem, DraggableImage):
+                continue  # static images are tracked in theme.static_images
+            self._attach_to_theme(elem)
+
     def add_new_element(self, yaml_path: str, kind: str):
         """Called from toolbox when user clicks an add button."""
+        # Refuse representations that have no slot on this measurement type
+        # (e.g. 'Text' on a Memory measurement, which only has USED/FREE/
+        # PERCENT_TEXT). Validity is checked against the real dataclass fields,
+        # so it's correct for every STATS type without hardcoding.
+        if not self._slot_valid(yaml_path):
+            log.warning("Representação '%s' inválida para este sensor: %s",
+                        kind, yaml_path)
+            return
         cx, cy = self._canvas_w // 2, self._canvas_h // 2
         if kind == "text":
             data = Text(X=cx, Y=cy, SHOW=True, FONT_SIZE=24, FONT_COLOR="255,255,255")

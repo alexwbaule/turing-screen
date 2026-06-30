@@ -4,7 +4,7 @@ Mirrors properties.go from the Fyne version with full field parity.
 """
 import os
 
-from gi.repository import Gtk, Gdk, Pango
+from gi.repository import Gtk, Gdk, Pango, Gio
 
 
 # ── Color helpers ──────────────────────────────────────────────────────────────
@@ -48,10 +48,15 @@ class PropertiesPanel(Gtk.Box):
         self._updating = False
         self._on_delete = None
         self._on_type_change = None
+        self._theme_dir = ""
         self._build_ui()
 
     def set_on_delete(self, cb):
         self._on_delete = cb
+
+    def set_theme_dir(self, theme_dir: str):
+        """Theme directory (set on load) — used to resolve font file paths."""
+        self._theme_dir = theme_dir or ""
 
     def set_on_type_change(self, cb):
         self._on_type_change = cb
@@ -199,6 +204,69 @@ class PropertiesPanel(Gtk.Box):
         e.set_text(text or "")
         e.connect("changed", changed_cb)
         return e
+
+    def _font_row(self, parent: Gtk.Box, data, refresh_cb):
+        """Font-file row: editable path + a browse button that opens a file
+        picker (.otf/.ttf). The theme stores a path relative to the theme dir
+        (e.g. 'turtheme/Azonix.otf'), so the picked file is relativised."""
+        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        lbl = Gtk.Label(label="Font file")
+        lbl.set_width_chars(13)
+        lbl.set_halign(Gtk.Align.END)
+        lbl.add_css_class("dim-label")
+        entry = Gtk.Entry()
+        entry.set_text(data.FONT or "")
+        entry.set_hexpand(True)
+        entry.connect("changed", lambda e: [setattr(data, "FONT", e.get_text()), refresh_cb()])
+        browse = Gtk.Button()
+        browse.set_icon_name("document-open-symbolic")
+        browse.set_tooltip_text("Procurar fonte…")
+        browse.connect("clicked", lambda b: self._pick_font(entry, data, refresh_cb))
+        row.append(lbl)
+        row.append(entry)
+        row.append(browse)
+        parent.append(row)
+
+    def _fonts_dir(self) -> str:
+        """Font files live at <repo>/res/fonts (the daemon loads them as
+        FONTPATH + FONT). Derive it from this module's location so it's right
+        regardless of cwd or theme_dir."""
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        return os.path.join(root, "res", "fonts")
+
+    def _pick_font(self, entry: Gtk.Entry, data, refresh_cb):
+        dialog = Gtk.FileDialog()
+        dialog.set_title("Selecionar fonte")
+        filt = Gtk.FileFilter()
+        filt.set_name("Fontes (*.otf, *.ttf)")
+        for pat in ("*.otf", "*.ttf", "*.ttc"):
+            filt.add_pattern(pat)
+        filters = Gio.ListStore.new(Gtk.FileFilter)
+        filters.append(filt)
+        dialog.set_filters(filters)
+        # Open at res/fonts (FONT is stored relative to it).
+        fonts_dir = self._fonts_dir()
+        if os.path.isdir(fonts_dir):
+            try:
+                dialog.set_initial_folder(Gio.File.new_for_path(fonts_dir))
+            except Exception:
+                pass
+
+        def _done(d, res):
+            try:
+                gfile = d.open_finish(res)
+            except Exception:
+                return  # cancelled
+            p = gfile.get_path()
+            # FONT is relative to res/fonts (e.g. 'turtheme/Azonix.otf').
+            try:
+                p = os.path.relpath(p, fonts_dir)
+            except ValueError:
+                pass
+            # set_text fires "changed" → updates data.FONT + refresh.
+            entry.set_text(p)
+
+        dialog.open(entry.get_root(), None, _done)
 
     def _color_btn(self, color_str, on_color, default: str = "0,0,0") -> Gtk.ColorButton:
         btn = Gtk.ColorButton()
@@ -425,7 +493,7 @@ class PropertiesPanel(Gtk.Box):
 
         # Font
         exp, inner = self._expander("Font")
-        self._append_row(inner, "Font file", self._entry(data.FONT, lambda e: [setattr(data, "FONT", e.get_text()), refresh()]))
+        self._font_row(inner, data, refresh)
         self._append_row(inner, "Size", self._spin(data.FONT_SIZE or 16, 4, 500, lambda s: [setattr(data, "FONT_SIZE", int(s.get_value())), refresh()]))
         self._append_row(inner, "Color", self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
         self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "0,0,0", refresh)
@@ -561,7 +629,7 @@ class PropertiesPanel(Gtk.Box):
         exp, inner = self._expander("Center text", expanded=False)
         inner.append(self._toggle(bool(data.SHOW_TEXT), "Show text",  lambda v: [setattr(data, "SHOW_TEXT", v), refresh()]))
         inner.append(self._toggle(bool(data.SHOW_UNIT), "Show unit",  lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
-        self._append_row(inner, "Font file",  self._entry(data.FONT or "", lambda e: [setattr(data, "FONT", e.get_text()), refresh()]))
+        self._font_row(inner, data, refresh)
         self._append_row(inner, "Font color", self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
         self._content.append(exp)
 
@@ -655,7 +723,7 @@ class PropertiesPanel(Gtk.Box):
         exp, inner = self._expander("Center text", expanded=False)
         inner.append(self._toggle(bool(data.SHOW_TEXT), "Show text", lambda v: [setattr(data, "SHOW_TEXT", v), refresh()]))
         inner.append(self._toggle(bool(data.SHOW_UNIT), "Show unit", lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
-        self._append_row(inner, "Font file",  self._entry(data.FONT or "", lambda e: [setattr(data, "FONT", e.get_text()), refresh()]))
+        self._font_row(inner, data, refresh)
         self._append_row(inner, "Font color", self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
         self._content.append(exp)
 
