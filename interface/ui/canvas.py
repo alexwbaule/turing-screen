@@ -222,7 +222,7 @@ class ThemeCanvas(Gtk.ScrolledWindow):
 
         try:
             snapshot = _Gtk.Snapshot.new()
-            self._fixed.do_snapshot(snapshot)
+            _Gtk.Widget.do_snapshot(self._fixed, snapshot)
             node = snapshot.to_node()
             if node is None:
                 log.warning("render_to_png: snapshot.to_node() retornou None — canvas vazio?")
