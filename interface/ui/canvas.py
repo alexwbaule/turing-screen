@@ -58,6 +58,15 @@ log = logging.getLogger(__name__)
 # case-insensitively. NET paths use WLO/ETH but the attrs are Wifi/Wired.
 _PATH_ALIASES = {"WLO": "Wifi", "ETH": "Wired"}
 
+# Template placeholders that the daemon substitutes at runtime for static_texts.
+_STATIC_PLACEHOLDERS = {
+    "CPU_MODEL":  "{{CPU_MODEL}}",
+    "GPU_MODEL":  "{{GPU_MODEL}}",
+    "MEM_TOTAL":  "{{MEM_TOTAL}}",
+    "DISK_MODEL": "{{DISK_MODEL}}",
+    "HOSTNAME":   "{{HOSTNAME}}",
+}
+
 
 def _norm(s: str) -> str:
     """Normalise a key for comparison: lowercase, drop underscores/dashes.
@@ -180,10 +189,11 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             for key in sorted(theme.static_images.keys()):
                 self._load_bg_image(key, theme.static_images[key])
 
-        # Static texts
+        # Static texts — path is "static_texts.<key>" so _attach_to_theme can
+        # navigate back to theme.static_texts[key] without losing the dict entry.
         if theme.static_texts:
-            for path, txt_data in theme.static_texts.items():
-                self._add_text_element(txt_data, path)
+            for key, txt_data in theme.static_texts.items():
+                self._add_text_element(txt_data, f"static_texts.{key}")
 
         # STATS elements
         if theme.STATS:
@@ -538,6 +548,9 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         measurement type — no per-type hardcoding."""
         if not self._theme or not path:
             return False
+        # static_texts is a plain dict; any key is valid by definition.
+        if path.startswith("static_texts."):
+            return True
         obj = self._theme
         parts = path.split(".")
         for part in parts[:-1]:
@@ -561,6 +574,13 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         is dropped on save."""
         path = getattr(elem, "yaml_path", "")
         if not self._theme or not path:
+            return
+        # static_texts is a plain dict — no dataclass navigation needed.
+        if path.startswith("static_texts."):
+            key = path[len("static_texts."):]
+            if self._theme.static_texts is None:
+                self._theme.static_texts = {}
+            self._theme.static_texts[key] = elem.data
             return
         parent, slot = self._resolve_slot(path)
         if parent is None:
@@ -779,10 +799,15 @@ class ThemeCanvas(Gtk.ScrolledWindow):
     def remove_element(self, elem: _DraggableBase):
         if elem in self._elements:
             # Drop from the in-memory theme so the deletion survives save/reload.
-            if isinstance(elem, DraggableImage) and elem.yaml_path.startswith("static_images."):
-                key = elem.yaml_path.split(".", 1)[1]
+            yp = getattr(elem, "yaml_path", "")
+            if isinstance(elem, DraggableImage) and yp.startswith("static_images."):
+                key = yp.split(".", 1)[1]
                 if self._theme and key in (self._theme.static_images or {}):
                     del self._theme.static_images[key]
+            elif yp.startswith("static_texts."):
+                key = yp[len("static_texts."):]
+                if self._theme and key in (self._theme.static_texts or {}):
+                    del self._theme.static_texts[key]
             else:
                 # STATS widget: clear its slot on the parent measurement so the
                 # removed element doesn't reappear on the next save.
@@ -809,8 +834,38 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                 continue  # static images are tracked in theme.static_images
             self._attach_to_theme(elem)
 
+    def _unique_static_text_key(self, base: str) -> str:
+        existing = set(self._theme.static_texts or {})
+        if base not in existing:
+            return base
+        i = 1
+        while f"{base}_{i}" in existing:
+            i += 1
+        return f"{base}_{i}"
+
     def add_new_element(self, yaml_path: str, kind: str):
         """Called from toolbox when user clicks an add button."""
+        cx, cy = self._canvas_w // 2, self._canvas_h // 2
+
+        # static_texts: plain dict — bypass dataclass slot resolution.
+        if yaml_path.startswith("static_texts."):
+            base_key = yaml_path[len("static_texts."):]
+            key = (self._unique_static_text_key(base_key)
+                   if base_key == "LABEL" else base_key)
+            initial_text = _STATIC_PLACEHOLDERS.get(key, "Texto")
+            data = Text(X=cx, Y=cy, SHOW=True, FONT_SIZE=24,
+                        FONT_COLOR="255,255,255", TEXT=initial_text)
+            elem = DraggableText(data, f"static_texts.{key}",
+                                 self._canvas_w, self._canvas_h)
+            if self._theme:
+                if self._theme.static_texts is None:
+                    self._theme.static_texts = {}
+                self._theme.static_texts[key] = data
+            self._add_element(elem)
+            self._layers.refresh(self._theme, self._elements)
+            self._on_element_selected(elem)
+            return
+
         # Refuse representations that have no slot on this measurement type
         # (e.g. 'Text' on a Memory measurement, which only has USED/FREE/
         # PERCENT_TEXT). Validity is checked against the real dataclass fields,
@@ -819,7 +874,6 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             log.warning("Representação '%s' inválida para este sensor: %s",
                         kind, yaml_path)
             return
-        cx, cy = self._canvas_w // 2, self._canvas_h // 2
         if kind == "text":
             data = Text(X=cx, Y=cy, SHOW=True, FONT_SIZE=24, FONT_COLOR="255,255,255")
             elem = DraggableText(data, yaml_path, self._canvas_w, self._canvas_h)

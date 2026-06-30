@@ -52,7 +52,12 @@ _FLOAT_SUFFIXES = frozenset({"TEXT", "GRAPH", "RADIAL", "CHART"})
 #                           or None to allow every type in _TYPES
 _SECTIONS = [
     ("Texto Estático", [
-        ("Texto",       "static_texts.LABEL",              True,  None),
+        ("Texto",        "static_texts.LABEL",      True, None),
+        ("CPU Model",    "static_texts.CPU_MODEL",   True, None),
+        ("GPU Model",    "static_texts.GPU_MODEL",   True, None),
+        ("Total RAM",    "static_texts.MEM_TOTAL",   True, None),
+        ("Modelo Disco", "static_texts.DISK_MODEL",  True, None),
+        ("Hostname",     "static_texts.HOSTNAME",    True, None),
     ]),
     ("CPU", [
         ("Percentage",  "STATS.CPU.PERCENTAGE",            False, None),
