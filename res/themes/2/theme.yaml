@@ -21,7 +21,6 @@ static_images:
     Y: -22
     WIDTH: 1296
     HEIGHT: 777
-    INDEX: 2
 STATS:
   CPU:
     PERCENTAGE:
@@ -31,12 +30,12 @@ STATS:
         INDEX: 1
         X: 448
         Y: 371
-        RADIUS: 342
+        RADIUS: 289
         WIDTH: 110
         MIN_VALUE: 0
         MAX_VALUE: 100
-        ANGLE_START: 210
-        ANGLE_END: 195
+        ANGLE_START: 212
+        ANGLE_END: 60
         ANGLE_STEPS: 1
         ANGLE_SEP: 0
         CLOCKWISE: true

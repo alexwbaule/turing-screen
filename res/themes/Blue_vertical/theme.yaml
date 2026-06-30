@@ -1,5 +1,5 @@
 # Auto-converted from .turtheme
-# Source: Blue vertical
+# Source: Blue_vertical
 # Resolution: 720x1280 (reverse_portrait)
 ---
 display:
@@ -9,7 +9,7 @@ display:
   WIDTH: 720
   HEIGHT: 1280
 video:
-  PATH: video/meilan.mp4
+  PATH: video/meilan.mp407051140.h264
   X: 0
   Y: 0
   WIDTH: 720

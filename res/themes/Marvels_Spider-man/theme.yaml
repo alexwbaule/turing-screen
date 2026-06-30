@@ -1,5 +1,5 @@
 # Auto-converted from .turtheme
-# Source: Marvel’s Spider-man
+# Source: Marvels_Spider-man
 # Resolution: 1280x720 (landscape)
 ---
 display:
@@ -9,7 +9,7 @@ display:
   WIDTH: 1280
   HEIGHT: 720
 video:
-  PATH: video/SpiderMan.mp4
+  PATH: video/SpiderMan.mp407051442.h264
   X: 0
   Y: 0
   WIDTH: 1280

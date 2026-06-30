@@ -2,9 +2,59 @@
 Properties panel — shows editable fields for the selected canvas element.
 Mirrors properties.go from the Fyne version with full field parity.
 """
+import dataclasses as _dc
 import os
 
 from gi.repository import Gtk, Gdk, Pango, Gio
+
+# Suffix tokens that identify the representation type in a yaml_path
+# (same set as in canvas.py — kept here to avoid a circular import).
+_KNOWN_SUFFIXES = frozenset({
+    "TEXT", "PERCENT_TEXT", "GRAPH", "RADIAL", "CHART", "GAUGE", "STATUS_BAR",
+})
+
+# Maps each type-kind string to the attribute name it occupies on a Measurement.
+_SLOT_FOR_KIND = {
+    "text":         "Text",
+    "percent_text": "PercentText",
+    "graph":        "Graph",
+    "radial":       "Radial",
+    "chart":        "Chart",
+    "gauge":        "Gauge",
+    "status_bar":   "StatusBar",
+}
+# Reverse map: slot attr name → kind string (for determining current_type).
+_SLOT_TO_KIND = {v: k for k, v in _SLOT_FOR_KIND.items()}
+
+# Allowed kind sets matching what the daemon compositor actually renders.
+_TEXT_ONLY_KINDS  = frozenset({"text"})
+_FLOAT_KINDS      = frozenset({"text", "graph", "radial", "chart"})
+_MEM_KINDS        = frozenset({"graph", "radial", "percent_text"})
+
+
+def _kinds_allowed_for_path(yaml_path: str):
+    """Return frozenset of kind strings the daemon actually renders for this path.
+
+    Returns None when all types are valid (full Mesurement with collectMeasurementItems).
+    Only restricts sensors where the compositor uses a narrower render function or
+    where the Go entity has fewer fields than the full Mesurement type."""
+    p = yaml_path
+    # Network: Go entity Upload/Download/Uploaded/Downloaded only has .Text
+    if p.startswith("STATS.NET.ETH.") or p.startswith("STATS.NET.WLO."):
+        return _TEXT_ONLY_KINDS
+    # DateTime: Go entity Hour/Day only has .Text; renderer reads only .Text
+    if p.startswith("STATS.DATE."):
+        return _TEXT_ONLY_KINDS
+    # Weather.Temperature: entity is Mesurement but renderer only reads .Text
+    if p.startswith("STATS.WEATHER.TEMPERATURE."):
+        return _TEXT_ONLY_KINDS
+    # CPU/GPU Frequency: uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
+    if p.startswith("STATS.CPU.FREQUENCY.") or p.startswith("STATS.GPU.FREQUENCY."):
+        return _FLOAT_KINDS
+    # Memory: collectMemItems renders only Graph/Radial/PercentText
+    if p.startswith("STATS.MEMORY.VIRTUAL.") or p.startswith("STATS.MEMORY.SWAP."):
+        return _MEM_KINDS
+    return None
 
 
 # ── Color helpers ──────────────────────────────────────────────────────────────
@@ -372,8 +422,16 @@ class PropertiesPanel(Gtk.Box):
         box.append(path_lbl)
 
         # Type switcher dropdown (not for images — they aren't type-swappable).
-        # Text and % Text are both DraggableText, so the current one is told
-        # apart by the yaml_path suffix (.PERCENT_TEXT vs .TEXT).
+        #
+        # Shown only when the element has a known parent measurement and its
+        # yaml_path ends with a recognised type suffix (TEXT, GRAPH, …).
+        # Elements in text-only terminal slots (USED, FREE, CONDITION, etc.)
+        # or without a parent measurement (Load, Volume, Weather condition)
+        # hide the dropdown because _replace_suffix would generate wrong paths.
+        #
+        # The option list is filtered to slots that actually exist on the
+        # measurement dataclass, so invalid types (e.g. TEXT on MemMeasurement,
+        # GAUGE on MemMeasurement) never appear.
         if not isinstance(element, DraggableImage):
             _type_map = [
                 (DraggableText,      "text"),
@@ -383,14 +441,17 @@ class PropertiesPanel(Gtk.Box):
                 (DraggableGauge,     "gauge"),
                 (DraggableStatusBar, "status_bar"),
             ]
-            if isinstance(element, DraggableText) and element.yaml_path.endswith(".PERCENT_TEXT"):
+
+            # Determine current type from _slot first (most reliable), then
+            # fall back to yaml_path suffix / Python class.
+            slot = getattr(element, "_slot", None)
+            if slot and slot in _SLOT_TO_KIND:
+                current_type = _SLOT_TO_KIND[slot]
+            elif isinstance(element, DraggableText) and element.yaml_path.endswith(".PERCENT_TEXT"):
                 current_type = "percent_text"
             else:
                 current_type = next((t for cls, t in _type_map if isinstance(element, cls)), "text")
 
-            # Display labels vs the kind sent to the callback. "% Text" is always
-            # available so a PercentText element is shown/switched correctly even
-            # when it has no Text/PercentText slot pair (e.g. Memory measurements).
             _all_opts = [
                 ("Text",       "text"),
                 ("% Text",     "percent_text"),
@@ -400,36 +461,66 @@ class PropertiesPanel(Gtk.Box):
                 ("Gauge",      "gauge"),
                 ("Status Bar", "status_bar"),
             ]
-            opts = _all_opts
-            labels = [lbl for lbl, _ in opts]
-            kinds = [k for _, k in opts]
 
-            dd = Gtk.DropDown.new_from_strings(labels)
-            dd.set_hexpand(True)
-            self._updating = True
-            try:
-                dd.set_selected(kinds.index(current_type))
-            except ValueError:
-                dd.set_selected(0)
-            self._updating = False
+            # Decide whether to show the dropdown and which options to include.
+            meas = getattr(element, "_measurement", None)
+            path_terminal = element.yaml_path.rsplit(".", 1)[-1] if "." in element.yaml_path else ""
 
-            def _on_type_selected(d, _):
-                if self._updating:
-                    return
-                new_type = kinds[d.get_selected()]
-                if new_type != current_type and self._on_type_change:
-                    self._on_type_change(element, new_type)
+            show_type_dd = (
+                meas is not None
+                and path_terminal in _KNOWN_SUFFIXES
+            )
 
-            dd.connect("notify::selected", _on_type_selected)
+            if show_type_dd:
+                if _dc.is_dataclass(meas):
+                    meas_fields = {f.name for f in _dc.fields(meas)}
+                    opts = [(lbl, k) for lbl, k in _all_opts
+                            if _SLOT_FOR_KIND.get(k) in meas_fields]
+                    # Always keep the current type in the list even if the slot
+                    # is not in _SLOT_FOR_KIND (safety fallback).
+                    if not opts or not any(k == current_type for _, k in opts):
+                        opts = _all_opts
+                else:
+                    opts = _all_opts
 
-            type_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-            lbl = Gtk.Label(label="Type")
-            lbl.set_width_chars(13)
-            lbl.set_halign(Gtk.Align.END)
-            lbl.add_css_class("dim-label")
-            type_row.append(lbl)
-            type_row.append(dd)
-            box.append(type_row)
+                # Further restrict to what the daemon compositor actually renders
+                # for this sensor path (e.g. Date/Net → Text only; Frequency →
+                # no Gauge/StatusBar/PercentText; Memory → no Gauge/Chart/Text).
+                allowed_kinds = _kinds_allowed_for_path(element.yaml_path)
+                if allowed_kinds is not None:
+                    filtered = [(lbl, k) for lbl, k in opts if k in allowed_kinds]
+                    if filtered:
+                        opts = filtered
+
+                labels = [lbl for lbl, _ in opts]
+                kinds  = [k   for _, k  in opts]
+
+                dd = Gtk.DropDown.new_from_strings(labels)
+                dd.set_hexpand(True)
+                self._updating = True
+                try:
+                    dd.set_selected(kinds.index(current_type))
+                except ValueError:
+                    dd.set_selected(0)
+                self._updating = False
+
+                def _on_type_selected(d, _, _kinds=kinds, _cur=current_type):
+                    if self._updating:
+                        return
+                    new_type = _kinds[d.get_selected()]
+                    if new_type != _cur and self._on_type_change:
+                        self._on_type_change(element, new_type)
+
+                dd.connect("notify::selected", _on_type_selected)
+
+                type_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbl = Gtk.Label(label="Type")
+                lbl.set_width_chars(13)
+                lbl.set_halign(Gtk.Align.END)
+                lbl.add_css_class("dim-label")
+                type_row.append(lbl)
+                type_row.append(dd)
+                box.append(type_row)
 
         # Delete button
         del_btn = Gtk.Button(label="Delete element")

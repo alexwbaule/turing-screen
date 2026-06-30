@@ -35,68 +35,88 @@ _TYPES = [
 #   text_only=True  → base_path já é o caminho completo; ignora tipo selecionado
 #   text_only=False → base_path + "." + sufixo do tipo selecionado
 # ---------------------------------------------------------------------------
+# Representations valid only for MemMeasurement (MEMORY.VIRTUAL / SWAP).
+# Go entity MemMesurement has no Chart, no Gauge, no StatusBar, no TEXT slot.
+# collectMemItems renders only Graph, Radial, PercentText.
+_MEM_SUFFIXES = frozenset({"GRAPH", "RADIAL"})
+
+# Representations for frequency sensors (CPU.FREQUENCY, GPU.FREQUENCY).
+# collectMeasurementFloatItems renders Chart, Radial, Graph, Text only —
+# no Gauge, StatusBar, or PercentText.
+_FLOAT_SUFFIXES = frozenset({"TEXT", "GRAPH", "RADIAL", "CHART"})
+
+# Tuple layout: (label, base_path, text_only, allowed_suffixes)
+#   text_only=True        → always creates Text; allowed_suffixes ignored
+#   text_only=False       → appends type suffix; None = all types allowed
+#   allowed_suffixes      → frozenset of YAML suffixes valid for this sensor,
+#                           or None to allow every type in _TYPES
 _SECTIONS = [
     ("Texto Estático", [
-        ("Texto",       "static_texts.LABEL",              True),
+        ("Texto",       "static_texts.LABEL",              True,  None),
     ]),
     ("CPU", [
-        ("Percentage",  "STATS.CPU.PERCENTAGE",            False),
-        ("Temperature", "STATS.CPU.TEMPERATURE",           False),
-        ("Frequency",   "STATS.CPU.FREQUENCY",             False),
-        ("Fan",         "STATS.CPU.FAN",                   False),
-        ("Power",       "STATS.CPU.POWER",                 False),
-        ("Voltage",     "STATS.CPU.VOLTAGE",               False),
-        ("Load 1min",   "STATS.CPU.LOAD.ONE.TEXT",         True),
-        ("Load 5min",   "STATS.CPU.LOAD.FIVE.TEXT",        True),
-        ("Load 15min",  "STATS.CPU.LOAD.FIFTEEN.TEXT",     True),
+        ("Percentage",  "STATS.CPU.PERCENTAGE",            False, None),
+        ("Temperature", "STATS.CPU.TEMPERATURE",           False, None),
+        # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
+        ("Frequency",   "STATS.CPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
+        ("Fan",         "STATS.CPU.FAN",                   False, None),
+        ("Power",       "STATS.CPU.POWER",                 False, None),
+        ("Voltage",     "STATS.CPU.VOLTAGE",               False, None),
+        ("Load 1min",   "STATS.CPU.LOAD.ONE.TEXT",         True,  None),
+        ("Load 5min",   "STATS.CPU.LOAD.FIVE.TEXT",        True,  None),
+        ("Load 15min",  "STATS.CPU.LOAD.FIFTEEN.TEXT",     True,  None),
     ]),
     ("GPU", [
-        ("Percentage",  "STATS.GPU.PERCENTAGE",            False),
-        ("Memory",      "STATS.GPU.MEMORY",                False),
-        ("Temperature", "STATS.GPU.TEMPERATURE",           False),
-        ("Power",       "STATS.GPU.POWER",                 False),
-        ("Frequency",   "STATS.GPU.FREQUENCY",             False),
-        ("Voltage",     "STATS.GPU.VOLTAGE",               False),
-        ("Fan",         "STATS.GPU.FAN",                   False),
+        ("Percentage",  "STATS.GPU.PERCENTAGE",            False, None),
+        ("Memory",      "STATS.GPU.MEMORY",                False, None),
+        ("Temperature", "STATS.GPU.TEMPERATURE",           False, None),
+        ("Power",       "STATS.GPU.POWER",                 False, None),
+        # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
+        ("Frequency",   "STATS.GPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
+        ("Voltage",     "STATS.GPU.VOLTAGE",               False, None),
+        ("Fan",         "STATS.GPU.FAN",                   False, None),
     ]),
     ("Memória Virtual", [
-        ("Uso",         "STATS.MEMORY.VIRTUAL",            False),
-        ("Usada",       "STATS.MEMORY.VIRTUAL.USED",       True),
-        ("Livre",       "STATS.MEMORY.VIRTUAL.FREE",       True),
-        ("% Texto",     "STATS.MEMORY.VIRTUAL.PERCENT_TEXT", True),
+        # MemMeasurement: collectMemItems renders only Graph/Radial/PercentText
+        ("Uso",     "STATS.MEMORY.VIRTUAL",              False, _MEM_SUFFIXES),
+        # USED and FREE exist in the entity but are NOT rendered by collectMemItems
+        ("% Texto", "STATS.MEMORY.VIRTUAL.PERCENT_TEXT", True,  None),
     ]),
     ("Swap", [
-        ("Uso",         "STATS.MEMORY.SWAP",               False),
-        ("% Texto",     "STATS.MEMORY.SWAP.PERCENT_TEXT",  True),
+        ("Uso",     "STATS.MEMORY.SWAP",              False, _MEM_SUFFIXES),
+        ("% Texto", "STATS.MEMORY.SWAP.PERCENT_TEXT", True,  None),
     ]),
     ("Disco", [
-        ("Usado",       "STATS.DISK.USED",                 False),
-        ("Livre",       "STATS.DISK.FREE",                 False),
-        ("Total",       "STATS.DISK.TOTAL",                False),
-        ("Temperatura", "STATS.DISK.TEMPERATURE",          False),
+        ("Usado",       "STATS.DISK.USED",         False, None),
+        ("Livre",       "STATS.DISK.FREE",         False, None),
+        # TOTAL exists in the entity but is NOT rendered by the compositor
+        ("Temperatura", "STATS.DISK.TEMPERATURE",  False, None),
     ]),
     ("Rede Ethernet", [
-        ("Upload",      "STATS.NET.ETH.UPLOAD",            False),
-        ("Download",    "STATS.NET.ETH.DOWNLOAD",          False),
-        ("Total Up",    "STATS.NET.ETH.UPLOADED",          False),
-        ("Total Down",  "STATS.NET.ETH.DOWNLOADED",        False),
+        # Network entity Upload/Download only have .Text; renderer reads only .Text
+        ("Upload",     "STATS.NET.ETH.UPLOAD.TEXT",     True, None),
+        ("Download",   "STATS.NET.ETH.DOWNLOAD.TEXT",   True, None),
+        ("Total Up",   "STATS.NET.ETH.UPLOADED.TEXT",   True, None),
+        ("Total Down", "STATS.NET.ETH.DOWNLOADED.TEXT", True, None),
     ]),
     ("Rede WiFi", [
-        ("Upload",      "STATS.NET.WLO.UPLOAD",            False),
-        ("Download",    "STATS.NET.WLO.DOWNLOAD",          False),
-        ("Total Up",    "STATS.NET.WLO.UPLOADED",          False),
-        ("Total Down",  "STATS.NET.WLO.DOWNLOADED",        False),
+        ("Upload",     "STATS.NET.WLO.UPLOAD.TEXT",     True, None),
+        ("Download",   "STATS.NET.WLO.DOWNLOAD.TEXT",   True, None),
+        ("Total Up",   "STATS.NET.WLO.UPLOADED.TEXT",   True, None),
+        ("Total Down", "STATS.NET.WLO.DOWNLOADED.TEXT", True, None),
     ]),
     ("Data / Hora", [
-        ("Hora",        "STATS.DATE.HOUR",                 False),
-        ("Dia",         "STATS.DATE.DAY",                  False),
+        # DateTime entity Hour/Day only have .Text; renderer only reads .Text
+        ("Hora", "STATS.DATE.HOUR.TEXT", True, None),
+        ("Dia",  "STATS.DATE.DAY.TEXT",  True, None),
     ]),
     ("Clima", [
-        ("Temperatura", "STATS.WEATHER.TEMPERATURE",       False),
-        ("Condição",    "STATS.WEATHER.CONDITION",         True),
+        # Weather.Temperature is Mesurement entity but renderer only reads .Text
+        ("Temperatura", "STATS.WEATHER.TEMPERATURE.TEXT", True, None),
+        ("Condição",    "STATS.WEATHER.CONDITION",        True, None),
     ]),
     ("Volume", [
-        ("Volume",      "STATS.VOLUME.TEXT",               True),
+        ("Volume", "STATS.VOLUME.TEXT", True, None),
     ]),
 ]
 
@@ -111,6 +131,7 @@ class Toolbox(Gtk.Box):
         self.set_size_request(180, -1)
         self._add_cb = add_element_cb
         self._selected_type_idx = 0   # index into _TYPES (default: Text)
+        self._type_buttons: list[tuple] = []  # (CheckButton, suffix, kind)
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -147,11 +168,12 @@ class Toolbox(Gtk.Box):
             vbox.set_margin_top(4)
             vbox.set_margin_bottom(4)
 
-            for label, base_path, text_only in sensors:
+            for label, base_path, text_only, allowed_suffixes in sensors:
                 btn = Gtk.Button(label=label)
                 btn.set_halign(Gtk.Align.START)
                 btn.add_css_class("flat")
-                btn.connect("clicked", self._make_sensor_handler(base_path, text_only))
+                btn.connect("clicked", self._make_sensor_handler(
+                    base_path, text_only, allowed_suffixes))
                 vbox.append(btn)
 
             exp.set_child(vbox)
@@ -160,8 +182,35 @@ class Toolbox(Gtk.Box):
         scroll.set_child(inner)
         self.append(scroll)
 
-    def _make_sensor_handler(self, base_path: str, text_only: bool):
+    def _update_type_sensitivity(self, allowed_suffixes):
+        """Enable/disable type radio buttons based on what the sensor supports.
+
+        If the currently selected type is not allowed, switches to the first
+        allowed type so the next click creates a valid element."""
+        if not self._type_buttons:
+            return
+        if allowed_suffixes is None:
+            for rb, _s, _k in self._type_buttons:
+                rb.set_sensitive(True)
+            return
+        # Determine if the current selection is still valid
+        _, cur_suffix, _ = _TYPES[self._selected_type_idx]
+        first_valid_idx = None
+        for i, (rb, suffix, _kind) in enumerate(self._type_buttons):
+            valid = suffix in allowed_suffixes
+            rb.set_sensitive(valid)
+            if valid and first_valid_idx is None:
+                first_valid_idx = i
+        if cur_suffix not in allowed_suffixes and first_valid_idx is not None:
+            # Auto-select the first valid type
+            self._type_buttons[first_valid_idx][0].set_active(True)
+            self._selected_type_idx = first_valid_idx
+
+    def _make_sensor_handler(self, base_path: str, text_only: bool,
+                             allowed_suffixes):
         def handler(_btn):
+            # Update representation picker sensitivity for this sensor category
+            self._update_type_sensitivity(allowed_suffixes)
             if text_only:
                 self._add_cb(base_path, "text")
             else:
@@ -186,7 +235,8 @@ class Toolbox(Gtk.Box):
         vbox.set_margin_bottom(8)
 
         first_btn = None
-        for i, (label, _suffix, _kind) in enumerate(_TYPES):
+        self._type_buttons = []
+        for i, (label, suffix, kind) in enumerate(_TYPES):
             rb = Gtk.CheckButton(label=label)
             if first_btn is None:
                 first_btn = rb
@@ -195,6 +245,7 @@ class Toolbox(Gtk.Box):
                 rb.set_group(first_btn)
             rb.connect("toggled", self._make_type_handler(i))
             vbox.append(rb)
+            self._type_buttons.append((rb, suffix, kind))
 
         self.append(vbox)
 

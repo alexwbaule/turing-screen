@@ -1,5 +1,5 @@
 # Auto-converted from .turtheme
-# Source: Colorful UI theme
+# Source: Colorful_UI_theme
 # Resolution: 720x1280 (reverse_portrait)
 ---
 display:
@@ -9,7 +9,7 @@ display:
   WIDTH: 720
   HEIGHT: 1280
 video:
-  PATH: video/atri.mp4
+  PATH: video/atri.mp407051247.h264
   X: 0
   Y: 0
   WIDTH: 720

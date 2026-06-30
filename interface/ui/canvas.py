@@ -189,6 +189,11 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         if theme.STATS:
             self._load_stats(theme.STATS)
 
+        # Bind _measurement/_slot on all loaded elements so the Properties
+        # panel can filter the Type dropdown correctly (newly-added elements
+        # get these set via _attach_to_theme; loaded ones need it done here).
+        self._bind_all_measurements()
+
         # Sort elements by INDEX for correct z-order
         self._apply_index_order()
 
@@ -254,6 +259,43 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         for i, elem in enumerate(self._elements):
             if hasattr(elem.data, "INDEX"):
                 elem.data.INDEX = i + 1
+
+    def _bind_all_measurements(self):
+        """Set _measurement/_slot on loaded elements that don't have them yet.
+
+        Elements loaded from theme.yaml via _load_stats are created without a
+        parent measurement reference; this post-pass navigates the in-memory
+        theme to fill it in, so the Properties panel can filter the Type
+        dropdown to only the representations that exist on each measurement."""
+        if not self._theme:
+            return
+        for elem in self._elements:
+            if getattr(elem, "_measurement", None) is not None:
+                continue  # already set (newly added via add_new_element)
+            path = getattr(elem, "yaml_path", "")
+            if not path or "." not in path:
+                continue
+            parts = path.split(".")
+            # Only resolve elements whose terminal segment is a known type suffix
+            # (TEXT, GRAPH, …). Non-suffix terminals (USED, FREE, CONDITION…)
+            # live in a text-only slot and intentionally keep _measurement=None.
+            if parts[-1] not in _KNOWN_SUFFIXES:
+                continue
+            obj = self._theme
+            for part in parts[:-1]:
+                attr = _ci_field(obj, part)
+                if attr is None:
+                    obj = None
+                    break
+                obj = getattr(obj, attr, None)
+                if obj is None:
+                    break
+            if obj is None or not dataclasses.is_dataclass(obj):
+                continue
+            slot_attr = _ci_field(obj, parts[-1])
+            if slot_attr:
+                elem._measurement = obj
+                elem._slot = slot_attr
 
     def _load_stats(self, stats):
         if stats.CPU:
