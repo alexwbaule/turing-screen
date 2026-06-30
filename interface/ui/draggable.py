@@ -103,6 +103,47 @@ def load_font_cache(fonts_dir: str) -> None:
 # helpers
 # ──────────────────────────────────────────────────────────────────────────────
 
+def _pixbuf_to_cairo_surface(pb) -> "cairo.ImageSurface | None":
+    """Convert a GdkPixbuf to a cairo.ImageSurface without requiring a GDK
+    display context.  Works inside or outside a GTK draw callback.
+
+    Uses numpy for speed; returns None if numpy is unavailable so the caller
+    can fall back to Gdk.cairo_set_source_pixbuf."""
+    try:
+        import numpy as np
+        pw, ph   = pb.get_width(), pb.get_height()
+        rowstride = pb.get_rowstride()
+        n_ch      = pb.get_n_channels()
+        raw = np.frombuffer(pb.get_pixels(), dtype=np.uint8)
+        # Trim rowstride padding and reshape to (h, w, n_ch)
+        if rowstride == pw * n_ch:
+            arr = raw.reshape(ph, pw, n_ch)
+        else:
+            arr = raw.reshape(ph, rowstride)[:, :pw * n_ch].reshape(ph, pw, n_ch)
+        # Build BGRA in pre-multiplied ARGB32 (Cairo little-endian layout)
+        bgra = np.empty((ph, pw, 4), dtype=np.uint8)
+        bgra[..., 0] = arr[..., 2]  # B
+        bgra[..., 1] = arr[..., 1]  # G
+        bgra[..., 2] = arr[..., 0]  # R
+        if n_ch == 4:
+            a           = arr[..., 3]
+            bgra[..., 3] = a
+            af = a.astype(np.float32) / 255.0
+            for ch in range(3):
+                bgra[..., ch] = (bgra[..., ch].astype(np.float32) * af).astype(np.uint8)
+        else:
+            bgra[..., 3] = 255  # fully opaque
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, pw, ph)
+        surf.flush()
+        surf.get_data()[:] = bgra.ravel()
+        surf.mark_dirty()
+        return surf
+    except ImportError:
+        return None
+    except Exception:
+        return None
+
+
 def _parse_color(color_str: str, default=(1.0, 1.0, 1.0, 1.0)):
     """
     Parse color in two formats used by the Go theme engine:
@@ -883,9 +924,17 @@ class DraggableImage(_DraggableBase):
     def _draw(self, area, cr, w, h):
         pb = self._pixbuf
         if pb is not None:
+            sx = w / max(1, pb.get_width())
+            sy = h / max(1, pb.get_height())
+            surf = _pixbuf_to_cairo_surface(pb)
             cr.save()
-            cr.scale(w / max(1, pb.get_width()), h / max(1, pb.get_height()))
-            Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0)
+            cr.scale(sx, sy)
+            if surf is not None:
+                cr.set_source_surface(surf, 0, 0)
+            else:
+                # Fallback: GDK (may not work outside a GTK draw callback,
+                # but the numpy path handles the render_to_png case above).
+                Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0)
             cr.paint()
             cr.restore()
         self._draw_selection(cr, w, h)

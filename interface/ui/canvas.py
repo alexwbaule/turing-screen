@@ -207,47 +207,38 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             self._fixed.put(elem.widget, elem._x, elem._y)
 
     def render_to_png(self, path: str):
-        """Composite the current canvas (background + all elements in z-order)
-        to a PNG. Used to regenerate the theme's home-screen preview on save."""
+        """Snapshot the live canvas widget to PNG.
+
+        Uses GTK4's Snapshot → GskRenderNode → Cairo pipeline so the output
+        matches exactly what is shown on screen, without any manual re-compositing."""
+        from gi.repository import Gtk as _Gtk
         w, h = self._canvas_w, self._canvas_h
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        cr = cairo.Context(surface)
+        log.info("render_to_png: snapshot %dx%d → %s", w, h, path)
 
-        # Backdrop (BACKGROUND image), if any.
-        info = self._bg_imgs.get("BACKGROUND")
-        if info and info.get("pixbuf") is not None:
-            pb = info["pixbuf"]
-            img = info["img"]
-            iw = img.WIDTH or w
-            ih = img.HEIGHT or h
-            cr.save()
-            cr.translate(img.X, img.Y)
-            cr.scale(iw / max(1, pb.get_width()), ih / max(1, pb.get_height()))
-            Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0)
-            cr.paint()
-            cr.restore()
+        # Temporarily clear selection so handles don't appear in the preview.
+        prev_selected = getattr(self, "_selected", None)
+        if prev_selected is not None:
+            self.select_element(None)
 
-        # Elements in z-order (already sorted). Suppress selection highlights so
-        # the preview is clean, without disturbing live selection state.
-        for elem in self._elements:
-            # get_allocated_width() is 0 before the widget is laid out; use the
-            # preferred (requested) size so off-screen renders produce correct output.
-            min_req, _ = elem.widget.get_preferred_size()
-            ew = min_req.width or elem.widget.get_allocated_width() or 1
-            eh = min_req.height or elem.widget.get_allocated_height() or 1
-            was_sel = getattr(elem, "_selected", False)
-            elem._selected = False
-            cr.save()
-            cr.translate(elem._x, elem._y)
-            try:
-                elem._draw(None, cr, ew, eh)
-            except Exception:
-                log.exception("render_to_png: falha ao desenhar %s",
-                              getattr(elem, "yaml_path", "?"))
-            cr.restore()
-            elem._selected = was_sel
+        try:
+            snapshot = _Gtk.Snapshot.new()
+            self._fixed.snapshot(snapshot)
+            node = snapshot.to_node()
+            if node is None:
+                log.warning("render_to_png: snapshot.to_node() retornou None — canvas vazio?")
 
-        surface.write_to_png(path)
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+            cr = cairo.Context(surface)
+            if node is not None:
+                node.draw(cr)
+            surface.write_to_png(path)
+            size = os.path.getsize(path) if os.path.exists(path) else -1
+            log.info("render_to_png: OK → %s (%d bytes)", path, size)
+        except Exception:
+            log.exception("render_to_png: FALHA")
+        finally:
+            if prev_selected is not None:
+                self.select_element(prev_selected)
 
     def capture_z_order(self):
         """Write current stack position as INDEX on each element's data.
