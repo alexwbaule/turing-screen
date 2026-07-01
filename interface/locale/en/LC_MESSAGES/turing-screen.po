@@ -677,3 +677,15 @@ msgstr "Select background image (PNG)"
 
 msgid "PNG images"
 msgstr "PNG images"
+
+msgid "Model"
+msgstr ""
+
+msgid "Size"
+msgstr ""
+
+msgid "System"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""

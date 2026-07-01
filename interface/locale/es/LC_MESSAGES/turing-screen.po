@@ -678,3 +678,15 @@ msgstr "Seleccionar imagen de fondo (PNG)"
 
 msgid "PNG images"
 msgstr "Imágenes PNG"
+
+msgid "Model"
+msgstr "Modelo"
+
+msgid "Size"
+msgstr "Tamaño"
+
+msgid "System"
+msgstr "Sistema"
+
+msgid "Hostname"
+msgstr "Nombre de Host"

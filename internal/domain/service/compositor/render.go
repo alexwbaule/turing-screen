@@ -110,6 +110,9 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 
 	// Disk
 	if stats.Disk != nil {
+		if m := stats.Disk.Model; m != nil && c.models.Disk != "" {
+			items = append(items, c.collectModelItem(c.models.Disk, m)...)
+		}
 		if m := stats.Disk.Used; m != nil {
 			items = append(items, c.collectMeasurementItems(vals.DiskPercent, "%3.0f", "%", m)...)
 		}
@@ -121,17 +124,21 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 		}
 	}
 
-	// CPU Load (previously unrendered)
-	if stats.CPU != nil && stats.CPU.Load != nil {
-		load := stats.CPU.Load
-		if m := load.One; m != nil {
-			items = append(items, c.collectMeasurementItems(vals.CPULoad1, "%.2f", "", m)...)
+	// Host (hostname + system load average)
+	if stats.Host != nil {
+		if m := stats.Host.Hostname; m != nil && c.models.Hostname != "" {
+			items = append(items, c.collectModelItem(c.models.Hostname, m)...)
 		}
-		if m := load.Five; m != nil {
-			items = append(items, c.collectMeasurementItems(vals.CPULoad5, "%.2f", "", m)...)
-		}
-		if m := load.Fifteen; m != nil {
-			items = append(items, c.collectMeasurementItems(vals.CPULoad15, "%.2f", "", m)...)
+		if load := stats.Host.Load; load != nil {
+			if m := load.One; m != nil {
+				items = append(items, c.collectMeasurementItems(vals.CPULoad1, "%.2f", "", m)...)
+			}
+			if m := load.Five; m != nil {
+				items = append(items, c.collectMeasurementItems(vals.CPULoad5, "%.2f", "", m)...)
+			}
+			if m := load.Fifteen; m != nil {
+				items = append(items, c.collectMeasurementItems(vals.CPULoad15, "%.2f", "", m)...)
+			}
 		}
 	}
 

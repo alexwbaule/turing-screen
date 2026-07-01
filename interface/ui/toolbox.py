@@ -46,79 +46,76 @@ _FLOAT_SUFFIXES = frozenset({"TEXT", "GRAPH", "RADIAL", "CHART", "GAUGE", "STATU
 #   text_only=False       → appends type suffix; None = all types allowed
 #   allowed_suffixes      → frozenset of YAML suffixes valid for this sensor,
 #                           or None to allow every type in _TYPES
-_SECTIONS = [
-    ("Texto Estático", [
-        ("Texto",        "static_texts.LABEL",      True, None),
-        ("CPU Model",    "static_texts.CPU_MODEL",   True, None),
-        ("GPU Model",    "static_texts.GPU_MODEL",   True, None),
-        ("Total RAM",    "static_texts.MEM_TOTAL",   True, None),
-        ("Modelo Disco", "static_texts.DISK_MODEL",  True, None),
-        ("Hostname",     "static_texts.HOSTNAME",    True, None),
-    ]),
-    ("CPU", [
-        ("Modelo",      "STATS.CPU.MODEL.TEXT",            True,  None),
-        ("Percentage",  "STATS.CPU.PERCENTAGE",            False, None),
-        ("Temperature", "STATS.CPU.TEMPERATURE",           False, None),
-        # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
-        ("Frequency",   "STATS.CPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
-        ("Fan",         "STATS.CPU.FAN",                   False, None),
-        ("Power",       "STATS.CPU.POWER",                 False, None),
-        ("Voltage",     "STATS.CPU.VOLTAGE",               False, None),
-        ("Load 1min",   "STATS.CPU.LOAD.ONE",              False, None),
-        ("Load 5min",   "STATS.CPU.LOAD.FIVE",             False, None),
-        ("Load 15min",  "STATS.CPU.LOAD.FIFTEEN",          False, None),
-    ]),
-    ("GPU", [
-        ("Modelo",      "STATS.GPU.MODEL.TEXT",            True,  None),
-        ("Percentage",  "STATS.GPU.PERCENTAGE",            False, None),
-        ("Memory",      "STATS.GPU.MEMORY",                False, None),
-        ("Temperature", "STATS.GPU.TEMPERATURE",           False, None),
-        ("Power",       "STATS.GPU.POWER",                 False, None),
-        # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
-        ("Frequency",   "STATS.GPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
-        ("Voltage",     "STATS.GPU.VOLTAGE",               False, None),
-        ("Fan",         "STATS.GPU.FAN",                   False, None),
-    ]),
-    ("RAM", [
-        ("Uso",     "STATS.MEMORY.RAM",                   False, None),
-        ("% Texto", "STATS.MEMORY.RAM.PERCENT_TEXT",      True,  None),
-        ("Modelo",  "STATS.MEMORY.RAM.MODEL.TEXT",        True,  None),
-        ("Tamanho", "STATS.MEMORY.RAM.SIZE.TEXT",         True,  None),
-    ]),
-    ("Swap", [
-        ("Uso",     "STATS.MEMORY.SWAP",              False, None),
-        ("% Texto", "STATS.MEMORY.SWAP.PERCENT_TEXT", True,  None),
-    ]),
-    ("Disco", [
-        ("Usado",       "STATS.DISK.USED",         False, None),
-        ("Livre",       "STATS.DISK.FREE",         False, None),
-        # TOTAL exists in the entity but is NOT rendered by the compositor
-        ("Temperatura", "STATS.DISK.TEMPERATURE",  False, None),
-    ]),
-    ("Rede Ethernet", [
-        ("Upload",     "STATS.NET.ETH.UPLOAD",     False, _FLOAT_SUFFIXES),
-        ("Download",   "STATS.NET.ETH.DOWNLOAD",   False, _FLOAT_SUFFIXES),
-        ("Total Up",   "STATS.NET.ETH.UPLOADED",   False, _FLOAT_SUFFIXES),
-        ("Total Down", "STATS.NET.ETH.DOWNLOADED", False, _FLOAT_SUFFIXES),
-    ]),
-    ("Rede WiFi", [
-        ("Upload",     "STATS.NET.WLO.UPLOAD",     False, _FLOAT_SUFFIXES),
-        ("Download",   "STATS.NET.WLO.DOWNLOAD",   False, _FLOAT_SUFFIXES),
-        ("Total Up",   "STATS.NET.WLO.UPLOADED",   False, _FLOAT_SUFFIXES),
-        ("Total Down", "STATS.NET.WLO.DOWNLOADED", False, _FLOAT_SUFFIXES),
-    ]),
-    ("Data / Hora", [
-        ("Hora", "STATS.DATE.HOUR", False, None),
-        ("Dia",  "STATS.DATE.DAY",  False, None),
-    ]),
-    ("Clima", [
-        ("Temperatura", "STATS.WEATHER.TEMPERATURE", False, None),
-        ("Condição",    "STATS.WEATHER.CONDITION",   True,  None),
-    ]),
-    ("Volume", [
-        ("Volume", "STATS.VOLUME", False, None),
-    ]),
-]
+def _get_sections():
+    return [
+        (_("Static Text"), [
+            (_("Text"), "static_texts.LABEL", True, None),
+        ]),
+        ("CPU", [
+            (_("Model"),       "STATS.CPU.MODEL.TEXT",   True,  None),
+            (_("Percentage"),  "STATS.CPU.PERCENTAGE",   False, None),
+            (_("Temperature"), "STATS.CPU.TEMPERATURE",  False, None),
+            (_("Frequency"),   "STATS.CPU.FREQUENCY",    False, _FLOAT_SUFFIXES),
+            (_("Fan"),         "STATS.CPU.FAN",          False, None),
+            (_("Power"),       "STATS.CPU.POWER",        False, None),
+            (_("Voltage"),     "STATS.CPU.VOLTAGE",      False, None),
+        ]),
+        ("GPU", [
+            (_("Model"),       "STATS.GPU.MODEL.TEXT",            True,  None),
+            (_("Percentage"),  "STATS.GPU.PERCENTAGE",            False, None),
+            (_("Memory"),      "STATS.GPU.MEMORY",                False, None),
+            (_("Temperature"), "STATS.GPU.TEMPERATURE",           False, None),
+            (_("Power"),       "STATS.GPU.POWER",                 False, None),
+            (_("Frequency"),   "STATS.GPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
+            (_("Voltage"),     "STATS.GPU.VOLTAGE",               False, None),
+            (_("Fan"),         "STATS.GPU.FAN",                   False, None),
+        ]),
+        ("RAM", [
+            (_("Usage"),   "STATS.MEMORY.RAM",                   False, None),
+            (_("% Text"),  "STATS.MEMORY.RAM.PERCENT_TEXT",      True,  None),
+            (_("Model"),   "STATS.MEMORY.RAM.MODEL.TEXT",        True,  None),
+            (_("Size"),    "STATS.MEMORY.RAM.SIZE.TEXT",         True,  None),
+        ]),
+        ("Swap", [
+            (_("Usage"),   "STATS.MEMORY.SWAP",              False, None),
+            (_("% Text"),  "STATS.MEMORY.SWAP.PERCENT_TEXT", True,  None),
+        ]),
+        (_("Disk"), [
+            (_("Model"),       "STATS.DISK.MODEL.TEXT",   True,  None),
+            (_("Used"),        "STATS.DISK.USED",         False, None),
+            (_("Free"),        "STATS.DISK.FREE",         False, None),
+            (_("Temperature"), "STATS.DISK.TEMPERATURE",  False, None),
+        ]),
+        (_("System"), [
+            (_("Hostname"),    "STATS.HOST.HOSTNAME.TEXT", True,  None),
+            (_("Load 1min"),   "STATS.HOST.LOAD.ONE",      False, None),
+            (_("Load 5min"),   "STATS.HOST.LOAD.FIVE",     False, None),
+            (_("Load 15min"),  "STATS.HOST.LOAD.FIFTEEN",  False, None),
+        ]),
+        (_("Ethernet"), [
+            (_("Upload"),     "STATS.NET.ETH.UPLOAD",     False, _FLOAT_SUFFIXES),
+            (_("Download"),   "STATS.NET.ETH.DOWNLOAD",   False, _FLOAT_SUFFIXES),
+            (_("Total Up"),   "STATS.NET.ETH.UPLOADED",   False, _FLOAT_SUFFIXES),
+            (_("Total Down"), "STATS.NET.ETH.DOWNLOADED", False, _FLOAT_SUFFIXES),
+        ]),
+        (_("Wi-Fi"), [
+            (_("Upload"),     "STATS.NET.WLO.UPLOAD",     False, _FLOAT_SUFFIXES),
+            (_("Download"),   "STATS.NET.WLO.DOWNLOAD",   False, _FLOAT_SUFFIXES),
+            (_("Total Up"),   "STATS.NET.WLO.UPLOADED",   False, _FLOAT_SUFFIXES),
+            (_("Total Down"), "STATS.NET.WLO.DOWNLOADED", False, _FLOAT_SUFFIXES),
+        ]),
+        (_("Date / Time"), [
+            (_("Hour"), "STATS.DATE.HOUR", False, None),
+            (_("Day"),  "STATS.DATE.DAY",  False, None),
+        ]),
+        (_("Weather"), [
+            (_("Temperature"), "STATS.WEATHER.TEMPERATURE", False, None),
+            (_("Condition"),   "STATS.WEATHER.CONDITION",   True,  None),
+        ]),
+        (_("Volume"), [
+            (_("Volume"), "STATS.VOLUME", False, None),
+        ]),
+    ]
 
 
 class Toolbox(Gtk.Box):
