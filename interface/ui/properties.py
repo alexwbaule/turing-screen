@@ -28,33 +28,21 @@ _SLOT_FOR_KIND = {
 _SLOT_TO_KIND = {v: k for k, v in _SLOT_FOR_KIND.items()}
 
 # Allowed kind sets matching what the daemon compositor actually renders.
-_TEXT_ONLY_KINDS  = frozenset({"text"})
-_FLOAT_KINDS      = frozenset({"text", "graph", "radial", "chart"})
-_MEM_KINDS        = frozenset({"graph", "radial", "percent_text"})
+_FLOAT_KINDS = frozenset({"text", "graph", "radial", "chart", "gauge", "status_bar"})
 
 
 def _kinds_allowed_for_path(yaml_path: str):
     """Return frozenset of kind strings the daemon actually renders for this path.
 
-    Returns None when all types are valid (full Mesurement with collectMeasurementItems).
-    Only restricts sensors where the compositor uses a narrower render function or
-    where the Go entity has fewer fields than the full Mesurement type."""
+    Returns None when all types are valid (Sensor with collectMeasurementItems).
+    Only restricts sensors where the compositor uses collectMeasurementFloatItems
+    (custom text formatter — PercentText doesn't apply there)."""
     p = yaml_path
-    # Network: Go entity Upload/Download/Uploaded/Downloaded only has .Text
-    if p.startswith("STATS.NET.ETH.") or p.startswith("STATS.NET.WLO."):
-        return _TEXT_ONLY_KINDS
-    # DateTime: Go entity Hour/Day only has .Text; renderer reads only .Text
-    if p.startswith("STATS.DATE."):
-        return _TEXT_ONLY_KINDS
-    # Weather.Temperature: entity is Mesurement but renderer only reads .Text
-    if p.startswith("STATS.WEATHER.TEMPERATURE."):
-        return _TEXT_ONLY_KINDS
-    # CPU/GPU Frequency: uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
-    if p.startswith("STATS.CPU.FREQUENCY.") or p.startswith("STATS.GPU.FREQUENCY."):
+    # Network and Frequency use collectMeasurementFloatItems (custom text formatter).
+    # PercentText is excluded — "percent of bytes/sec" has no meaning.
+    if (p.startswith("STATS.NET.ETH.") or p.startswith("STATS.NET.WLO.")
+            or p.startswith("STATS.CPU.FREQUENCY.") or p.startswith("STATS.GPU.FREQUENCY.")):
         return _FLOAT_KINDS
-    # Memory: collectMemItems renders only Graph/Radial/PercentText
-    if p.startswith("STATS.MEMORY.VIRTUAL.") or p.startswith("STATS.MEMORY.SWAP."):
-        return _MEM_KINDS
     return None
 
 
@@ -431,8 +419,7 @@ class PropertiesPanel(Gtk.Box):
         # hide the dropdown because _replace_suffix would generate wrong paths.
         #
         # The option list is filtered to slots that actually exist on the
-        # measurement dataclass, so invalid types (e.g. TEXT on MemMeasurement,
-        # GAUGE on MemMeasurement) never appear.
+        # Measurement dataclass and are allowed for this sensor path.
         if not isinstance(element, DraggableImage):
             _type_map = [
                 (DraggableText,      "text"),

@@ -1,12 +1,12 @@
 package theme
 
-
 type GPU struct {
-	Percentage  *Mesurement   `mapstructure:"PERCENTAGE"`
-	Memory      *Mesurement   `mapstructure:"MEMORY"`
-	Temperature *Mesurement   `mapstructure:"TEMPERATURE"`
-	Power       *Mesurement   `mapstructure:"POWER"`
-	Frequency   *Mesurement   `mapstructure:"FREQUENCY"`
-	Voltage     *Mesurement   `mapstructure:"VOLTAGE"`
-	Fan         *Mesurement   `mapstructure:"FAN"`
+	Model       *Sensor `mapstructure:"MODEL"`
+	Percentage  *Sensor `mapstructure:"PERCENTAGE"`
+	Memory      *Sensor `mapstructure:"MEMORY"`
+	Temperature *Sensor `mapstructure:"TEMPERATURE"`
+	Power       *Sensor `mapstructure:"POWER"`
+	Frequency   *Sensor `mapstructure:"FREQUENCY"`
+	Voltage     *Sensor `mapstructure:"VOLTAGE"`
+	Fan         *Sensor `mapstructure:"FAN"`
 }

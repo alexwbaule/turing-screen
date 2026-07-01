@@ -159,11 +159,7 @@ func main() {
 			}
 
 			hw := hwinfo.Detect(app.Log, app.Config.GetGPUSensorConfig().Provider)
-			staticTexts := statsTheme.GetStaticTexts()
-			for key, st := range staticTexts {
-				st.Text = hw.ReplaceText(st.Text)
-				staticTexts[key] = st
-			}
+			apiController.SetHWInfo(hw)
 
 			orientation := statsTheme.GetDisplay().Orientation
 			apiController.SetOrientation(orientation)
@@ -278,6 +274,8 @@ func main() {
 				)
 				comp.SetJobs(jobs)
 			}
+
+			comp.SetModelStrings(hw.CPUModel, hw.GPUModel, hw.MemTotal, hw.DiskModel)
 
 			// Common: start sensor collectors
 			cpuCfg := app.Config.GetCPUSensorConfig()

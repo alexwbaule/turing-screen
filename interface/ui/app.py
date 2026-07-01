@@ -96,6 +96,8 @@ class EditorApp:
         self._theme_dir: str = ""
         self._theme_name: str = ""
 
+        self._hwinfo: dict = {}  # populated by event.hwinfo from daemon
+
         self._tray_icon = None   # TrayIcon D-Bus (se disponível)
 
     # ------------------------------------------------------------------
@@ -205,6 +207,7 @@ class EditorApp:
             ws_client=self._ws,
             themes_base=self._themes_base,
             open_editor_cb=self._open_editor_for_theme,
+            hwinfo_cb=self._on_hwinfo,
         )
         self._main_window.set_content(self._home.widget)
 
@@ -256,6 +259,10 @@ class EditorApp:
         self._editor_window.set_title(f"Editor — {theme_name}")
         self._editor_window.present()
 
+        # Request fresh hwinfo from the daemon; handles the race where the
+        # initial event.hwinfo push arrived before SetHWInfo was called.
+        self._ws.send("hwinfo.get", None, callback=self._on_hwinfo_get)
+
     def _build_editor_window(self):
         self._editor_window = Gtk.ApplicationWindow(application=self._app)
         self._editor_window.set_title(_("Theme Editor"))
@@ -268,6 +275,7 @@ class EditorApp:
 
         # Canvas (centro)
         self._canvas = ThemeCanvas(self._props, self._layers)
+        self._canvas.set_hwinfo(self._hwinfo)
         self._layers._canvas = self._canvas
 
         # Wire delete button in properties panel → canvas.remove_element
@@ -511,6 +519,17 @@ class EditorApp:
         if self._home:
             self._home._status_label.set_label(f"⏳ {pending}")
         self._ws.send(action, None, callback=self._on_ws_cmd_done)
+
+    def _on_hwinfo(self, info: dict):
+        """Called when daemon sends event.hwinfo. Stores info and updates canvas if open."""
+        self._hwinfo = info or {}
+        if self._canvas:
+            self._canvas.set_hwinfo(self._hwinfo)
+
+    def _on_hwinfo_get(self, payload, error):
+        """Callback for the explicit hwinfo.get request sent when editor opens."""
+        if payload and not error:
+            self._on_hwinfo(payload)
 
     def _on_ws_cmd_done(self, payload, error):
         if self._home:

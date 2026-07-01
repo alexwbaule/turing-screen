@@ -1,9 +1,8 @@
 package theme
 
-
 type Disk struct {
-	Used        *Mesurement   `mapstructure:"USED"`
-	Total       *Mesurement   `mapstructure:"TOTAL"`
-	Free        *Mesurement   `mapstructure:"FREE"`
-	Temperature *Mesurement   `mapstructure:"TEMPERATURE"`
+	Used        *Sensor `mapstructure:"USED"`
+	Total       *Sensor `mapstructure:"TOTAL"`
+	Free        *Sensor `mapstructure:"FREE"`
+	Temperature *Sensor `mapstructure:"TEMPERATURE"`
 }

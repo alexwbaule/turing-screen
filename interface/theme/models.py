@@ -367,101 +367,29 @@ class Measurement:
 
 
 # ---------------------------------------------------------------------------
-# Memory uses MemMeasurement (different sub-fields)
-# ---------------------------------------------------------------------------
-
-@dataclass
-class MemMeasurement:
-    SHOW: bool = True
-    Graph: Optional[Graph] = None
-    Radial: Optional[Radial] = None
-    Chart: Optional[Chart] = None
-    Used: Optional[Text] = None
-    Free: Optional[Text] = None
-    PercentText: Optional[Text] = None
-
-    @classmethod
-    def from_dict(cls, d):
-        if not d:
-            return None
-        return cls(
-            SHOW=d.get("SHOW", True),
-            Graph=Graph.from_dict(d.get("GRAPH")),
-            Radial=Radial.from_dict(d.get("RADIAL")),
-            Chart=Chart.from_dict(d.get("CHART")),
-            Used=Text.from_dict(d.get("USED")),
-            Free=Text.from_dict(d.get("FREE")),
-            PercentText=Text.from_dict(d.get("PERCENT_TEXT")),
-        )
-
-    def to_dict(self):
-        d = {}
-        # Do NOT write SHOW — Go's Mesurement struct has no SHOW field.
-        if self.Radial:
-            d["RADIAL"] = _to_dict(self.Radial)
-        if self.Graph:
-            d["GRAPH"] = _to_dict(self.Graph)
-        if self.Chart:
-            d["CHART"] = _to_dict(self.Chart)
-        if self.Used:
-            d["USED"] = _to_dict(self.Used)
-        if self.Free:
-            d["FREE"] = _to_dict(self.Free)
-        if self.PercentText:
-            d["PERCENT_TEXT"] = _to_dict(self.PercentText)
-        return d
-
-
-# ---------------------------------------------------------------------------
 # Stats sub-types
 # ---------------------------------------------------------------------------
 
 @dataclass
-class LoadOne:
-    Text: Optional[Text] = None
-
-    @classmethod
-    def from_dict(cls, d):
-        return cls(Text=Text.from_dict(d.get("TEXT"))) if d else None
-
-
-@dataclass
-class LoadFive:
-    Text: Optional[Text] = None
-
-    @classmethod
-    def from_dict(cls, d):
-        return cls(Text=Text.from_dict(d.get("TEXT"))) if d else None
-
-
-@dataclass
-class LoadFifteen:
-    Text: Optional[Text] = None
-
-    @classmethod
-    def from_dict(cls, d):
-        return cls(Text=Text.from_dict(d.get("TEXT"))) if d else None
-
-
-@dataclass
 class Load:
-    One: Optional[LoadOne] = None
-    Five: Optional[LoadFive] = None
-    Fifteen: Optional[LoadFifteen] = None
+    One: Optional[Measurement] = None
+    Five: Optional[Measurement] = None
+    Fifteen: Optional[Measurement] = None
 
     @classmethod
     def from_dict(cls, d):
         if not d:
             return None
         return cls(
-            One=LoadOne.from_dict(d.get("ONE")),
-            Five=LoadFive.from_dict(d.get("FIVE")),
-            Fifteen=LoadFifteen.from_dict(d.get("FIFTEEN")),
+            One=Measurement.from_dict(d.get("ONE")),
+            Five=Measurement.from_dict(d.get("FIVE")),
+            Fifteen=Measurement.from_dict(d.get("FIFTEEN")),
         )
 
 
 @dataclass
 class CPU:
+    Model: Optional[Measurement] = None
     Percentage: Optional[Measurement] = None
     Temperature: Optional[Measurement] = None
     Frequency: Optional[Measurement] = None
@@ -475,6 +403,7 @@ class CPU:
         if not d:
             return None
         return cls(
+            Model=Measurement.from_dict(d.get("MODEL")),
             Percentage=Measurement.from_dict(d.get("PERCENTAGE")),
             Temperature=Measurement.from_dict(d.get("TEMPERATURE")),
             Frequency=Measurement.from_dict(d.get("FREQUENCY")),
@@ -487,6 +416,7 @@ class CPU:
 
 @dataclass
 class GPU:
+    Model: Optional[Measurement] = None
     Frequency: Optional[Measurement] = None
     Temperature: Optional[Measurement] = None
     Percentage: Optional[Measurement] = None
@@ -500,6 +430,7 @@ class GPU:
         if not d:
             return None
         return cls(
+            Model=Measurement.from_dict(d.get("MODEL")),
             Frequency=Measurement.from_dict(d.get("FREQUENCY")),
             Temperature=Measurement.from_dict(d.get("TEMPERATURE")),
             Percentage=Measurement.from_dict(d.get("PERCENTAGE")),
@@ -511,17 +442,69 @@ class GPU:
 
 
 @dataclass
-class Memory:
-    Swap: Optional[MemMeasurement] = None
-    Virtual: Optional[MemMeasurement] = None
+class RAM:
+    """Physical RAM: usage widgets (graph/radial/percent_text/…) + MODEL and SIZE sub-sensors."""
+    Graph: Optional[Graph] = None
+    Radial: Optional[Radial] = None
+    Gauge: Optional[Gauge] = None
+    StatusBar: Optional[StatusBar] = None
+    Chart: Optional[Chart] = None
+    Text: Optional[Text] = None
+    PercentText: Optional[Text] = None
+    Model: Optional[Measurement] = None
+    Size: Optional[Measurement] = None
 
     @classmethod
     def from_dict(cls, d):
         if not d:
             return None
         return cls(
-            Swap=MemMeasurement.from_dict(d.get("SWAP")),
-            Virtual=MemMeasurement.from_dict(d.get("VIRTUAL")),
+            Graph=Graph.from_dict(d.get("GRAPH")),
+            Radial=Radial.from_dict(d.get("RADIAL")),
+            Gauge=Gauge.from_dict(d.get("GAUGE")),
+            StatusBar=StatusBar.from_dict(d.get("STATUS_BAR")),
+            Chart=Chart.from_dict(d.get("CHART")),
+            Text=Text.from_dict(d.get("TEXT")),
+            PercentText=Text.from_dict(d.get("PERCENT_TEXT")),
+            Model=Measurement.from_dict(d.get("MODEL")),
+            Size=Measurement.from_dict(d.get("SIZE")),
+        )
+
+    def to_dict(self):
+        d = {}
+        if self.Radial:
+            d["RADIAL"] = _to_dict(self.Radial)
+        if self.Graph:
+            d["GRAPH"] = _to_dict(self.Graph)
+        if self.Gauge:
+            d["GAUGE"] = _to_dict(self.Gauge)
+        if self.StatusBar:
+            d["STATUS_BAR"] = _to_dict(self.StatusBar)
+        if self.Chart:
+            d["CHART"] = _to_dict(self.Chart)
+        if self.Text:
+            d["TEXT"] = _to_dict(self.Text)
+        if self.PercentText:
+            d["PERCENT_TEXT"] = _to_dict(self.PercentText)
+        if self.Model:
+            d["MODEL"] = self.Model.to_dict()
+        if self.Size:
+            d["SIZE"] = self.Size.to_dict()
+        return d or None
+
+
+@dataclass
+class Memory:
+    RAM: Optional[RAM] = None
+    Swap: Optional[Measurement] = None
+
+    @classmethod
+    def from_dict(cls, d):
+        if not d:
+            return None
+        return cls(
+            RAM=RAM.from_dict(d.get("RAM")),
+            Swap=Measurement.from_dict(d.get("SWAP")),
         )
 
 
@@ -608,15 +591,6 @@ class Weather:
         )
 
 
-@dataclass
-class Volume:
-    Text: Optional[Text] = None
-
-    @classmethod
-    def from_dict(cls, d):
-        if not d:
-            return None
-        return cls(Text=Text.from_dict(d.get("TEXT")))
 
 
 @dataclass
@@ -628,7 +602,7 @@ class Stats:
     Net: Optional[Network] = None
     Date: Optional[DateTime] = None
     Weather: Optional[Weather] = None
-    Volume: Optional[Volume] = None
+    Volume: Optional[Measurement] = None
 
     @classmethod
     def from_dict(cls, d):
@@ -642,7 +616,7 @@ class Stats:
             Net=Network.from_dict(d.get("NET")),
             Date=DateTime.from_dict(d.get("DATE")),
             Weather=Weather.from_dict(d.get("WEATHER")),
-            Volume=Volume.from_dict(d.get("VOLUME")),
+            Volume=Measurement.from_dict(d.get("VOLUME")),
         )
 
 
@@ -737,15 +711,11 @@ class Theme:
             return None
         return m.to_dict()
 
-    def _mem_to_dict(self, m):
-        if not m:
-            return None
-        return m.to_dict()
-
     def _cpu_to_dict(self, cpu):
         d = {}
         # Order matches the conventional theme YAML layout.
         for attr, key in [
+            ("Model",       "MODEL"),
             ("Percentage",  "PERCENTAGE"),
             ("Temperature", "TEMPERATURE"),
             ("Frequency",   "FREQUENCY"),
@@ -757,12 +727,10 @@ class Theme:
             if attr == "Load":
                 if cpu.Load:
                     ld = {}
-                    if cpu.Load.One and cpu.Load.One.Text:
-                        ld["ONE"] = {"TEXT": _to_dict(cpu.Load.One.Text)}
-                    if cpu.Load.Five and cpu.Load.Five.Text:
-                        ld["FIVE"] = {"TEXT": _to_dict(cpu.Load.Five.Text)}
-                    if cpu.Load.Fifteen and cpu.Load.Fifteen.Text:
-                        ld["FIFTEEN"] = {"TEXT": _to_dict(cpu.Load.Fifteen.Text)}
+                    for slot, key in [("One","ONE"),("Five","FIVE"),("Fifteen","FIFTEEN")]:
+                        m = getattr(cpu.Load, slot)
+                        if m:
+                            ld[key] = self._measurement_to_dict(m)
                     if ld:
                         d["LOAD"] = ld
             else:
@@ -775,6 +743,7 @@ class Theme:
         d = {}
         # Order matches the conventional theme YAML layout.
         for attr, key in [
+            ("Model",       "MODEL"),
             ("Frequency",   "FREQUENCY"),
             ("Temperature", "TEMPERATURE"),
             ("Percentage",  "PERCENTAGE"),
@@ -790,10 +759,12 @@ class Theme:
 
     def _memory_to_dict(self, mem):
         d = {}
-        if mem.Virtual:
-            d["VIRTUAL"] = self._mem_to_dict(mem.Virtual)
+        if mem.RAM:
+            ram_d = mem.RAM.to_dict()
+            if ram_d:
+                d["RAM"] = ram_d
         if mem.Swap:
-            d["SWAP"] = self._mem_to_dict(mem.Swap)
+            d["SWAP"] = self._measurement_to_dict(mem.Swap)
         return d
 
     def _disk_to_dict(self, disk):
@@ -844,9 +815,7 @@ class Theme:
         return d
 
     def _volume_to_dict(self, v):
-        if v.Text:
-            return {"TEXT": _to_dict(v.Text)}
-        return {}
+        return self._measurement_to_dict(v) or {}
 
     @classmethod
     def load(cls, path: str) -> "Theme":

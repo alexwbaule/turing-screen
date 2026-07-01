@@ -110,6 +110,15 @@ func (v *SensorValues) Snapshot() map[string]interface{} {
 	}
 }
 
+// modelStrings holds hardware model labels detected once at startup.
+// These are rendered in renderFrame at the z-order index of each MODEL sensor.
+type modelStrings struct {
+	CPU  string
+	GPU  string
+	Mem  string
+	Disk string
+}
+
 // Compositor renders all sensors into a single frame and sends diffs to the device.
 type Compositor struct {
 	log           *logger.Logger
@@ -117,6 +126,7 @@ type Compositor struct {
 	builder       *renderer.Builder
 	stats         *theme.Stats
 	values        *SensorValues
+	models        modelStrings
 	cmdUpdate     *command.UpdatePayload
 	interval      time.Duration
 	frame         *image.NRGBA // pre-allocated render buffer, reused each tick
@@ -161,6 +171,12 @@ func (c *Compositor) SetJobs(jobs chan<- command.Command) {
 // Used by TURZX devices that require full-frame PNG uploads.
 func (c *Compositor) SetFrameCallback(fn func(*image.NRGBA)) {
 	c.frameCallback = fn
+}
+
+// SetModelStrings stores the hardware model labels (detected once by hwinfo.Detect)
+// so renderFrame can draw MODEL sensors at their correct z-order index.
+func (c *Compositor) SetModelStrings(cpu, gpu, mem, disk string) {
+	c.models = modelStrings{CPU: cpu, GPU: gpu, Mem: mem, Disk: disk}
 }
 
 // Run starts the compositor render loop.

@@ -203,17 +203,17 @@ type Stats struct {
 	Net     *Network  `mapstructure:"NET"`
 	Date    *DateTime `mapstructure:"DATE"`
 	Weather *Weather  `mapstructure:"WEATHER"`
-	Volume  *Volume   `mapstructure:"VOLUME"`
+	Volume  *Sensor   `mapstructure:"VOLUME"`
 }
 
-type Mesurement struct {
-	Graph     *Graph     `mapstructure:"GRAPH"`
-	Radial    *Radial    `mapstructure:"RADIAL"`
-	Gauge     *Gauge     `mapstructure:"GAUGE"`
-	StatusBar *StatusBar `mapstructure:"STATUS_BAR"`
-	Chart     *Chart     `mapstructure:"CHART"`
-	Text      *Text      `mapstructure:"TEXT"`
-	Percent   *Text      `mapstructure:"PERCENT_TEXT"`
+type Sensor struct {
+	Graph       *Graph     `mapstructure:"GRAPH"`
+	Radial      *Radial    `mapstructure:"RADIAL"`
+	Gauge       *Gauge     `mapstructure:"GAUGE"`
+	StatusBar   *StatusBar `mapstructure:"STATUS_BAR"`
+	Chart       *Chart     `mapstructure:"CHART"`
+	Text        *Text      `mapstructure:"TEXT"`
+	PercentText *Text      `mapstructure:"PERCENT_TEXT"`
 }
 
 type Text struct {

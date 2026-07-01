@@ -37,96 +37,88 @@ def _get_types():
 #   text_only=True  → base_path já é o caminho completo; ignora tipo selecionado
 #   text_only=False → base_path + "." + sufixo do tipo selecionado
 # ---------------------------------------------------------------------------
-# Representations valid only for MemMeasurement (MEMORY.VIRTUAL / SWAP).
-# Go entity MemMesurement has no Chart, no Gauge, no StatusBar, no TEXT slot.
-# collectMemItems renders only Graph, Radial, PercentText.
-_MEM_SUFFIXES = frozenset({"GRAPH", "RADIAL"})
-
-# Representations for frequency sensors (CPU.FREQUENCY, GPU.FREQUENCY).
-# collectMeasurementFloatItems renders Chart, Radial, Graph, Text only —
-# no Gauge, StatusBar, or PercentText.
-_FLOAT_SUFFIXES = frozenset({"TEXT", "GRAPH", "RADIAL", "CHART"})
+# Network/Frequency use a float formatter (NetSpeed, Hertz, Bytes) — Gauge and StatusBar
+# can still be used (scale via MIN/MAX_VALUE), but PercentText has no clear meaning here.
+_FLOAT_SUFFIXES = frozenset({"TEXT", "GRAPH", "RADIAL", "CHART", "GAUGE", "STATUS_BAR"})
 
 # Tuple layout: (label, base_path, text_only, allowed_suffixes)
 #   text_only=True        → always creates Text; allowed_suffixes ignored
 #   text_only=False       → appends type suffix; None = all types allowed
 #   allowed_suffixes      → frozenset of YAML suffixes valid for this sensor,
 #                           or None to allow every type in _TYPES
-def _get_sections():
-    return [
-        (_("Static Text"), [
-            (_("Text"),        "static_texts.LABEL",      True, None),
-            ("CPU Model",      "static_texts.CPU_MODEL",   True, None),
-            ("GPU Model",      "static_texts.GPU_MODEL",   True, None),
-            ("Total RAM",      "static_texts.MEM_TOTAL",   True, None),
-            (_("Disk Model"),  "static_texts.DISK_MODEL",  True, None),
-            ("Hostname",       "static_texts.HOSTNAME",    True, None),
-        ]),
-        (_("CPU"), [
-            (_("Percentage"),  "STATS.CPU.PERCENTAGE",            False, None),
-            (_("Temperature"), "STATS.CPU.TEMPERATURE",           False, None),
-            # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
-            (_("Frequency"),   "STATS.CPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
-            (_("Fan"),         "STATS.CPU.FAN",                   False, None),
-            (_("Power"),       "STATS.CPU.POWER",                 False, None),
-            (_("Voltage"),     "STATS.CPU.VOLTAGE",               False, None),
-            (_("Load 1min"),   "STATS.CPU.LOAD.ONE.TEXT",         True,  None),
-            (_("Load 5min"),   "STATS.CPU.LOAD.FIVE.TEXT",        True,  None),
-            (_("Load 15min"),  "STATS.CPU.LOAD.FIFTEEN.TEXT",     True,  None),
-        ]),
-        (_("GPU"), [
-            (_("Percentage"),  "STATS.GPU.PERCENTAGE",            False, None),
-            (_("Memory"),      "STATS.GPU.MEMORY",                False, None),
-            (_("Temperature"), "STATS.GPU.TEMPERATURE",           False, None),
-            (_("Power"),       "STATS.GPU.POWER",                 False, None),
-            # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
-            (_("Frequency"),   "STATS.GPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
-            (_("Voltage"),     "STATS.GPU.VOLTAGE",               False, None),
-            (_("Fan"),         "STATS.GPU.FAN",                   False, None),
-        ]),
-        (_("Virtual Memory"), [
-            # MemMeasurement: collectMemItems renders only Graph/Radial/PercentText
-            (_("Usage"),    "STATS.MEMORY.VIRTUAL",              False, _MEM_SUFFIXES),
-            # USED and FREE exist in the entity but are NOT rendered by collectMemItems
-            (_("% Text"),   "STATS.MEMORY.VIRTUAL.PERCENT_TEXT", True,  None),
-        ]),
-        (_("Swap"), [
-            (_("Usage"),    "STATS.MEMORY.SWAP",              False, _MEM_SUFFIXES),
-            (_("% Text"),   "STATS.MEMORY.SWAP.PERCENT_TEXT", True,  None),
-        ]),
-        (_("Disk"), [
-            (_("Used"),        "STATS.DISK.USED",         False, None),
-            (_("Free"),        "STATS.DISK.FREE",         False, None),
-            # TOTAL exists in the entity but is NOT rendered by the compositor
-            (_("Temperature"), "STATS.DISK.TEMPERATURE",  False, None),
-        ]),
-        (_("Ethernet"), [
-            # Network entity Upload/Download only have .Text; renderer reads only .Text
-            (_("Upload"),     "STATS.NET.ETH.UPLOAD.TEXT",     True, None),
-            (_("Download"),   "STATS.NET.ETH.DOWNLOAD.TEXT",   True, None),
-            (_("Total Up"),   "STATS.NET.ETH.UPLOADED.TEXT",   True, None),
-            (_("Total Down"), "STATS.NET.ETH.DOWNLOADED.TEXT", True, None),
-        ]),
-        (_("Wi-Fi"), [
-            (_("Upload"),     "STATS.NET.WLO.UPLOAD.TEXT",     True, None),
-            (_("Download"),   "STATS.NET.WLO.DOWNLOAD.TEXT",   True, None),
-            (_("Total Up"),   "STATS.NET.WLO.UPLOADED.TEXT",   True, None),
-            (_("Total Down"), "STATS.NET.WLO.DOWNLOADED.TEXT", True, None),
-        ]),
-        (_("Date / Time"), [
-            # DateTime entity Hour/Day only have .Text; renderer only reads .Text
-            (_("Hour"), "STATS.DATE.HOUR.TEXT", True, None),
-            (_("Day"),  "STATS.DATE.DAY.TEXT",  True, None),
-        ]),
-        (_("Weather"), [
-            # Weather.Temperature is Mesurement entity but renderer only reads .Text
-            (_("Temperature"), "STATS.WEATHER.TEMPERATURE.TEXT", True, None),
-            (_("Condition"),   "STATS.WEATHER.CONDITION",        True, None),
-        ]),
-        (_("Volume"), [
-            (_("Volume"), "STATS.VOLUME.TEXT", True, None),
-        ]),
-    ]
+_SECTIONS = [
+    ("Texto Estático", [
+        ("Texto",        "static_texts.LABEL",      True, None),
+        ("CPU Model",    "static_texts.CPU_MODEL",   True, None),
+        ("GPU Model",    "static_texts.GPU_MODEL",   True, None),
+        ("Total RAM",    "static_texts.MEM_TOTAL",   True, None),
+        ("Modelo Disco", "static_texts.DISK_MODEL",  True, None),
+        ("Hostname",     "static_texts.HOSTNAME",    True, None),
+    ]),
+    ("CPU", [
+        ("Modelo",      "STATS.CPU.MODEL.TEXT",            True,  None),
+        ("Percentage",  "STATS.CPU.PERCENTAGE",            False, None),
+        ("Temperature", "STATS.CPU.TEMPERATURE",           False, None),
+        # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
+        ("Frequency",   "STATS.CPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
+        ("Fan",         "STATS.CPU.FAN",                   False, None),
+        ("Power",       "STATS.CPU.POWER",                 False, None),
+        ("Voltage",     "STATS.CPU.VOLTAGE",               False, None),
+        ("Load 1min",   "STATS.CPU.LOAD.ONE",              False, None),
+        ("Load 5min",   "STATS.CPU.LOAD.FIVE",             False, None),
+        ("Load 15min",  "STATS.CPU.LOAD.FIFTEEN",          False, None),
+    ]),
+    ("GPU", [
+        ("Modelo",      "STATS.GPU.MODEL.TEXT",            True,  None),
+        ("Percentage",  "STATS.GPU.PERCENTAGE",            False, None),
+        ("Memory",      "STATS.GPU.MEMORY",                False, None),
+        ("Temperature", "STATS.GPU.TEMPERATURE",           False, None),
+        ("Power",       "STATS.GPU.POWER",                 False, None),
+        # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
+        ("Frequency",   "STATS.GPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
+        ("Voltage",     "STATS.GPU.VOLTAGE",               False, None),
+        ("Fan",         "STATS.GPU.FAN",                   False, None),
+    ]),
+    ("RAM", [
+        ("Uso",     "STATS.MEMORY.RAM",                   False, None),
+        ("% Texto", "STATS.MEMORY.RAM.PERCENT_TEXT",      True,  None),
+        ("Modelo",  "STATS.MEMORY.RAM.MODEL.TEXT",        True,  None),
+        ("Tamanho", "STATS.MEMORY.RAM.SIZE.TEXT",         True,  None),
+    ]),
+    ("Swap", [
+        ("Uso",     "STATS.MEMORY.SWAP",              False, None),
+        ("% Texto", "STATS.MEMORY.SWAP.PERCENT_TEXT", True,  None),
+    ]),
+    ("Disco", [
+        ("Usado",       "STATS.DISK.USED",         False, None),
+        ("Livre",       "STATS.DISK.FREE",         False, None),
+        # TOTAL exists in the entity but is NOT rendered by the compositor
+        ("Temperatura", "STATS.DISK.TEMPERATURE",  False, None),
+    ]),
+    ("Rede Ethernet", [
+        ("Upload",     "STATS.NET.ETH.UPLOAD",     False, _FLOAT_SUFFIXES),
+        ("Download",   "STATS.NET.ETH.DOWNLOAD",   False, _FLOAT_SUFFIXES),
+        ("Total Up",   "STATS.NET.ETH.UPLOADED",   False, _FLOAT_SUFFIXES),
+        ("Total Down", "STATS.NET.ETH.DOWNLOADED", False, _FLOAT_SUFFIXES),
+    ]),
+    ("Rede WiFi", [
+        ("Upload",     "STATS.NET.WLO.UPLOAD",     False, _FLOAT_SUFFIXES),
+        ("Download",   "STATS.NET.WLO.DOWNLOAD",   False, _FLOAT_SUFFIXES),
+        ("Total Up",   "STATS.NET.WLO.UPLOADED",   False, _FLOAT_SUFFIXES),
+        ("Total Down", "STATS.NET.WLO.DOWNLOADED", False, _FLOAT_SUFFIXES),
+    ]),
+    ("Data / Hora", [
+        ("Hora", "STATS.DATE.HOUR", False, None),
+        ("Dia",  "STATS.DATE.DAY",  False, None),
+    ]),
+    ("Clima", [
+        ("Temperatura", "STATS.WEATHER.TEMPERATURE", False, None),
+        ("Condição",    "STATS.WEATHER.CONDITION",   True,  None),
+    ]),
+    ("Volume", [
+        ("Volume", "STATS.VOLUME", False, None),
+    ]),
+]
 
 
 class Toolbox(Gtk.Box):

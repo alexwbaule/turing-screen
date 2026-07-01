@@ -3,9 +3,11 @@
 # Split package: build the Go daemon once, ship it as `turing-screen`, and ship
 # the GTK4/Python editor as a separate `turing-interface` package that depends
 # on it (the GUI shares the daemon's res/ and conf/ under /opt/smart-screen).
+#
+# Run:  makepkg -si
 pkgbase=turing-screen
 pkgname=('turing-screen' 'turing-interface')
-pkgver=1.4.3.r0.g093d819
+pkgver=1
 pkgrel=1
 pkgdesc="Daemon and theme editor for Turing Smart Screen USB displays"
 arch=('x86_64')
@@ -16,21 +18,19 @@ source=("$pkgbase::git+https://github.com/alexwbaule/turing-screen.git")
 sha256sums=('SKIP')
 
 pkgver() {
-	cd "$pkgbase"
-	git describe --tags --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || \
-		printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+	cd "$srcdir/turing-screen"
+	git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 prepare() {
-	cd "$pkgbase"
+	cd "$srcdir/turing-screen"
 	go mod download
 }
 
 build() {
-	cd "$pkgbase"
+	cd "$srcdir/turing-screen"
 	export CGO_ENABLED=1
 	export GOFLAGS="-trimpath"
-	export GOPATH="$srcdir/go"
 
 	VERSION=$(git describe 2>/dev/null || echo "develop")
 	BUILD=$(git rev-parse --short HEAD 2>/dev/null || echo "develop")
@@ -59,7 +59,7 @@ package_turing-screen() {
 	backup=('opt/smart-screen/conf/config.yaml')
 	install=turing-screen.install
 
-	cd "$pkgbase"
+	cd "$srcdir/turing-screen"
 
 	# Daemon binary
 	install -Dm755 bin/turing-screen "$pkgdir/opt/smart-screen/bin/turing-screen"
@@ -93,8 +93,7 @@ package_turing-interface() {
 	optdepends=('gnome-shell-extension-appindicator: system tray icon on GNOME')
 	install=turing-interface.install
 
-	# Cada package_*() começa em $srcdir; é preciso entrar no checkout.
-	cd "$pkgbase"
+	cd "$srcdir/turing-screen"
 
 	# Python sources live under /opt/smart-screen/interface/ so main.py's
 	# ../conf/config.yaml and the cwd-based res/themes lookup both resolve

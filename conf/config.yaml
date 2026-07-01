@@ -32,5 +32,5 @@ device:
             city: Sao Paulo,BR
             enabled: true
             interval: 30m
-    theme: HAKAI
+    theme: GIGABYTE
     turn_off_on_exit: false

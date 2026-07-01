@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/draw"
 	"math"
 	"sort"
 	"strings"
@@ -33,6 +32,9 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 
 	// CPU
 	if stats.CPU != nil {
+		if m := stats.CPU.Model; m != nil && c.models.CPU != "" {
+			items = append(items, c.collectModelItem(c.models.CPU, m)...)
+		}
 		if m := stats.CPU.Percentage; m != nil {
 			items = append(items, c.collectMeasurementItems(vals.CPUPercent, "%3.0f", "%", m)...)
 		}
@@ -55,6 +57,9 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 
 	// GPU
 	if stats.GPU != nil {
+		if m := stats.GPU.Model; m != nil && c.models.GPU != "" {
+			items = append(items, c.collectModelItem(c.models.GPU, m)...)
+		}
 		if m := stats.GPU.Percentage; m != nil {
 			items = append(items, c.collectMeasurementItems(vals.GPUPercent, "%3.0f", "%", m)...)
 		}
@@ -80,11 +85,26 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 
 	// Memory
 	if stats.Memory != nil {
-		if m := stats.Memory.Virtual; m != nil {
-			items = append(items, c.collectMemItems(vals.MemPercent, m)...)
+		if ram := stats.Memory.RAM; ram != nil {
+			// SIZE uses the hwinfo MemTotal string; MODEL has no hwinfo source yet.
+			if ram.Size != nil && c.models.Mem != "" {
+				items = append(items, c.collectModelItem(c.models.Mem, ram.Size)...)
+			}
+			// Promote RAM usage fields into a temporary Sensor so
+			// collectMeasurementItems can be reused without duplication.
+			usage := &theme.Sensor{
+				Graph:       ram.Graph,
+				Radial:      ram.Radial,
+				Gauge:       ram.Gauge,
+				StatusBar:   ram.StatusBar,
+				Chart:       ram.Chart,
+				Text:        ram.Text,
+				PercentText: ram.PercentText,
+			}
+			items = append(items, c.collectMeasurementItems(vals.MemPercent, "%3.0f", "%", usage)...)
 		}
 		if m := stats.Memory.Swap; m != nil {
-			items = append(items, c.collectMemItems(vals.SwapPercent, m)...)
+			items = append(items, c.collectMeasurementItems(vals.SwapPercent, "%3.0f", "%", m)...)
 		}
 	}
 
@@ -101,54 +121,76 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 		}
 	}
 
+	// CPU Load (previously unrendered)
+	if stats.CPU != nil && stats.CPU.Load != nil {
+		load := stats.CPU.Load
+		if m := load.One; m != nil {
+			items = append(items, c.collectMeasurementItems(vals.CPULoad1, "%.2f", "", m)...)
+		}
+		if m := load.Five; m != nil {
+			items = append(items, c.collectMeasurementItems(vals.CPULoad5, "%.2f", "", m)...)
+		}
+		if m := load.Fifteen; m != nil {
+			items = append(items, c.collectMeasurementItems(vals.CPULoad15, "%.2f", "", m)...)
+		}
+	}
+
 	// Network
 	if stats.Net != nil {
 		if stats.Net.Wired != nil {
-			if u := stats.Net.Wired.Upload; u != nil && u.Text != nil && u.Text.Show {
-				str := utils.NetSpeed(vals.NetUpSpeed, true)
-				idx := u.Text.Index
-				items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, u.Text) }})
+			if m := stats.Net.Wired.Upload; m != nil {
+				items = append(items, c.collectMeasurementFloatItems(vals.NetUpSpeed, utils.NetSpeed, m)...)
 			}
-			if d := stats.Net.Wired.Download; d != nil && d.Text != nil && d.Text.Show {
-				str := utils.NetSpeed(vals.NetDownSpeed, true)
-				idx := d.Text.Index
-				items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, d.Text) }})
+			if m := stats.Net.Wired.Download; m != nil {
+				items = append(items, c.collectMeasurementFloatItems(vals.NetDownSpeed, utils.NetSpeed, m)...)
+			}
+			if m := stats.Net.Wired.Uploaded; m != nil {
+				v := float64(vals.NetUploaded)
+				items = append(items, c.collectMeasurementFloatItems(v, func(x float64, u bool) string { return utils.Bytes(uint64(x), u) }, m)...)
+			}
+			if m := stats.Net.Wired.Downloaded; m != nil {
+				v := float64(vals.NetDownloaded)
+				items = append(items, c.collectMeasurementFloatItems(v, func(x float64, u bool) string { return utils.Bytes(uint64(x), u) }, m)...)
 			}
 		}
 		if stats.Net.Wifi != nil {
-			if u := stats.Net.Wifi.Upload; u != nil && u.Text != nil && u.Text.Show {
-				str := utils.NetSpeed(vals.WifiUpSpeed, true)
-				idx := u.Text.Index
-				items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, u.Text) }})
+			if m := stats.Net.Wifi.Upload; m != nil {
+				items = append(items, c.collectMeasurementFloatItems(vals.WifiUpSpeed, utils.NetSpeed, m)...)
 			}
-			if d := stats.Net.Wifi.Download; d != nil && d.Text != nil && d.Text.Show {
-				str := utils.NetSpeed(vals.WifiDownSpeed, true)
-				idx := d.Text.Index
-				items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, d.Text) }})
+			if m := stats.Net.Wifi.Download; m != nil {
+				items = append(items, c.collectMeasurementFloatItems(vals.WifiDownSpeed, utils.NetSpeed, m)...)
 			}
 		}
 	}
 
-	// Date/Time
+	// Date/Time — TEXT uses formatted string; visual types use numeric value
 	if stats.Date != nil {
-		if stats.Date.Hour != nil && stats.Date.Hour.Text != nil && stats.Date.Hour.Text.Show {
-			str := vals.DateHour.Format(stats.Date.Hour.Text.Format.String(theme.TIME))
-			idx := stats.Date.Hour.Text.Index
-			items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, stats.Date.Hour.Text) }})
+		if m := stats.Date.Hour; m != nil {
+			hourVal := float64(vals.DateHour.Hour()) + float64(vals.DateHour.Minute())/60.0
+			var hourStr string
+			if m.Text != nil {
+				hourStr = vals.DateHour.Format(m.Text.Format.String(theme.TIME))
+			} else {
+				hourStr = vals.DateHour.Format("15:04:05")
+			}
+			items = append(items, c.collectDateTimeItems(hourVal, hourStr, m)...)
 		}
-		if stats.Date.Day != nil && stats.Date.Day.Text != nil && stats.Date.Day.Text.Show {
-			str := vals.DateDay.Format(stats.Date.Day.Text.Format.String(theme.DATE))
-			idx := stats.Date.Day.Text.Index
-			items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, stats.Date.Day.Text) }})
+		if m := stats.Date.Day; m != nil {
+			dayVal := float64(vals.DateDay.Day())
+			var dayStr string
+			if m.Text != nil {
+				dayStr = vals.DateDay.Format(m.Text.Format.String(theme.DATE))
+			} else {
+				dayStr = vals.DateDay.Format("2006-01-02")
+			}
+			items = append(items, c.collectDateTimeItems(dayVal, dayStr, m)...)
 		}
 	}
 
 	// Weather
 	if stats.Weather != nil {
-		if stats.Weather.Temperature != nil && stats.Weather.Temperature.Text != nil && stats.Weather.Temperature.Text.Show {
-			str := fmt.Sprintf("%.0f°C", vals.WeatherTemp)
-			idx := stats.Weather.Temperature.Text.Index
-			items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, stats.Weather.Temperature.Text) }})
+		if m := stats.Weather.Temperature; m != nil {
+			items = append(items, c.collectMeasurementItems(vals.WeatherTemp, "%.0f", "°C", m)...)
 		}
 		if stats.Weather.Condition != nil && stats.Weather.Condition.Show {
 			str := fmt.Sprintf("%s, %.0f°C, Wind %.0fkm/h", vals.WeatherDesc, vals.WeatherTemp, vals.WeatherWind)
@@ -157,29 +199,9 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 		}
 	}
 
-	// Volume
-	if stats.Volume != nil {
-		if stats.Volume.Text != nil && stats.Volume.Text.Show {
-			str := fmt.Sprintf("%.0f", vals.Volume)
-			idx := stats.Volume.Text.Index
-			items = append(items, drawItem{index: idx, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, str, stats.Volume.Text) }})
-		}
-	}
-
-	// Free (non-BACKGROUND) images — z-ordered with the widgets by Index.
-	for _, li := range c.builder.GetLayerImages() {
-		if li.BackgroundImage == nil {
-			continue
-		}
-		limg := li.BackgroundImage
-		lx, ly := li.X, li.Y
-		items = append(items, drawItem{
-			index: li.Index,
-			drawFunc: func(f *image.NRGBA) {
-				r := image.Rect(lx, ly, lx+limg.Bounds().Dx(), ly+limg.Bounds().Dy())
-				draw.Draw(f, r, limg, limg.Bounds().Min, draw.Over)
-			},
-		})
+	// Volume (0–100 percentage)
+	if m := stats.Volume; m != nil {
+		items = append(items, c.collectMeasurementItems(vals.Volume, "%.0f", "%", m)...)
 	}
 
 	// Sort by INDEX (lower index = drawn first = behind)
@@ -195,8 +217,8 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 	return frame
 }
 
-// collectMeasurementItems returns draw items for all active widgets in a Measurement.
-func (c *Compositor) collectMeasurementItems(value float64, format, unit string, m *theme.Mesurement) []drawItem {
+// collectMeasurementItems returns draw items for all active display types in a Sensor.
+func (c *Compositor) collectMeasurementItems(value float64, format, unit string, m *theme.Sensor) []drawItem {
 	var items []drawItem
 	str := fmt.Sprintf(format, value)
 
@@ -226,8 +248,8 @@ func (c *Compositor) collectMeasurementItems(value float64, format, unit string,
 		}
 		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, s, t) }})
 	}
-	if m.Percent != nil && m.Percent.Show {
-		t := m.Percent
+	if m.PercentText != nil && m.PercentText.Show {
+		t := m.PercentText
 		s := str
 		if t.ShowUnit {
 			s += unit
@@ -238,17 +260,24 @@ func (c *Compositor) collectMeasurementItems(value float64, format, unit string,
 	return items
 }
 
-// collectMeasurementFloatItems is like collectMeasurementItems but uses a float formatter.
-func (c *Compositor) collectMeasurementFloatItems(value float64, fn func(float64, bool) string, m *theme.Mesurement) []drawItem {
+// collectMeasurementFloatItems is like collectMeasurementItems but uses a custom text formatter (e.g. NetSpeed, Hertz, Bytes).
+// Visual types (Graph, Radial, Gauge, StatusBar, Chart) receive the raw float value and use MIN/MAX_VALUE from config.
+func (c *Compositor) collectMeasurementFloatItems(value float64, fn func(float64, bool) string, m *theme.Sensor) []drawItem {
 	var items []drawItem
 
 	if m.Chart != nil && m.Chart.Show {
 		m.Chart.AddSample(value)
 		chart := m.Chart
 		items = append(items, drawItem{index: chart.Index, drawFunc: func(f *image.NRGBA) { c.drawChartOnFrame(f, chart) }})
+	} else if m.Gauge != nil && m.Gauge.Show {
+		g := m.Gauge
+		items = append(items, drawItem{index: g.Index, drawFunc: func(f *image.NRGBA) { c.drawGaugeOnFrame(f, value, g) }})
 	} else if m.Radial != nil && m.Radial.Show {
 		r := m.Radial
 		items = append(items, drawItem{index: r.Index, drawFunc: func(f *image.NRGBA) { c.drawRadialOnFrame(f, value, r) }})
+	} else if m.StatusBar != nil && m.StatusBar.Show {
+		s := m.StatusBar
+		items = append(items, drawItem{index: s.Index, drawFunc: func(f *image.NRGBA) { c.drawStatusBarOnFrame(f, value, s) }})
 	} else if m.Graph != nil && m.Graph.Show {
 		g := m.Graph
 		items = append(items, drawItem{index: g.Index, drawFunc: func(f *image.NRGBA) { c.drawGraphOnFrame(f, value, g) }})
@@ -259,31 +288,57 @@ func (c *Compositor) collectMeasurementFloatItems(value float64, fn func(float64
 		s := fn(value, t.ShowUnit)
 		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, s, t) }})
 	}
+	if m.PercentText != nil && m.PercentText.Show {
+		t := m.PercentText
+		s := fn(value, t.ShowUnit)
+		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, s, t) }})
+	}
 
 	return items
 }
 
-// collectMemItems returns draw items for a MemMesurement.
-func (c *Compositor) collectMemItems(percent float64, m *theme.MemMesurement) []drawItem {
+// collectDateTimeItems handles DateTime sensors: TEXT uses a pre-formatted string while
+// visual types (Graph, Radial, Gauge, etc.) use numericVal (e.g. hour 0–23, day 1–31).
+func (c *Compositor) collectDateTimeItems(numericVal float64, textStr string, m *theme.Sensor) []drawItem {
 	var items []drawItem
 
-	if m.Radial != nil && m.Radial.Show {
+	if m.Chart != nil && m.Chart.Show {
+		m.Chart.AddSample(numericVal)
+		chart := m.Chart
+		items = append(items, drawItem{index: chart.Index, drawFunc: func(f *image.NRGBA) { c.drawChartOnFrame(f, chart) }})
+	} else if m.Gauge != nil && m.Gauge.Show {
+		g := m.Gauge
+		items = append(items, drawItem{index: g.Index, drawFunc: func(f *image.NRGBA) { c.drawGaugeOnFrame(f, numericVal, g) }})
+	} else if m.Radial != nil && m.Radial.Show {
 		r := m.Radial
-		items = append(items, drawItem{index: r.Index, drawFunc: func(f *image.NRGBA) { c.drawRadialOnFrame(f, percent, r) }})
-	}
-	if m.Graph != nil && m.Graph.Show {
+		items = append(items, drawItem{index: r.Index, drawFunc: func(f *image.NRGBA) { c.drawRadialOnFrame(f, numericVal, r) }})
+	} else if m.StatusBar != nil && m.StatusBar.Show {
+		s := m.StatusBar
+		items = append(items, drawItem{index: s.Index, drawFunc: func(f *image.NRGBA) { c.drawStatusBarOnFrame(f, numericVal, s) }})
+	} else if m.Graph != nil && m.Graph.Show {
 		g := m.Graph
-		items = append(items, drawItem{index: g.Index, drawFunc: func(f *image.NRGBA) { c.drawGraphOnFrame(f, percent, g) }})
-	}
-	if m.PercentText != nil && m.PercentText.Show {
-		t := m.PercentText
-		s := fmt.Sprintf("%3.0f", percent)
-		if t.ShowUnit {
-			s += "%"
-		}
-		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, s, t) }})
+		items = append(items, drawItem{index: g.Index, drawFunc: func(f *image.NRGBA) { c.drawGraphOnFrame(f, numericVal, g) }})
 	}
 
+	if m.Text != nil && m.Text.Show {
+		t := m.Text
+		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, textStr, t) }})
+	}
+
+	return items
+}
+
+// collectModelItem returns a draw item for a MODEL/TOTAL sensor whose value is a
+// static hardware string (CPU model name, GPU model name, RAM total, disk model).
+// Unlike collectMeasurementItems the value never changes between frames, but it
+// still needs to be z-ordered with the other widgets by its TEXT.Index.
+func (c *Compositor) collectModelItem(value string, m *theme.Sensor) []drawItem {
+	var items []drawItem
+	if m.Text != nil && m.Text.Show {
+		t := m.Text
+		s := value
+		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, s, t) }})
+	}
 	return items
 }
 

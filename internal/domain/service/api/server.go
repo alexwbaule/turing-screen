@@ -39,6 +39,8 @@ type Controller interface {
 	ApplyTheme(name string) error
 	GetThemeList() []string
 	GetCurrentTheme() string
+	GetHWInfo() HWInfoPayload
+	OnHWInfoReady(fn func(HWInfoPayload))
 	GetSensorValues() map[string]interface{}
 	GetStorageInfo() (StorageInfo, error)
 	GetStorageFiles(path string) ([]string, error)
@@ -61,6 +63,13 @@ type StorageInfo struct {
 	Total int64 `json:"total"`
 	Used  int64 `json:"used"`
 	Free  int64 `json:"free"`
+}
+
+type HWInfoPayload struct {
+	CPUModel string `json:"cpu_model"`
+	GPUModel string `json:"gpu_model"`
+	MemTotal string `json:"mem_total"`
+	Hostname string `json:"hostname"`
 }
 
 // Message is the generic WebSocket message format.
@@ -118,6 +127,12 @@ func (s *Server) Start(ctx context.Context) error {
 		s.server.Shutdown(shutdownCtx)
 	}()
 
+	// Re-broadcast event.hwinfo whenever the daemon finishes hardware detection.
+	// Needed because clients may connect before SetHWInfo is called at startup.
+	s.controller.OnHWInfoReady(func(p HWInfoPayload) {
+		s.broadcast("event.hwinfo", p)
+	})
+
 	// Start status broadcast goroutine
 	go s.broadcastStatusLoop(ctx)
 
@@ -161,6 +176,14 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request, ctx con
 	}()
 
 	s.log.Info("WebSocket client connected")
+
+	// Push hardware info once so the interface can show model names in preview.
+	if hwData, err := json.Marshal(s.respond("", "event.hwinfo", s.controller.GetHWInfo())); err == nil {
+		select {
+		case sendCh <- hwData:
+		default:
+		}
+	}
 
 	for {
 		_, data, err := conn.Read(ctx)
@@ -347,6 +370,10 @@ func (s *Server) handleMessage(msg Message) Message {
 			return s.respondError(msg.ID, msg.Action, err.Error())
 		}
 		return s.respondOK(msg.ID, msg.Action)
+
+	// --- Hardware info ---
+	case "hwinfo.get":
+		return s.respond(msg.ID, msg.Action, s.controller.GetHWInfo())
 
 	// --- Sensors ---
 	case "sensors.values":
