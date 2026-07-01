@@ -199,6 +199,9 @@ DATANAME_MAP = {
     "DRVLOAD":    ("DISK", "USED", "PERCENT_TEXT"),
     "DRVCLOAD":   ("DISK", "USED", "PERCENT_TEXT"),
     "HDDTEMP":    ("DISK", "TEMPERATURE", "TEXT"),
+    "DRVMODEL":   ("DISK", "MODEL", "TEXT"),
+    # Host / system sensors
+    "HOSTNAME":   ("HOST", "HOSTNAME", "TEXT"),
     # Network — direction embedded in sub so it survives display-type override
     "UPSPEED":    ("NET", "ETH.UPLOAD",   "TEXT"),
     "DOWNDSPEED": ("NET", "ETH.DOWNLOAD", "TEXT"),
@@ -768,6 +771,20 @@ def build_stats(stats_items: dict, width: int, height: int, font_paths: dict) ->
             if sub not in stats["WEATHER"]:
                 stats["WEATHER"][sub] = {}
             stats["WEATHER"][sub][widget] = entry
+        elif cat == "HOST":
+            if "HOST" not in stats:
+                stats["HOST"] = {}
+            if sub == "HOSTNAME":
+                if "HOSTNAME" not in stats["HOST"]:
+                    stats["HOST"]["HOSTNAME"] = {}
+                stats["HOST"]["HOSTNAME"][widget] = entry
+            elif sub and sub.startswith("LOAD."):
+                load_key = sub.split(".", 1)[1]  # ONE, FIVE, FIFTEEN
+                if "LOAD" not in stats["HOST"]:
+                    stats["HOST"]["LOAD"] = {}
+                if load_key not in stats["HOST"]["LOAD"]:
+                    stats["HOST"]["LOAD"][load_key] = {}
+                stats["HOST"]["LOAD"][load_key][widget] = entry
         elif cat == "VOLUME":
             if "VOLUME" not in stats:
                 stats["VOLUME"] = {}

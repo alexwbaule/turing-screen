@@ -275,7 +275,7 @@ func main() {
 				comp.SetJobs(jobs)
 			}
 
-			comp.SetModelStrings(hw.CPUModel, hw.GPUModel, hw.MemTotal, hw.DiskModel)
+			comp.SetModelStrings(hw.CPUModel, hw.GPUModel, hw.MemTotal, hw.DiskModel, hw.Hostname)
 
 			// Common: start sensor collectors
 			cpuCfg := app.Config.GetCPUSensorConfig()

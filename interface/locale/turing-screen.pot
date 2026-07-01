@@ -688,3 +688,15 @@ msgstr ""
 
 msgid "PNG images"
 msgstr ""
+
+msgid "Model"
+msgstr ""
+
+msgid "Size"
+msgstr ""
+
+msgid "System"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""

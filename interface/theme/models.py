@@ -393,7 +393,6 @@ class CPU:
     Percentage: Optional[Measurement] = None
     Temperature: Optional[Measurement] = None
     Frequency: Optional[Measurement] = None
-    Load: Optional[Load] = None
     Fan: Optional[Measurement] = None
     Power: Optional[Measurement] = None
     Voltage: Optional[Measurement] = None
@@ -407,7 +406,6 @@ class CPU:
             Percentage=Measurement.from_dict(d.get("PERCENTAGE")),
             Temperature=Measurement.from_dict(d.get("TEMPERATURE")),
             Frequency=Measurement.from_dict(d.get("FREQUENCY")),
-            Load=Load.from_dict(d.get("LOAD")),
             Fan=Measurement.from_dict(d.get("FAN")),
             Power=Measurement.from_dict(d.get("POWER")),
             Voltage=Measurement.from_dict(d.get("VOLTAGE")),
@@ -510,6 +508,7 @@ class Memory:
 
 @dataclass
 class Disk:
+    Model: Optional[Measurement] = None
     Used: Optional[Measurement] = None
     Total: Optional[Measurement] = None
     Free: Optional[Measurement] = None
@@ -520,6 +519,7 @@ class Disk:
         if not d:
             return None
         return cls(
+            Model=Measurement.from_dict(d.get("MODEL")),
             Used=Measurement.from_dict(d.get("USED")),
             Total=Measurement.from_dict(d.get("TOTAL")),
             Free=Measurement.from_dict(d.get("FREE")),
@@ -594,11 +594,27 @@ class Weather:
 
 
 @dataclass
+class Host:
+    Hostname: Optional[Measurement] = None
+    Load: Optional[Load] = None
+
+    @classmethod
+    def from_dict(cls, d):
+        if not d:
+            return None
+        return cls(
+            Hostname=Measurement.from_dict(d.get("HOSTNAME")),
+            Load=Load.from_dict(d.get("LOAD")),
+        )
+
+
+@dataclass
 class Stats:
     CPU: Optional[CPU] = None
     GPU: Optional[GPU] = None
     Memory: Optional[Memory] = None
     Disk: Optional[Disk] = None
+    Host: Optional[Host] = None
     Net: Optional[Network] = None
     Date: Optional[DateTime] = None
     Weather: Optional[Weather] = None
@@ -613,6 +629,7 @@ class Stats:
             GPU=GPU.from_dict(d.get("GPU")),
             Memory=Memory.from_dict(d.get("MEMORY")),
             Disk=Disk.from_dict(d.get("DISK")),
+            Host=Host.from_dict(d.get("HOST")),
             Net=Network.from_dict(d.get("NET")),
             Date=DateTime.from_dict(d.get("DATE")),
             Weather=Weather.from_dict(d.get("WEATHER")),

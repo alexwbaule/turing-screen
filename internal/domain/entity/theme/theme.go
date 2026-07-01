@@ -200,6 +200,7 @@ type Stats struct {
 	GPU     *GPU      `mapstructure:"GPU"`
 	Memory  *Memory   `mapstructure:"MEMORY"`
 	Disk    *Disk     `mapstructure:"DISK"`
+	Host    *Host     `mapstructure:"HOST"`
 	Net     *Network  `mapstructure:"NET"`
 	Date    *DateTime `mapstructure:"DATE"`
 	Weather *Weather  `mapstructure:"WEATHER"`
