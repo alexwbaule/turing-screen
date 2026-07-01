@@ -689,3 +689,6 @@ msgstr ""
 
 msgid "Hostname"
 msgstr ""
+
+msgid "Font size"
+msgstr ""

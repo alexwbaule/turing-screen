@@ -713,6 +713,8 @@ class Theme:
             out["MEMORY"] = self._memory_to_dict(s.Memory)
         if s.Disk:
             out["DISK"] = self._disk_to_dict(s.Disk)
+        if s.Host:
+            out["HOST"] = self._host_to_dict(s.Host)
         if s.Net:
             out["NET"] = self._net_to_dict(s.Net)
         if s.Date:
@@ -730,30 +732,18 @@ class Theme:
 
     def _cpu_to_dict(self, cpu):
         d = {}
-        # Order matches the conventional theme YAML layout.
         for attr, key in [
             ("Model",       "MODEL"),
             ("Percentage",  "PERCENTAGE"),
             ("Temperature", "TEMPERATURE"),
             ("Frequency",   "FREQUENCY"),
-            ("Load",        None),
             ("Fan",         "FAN"),
             ("Power",       "POWER"),
             ("Voltage",     "VOLTAGE"),
         ]:
-            if attr == "Load":
-                if cpu.Load:
-                    ld = {}
-                    for slot, key in [("One","ONE"),("Five","FIVE"),("Fifteen","FIFTEEN")]:
-                        m = getattr(cpu.Load, slot)
-                        if m:
-                            ld[key] = self._measurement_to_dict(m)
-                    if ld:
-                        d["LOAD"] = ld
-            else:
-                m = getattr(cpu, attr)
-                if m:
-                    d[key] = self._measurement_to_dict(m)
+            m = getattr(cpu, attr)
+            if m:
+                d[key] = self._measurement_to_dict(m)
         return d
 
     def _gpu_to_dict(self, gpu):
@@ -786,11 +776,25 @@ class Theme:
 
     def _disk_to_dict(self, disk):
         d = {}
-        for attr, key in [("Used", "USED"), ("Total", "TOTAL"),
+        for attr, key in [("Model", "MODEL"), ("Used", "USED"), ("Total", "TOTAL"),
                            ("Free", "FREE"), ("Temperature", "TEMPERATURE")]:
             m = getattr(disk, attr)
             if m:
                 d[key] = self._measurement_to_dict(m)
+        return d
+
+    def _host_to_dict(self, host):
+        d = {}
+        if host.Hostname:
+            d["HOSTNAME"] = self._measurement_to_dict(host.Hostname)
+        if host.Load:
+            ld = {}
+            for slot, key in [("One", "ONE"), ("Five", "FIVE"), ("Fifteen", "FIFTEEN")]:
+                m = getattr(host.Load, slot)
+                if m:
+                    ld[key] = self._measurement_to_dict(m)
+            if ld:
+                d["LOAD"] = ld
         return d
 
     def _net_to_dict(self, net):
