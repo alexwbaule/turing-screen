@@ -226,6 +226,17 @@ STATS:
   MEMORY:
     INTERVAL: 5
     RAM:
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 17
+          X: 247
+          Y: 364
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 36
+          FONT_COLOR: 255, 255, 255
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
       PERCENT_TEXT:
         SHOW: true
         INDEX: 18
@@ -253,17 +264,6 @@ STATS:
         BAR_COLOR: 121, 189, 206
         SHOW_TEXT: false
         SHOW_UNIT: false
-      SIZE:
-        TEXT:
-          SHOW: true
-          INDEX: 17
-          X: 247
-          Y: 364
-          FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 36
-          FONT_COLOR: 255, 255, 255
-          PLACEHOLDER: DDR4-16GB
-          ALIGN: left
   DISK:
     INTERVAL: 10
     USED:

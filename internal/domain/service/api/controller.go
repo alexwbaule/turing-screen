@@ -47,7 +47,8 @@ type DaemonController struct {
 	sensorFunc  func() map[string]interface{}
 
 	// Hardware info (detected once at startup / theme reload)
-	hwInfo *hwinfo.HWInfo
+	hwInfo    *hwinfo.HWInfo
+	hwInfoCb  func(HWInfoPayload) // called after hwInfo is set so the server can re-broadcast
 
 	// Theme
 	themesDir string
@@ -77,10 +78,23 @@ func NewDaemonController(
 	}
 }
 
-// SetHWInfo stores detected hardware info so it can be sent to WS clients.
+// SetHWInfo stores detected hardware info and notifies the server so it can
+// re-broadcast event.hwinfo to all already-connected clients.
 func (dc *DaemonController) SetHWInfo(hw *hwinfo.HWInfo) {
 	dc.mu.Lock()
 	dc.hwInfo = hw
+	cb := dc.hwInfoCb
+	dc.mu.Unlock()
+	if cb != nil {
+		cb(dc.GetHWInfo())
+	}
+}
+
+// OnHWInfoReady registers a callback that fires every time SetHWInfo is called.
+// The server uses this to re-push event.hwinfo to connected clients.
+func (dc *DaemonController) OnHWInfoReady(fn func(HWInfoPayload)) {
+	dc.mu.Lock()
+	dc.hwInfoCb = fn
 	dc.mu.Unlock()
 }
 

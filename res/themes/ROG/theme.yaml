@@ -250,16 +250,6 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
         BAR_OUTLINE: false
-      PERCENT_TEXT:
-        SHOW: true
-        INDEX: 25
-        X: 444
-        Y: 514
-        FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 27
-        FONT_COLOR: 230, 0, 18
-        PLACEHOLDER: '88'
-        ALIGN: center
       SIZE:
         TEXT:
           SHOW: true
@@ -272,6 +262,16 @@ STATS:
           SHOW_UNIT: true
           PLACEHOLDER: DDR4-16GB
           ALIGN: left
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 25
+        X: 444
+        Y: 514
+        FONT: turtheme/RACESPACEREGULAR.otf
+        FONT_SIZE: 27
+        FONT_COLOR: 230, 0, 18
+        PLACEHOLDER: '88'
+        ALIGN: center
   DISK:
     INTERVAL: 10
     TEMPERATURE:

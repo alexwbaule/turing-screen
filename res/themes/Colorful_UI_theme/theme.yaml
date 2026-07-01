@@ -169,17 +169,6 @@ STATS:
         SHOW_UNIT: true
         PLACEHOLDER: 88%
         ALIGN: left
-      GRAPH:
-        SHOW: true
-        INDEX: 11
-        X: 368
-        Y: 488
-        WIDTH: 380
-        HEIGHT: 32
-        MIN_VALUE: 0
-        MAX_VALUE: 100
-        BAR_COLOR: 255, 255, 255
-        BAR_OUTLINE: false
       SIZE:
         TEXT:
           SHOW: true
@@ -192,6 +181,17 @@ STATS:
           SHOW_UNIT: true
           PLACEHOLDER: DDR4-16GB
           ALIGN: left
+      GRAPH:
+        SHOW: true
+        INDEX: 11
+        X: 368
+        Y: 488
+        WIDTH: 380
+        HEIGHT: 32
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
   NET:
     INTERVAL: 1
     ETH:

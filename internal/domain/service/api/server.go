@@ -40,6 +40,7 @@ type Controller interface {
 	GetThemeList() []string
 	GetCurrentTheme() string
 	GetHWInfo() HWInfoPayload
+	OnHWInfoReady(fn func(HWInfoPayload))
 	GetSensorValues() map[string]interface{}
 	GetStorageInfo() (StorageInfo, error)
 	GetStorageFiles(path string) ([]string, error)
@@ -125,6 +126,12 @@ func (s *Server) Start(ctx context.Context) error {
 		defer cancel()
 		s.server.Shutdown(shutdownCtx)
 	}()
+
+	// Re-broadcast event.hwinfo whenever the daemon finishes hardware detection.
+	// Needed because clients may connect before SetHWInfo is called at startup.
+	s.controller.OnHWInfoReady(func(p HWInfoPayload) {
+		s.broadcast("event.hwinfo", p)
+	})
 
 	// Start status broadcast goroutine
 	go s.broadcastStatusLoop(ctx)

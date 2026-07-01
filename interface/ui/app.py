@@ -258,6 +258,10 @@ class EditorApp:
         self._editor_window.set_title(f"Editor — {theme_name}")
         self._editor_window.present()
 
+        # Request fresh hwinfo from the daemon; handles the race where the
+        # initial event.hwinfo push arrived before SetHWInfo was called.
+        self._ws.send("hwinfo.get", None, callback=self._on_hwinfo_get)
+
     def _build_editor_window(self):
         self._editor_window = Gtk.ApplicationWindow(application=self._app)
         self._editor_window.set_title("Theme Editor")
@@ -521,6 +525,11 @@ class EditorApp:
         self._hwinfo = info or {}
         if self._canvas:
             self._canvas.set_hwinfo(self._hwinfo)
+
+    def _on_hwinfo_get(self, payload, error):
+        """Callback for the explicit hwinfo.get request sent when editor opens."""
+        if payload and not error:
+            self._on_hwinfo(payload)
 
     def _on_ws_cmd_done(self, payload, error):
         if self._home:

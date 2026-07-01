@@ -167,17 +167,6 @@ STATS:
         FONT_COLOR: 2, 216, 243
         PLACEHOLDER: '88'
         ALIGN: right
-      GRAPH:
-        SHOW: true
-        INDEX: 18
-        X: 188
-        Y: 655
-        WIDTH: 283
-        HEIGHT: 28
-        MIN_VALUE: 0
-        MAX_VALUE: 100
-        BAR_COLOR: 2, 216, 243
-        BAR_OUTLINE: false
       SIZE:
         TEXT:
           SHOW: true
@@ -190,6 +179,17 @@ STATS:
           SHOW_UNIT: true
           PLACEHOLDER: DDR4-16GB
           ALIGN: left
+      GRAPH:
+        SHOW: true
+        INDEX: 18
+        X: 188
+        Y: 655
+        WIDTH: 283
+        HEIGHT: 28
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 2, 216, 243
+        BAR_OUTLINE: false
   NET:
     INTERVAL: 1
     ETH:

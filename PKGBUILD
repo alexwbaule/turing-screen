@@ -4,27 +4,31 @@
 # the GTK4/Python editor as a separate `turing-interface` package that depends
 # on it (the GUI shares the daemon's res/ and conf/ under /opt/smart-screen).
 #
-# Local build: source comes from $startdir (the project checkout itself).
 # Run:  makepkg -si
 pkgbase=turing-screen
 pkgname=('turing-screen' 'turing-interface')
-pkgver=1.3.6
+pkgver=1
 pkgrel=1
 pkgdesc="Daemon and theme editor for Turing Smart Screen USB displays"
 arch=('x86_64')
 url="https://github.com/alexwbaule/turing-screen"
 license=('custom')
-makedepends=('go' 'gcc')
-source=()
-sha256sums=()
+makedepends=('go' 'gcc' 'git')
+source=("turing-screen::git+https://github.com/alexwbaule/turing-screen.git")
+sha256sums=('SKIP')
+
+pkgver() {
+	cd "$srcdir/turing-screen"
+	git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
 
 prepare() {
-	cd "$startdir"
+	cd "$srcdir/turing-screen"
 	go mod download
 }
 
 build() {
-	cd "$startdir"
+	cd "$srcdir/turing-screen"
 	export CGO_ENABLED=1
 	export GOFLAGS="-trimpath"
 
@@ -50,7 +54,7 @@ package_turing-screen() {
 	backup=('opt/smart-screen/conf/config.yaml')
 	install=turing-screen.install
 
-	cd "$startdir"
+	cd "$srcdir/turing-screen"
 
 	# Daemon binary
 	install -Dm755 bin/turing-screen "$pkgdir/opt/smart-screen/bin/turing-screen"
@@ -84,7 +88,7 @@ package_turing-interface() {
 	optdepends=('gnome-shell-extension-appindicator: system tray icon on GNOME')
 	install=turing-interface.install
 
-	cd "$startdir"
+	cd "$srcdir/turing-screen"
 
 	# Python sources live under /opt/smart-screen/interface/ so main.py's
 	# ../conf/config.yaml and the cwd-based res/themes lookup both resolve

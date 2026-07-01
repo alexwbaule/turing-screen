@@ -302,17 +302,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '88'
         ALIGN: left
-      GRAPH:
-        SHOW: true
-        INDEX: 31
-        X: 613
-        Y: 286
-        WIDTH: 198
-        HEIGHT: 18
-        MIN_VALUE: 0
-        MAX_VALUE: 100
-        BAR_COLOR: 175, 155, 212
-        BAR_OUTLINE: false
       SIZE:
         TEXT:
           SHOW: true
@@ -325,6 +314,17 @@ STATS:
           SHOW_UNIT: true
           PLACEHOLDER: 16G
           ALIGN: left
+      GRAPH:
+        SHOW: true
+        INDEX: 31
+        X: 613
+        Y: 286
+        WIDTH: 198
+        HEIGHT: 18
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 175, 155, 212
+        BAR_OUTLINE: false
   NET:
     INTERVAL: 1
     ETH:

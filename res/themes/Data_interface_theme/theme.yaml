@@ -228,16 +228,6 @@ STATS:
   MEMORY:
     INTERVAL: 5
     RAM:
-      PERCENT_TEXT:
-        SHOW: true
-        INDEX: 19
-        X: 1170
-        Y: 152
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 31
-        FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '88'
-        ALIGN: right
       SIZE:
         TEXT:
           SHOW: true
@@ -250,6 +240,16 @@ STATS:
           SHOW_UNIT: true
           PLACEHOLDER: DDR4-16GB
           ALIGN: left
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 19
+        X: 1170
+        Y: 152
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 31
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
   DISK:
     INTERVAL: 10
     USED:
