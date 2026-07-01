@@ -22,31 +22,23 @@ static_images:
     WIDTH: 1280
     HEIGHT: 720
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 70
-    Y: 36
+  RAMVALID_LABEL:
+    TEXT: Valid Ram
+    X: 500
+    Y: 664
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 20
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 159
-    Y: 266
+    FONT_SIZE: 24
+    FONT_COLOR: 230, 0, 18
+    ALIGN: right
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 500
+    Y: 601
     FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 20
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 437
-    Y: 403
-    FONT: turtheme/RACESPACEREGULAR.otf
-    FONT_SIZE: 20
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  c:
+    FONT_SIZE: 24
+    FONT_COLOR: 230, 0, 18
+    ALIGN: right
+  LABEL_2:
     TEXT: 'c:'
     X: 643
     Y: 552
@@ -54,7 +46,7 @@ static_texts:
     FONT_SIZE: 20
     FONT_COLOR: 255, 255, 255
     ALIGN: left
-  C:
+  LABEL_3:
     TEXT: C
     X: 917
     Y: 609
@@ -62,7 +54,7 @@ static_texts:
     FONT_SIZE: 24
     FONT_COLOR: 255, 255, 255
     ALIGN: left
-  D:
+  LABEL_4:
     TEXT: D
     X: 1041
     Y: 609
@@ -70,7 +62,7 @@ static_texts:
     FONT_SIZE: 24
     FONT_COLOR: 255, 255, 255
     ALIGN: left
-  E:
+  LABEL_5:
     TEXT: E
     X: 1157
     Y: 609
@@ -139,6 +131,19 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
         BAR_OUTLINE: false
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 15
+        X: 70
+        Y: 36
+        FONT: turtheme/RACESPACEREGULAR.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -197,6 +202,18 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
         BAR_OUTLINE: false
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 16
+        X: 159
+        Y: 266
+        FONT: turtheme/RACESPACEREGULAR.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
     MEMORY:
       TEXT:
         SHOW: true
@@ -233,16 +250,6 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
         BAR_OUTLINE: false
-      USED:
-        SHOW: true
-        INDEX: 12
-        X: 500
-        Y: 601
-        FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 24
-        FONT_COLOR: 230, 0, 18
-        PLACEHOLDER: '8888'
-        ALIGN: right
       PERCENT_TEXT:
         SHOW: true
         INDEX: 25
@@ -253,6 +260,18 @@ STATS:
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '88'
         ALIGN: center
+    TOTAL:
+      TEXT:
+        SHOW: true
+        INDEX: 17
+        X: 437
+        Y: 403
+        FONT: turtheme/RACESPACEREGULAR.otf
+        FONT_SIZE: 20
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: DDR4-16GB
+        ALIGN: left
   DISK:
     INTERVAL: 10
     TEMPERATURE:

@@ -21,23 +21,6 @@ static_images:
     Y: 0
     WIDTH: 1280
     HEIGHT: 800
-static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 745
-    Y: 109
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 29
-    FONT_COLOR: 49, 233, 255
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 742
-    Y: 474
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 29
-    FONT_COLOR: 49, 233, 255
-    ALIGN: left
 STATS:
   CPU:
     PERCENTAGE:
@@ -177,6 +160,19 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
         BAR_OUTLINE: false
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 30
+        X: 745
+        Y: 109
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 29
+        FONT_COLOR: 49, 233, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
   DISK:
     INTERVAL: 10
     USED:
@@ -331,6 +327,18 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
         BAR_OUTLINE: false
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 31
+        X: 742
+        Y: 474
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 29
+        FONT_COLOR: 49, 233, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:

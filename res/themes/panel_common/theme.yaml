@@ -16,30 +16,21 @@ static_images:
     WIDTH: 871
     HEIGHT: 661
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 43
-    Y: 29
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 19
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 319
-    Y: 29
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 19
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 597
-    Y: 29
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 19
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
+  RAMVALID_LABEL:
+    TEXT: RAMVALID
+    X: 613
+    Y: 218
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: 26, 80, 145
+  RAM_LABEL:
+    TEXT: RAM Used
+    X: 817
+    Y: 308
+    FONT: turtheme/KumbhSans-Regular.ttf
+    FONT_SIZE: 20
+    FONT_COLOR: 175, 155, 212
+    ALIGN: right
   DISK:
     TEXT: DISK
     X: 348
@@ -167,6 +158,19 @@ STATS:
         SHOW_UNIT: true
         PLACEHOLDER: 1.8V
         ALIGN: right
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 21
+        X: 43
+        Y: 29
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 19
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: Ryzen 5 PRO 4650G
+        ALIGN: left
   GPU:
     INTERVAL: 1
     PERCENTAGE:
@@ -273,6 +277,18 @@ STATS:
         SHOW_UNIT: true
         PLACEHOLDER: 1.8V
         ALIGN: right
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 22
+        X: 319
+        Y: 29
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 19
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: GeForce GTX 1060 5GB
+        ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
@@ -286,28 +302,29 @@ STATS:
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '88'
         ALIGN: left
-      USED:
-        SHOW: true
-        INDEX: 10
-        X: 817
-        Y: 241
-        FONT: turtheme/KumbhSans-Regular.ttf
-        FONT_SIZE: 20
-        FONT_COLOR: 175, 155, 212
-        SHOW_UNIT: true
-        PLACEHOLDER: 8888M
-        ALIGN: right
       GRAPH:
         SHOW: true
-        INDEX: 30
+        INDEX: 31
         X: 613
-        Y: 218
+        Y: 286
         WIDTH: 198
         HEIGHT: 18
         MIN_VALUE: 0
         MAX_VALUE: 100
         BAR_COLOR: 175, 155, 212
         BAR_OUTLINE: false
+    TOTAL:
+      TEXT:
+        SHOW: true
+        INDEX: 23
+        X: 597
+        Y: 29
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 19
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 16G
+        ALIGN: left
   NET:
     INTERVAL: 1
     ETH:

@@ -18,6 +18,7 @@ import (
 	appTheme "github.com/alexwbaule/turing-screen/internal/application/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	entityDevice "github.com/alexwbaule/turing-screen/internal/domain/entity/device"
+	entityTheme "github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/api"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/compositor"
 	"github.com/alexwbaule/turing-screen/internal/domain/service/initializer"
@@ -159,6 +160,8 @@ func main() {
 			}
 
 			hw := hwinfo.Detect(app.Log, app.Config.GetGPUSensorConfig().Provider)
+			apiController.SetHWInfo(hw)
+
 			staticTexts := statsTheme.GetStaticTexts()
 			for key, st := range staticTexts {
 				st.Text = hw.ReplaceText(st.Text)
@@ -169,7 +172,8 @@ func main() {
 			apiController.SetOrientation(orientation)
 			builder := renderer.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
 			builder.BuildBackgroundImage(statsTheme.GetStaticImages())
-			builder.BuildBackgroundTexts(statsTheme.GetStaticTexts())
+			builder.BuildBackgroundTexts(staticTexts)
+			builder.BuildModelTexts(collectModelTexts(statsTheme.GetStats(), hw))
 
 			values := &compositor.SensorValues{}
 			currentValues.Store(values)
@@ -392,4 +396,36 @@ func main() {
 
 		return g.Wait()
 	})
+}
+
+// collectModelTexts builds a map of Text configs → value strings for all MODEL/TOTAL
+// sensors defined in the theme. These are rendered once onto the background image.
+func collectModelTexts(stats *entityTheme.Stats, hw *hwinfo.HWInfo) map[*entityTheme.Text]string {
+	m := make(map[*entityTheme.Text]string)
+	if stats == nil || hw == nil {
+		return m
+	}
+	if stats.CPU != nil && stats.CPU.Model != nil {
+		if t := stats.CPU.Model.Text; t != nil {
+			m[t] = hw.CPUModel
+		}
+	}
+	if stats.GPU != nil && stats.GPU.Model != nil {
+		if t := stats.GPU.Model.Text; t != nil {
+			m[t] = hw.GPUModel
+		}
+	}
+	if stats.Memory != nil {
+		if stats.Memory.Model != nil {
+			if t := stats.Memory.Model.Text; t != nil {
+				m[t] = hw.DiskModel // placeholder: use disk model until DMI is available
+			}
+		}
+		if stats.Memory.Total != nil {
+			if t := stats.Memory.Total.Text; t != nil {
+				m[t] = hw.MemTotal
+			}
+		}
+	}
+	return m
 }

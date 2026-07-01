@@ -22,6 +22,14 @@ static_images:
     WIDTH: 1280
     HEIGHT: 720
 static_texts:
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 314
+    Y: 570
+    FONT: geforce/GeForce-Bold.ttf
+    FONT_SIZE: 21
+    FONT_COLOR: 63, 238, 255
+    ALIGN: right
   PD:
     TEXT: PD
     X: 166
@@ -32,8 +40,8 @@ static_texts:
     ALIGN: left
   Voltage:
     TEXT: Voltage
-    X: 1026
-    Y: 382
+    X: 166
+    Y: 376
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 25
     FONT_COLOR: 63, 238, 255
@@ -44,6 +52,14 @@ static_texts:
     Y: 301
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 21
+    FONT_COLOR: 63, 238, 255
+    ALIGN: left
+  Voltage_2:
+    TEXT: Voltage
+    X: 1026
+    Y: 382
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 25
     FONT_COLOR: 63, 238, 255
     ALIGN: left
   UL:
@@ -59,14 +75,6 @@ static_texts:
     X: 566
     Y: 651
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 25
-    FONT_COLOR: 63, 238, 255
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 68
-    Y: 528
-    FONT: geforce/GeForce-Bold.ttf
     FONT_SIZE: 25
     FONT_COLOR: 63, 238, 255
     ALIGN: left
@@ -98,42 +106,6 @@ STATS:
           SHOW_UNIT: true
           PLACEHOLDER: 888KB/s
           ALIGN: left
-  MEMORY:
-    INTERVAL: 5
-    VIRTUAL:
-      USED:
-        SHOW: true
-        INDEX: 2
-        X: 314
-        Y: 570
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 21
-        FONT_COLOR: 63, 238, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: 8888M
-        ALIGN: right
-      PERCENT_TEXT:
-        SHOW: true
-        INDEX: 5
-        X: 397
-        Y: 565
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 29
-        FONT_COLOR: 63, 238, 255
-        PLACEHOLDER: '88'
-        ALIGN: center
-      STATUS_BAR:
-        SHOW: true
-        INDEX: 23
-        X: 75
-        Y: 619
-        WIDTH: 225
-        HEIGHT: 9
-        MIN_VALUE: 0
-        MAX_VALUE: 100
-        BAR_COLOR: 107, 245, 248
-        INDICATOR_COLOR: 107, 245, 248
-        INDICATOR_RADIUS: 11
   CPU:
     TEMPERATURE:
       INTERVAL: 1
@@ -294,6 +266,43 @@ STATS:
         FONT_COLOR: 63, 238, 255
         SHOW_UNIT: true
         PLACEHOLDER: 1.8V
+        ALIGN: left
+  MEMORY:
+    INTERVAL: 5
+    VIRTUAL:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 397
+        Y: 565
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 29
+        FONT_COLOR: 63, 238, 255
+        PLACEHOLDER: '88'
+        ALIGN: center
+      STATUS_BAR:
+        SHOW: true
+        INDEX: 23
+        X: 75
+        Y: 619
+        WIDTH: 225
+        HEIGHT: 9
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 107, 245, 248
+        INDICATOR_COLOR: 107, 245, 248
+        INDICATOR_RADIUS: 11
+    TOTAL:
+      TEXT:
+        SHOW: true
+        INDEX: 27
+        X: 68
+        Y: 528
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 25
+        FONT_COLOR: 63, 238, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: DDR4-16GB
         ALIGN: left
   VOLUME:
     TEXT:

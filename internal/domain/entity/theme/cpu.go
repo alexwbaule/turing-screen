@@ -1,27 +1,18 @@
 package theme
 
-
 type CPU struct {
-	Percentage  *Mesurement   `mapstructure:"PERCENTAGE"`
-	Frequency   *Mesurement   `mapstructure:"FREQUENCY"`
-	Load        *Load         `mapstructure:"LOAD"`
-	Temperature *Mesurement   `mapstructure:"TEMPERATURE"`
-	Fan         *Mesurement   `mapstructure:"FAN"`
-	Power       *Mesurement   `mapstructure:"POWER"`
-	Voltage     *Mesurement   `mapstructure:"VOLTAGE"`
+	Model       *Sensor `mapstructure:"MODEL"`
+	Percentage  *Sensor `mapstructure:"PERCENTAGE"`
+	Frequency   *Sensor `mapstructure:"FREQUENCY"`
+	Load        *Load   `mapstructure:"LOAD"`
+	Temperature *Sensor `mapstructure:"TEMPERATURE"`
+	Fan         *Sensor `mapstructure:"FAN"`
+	Power       *Sensor `mapstructure:"POWER"`
+	Voltage     *Sensor `mapstructure:"VOLTAGE"`
 }
 
-type LoadOne struct {
-	Text *Text `mapstructure:"TEXT"`
-}
-type LoadFive struct {
-	Text *Text `mapstructure:"TEXT"`
-}
-type LoadFifteen struct {
-	Text *Text `mapstructure:"TEXT"`
-}
 type Load struct {
-	One      *LoadOne      `mapstructure:"ONE"`
-	Five     *LoadFive     `mapstructure:"FIVE"`
-	Fifteen  *LoadFifteen  `mapstructure:"FIFTEEN"`
+	One     *Sensor `mapstructure:"ONE"`
+	Five    *Sensor `mapstructure:"FIVE"`
+	Fifteen *Sensor `mapstructure:"FIFTEEN"`
 }

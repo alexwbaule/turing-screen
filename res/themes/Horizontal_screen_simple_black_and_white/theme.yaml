@@ -30,30 +30,14 @@ static_texts:
     FONT_SIZE: 28
     FONT_COLOR: 0, 0, 0
     ALIGN: right
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 82
-    Y: 0
+  RAM_LABEL:
+    TEXT: RAM Used
+    X: 442
+    Y: 74
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 25
+    FONT_SIZE: 28
     FONT_COLOR: 0, 0, 0
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 85
-    Y: 227
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 27
-    FONT_COLOR: 0, 0, 0
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 396
-    Y: 3
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 25
-    FONT_COLOR: 0, 0, 0
-    ALIGN: left
+    ALIGN: right
   FPS_LABEL:
     TEXT: FPS
     X: 565
@@ -136,6 +120,19 @@ STATS:
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '1.8'
         ALIGN: right
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 26
+        X: 82
+        Y: 0
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 25
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -215,19 +212,21 @@ STATS:
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '1888'
         ALIGN: right
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 27
+        X: 85
+        Y: 227
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
   MEMORY:
     INTERVAL: 5
     VIRTUAL:
-      USED:
-        SHOW: true
-        INDEX: 16
-        X: 442
-        Y: 74
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 28
-        FONT_COLOR: 0, 0, 0
-        PLACEHOLDER: '8888'
-        ALIGN: right
       PERCENT_TEXT:
         SHOW: true
         INDEX: 17
@@ -238,6 +237,18 @@ STATS:
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '88'
         ALIGN: right
+    TOTAL:
+      TEXT:
+        SHOW: true
+        INDEX: 28
+        X: 396
+        Y: 3
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 25
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        PLACEHOLDER: DDR4-16GB
+        ALIGN: left
   NET:
     INTERVAL: 1
     ETH:

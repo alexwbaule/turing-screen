@@ -138,6 +138,9 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         self._selected_bg: Optional[str] = None
         self._video_player = None
 
+        # Hardware info received from daemon via WS (cpu_model, gpu_model, mem_total, …)
+        self._hwinfo: dict = {}
+
         self._build_canvas()
 
     # ------------------------------------------------------------------
@@ -170,6 +173,12 @@ class ThemeCanvas(Gtk.ScrolledWindow):
     # ------------------------------------------------------------------
     # Theme loading
     # ------------------------------------------------------------------
+
+    def set_hwinfo(self, info: dict):
+        """Update hardware model info received from daemon. Reloads theme if open."""
+        self._hwinfo = info or {}
+        if self._theme:
+            self.load_theme(self._theme, self._theme_dir)
 
     def load_theme(self, theme: Theme, theme_dir: str):
         self._theme = theme
@@ -301,6 +310,9 @@ class ThemeCanvas(Gtk.ScrolledWindow):
     def _load_stats(self, stats):
         if stats.CPU:
             cpu = stats.CPU
+            if cpu.Model:
+                self._load_model_measurement(cpu.Model, "STATS.CPU.MODEL",
+                                             self._hwinfo.get("cpu_model", ""))
             for attr, base in [
                 ("Percentage", "STATS.CPU.PERCENTAGE"),
                 ("Temperature", "STATS.CPU.TEMPERATURE"),
@@ -313,15 +325,18 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                 if m:
                     self._load_measurement(m, base)
             if cpu.Load:
-                for sub, path in [
-                    (cpu.Load.One,     "STATS.CPU.LOAD.ONE.TEXT"),
-                    (cpu.Load.Five,    "STATS.CPU.LOAD.FIVE.TEXT"),
-                    (cpu.Load.Fifteen, "STATS.CPU.LOAD.FIFTEEN.TEXT"),
+                for sub, base in [
+                    (cpu.Load.One,     "STATS.CPU.LOAD.ONE"),
+                    (cpu.Load.Five,    "STATS.CPU.LOAD.FIVE"),
+                    (cpu.Load.Fifteen, "STATS.CPU.LOAD.FIFTEEN"),
                 ]:
-                    if sub and sub.Text:
-                        self._add_text_element(sub.Text, path)
+                    if sub:
+                        self._load_measurement(sub, base)
 
         if stats.GPU:
+            if stats.GPU.Model:
+                self._load_model_measurement(stats.GPU.Model, "STATS.GPU.MODEL",
+                                             self._hwinfo.get("gpu_model", ""))
             for attr, base in [
                 ("Percentage",  "STATS.GPU.PERCENTAGE"),
                 ("Temperature", "STATS.GPU.TEMPERATURE"),
@@ -335,23 +350,18 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                     self._load_measurement(m, base)
 
         if stats.Memory:
+            if stats.Memory.Model:
+                self._load_model_measurement(stats.Memory.Model, "STATS.MEMORY.MODEL",
+                                             self._hwinfo.get("mem_model", ""))
+            if stats.Memory.Total:
+                self._load_model_measurement(stats.Memory.Total, "STATS.MEMORY.TOTAL",
+                                             self._hwinfo.get("mem_total", ""))
             for sub, base in [
                 (stats.Memory.Virtual, "STATS.MEMORY.VIRTUAL"),
                 (stats.Memory.Swap,    "STATS.MEMORY.SWAP"),
             ]:
                 if sub:
-                    if sub.PercentText:
-                        self._add_text_element(sub.PercentText, base + ".PERCENT_TEXT")
-                    if sub.Used:
-                        self._add_text_element(sub.Used, base + ".USED")
-                    if sub.Free:
-                        self._add_text_element(sub.Free, base + ".FREE")
-                    if sub.Graph:
-                        self._add_graph_element(sub.Graph, base + ".GRAPH")
-                    if sub.Radial:
-                        self._add_radial_element(sub.Radial, base + ".RADIAL")
-                    if sub.Chart:
-                        self._add_chart_element(sub.Chart, base + ".CHART")
+                    self._load_measurement(sub, base)
 
         if stats.Disk:
             for attr, base in [
@@ -386,8 +396,8 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             if stats.Weather.Condition:
                 self._add_text_element(stats.Weather.Condition, "STATS.WEATHER.CONDITION")
 
-        if stats.Volume and stats.Volume.Text:
-            self._add_text_element(stats.Volume.Text, "STATS.VOLUME.TEXT")
+        if stats.Volume:
+            self._load_measurement(stats.Volume, "STATS.VOLUME")
 
     def _load_measurement(self, m, base: str):
         if m.Text:
@@ -404,6 +414,13 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             self._add_gauge_element(m.Gauge, base + ".GAUGE", m, "Gauge")
         if hasattr(m, "StatusBar") and m.StatusBar:
             self._add_statusbar_element(m.StatusBar, base + ".STATUS_BAR", m, "StatusBar")
+
+    def _load_model_measurement(self, m, base: str, hw_value: str):
+        """Like _load_measurement but pre-fills TEXT with the hardware value string."""
+        if m.Text:
+            if hw_value:
+                m.Text.TEXT = hw_value
+            self._add_text_element(m.Text, base + ".TEXT", m, "Text")
 
     # ------------------------------------------------------------------
     # Background images
@@ -685,9 +702,8 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         meas = getattr(elem, "_measurement", None)
         old_slot = getattr(elem, "_slot", None)
 
-        # Refuse a swap whose target slot doesn't exist on this measurement
-        # type (e.g. Memory → 'Text': MemMeasurement has no Text slot). Checked
-        # against the real declared fields, so it's correct for every STATS.
+        # Refuse a swap whose target slot doesn't exist on this measurement.
+        # Checked against the real declared fields of the Measurement dataclass.
         new_slot = _KIND_TO_SLOT.get(new_type)
         if meas is not None and new_slot and not _has_slot(meas, new_slot):
             log.warning("Troca para '%s' inválida para este sensor", new_type)

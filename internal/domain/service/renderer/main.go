@@ -120,6 +120,44 @@ func (b *Builder) BuildBackgroundTexts(images map[string]theme.StaticText) {
 	}
 }
 
+// BuildModelTexts renders MODEL/TOTAL sensor labels onto the background image.
+// Called once at theme load time with the detected hardware model strings.
+// texts maps a sensor's Text config to the value string to display.
+func (b *Builder) BuildModelTexts(texts map[*theme.Text]string) {
+	for stat, value := range texts {
+		if stat == nil || stat.Font == nil || value == "" {
+			continue
+		}
+
+		w := measureString(stat.Font, value)
+		metrics := stat.Font.Metrics()
+		ascent := metrics.Ascent
+
+		var drawX float64
+		switch stat.Align {
+		case theme.CENTER:
+			drawX = float64(stat.X) - w/2
+		case theme.RIGHT:
+			drawX = float64(stat.X) - w
+		default:
+			drawX = float64(stat.X)
+		}
+
+		dot := fixed.Point26_6{
+			X: fixed.Int26_6(int(drawX * 64)),
+			Y: fixed.I(stat.Y) + ascent,
+		}
+
+		d := &font.Drawer{
+			Dst:  b.background,
+			Src:  image.NewUniform(stat.FontColor),
+			Face: stat.Font,
+			Dot:  dot,
+		}
+		d.DrawString(value)
+	}
+}
+
 func (b *Builder) DrawText(text string, stat *theme.Text, defaultSize int) (image.Image, int, int) {
 
 	numb := imageToNRGBA(b.background)

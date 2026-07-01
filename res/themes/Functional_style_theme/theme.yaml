@@ -22,6 +22,14 @@ static_images:
     WIDTH: 721
     HEIGHT: 1281
 static_texts:
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 77
+    Y: 1069
+    FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
+    FONT_SIZE: 41
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
   WATERPUMP_LABEL:
     TEXT: Water Pump
     X: 637
@@ -70,19 +78,6 @@ STATS:
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
         PLACEHOLDER: 88%
-        ALIGN: left
-  MEMORY:
-    INTERVAL: 5
-    VIRTUAL:
-      USED:
-        SHOW: true
-        INDEX: 3
-        X: 77
-        Y: 1069
-        FONT: turtheme/HelveticaNeueLTStd-BlkEx.otf
-        FONT_SIZE: 41
-        FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '8888'
         ALIGN: left
   DATE:
     INTERVAL: 1

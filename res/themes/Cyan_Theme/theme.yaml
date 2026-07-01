@@ -22,33 +22,29 @@ static_images:
     WIDTH: 740
     HEIGHT: 1233
 static_texts:
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 176
-    Y: 320
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 232
+    Y: 907
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 41
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 175
-    Y: 575
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 41
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 180
-    Y: 846
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 41
+    FONT_SIZE: 33
     FONT_COLOR: 255, 255, 255
     ALIGN: left
 STATS:
   GPU:
     INTERVAL: 1
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 176
+        Y: 320
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 41
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -97,6 +93,19 @@ STATS:
         BAR_COLOR: 255, 255, 255
         BAR_OUTLINE: false
   CPU:
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 175
+        Y: 575
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 41
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -148,18 +157,19 @@ STATS:
         BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
-      USED:
+    TOTAL:
+      TEXT:
         SHOW: true
-        INDEX: 11
-        X: 232
-        Y: 907
+        INDEX: 4
+        X: 180
+        Y: 846
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 33
+        FONT_SIZE: 41
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: 8888M
+        PLACEHOLDER: DDR4-16GB
         ALIGN: left
+    VIRTUAL:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 12

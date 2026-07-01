@@ -28,14 +28,6 @@ static_images:
     WIDTH: 37
     HEIGHT: 39
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 508
-    Y: 59
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 24
-    FONT_COLOR: 109, 150, 250
-    ALIGN: left
   FPS_LABEL:
     TEXT: FPS
     X: 770
@@ -46,6 +38,18 @@ static_texts:
     ALIGN: right
 STATS:
   CPU:
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 1
+        X: 508
+        Y: 59
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 109, 150, 250
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     TEMPERATURE:
       INTERVAL: 1
       TEXT:

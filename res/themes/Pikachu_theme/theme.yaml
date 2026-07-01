@@ -34,7 +34,7 @@ static_images:
     WIDTH: 142
     HEIGHT: 135
 static_texts:
-  TEXT_0:
+  LABEL_0:
     TEXT: .
     X: 1042
     Y: 471
@@ -42,7 +42,7 @@ static_texts:
     FONT_SIZE: 31
     FONT_COLOR: 0, 0, 0
     ALIGN: left
-  TEXT_1:
+  LABEL_1:
     TEXT: .
     X: 1088
     Y: 471

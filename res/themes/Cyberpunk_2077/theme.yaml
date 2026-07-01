@@ -22,30 +22,14 @@ static_images:
     WIDTH: 800
     HEIGHT: 1280
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 126
-    Y: 285
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 333
+    Y: 583
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 36
-    FONT_COLOR: 254, 237, 10
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 127
-    Y: 493
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 35
-    FONT_COLOR: 254, 237, 10
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 125
-    Y: 707
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 36
-    FONT_COLOR: 254, 237, 10
-    ALIGN: left
+    FONT_SIZE: 57
+    FONT_COLOR: 2, 216, 243
+    ALIGN: right
 STATS:
   CPU:
     PERCENTAGE:
@@ -83,6 +67,19 @@ STATS:
         FONT_COLOR: 2, 216, 243
         PLACEHOLDER: '88'
         ALIGN: left
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 7
+        X: 126
+        Y: 285
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 36
+        FONT_COLOR: 254, 237, 10
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     FREQUENCY:
       INTERVAL: 1
       TEXT:
@@ -119,6 +116,18 @@ STATS:
         FONT_SIZE: 33
         FONT_COLOR: 2, 216, 243
         PLACEHOLDER: '88'
+        ALIGN: left
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 8
+        X: 127
+        Y: 493
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 35
+        FONT_COLOR: 254, 237, 10
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
         ALIGN: left
     VOLTAGE:
       TEXT:
@@ -168,16 +177,18 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 2, 216, 243
         BAR_OUTLINE: false
-      USED:
+    TOTAL:
+      TEXT:
         SHOW: true
-        INDEX: 21
-        X: 333
-        Y: 583
+        INDEX: 9
+        X: 125
+        Y: 707
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 57
-        FONT_COLOR: 2, 216, 243
-        PLACEHOLDER: '8888'
-        ALIGN: right
+        FONT_SIZE: 36
+        FONT_COLOR: 254, 237, 10
+        SHOW_UNIT: true
+        PLACEHOLDER: DDR4-16GB
+        ALIGN: left
   NET:
     INTERVAL: 1
     ETH:

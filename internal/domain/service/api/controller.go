@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/alexwbaule/turing-screen/internal/application/config"
+	"github.com/alexwbaule/turing-screen/internal/application/hwinfo"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
 	"github.com/alexwbaule/turing-screen/internal/domain/command"
 	entityTheme "github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
@@ -45,6 +46,9 @@ type DaemonController struct {
 	restartFunc func()
 	sensorFunc  func() map[string]interface{}
 
+	// Hardware info (detected once at startup / theme reload)
+	hwInfo *hwinfo.HWInfo
+
 	// Theme
 	themesDir string
 }
@@ -70,6 +74,29 @@ func NewDaemonController(
 		cmdBright:  cmdBright,
 		cmdPayload: cmdPayload,
 		themesDir:  "res/themes",
+	}
+}
+
+// SetHWInfo stores detected hardware info so it can be sent to WS clients.
+func (dc *DaemonController) SetHWInfo(hw *hwinfo.HWInfo) {
+	dc.mu.Lock()
+	dc.hwInfo = hw
+	dc.mu.Unlock()
+}
+
+// GetHWInfo returns a snapshot of the detected hardware info.
+func (dc *DaemonController) GetHWInfo() HWInfoPayload {
+	dc.mu.Lock()
+	hw := dc.hwInfo
+	dc.mu.Unlock()
+	if hw == nil {
+		return HWInfoPayload{}
+	}
+	return HWInfoPayload{
+		CPUModel: hw.CPUModel,
+		GPUModel: hw.GPUModel,
+		MemTotal: hw.MemTotal,
+		Hostname: hw.Hostname,
 	}
 }
 

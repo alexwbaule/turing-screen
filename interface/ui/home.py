@@ -58,11 +58,12 @@ class HomePage:
     Usa composição: acessa .widget para obter o Adw.ToolbarView.
     """
 
-    def __init__(self, ws_client, themes_base: str, open_editor_cb):
+    def __init__(self, ws_client, themes_base: str, open_editor_cb, hwinfo_cb=None):
         self._toolbar_view = Adw.ToolbarView()
         self._ws = ws_client
         self._themes_base = themes_base
         self._open_editor = open_editor_cb
+        self._hwinfo_cb = hwinfo_cb  # called with dict when event.hwinfo arrives
 
         self._themes: list[str] = []
         self._current_index: int = 0
@@ -401,6 +402,9 @@ class HomePage:
             self._on_connection(payload.get("connected", False))
         elif action == "event.status":
             self._on_status(payload)
+        elif action == "event.hwinfo":
+            if self._hwinfo_cb:
+                self._hwinfo_cb(payload)
 
     def _on_connection(self, connected: bool):
         self._connected = connected

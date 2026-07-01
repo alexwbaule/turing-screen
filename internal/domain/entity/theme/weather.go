@@ -3,7 +3,7 @@ package theme
 import "time"
 
 type Weather struct {
-	Temperature *Mesurement   `mapstructure:"TEMPERATURE"`
+	Temperature *Sensor       `mapstructure:"TEMPERATURE"`
 	Condition   *Text         `mapstructure:"CONDITION"`
 	Enabled     bool          `mapstructure:"ENABLED"`
 	City        string        `mapstructure:"CITY"`
