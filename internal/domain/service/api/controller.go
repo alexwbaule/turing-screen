@@ -107,10 +107,11 @@ func (dc *DaemonController) GetHWInfo() HWInfoPayload {
 		return HWInfoPayload{}
 	}
 	return HWInfoPayload{
-		CPUModel: hw.CPUModel,
-		GPUModel: hw.GPUModel,
-		MemTotal: hw.MemTotal,
-		Hostname: hw.Hostname,
+		CPUModel:  hw.CPUModel,
+		GPUModel:  hw.GPUModel,
+		DiskModel: hw.DiskModel,
+		MemTotal:  hw.MemTotal,
+		Hostname:  hw.Hostname,
 	}
 }
 

@@ -66,10 +66,11 @@ type StorageInfo struct {
 }
 
 type HWInfoPayload struct {
-	CPUModel string `json:"cpu_model"`
-	GPUModel string `json:"gpu_model"`
-	MemTotal string `json:"mem_total"`
-	Hostname string `json:"hostname"`
+	CPUModel  string `json:"cpu_model"`
+	GPUModel  string `json:"gpu_model"`
+	DiskModel string `json:"disk_model"`
+	MemTotal  string `json:"mem_total"`
+	Hostname  string `json:"hostname"`
 }
 
 // Message is the generic WebSocket message format.
