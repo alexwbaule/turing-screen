@@ -21,24 +21,24 @@ static_images:
     Y: 0
     WIDTH: 720
     HEIGHT: 1280
+    INDEX: 1
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 35
-    Y: 71
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 21
-    FONT_COLOR: 104, 102, 116
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 38
-    Y: 432
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 21
-    FONT_COLOR: 104, 102, 116
-    ALIGN: left
-  C:
+  RAMVALID_LABEL:
+    TEXT: RAMVALID
+    X: 223
+    Y: 819
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 16
+    FONT_COLOR: 255, 255, 255
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 334
+    Y: 780
+    FONT: turtheme/HelveticaNeueLTPro-Lt.otf
+    FONT_SIZE: 24
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+  LABEL_2:
     TEXT: C:/
     X: 426
     Y: 819
@@ -173,6 +173,19 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 104, 102, 116
         BAR_OUTLINE: false
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 16
+        X: 35
+        Y: 71
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 104, 102, 116
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     POWER:
       INTERVAL: 1
       TEXT:
@@ -298,6 +311,18 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 104, 102, 116
         BAR_OUTLINE: false
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 17
+        X: 38
+        Y: 432
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 104, 102, 116
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
     POWER:
       TEXT:
         SHOW: true
@@ -324,7 +349,7 @@ STATS:
         ALIGN: right
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 4
@@ -335,20 +360,10 @@ STATS:
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '88'
         ALIGN: center
-      USED:
-        SHOW: true
-        INDEX: 11
-        X: 253
-        Y: 780
-        FONT: turtheme/HelveticaNeueLTPro-Lt.otf
-        FONT_SIZE: 24
-        FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '8888'
-        ALIGN: center
       GRAPH:
         SHOW: true
-        INDEX: 28
-        X: 223
+        INDEX: 29
+        X: 309
         Y: 819
         WIDTH: 155
         HEIGHT: 50

@@ -21,12 +21,14 @@ static_images:
     Y: 0
     WIDTH: 1200
     HEIGHT: 720
+    INDEX: 1
   LAYER_3:
     PATH: assets/image_5.png
     X: 0
     Y: 0
     WIDTH: 1200
     HEIGHT: 720
+    INDEX: 2
 STATS:
   GPU:
     INTERVAL: 1
@@ -124,7 +126,7 @@ STATS:
         BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       GRAPH:
         SHOW: true
         INDEX: 9

@@ -21,32 +21,9 @@ static_images:
     Y: -2
     WIDTH: 1201
     HEIGHT: 721
+    INDEX: 1
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 187
-    Y: 22
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 44
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 774
-    Y: 22
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 44
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 84
-    Y: 525
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 21
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  C:
+  LABEL_0:
     TEXT: 'C:'
     X: 856
     Y: 625
@@ -56,6 +33,19 @@ static_texts:
     ALIGN: left
 STATS:
   CPU:
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 187
+        Y: 22
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 44
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -135,6 +125,18 @@ STATS:
         ALIGN: right
   GPU:
     INTERVAL: 1
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 774
+        Y: 22
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 44
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
     PERCENTAGE:
       TEXT:
         SHOW: true
@@ -211,7 +213,7 @@ STATS:
         ALIGN: right
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 6
@@ -239,6 +241,18 @@ STATS:
         BAR_COLOR: 242, 79, 66
         SHOW_TEXT: false
         SHOW_UNIT: false
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 24
+          X: 84
+          Y: 525
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 21
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
   DISK:
     INTERVAL: 10
     USED:

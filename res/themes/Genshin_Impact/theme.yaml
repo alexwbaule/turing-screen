@@ -21,6 +21,7 @@ static_images:
     Y: 0
     WIDTH: 801
     HEIGHT: 481
+    INDEX: 1
 static_texts:
   VOL:
     TEXT: VOL
@@ -187,7 +188,7 @@ STATS:
         FORMAT: medium
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 15

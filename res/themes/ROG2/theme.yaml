@@ -21,32 +21,9 @@ static_images:
     Y: 0
     WIDTH: 801
     HEIGHT: 481
+    INDEX: 1
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 78
-    Y: 16
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 27
-    FONT_COLOR: 204, 221, 239
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 490
-    Y: 218
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 27
-    FONT_COLOR: 204, 221, 239
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 220
-    Y: 277
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 20
-    FONT_COLOR: 204, 221, 239
-    ALIGN: center
-  C:
+  LABEL_0:
     TEXT: 'C:'
     X: 273
     Y: 368
@@ -56,6 +33,19 @@ static_texts:
     ALIGN: left
 STATS:
   CPU:
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 2
+        X: 78
+        Y: 16
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 204, 221, 239
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     PERCENTAGE:
       INTERVAL: 1
       TEXT:
@@ -123,6 +113,18 @@ STATS:
         BAR_OUTLINE: false
   GPU:
     INTERVAL: 1
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 490
+        Y: 218
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 27
+        FONT_COLOR: 204, 221, 239
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
     FREQUENCY:
       TEXT:
         SHOW: true
@@ -185,36 +187,21 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 182, 206, 230
         BAR_OUTLINE: false
-  NET:
-    INTERVAL: 1
-    ETH:
-      UPLOAD:
-        TEXT:
-          SHOW: true
-          INDEX: 11
-          X: 361
-          Y: 307
-          FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 16
-          FONT_COLOR: 204, 221, 239
-          SHOW_UNIT: true
-          PLACEHOLDER: 888KB/s
-          ALIGN: right
-      DOWNLOAD:
-        TEXT:
-          SHOW: true
-          INDEX: 12
-          X: 451
-          Y: 307
-          FONT: geforce/GeForce-Bold.ttf
-          FONT_SIZE: 16
-          FONT_COLOR: 204, 221, 239
-          SHOW_UNIT: true
-          PLACEHOLDER: 888KB/s
-          ALIGN: right
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 7
+          X: 220
+          Y: 277
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 20
+          FONT_COLOR: 204, 221, 239
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: center
       PERCENT_TEXT:
         SHOW: true
         INDEX: 15
@@ -242,6 +229,33 @@ STATS:
         BAR_COLOR: 255, 255, 255
         SHOW_TEXT: false
         SHOW_UNIT: false
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 11
+          X: 361
+          Y: 307
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 16
+          FONT_COLOR: 204, 221, 239
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: right
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 12
+          X: 451
+          Y: 307
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 16
+          FONT_COLOR: 204, 221, 239
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: right
   DISK:
     INTERVAL: 10
     USED:

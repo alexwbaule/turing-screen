@@ -22,20 +22,12 @@ static_images:
     WIDTH: 720
     HEIGHT: 1280
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 361
-    Y: 792
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 292
+    Y: 1156
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 40
-    FONT_COLOR: 84, 241, 255
-    ALIGN: center
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 205
-    Y: 1116
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 23
+    FONT_SIZE: 21
     FONT_COLOR: 84, 241, 255
     ALIGN: right
   CPU_FAN:
@@ -118,6 +110,19 @@ STATS:
         BAR_COLOR: 253, 0, 143
         SHOW_TEXT: false
         SHOW_UNIT: false
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 11
+        X: 361
+        Y: 792
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 40
+        FONT_COLOR: 84, 241, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: center
     FAN:
       INTERVAL: 1
       TEXT:
@@ -222,20 +227,6 @@ STATS:
           FONT_COLOR: 84, 241, 255
           PLACEHOLDER: '888'
           ALIGN: left
-  MEMORY:
-    INTERVAL: 5
-    VIRTUAL:
-      USED:
-        SHOW: true
-        INDEX: 14
-        X: 292
-        Y: 1156
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 21
-        FONT_COLOR: 84, 241, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: 8888M
-        ALIGN: right
   DATE:
     INTERVAL: 1
     DAY:
@@ -263,3 +254,18 @@ STATS:
         PLACEHOLDER: '12:00:00'
         ALIGN: left
         FORMAT: short
+  MEMORY:
+    INTERVAL: 5
+    RAM:
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 18
+          X: 205
+          Y: 1116
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 23
+          FONT_COLOR: 84, 241, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: right

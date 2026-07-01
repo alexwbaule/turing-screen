@@ -21,6 +21,15 @@ static_images:
     Y: 0
     WIDTH: 1280
     HEIGHT: 800
+static_texts:
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 192
+    Y: 619
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 31
+    FONT_COLOR: 255, 199, 199
+    ALIGN: right
 STATS:
   GPU:
     INTERVAL: 1
@@ -168,7 +177,7 @@ STATS:
         ALIGN: left
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 3
@@ -191,17 +200,6 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 230, 0, 18
         BAR_OUTLINE: false
-      USED:
-        SHOW: true
-        INDEX: 16
-        X: 192
-        Y: 619
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 31
-        FONT_COLOR: 255, 199, 199
-        SHOW_UNIT: true
-        PLACEHOLDER: 8888M
-        ALIGN: right
   DISK:
     INTERVAL: 10
     USED:

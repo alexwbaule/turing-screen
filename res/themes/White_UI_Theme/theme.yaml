@@ -16,28 +16,12 @@ static_images:
     WIDTH: 480
     HEIGHT: 800
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 350
-    Y: 68
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 365
+    Y: 690
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 44
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 384
-    Y: 642
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 44
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 42
-    Y: 381
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 44
+    FONT_SIZE: 48
     FONT_COLOR: 255, 255, 255
     ALIGN: left
 STATS:
@@ -91,6 +75,19 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
         BAR_OUTLINE: false
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 10
+        X: 350
+        Y: 68
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 44
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -139,20 +136,21 @@ STATS:
         SHOW_UNIT: true
         PLACEHOLDER: 88%
         ALIGN: left
-  MEMORY:
-    INTERVAL: 5
-    VIRTUAL:
-      USED:
+    MODEL:
+      TEXT:
         SHOW: true
-        INDEX: 8
-        X: 365
-        Y: 690
+        INDEX: 11
+        X: 384
+        Y: 642
         FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 48
+        FONT_SIZE: 44
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: 8888M
+        PLACEHOLDER: RTX3080TI
         ALIGN: left
+  MEMORY:
+    INTERVAL: 5
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 9
@@ -164,6 +162,18 @@ STATS:
         SHOW_UNIT: true
         PLACEHOLDER: 88%
         ALIGN: left
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 12
+          X: 42
+          Y: 381
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 44
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 14
@@ -253,5 +263,5 @@ STATS:
         FONT_SIZE: 44
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: Partly Cloudy 20° NE Wind
+        PLACEHOLDER: 晴转多云 20° 东北风
         ALIGN: left

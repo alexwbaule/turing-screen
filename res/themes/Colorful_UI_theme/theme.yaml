@@ -22,30 +22,14 @@ static_images:
     WIDTH: 720
     HEIGHT: 1200
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 367
-    Y: 59
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 700
+    Y: 701
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 44
+    FONT_SIZE: 49
     FONT_COLOR: 79, 79, 79
-    ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 364
-    Y: 354
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 44
-    FONT_COLOR: 79, 79, 79
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 356
-    Y: 643
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 44
-    FONT_COLOR: 79, 79, 79
-    ALIGN: left
+    ALIGN: right
 STATS:
   CPU:
     FREQUENCY:
@@ -85,6 +69,18 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
         BAR_OUTLINE: false
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 7
+        X: 367
+        Y: 59
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 44
+        FONT_COLOR: 79, 79, 79
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -135,6 +131,18 @@ STATS:
         SHOW_UNIT: true
         PLACEHOLDER: 88%
         ALIGN: left
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 8
+        X: 364
+        Y: 354
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 44
+        FONT_COLOR: 79, 79, 79
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -149,18 +157,7 @@ STATS:
         ALIGN: left
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
-      USED:
-        SHOW: true
-        INDEX: 5
-        X: 700
-        Y: 701
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 49
-        FONT_COLOR: 79, 79, 79
-        SHOW_UNIT: true
-        PLACEHOLDER: 8888M
-        ALIGN: right
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 6
@@ -172,6 +169,18 @@ STATS:
         SHOW_UNIT: true
         PLACEHOLDER: 88%
         ALIGN: left
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 9
+          X: 356
+          Y: 643
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 44
+          FONT_COLOR: 79, 79, 79
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
       GRAPH:
         SHOW: true
         INDEX: 11
@@ -249,5 +258,5 @@ STATS:
         FONT_SIZE: 40
         FONT_COLOR: 79, 79, 79
         SHOW_UNIT: true
-        PLACEHOLDER: Partly Cloudy 20° NE Wind
+        PLACEHOLDER: 晴转多云 20° 东北风
         ALIGN: left

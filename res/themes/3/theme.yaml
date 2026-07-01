@@ -21,6 +21,7 @@ static_images:
     Y: -37
     WIDTH: 1281
     HEIGHT: 768
+    INDEX: 1
 STATS:
   CPU:
     TEMPERATURE:

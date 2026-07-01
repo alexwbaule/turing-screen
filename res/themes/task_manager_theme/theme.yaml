@@ -26,10 +26,10 @@ static_texts:
     ALIGN: left
   CPU:
     TEXT: CPU
-    X: 376
-    Y: 9
+    X: 160
+    Y: 20
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 32
+    FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
     ALIGN: left
   Disk_0:
@@ -50,8 +50,8 @@ static_texts:
     ALIGN: left
   MHz:
     TEXT: MHz
-    X: 515
-    Y: 368
+    X: 258
+    Y: 60
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
@@ -64,7 +64,7 @@ static_texts:
     FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
     ALIGN: left
-  TEXT_6:
+  LABEL_6:
     TEXT: /
     X: 202
     Y: 149
@@ -104,12 +104,12 @@ static_texts:
     FONT_SIZE: 21
     FONT_COLOR: 0, 0, 0
     ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 160
-    Y: 405
+  CPU_2:
+    TEXT: CPU
+    X: 376
+    Y: 9
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 19
+    FONT_SIZE: 32
     FONT_COLOR: 0, 0, 0
     ALIGN: left
   CPUUsage:
@@ -120,20 +120,20 @@ static_texts:
     FONT_SIZE: 15
     FONT_COLOR: 85, 85, 85
     ALIGN: left
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 768
-    Y: 23
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 20
-    FONT_COLOR: 0, 0, 0
-    ALIGN: right
   Usage:
     TEXT: Usage
     X: 383
     Y: 344
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
     FONT_SIZE: 16
+    FONT_COLOR: 0, 0, 0
+    ALIGN: left
+  MHz_2:
+    TEXT: MHz
+    X: 515
+    Y: 368
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 19
     FONT_COLOR: 0, 0, 0
     ALIGN: left
   speed:
@@ -211,6 +211,19 @@ STATS:
         FONT_COLOR: 0, 0, 0
         PLACEHOLDER: '4800'
         ALIGN: left
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 23
+        X: 768
+        Y: 23
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 20
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: right
     FAN:
       INTERVAL: 1
       TEXT:
@@ -252,7 +265,7 @@ STATS:
         ALIGN: right
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 15
@@ -293,6 +306,18 @@ STATS:
           ALIGN: left
   GPU:
     INTERVAL: 1
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 19
+        X: 160
+        Y: 405
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 19
+        FONT_COLOR: 0, 0, 0
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
     PERCENTAGE:
       TEXT:
         SHOW: true

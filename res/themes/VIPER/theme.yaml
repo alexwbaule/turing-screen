@@ -151,7 +151,7 @@ STATS:
         SHOW_UNIT: false
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       GRAPH:
         SHOW: true
         INDEX: 8

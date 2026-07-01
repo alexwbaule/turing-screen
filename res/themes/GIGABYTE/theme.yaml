@@ -21,24 +21,17 @@ static_images:
     Y: 3
     WIDTH: 1178
     HEIGHT: 736
+    INDEX: 1
 static_texts:
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 100
-    Y: 331
+  RAM_LABEL:
+    TEXT: Ram Used
+    X: 252
+    Y: 396
     FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 43
+    FONT_SIZE: 44
     FONT_COLOR: 255, 255, 255
     ALIGN: left
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 1163
-    Y: 331
-    FONT: geforce/GeForce-Bold.ttf
-    FONT_SIZE: 43
-    FONT_COLOR: 255, 255, 255
-    ALIGN: right
-  C:
+  LABEL_1:
     TEXT: 'C :'
     X: 772
     Y: 546
@@ -112,6 +105,19 @@ STATS:
         BAR_COLOR: 255, 255, 255
         SHOW_TEXT: false
         SHOW_UNIT: false
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 9
+        X: 100
+        Y: 331
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 43
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
   GPU:
     INTERVAL: 1
     TEMPERATURE:
@@ -164,6 +170,18 @@ STATS:
         BAR_COLOR: 255, 255, 255
         SHOW_TEXT: false
         SHOW_UNIT: false
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 10
+        X: 1163
+        Y: 331
+        FONT: geforce/GeForce-Bold.ttf
+        FONT_SIZE: 43
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: right
   VOLUME:
     TEXT:
       SHOW: true
@@ -178,18 +196,7 @@ STATS:
       ALIGN: left
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
-      USED:
-        SHOW: true
-        INDEX: 11
-        X: 252
-        Y: 396
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 44
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: 8888M
-        ALIGN: left
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 12

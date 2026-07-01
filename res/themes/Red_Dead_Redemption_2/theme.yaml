@@ -21,70 +21,22 @@ static_images:
     Y: 0
     WIDTH: 1280
     HEIGHT: 800
-static_texts:
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 674
-    Y: 352
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 24
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  CPUMODEL:
-    TEXT: '{{CPU_MODEL}}'
-    X: 978
-    Y: 353
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 24
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
-  RAMMODEL:
-    TEXT: '{{MEM_TOTAL}}'
-    X: 675
-    Y: 477
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 24
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
+    INDEX: 1
 STATS:
-  DISK:
-    INTERVAL: 10
-    USED:
-      PERCENT_TEXT:
+  GPU:
+    INTERVAL: 1
+    MODEL:
+      TEXT:
         SHOW: true
-        INDEX: 5
-        X: 978
-        Y: 474
+        INDEX: 2
+        X: 674
+        Y: 352
         FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
         FONT_SIZE: 24
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: 88%
+        PLACEHOLDER: RTX3080TI
         ALIGN: left
-      GRAPH:
-        SHOW: true
-        INDEX: 13
-        X: 1051
-        Y: 515
-        WIDTH: 185
-        HEIGHT: 11
-        MIN_VALUE: 0
-        MAX_VALUE: 100
-        BAR_COLOR: 255, 255, 255
-        BAR_OUTLINE: false
-    TEMPERATURE:
-      TEXT:
-        SHOW: true
-        INDEX: 9
-        X: 1215
-        Y: 471
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 32
-        FONT_COLOR: 255, 255, 255
-        PLACEHOLDER: '88'
-        ALIGN: right
-  GPU:
-    INTERVAL: 1
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -144,6 +96,19 @@ STATS:
         SHOW_TEXT: false
         SHOW_UNIT: false
   CPU:
+    MODEL:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 978
+        Y: 353
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: I9 10900K
+        ALIGN: left
     TEMPERATURE:
       INTERVAL: 1
       TEXT:
@@ -188,7 +153,19 @@ STATS:
         SHOW_UNIT: false
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 4
+          X: 675
+          Y: 477
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 24
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
       PERCENT_TEXT:
         SHOW: true
         INDEX: 8
@@ -227,6 +204,42 @@ STATS:
         BAR_COLOR: 255, 0, 0
         SHOW_TEXT: false
         SHOW_UNIT: false
+  DISK:
+    INTERVAL: 10
+    USED:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 5
+        X: 978
+        Y: 474
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 24
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: left
+      GRAPH:
+        SHOW: true
+        INDEX: 13
+        X: 1051
+        Y: 515
+        WIDTH: 185
+        HEIGHT: 11
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 255, 255, 255
+        BAR_OUTLINE: false
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 9
+        X: 1215
+        Y: 471
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 32
+        FONT_COLOR: 255, 255, 255
+        PLACEHOLDER: '88'
+        ALIGN: right
   DATE:
     INTERVAL: 1
     HOUR:
@@ -265,5 +278,5 @@ STATS:
         FONT_SIZE: 25
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: Partly Cloudy 20° NE Wind
+        PLACEHOLDER: 晴转多云 20° 东北风
         ALIGN: left

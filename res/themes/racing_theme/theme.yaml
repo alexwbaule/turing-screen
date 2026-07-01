@@ -15,15 +15,6 @@ static_images:
     Y: 0
     WIDTH: 721
     HEIGHT: 1281
-static_texts:
-  GPUMODEL:
-    TEXT: '{{GPU_MODEL}}'
-    X: 139
-    Y: 230
-    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-    FONT_SIZE: 40
-    FONT_COLOR: 255, 255, 255
-    ALIGN: left
 STATS:
   DATE:
     INTERVAL: 1
@@ -55,6 +46,18 @@ STATS:
         FORMAT: medium
   GPU:
     INTERVAL: 1
+    MODEL:
+      TEXT:
+        SHOW: true
+        INDEX: 3
+        X: 139
+        Y: 230
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 40
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: RTX3080TI
+        ALIGN: left
     TEMPERATURE:
       TEXT:
         SHOW: true
@@ -105,7 +108,7 @@ STATS:
       ALIGN: left
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 8
