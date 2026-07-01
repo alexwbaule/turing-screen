@@ -5,7 +5,7 @@
 # on it (the GUI shares the daemon's res/ and conf/ under /opt/smart-screen).
 pkgbase=turing-screen
 pkgname=('turing-screen' 'turing-interface')
-pkgver=1.4.0.r4.g2890d3d
+pkgver=1.4.1.r0.ged72456
 pkgrel=1
 pkgdesc="Daemon and theme editor for Turing Smart Screen USB displays"
 arch=('x86_64')
