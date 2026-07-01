@@ -5,13 +5,13 @@
 # on it (the GUI shares the daemon's res/ and conf/ under /opt/smart-screen).
 pkgbase=turing-screen
 pkgname=('turing-screen' 'turing-interface')
-pkgver=1.4.1.r0.ged72456
+pkgver=1.4.2.r0.g6e16051
 pkgrel=1
 pkgdesc="Daemon and theme editor for Turing Smart Screen USB displays"
 arch=('x86_64')
 url="https://github.com/alexwbaule/turing-screen"
 license=('custom')
-makedepends=('go' 'gcc' 'git')
+makedepends=('go' 'gcc' 'git' 'gettext')
 source=("$pkgbase::git+https://github.com/alexwbaule/turing-screen.git")
 sha256sums=('SKIP')
 
@@ -41,6 +41,11 @@ build() {
 	# Only the daemon is built from Go. The editor is the Python app in
 	# interface/ (cmd/turing-interface was the old Fyne editor, now retired).
 	go build -ldflags "$LDFLAGS" -o bin/turing-screen cmd/turing-screen/main.go
+
+	# Compile gettext catalogs for the Python interface.
+	for po in interface/locale/*/LC_MESSAGES/turing-screen.po; do
+		msgfmt "$po" -o "${po%.po}.mo"
+	done
 }
 
 # -----------------------------------------------------------------------------
@@ -97,8 +102,13 @@ package_turing-interface() {
 	install -d "$pkgdir/opt/smart-screen/interface"
 	install -Dm644 interface/main.py      "$pkgdir/opt/smart-screen/interface/main.py"
 	install -Dm644 interface/ws_client.py  "$pkgdir/opt/smart-screen/interface/ws_client.py"
-	cp -r interface/ui   "$pkgdir/opt/smart-screen/interface/ui"
+	install -Dm644 interface/i18n.py       "$pkgdir/opt/smart-screen/interface/i18n.py"
+	cp -r interface/ui    "$pkgdir/opt/smart-screen/interface/ui"
 	cp -r interface/theme "$pkgdir/opt/smart-screen/interface/theme"
+	# Install compiled locale catalogs only (no .po source at runtime)
+	for mo in interface/locale/*/LC_MESSAGES/turing-screen.mo; do
+		install -Dm644 "$mo" "$pkgdir/opt/smart-screen/$mo"
+	done
 	# Drop any cached bytecode from the working tree
 	find "$pkgdir/opt/smart-screen/interface" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
 
