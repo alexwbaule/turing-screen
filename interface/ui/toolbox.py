@@ -15,19 +15,21 @@ seção "Representação". Sensores text-only (Load, Condition, Volume…)
 ignoram o seletor e sempre criam Text.
 """
 from gi.repository import Gtk
+from i18n import _
 
 # ---------------------------------------------------------------------------
 # Mapeamento tipo → (sufixo YAML, kind para canvas)
 # ---------------------------------------------------------------------------
-_TYPES = [
-    ("Text",        "TEXT",        "text"),
-    ("% Text",      "PERCENT_TEXT","text"),
-    ("Graph",       "GRAPH",       "graph"),
-    ("Radial",      "RADIAL",      "radial"),
-    ("Chart",       "CHART",       "chart"),
-    ("Gauge",       "GAUGE",       "gauge"),
-    ("Status Bar",  "STATUS_BAR",  "status_bar"),
-]
+def _get_types():
+    return [
+        (_("Text"),        "TEXT",        "text"),
+        (_("% Text"),      "PERCENT_TEXT","text"),
+        (_("Graph"),       "GRAPH",       "graph"),
+        (_("Radial"),      "RADIAL",      "radial"),
+        (_("Chart"),       "CHART",       "chart"),
+        (_("Gauge"),       "GAUGE",       "gauge"),
+        (_("Status Bar"),  "STATUS_BAR",  "status_bar"),
+    ]
 
 # ---------------------------------------------------------------------------
 # Definição das seções do accordion
@@ -142,7 +144,7 @@ class Toolbox(Gtk.Box):
     # ── Sensor accordion ──────────────────────────────────────────────
 
     def _build_sensor_panel(self):
-        header = Gtk.Label(label="Add Element")
+        header = Gtk.Label(label=_("Add Element"))
         header.add_css_class("heading")
         header.set_halign(Gtk.Align.START)
         header.set_margin_top(8)
@@ -156,7 +158,7 @@ class Toolbox(Gtk.Box):
 
         inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
 
-        for section_title, sensors in _SECTIONS:
+        for section_title, sensors in _get_sections():
             exp = Gtk.Expander(label=section_title)
             exp.set_margin_start(4)
             exp.set_margin_top(2)
@@ -192,7 +194,7 @@ class Toolbox(Gtk.Box):
                 rb.set_sensitive(True)
             return
         # Determine if the current selection is still valid
-        _, cur_suffix, _ = _TYPES[self._selected_type_idx]
+        _lbl, cur_suffix, _kind = _get_types()[self._selected_type_idx]
         first_valid_idx = None
         for i, (rb, suffix, _kind) in enumerate(self._type_buttons):
             valid = suffix in allowed_suffixes
@@ -212,14 +214,14 @@ class Toolbox(Gtk.Box):
             if text_only:
                 self._add_cb(base_path, "text")
             else:
-                _, suffix, kind = _TYPES[self._selected_type_idx]
+                _lbl, suffix, kind = _get_types()[self._selected_type_idx]
                 self._add_cb(base_path + "." + suffix, kind)
         return handler
 
     # ── Type picker ───────────────────────────────────────────────────
 
     def _build_type_panel(self):
-        header = Gtk.Label(label="Representação")
+        header = Gtk.Label(label=_("Representation"))
         header.add_css_class("heading")
         header.set_halign(Gtk.Align.START)
         header.set_margin_top(8)
@@ -234,7 +236,7 @@ class Toolbox(Gtk.Box):
 
         first_btn = None
         self._type_buttons = []
-        for i, (label, suffix, kind) in enumerate(_TYPES):
+        for i, (label, suffix, kind) in enumerate(_get_types()):
             rb = Gtk.CheckButton(label=label)
             if first_btn is None:
                 first_btn = rb

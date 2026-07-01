@@ -58,6 +58,19 @@ def main():
         logging.warning("IPC socket bind failed: %s (continuing without single-instance)", e)
         server_sock = None
 
+    # ── Ensure the interface directory is on sys.path ────────────────
+    _here = os.path.dirname(os.path.abspath(__file__))
+    if _here not in sys.path:
+        sys.path.insert(0, _here)
+
+    # ── i18n setup (before any UI import) ────────────────────────────
+    import argparse as _ap
+    _p = _ap.ArgumentParser(add_help=False)
+    _p.add_argument("--lang", default=None)
+    _args, _ = _p.parse_known_args()
+    import i18n as _i18n
+    _i18n.setup(_args.lang)
+
     # ── GTK imports (late, so socket is claimed first) ────────────────
     import gi
     gi.require_version("Gtk", "4.0")

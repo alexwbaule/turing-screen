@@ -1,5 +1,6 @@
 import os
 from gi.repository import Gtk, GLib
+from i18n import _
 
 
 class LayersPanel(Gtk.Box):
@@ -20,7 +21,7 @@ class LayersPanel(Gtk.Box):
 
     def _build_ui(self):
         # Header
-        header = Gtk.Label(label="Layers")
+        header = Gtk.Label(label=_("Layers"))
         header.add_css_class("heading")
         header.set_halign(Gtk.Align.START)
         self.append(header)
@@ -28,10 +29,10 @@ class LayersPanel(Gtk.Box):
         # Toolbar
         tb = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         for icon, tip, cb in [
-            ("list-add-symbolic",      "Add layer",    self._on_add),
-            ("list-remove-symbolic",   "Remove",       self._on_remove),
-            ("go-up-symbolic",         "Move up",      self._on_move_up),
-            ("go-down-symbolic",       "Move down",    self._on_move_down),
+            ("list-add-symbolic",      _("Add layer"),   self._on_add),
+            ("list-remove-symbolic",   _("Remove"),      self._on_remove),
+            ("go-up-symbolic",         _("Move up"),     self._on_move_up),
+            ("go-down-symbolic",       _("Move down"),   self._on_move_down),
         ]:
             btn = Gtk.Button()
             btn.set_child(Gtk.Image.new_from_icon_name(icon))
@@ -153,9 +154,9 @@ class LayersPanel(Gtk.Box):
 
     def _on_add(self, _btn):
         dialog = Gtk.FileDialog()
-        dialog.set_title("Select background image (PNG)")
+        dialog.set_title(_("Select background image (PNG)"))
         filt = Gtk.FileFilter()
-        filt.set_name("PNG images")
+        filt.set_name(_("PNG images"))
         filt.add_pattern("*.png")
         # Simple approach: use open() without filter for now
         dialog.open(self._canvas.get_root(), None, self._on_file_chosen)

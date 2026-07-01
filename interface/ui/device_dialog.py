@@ -8,6 +8,7 @@ import base64
 import logging
 
 from gi.repository import Gtk, Adw, Gio, GLib, GObject
+from i18n import _
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class DeviceDialog(Gtk.Window):
         super().__init__(transient_for=parent, modal=False, destroy_with_parent=True)
         self._ws = ws_client
         self._device_type = device_type or ""
-        self.set_title("Device Storage")
+        self.set_title(_("Device Storage"))
         self.set_default_size(700, 440)
 
         if self._device_type == "turzx":
@@ -69,25 +70,25 @@ class DeviceDialog(Gtk.Window):
         left.set_margin_bottom(10)
         left.set_size_request(190, -1)
 
-        lbl = Gtk.Label(label="Storage")
+        lbl = Gtk.Label(label=_("Storage"))
         lbl.set_halign(Gtk.Align.START)
         lbl.add_css_class("heading")
         left.append(lbl)
 
-        self._total_lbl = Gtk.Label(label="Total:  --")
-        self._used_lbl = Gtk.Label(label="Usado: --")
-        self._free_lbl = Gtk.Label(label="Livre:  --")
+        self._total_lbl = Gtk.Label(label=f"{_('Total')}:  --")
+        self._used_lbl = Gtk.Label(label=f"{_('Used')}: --")
+        self._free_lbl = Gtk.Label(label=f"{_('Free')}:  --")
         for l in (self._total_lbl, self._used_lbl, self._free_lbl):
             l.set_halign(Gtk.Align.START)
             left.append(l)
 
-        btn_storage = Gtk.Button(label="Refresh Storage")
+        btn_storage = Gtk.Button(label=_("Refresh Storage"))
         btn_storage.connect("clicked", lambda *_: self._refresh_storage())
         left.append(btn_storage)
 
         left.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
 
-        btn_restart = Gtk.Button(label="Reiniciar Device")
+        btn_restart = Gtk.Button(label=_("Restart Device"))
         btn_restart.connect("clicked", lambda *_: self._restart_device())
         left.append(btn_restart)
 
@@ -127,11 +128,11 @@ class DeviceDialog(Gtk.Window):
         actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         actions.set_margin_top(6)
         for label, cb in (
-            ("Refresh Arquivos", lambda *_: self._refresh_files()),
-            ("Upload",           lambda *_: self._upload_file()),
-            ("Deletar",          lambda *_: self._delete_file()),
-            ("Play Video",       lambda *_: self._play_selected()),
-            ("Stop Video",       lambda *_: self._stop_playback()),
+            (_("Refresh Files"), lambda *_: self._refresh_files()),
+            (_("Upload"),        lambda *_: self._upload_file()),
+            (_("Delete"),        lambda *_: self._delete_file()),
+            (_("Play Video"),    lambda *_: self._play_selected()),
+            (_("Stop Video"),    lambda *_: self._stop_playback()),
         ):
             b = Gtk.Button(label=label)
             b.connect("clicked", cb)
@@ -144,7 +145,7 @@ class DeviceDialog(Gtk.Window):
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         outer.append(root)
         outer.append(Gtk.Separator())
-        self._status = Gtk.Label(label="Verificando...")
+        self._status = Gtk.Label(label=_("Checking..."))
         self._status.set_halign(Gtk.Align.START)
         self._status.set_margin_start(10)
         self._status.set_margin_end(10)
@@ -184,12 +185,12 @@ class DeviceDialog(Gtk.Window):
 
     def _refresh_storage(self):
         if not self._ws or not self._ws.is_connected():
-            self._set_status("⚫ Não conectado")
-            self._total_lbl.set_label("Total:  --")
-            self._used_lbl.set_label("Usado: --")
-            self._free_lbl.set_label("Livre:  --")
+            self._set_status(f"⚫ {_('Not connected')}")
+            self._total_lbl.set_label(f"{_('Total')}:  --")
+            self._used_lbl.set_label(f"{_('Used')}: --")
+            self._free_lbl.set_label(f"{_('Free')}:  --")
             return
-        self._set_status("⏳ Lendo storage...")
+        self._set_status(f"⏳ {_('Reading storage...')}")
         self._ws.send("storage.info", None, callback=self._on_storage_info)
 
     def _on_storage_info(self, payload, error):
@@ -197,10 +198,10 @@ class DeviceDialog(Gtk.Window):
             self._set_status(f"Erro: {error}")
             return
         info = payload or {}
-        self._total_lbl.set_label(f"Total:  {_format_bytes(info.get('total'))}")
-        self._used_lbl.set_label(f"Usado: {_format_bytes(info.get('used'))}")
-        self._free_lbl.set_label(f"Livre:  {_format_bytes(info.get('free'))}")
-        self._set_status("🟢 Conectado")
+        self._total_lbl.set_label(f"{_('Total')}:  {_format_bytes(info.get('total'))}")
+        self._used_lbl.set_label(f"{_('Used')}: {_format_bytes(info.get('used'))}")
+        self._free_lbl.set_label(f"{_('Free')}:  {_format_bytes(info.get('free'))}")
+        self._set_status(f"🟢 {_('Connected')}")
 
     # ------------------------------------------------------------------
     # WS: storage.files
@@ -221,7 +222,7 @@ class DeviceDialog(Gtk.Window):
         self._files_model.remove_all()
         for f in self._files:
             self._files_model.append(_FileItem(f))
-        self._set_status(f"{len(self._files)} arquivo(s)")
+        self._set_status(f"{len(self._files)} {_('file(s)')}")
 
     # ------------------------------------------------------------------
     # WS: storage.upload
@@ -229,9 +230,9 @@ class DeviceDialog(Gtk.Window):
 
     def _upload_file(self):
         dialog = Gtk.FileDialog()
-        dialog.set_title("Enviar para o device")
+        dialog.set_title(_("Send to device"))
         f = Gtk.FileFilter()
-        f.set_name("Vídeos")
+        f.set_name(_("Videos"))
         for ext in ("*.mp4", "*.avi", "*.mkv", "*.png"):
             f.add_pattern(ext)
         store = Gio.ListStore.new(Gtk.FileFilter)
@@ -254,7 +255,7 @@ class DeviceDialog(Gtk.Window):
         except Exception as e:
             self._set_status(f"Erro ao ler: {e}")
             return
-        self._set_status(f"Enviando {name}...")
+        self._set_status(f"{_('Sending')} {name}...")
         b64 = base64.b64encode(data).decode("ascii")
         self._ws.send("storage.upload", {"name": name, "data": b64},
                       callback=lambda p, err: self._on_uploaded(name, p, err))
@@ -263,7 +264,7 @@ class DeviceDialog(Gtk.Window):
         if error:
             self._set_status(f"Erro: {error}")
         else:
-            self._set_status(f"✓ {name} enviado")
+            self._set_status(f"✓ {name} {_('Sent')}")
             self._refresh_files()
 
     # ------------------------------------------------------------------
@@ -291,7 +292,7 @@ class DeviceDialog(Gtk.Window):
         if error:
             self._set_status(f"Erro: {error}")
         else:
-            self._set_status(f"✓ Deletado: {name}")
+            self._set_status(f"✓ {_('Deleted')}: {name}")
             self._refresh_files()
 
     # ------------------------------------------------------------------
@@ -310,12 +311,12 @@ class DeviceDialog(Gtk.Window):
         if error:
             self._set_status(f"Erro: {error}")
         else:
-            self._set_status(f"▶ Playing: {name}")
+            self._set_status(f"▶ {_('Playing')}: {name}")
 
     def _stop_playback(self):
         self._ws.send("theme.video.stop", None,
-                      callback=lambda p, err: self._set_status("⏹ Vídeo parado") if not err
-                      else self._set_status(f"Erro: {err}"))
+                      callback=lambda p, err: self._set_status(f"⏹ {_('Video stopped')}") if not err
+                      else self._set_status(f"⚠ {err}"))
 
     # ------------------------------------------------------------------
     # WS: device.restart
@@ -325,8 +326,8 @@ class DeviceDialog(Gtk.Window):
         if not self._ws or not self._ws.is_connected():
             return
         self._ws.send("device.restart", None,
-                      callback=lambda p, err: self._set_status("Device reiniciado") if not err
-                      else self._set_status(f"Erro: {err}"))
+                      callback=lambda p, err: self._set_status(f"✓ {_('Device restarted')}") if not err
+                      else self._set_status(f"⚠ {err}"))
 
     # ------------------------------------------------------------------
     # Helpers
