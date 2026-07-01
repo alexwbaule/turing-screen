@@ -1,0 +1,680 @@
+# Turing Screen — Portuguese (Brazil)
+# Copyright (C) 2024 Alex W Baulé
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: turing-screen\n"
+"PO-Revision-Date: 2026-06-29 00:00+0000\n"
+"Last-Translator: Alex W Baulé <claude@abaule.me>\n"
+"Language-Team: Portuguese (Brazil)\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "No theme found"
+msgstr "Nenhum tema encontrado"
+
+msgid "New Theme"
+msgstr "Novo Tema"
+
+msgid "Create a new blank theme"
+msgstr "Criar um novo tema em branco"
+
+msgid "Activate"
+msgstr "Ativar"
+
+msgid "Edit Theme"
+msgstr "Editar Tema"
+
+msgid "Delete"
+msgstr "Excluir"
+
+msgid "Delete theme from disk (cannot be undone)"
+msgstr "Apagar o tema do disco (não pode ser desfeito)"
+
+msgid "Play"
+msgstr "Play"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Storage"
+msgstr "Storage"
+
+msgid "Checking..."
+msgstr "Verificando..."
+
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Hide window"
+msgstr "Ocultar janela"
+
+msgid "Quit"
+msgstr "Finalizar"
+
+msgid "Quit and Turn Off"
+msgstr "Finalizar e Desligar"
+
+msgid "File"
+msgstr "Arquivo"
+
+msgid "Restart"
+msgstr "Reiniciar"
+
+msgid "Reboot"
+msgstr "Reboot"
+
+msgid "Reset USB"
+msgstr "Reset USB"
+
+msgid "Turn Off"
+msgstr "Desligar"
+
+msgid "Device"
+msgstr "Device"
+
+msgid "Settings..."
+msgstr "Configurações..."
+
+msgid "Settings"
+msgstr "Configurações"
+
+msgid "Connected"
+msgstr "Conectado"
+
+msgid "Disconnected"
+msgstr "Desconectado"
+
+msgid "Active"
+msgstr "Ativo"
+
+msgid "Activate another theme before deleting this one."
+msgstr "Ative outro tema antes de excluir este."
+
+msgid "New theme"
+msgstr "Novo tema"
+
+msgid "New theme name:"
+msgstr "Nome do novo tema:"
+
+msgid "e.g. MyTheme"
+msgstr "ex: MeuTema"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Create"
+msgstr "Criar"
+
+msgid "Invalid name"
+msgstr "Nome inválido"
+
+msgid "Enter a valid name for the theme."
+msgstr "Informe um nome válido para o tema."
+
+msgid "Already exists"
+msgstr "Já existe"
+
+msgid "Failed to create"
+msgstr "Falha ao criar"
+
+msgid "Delete theme"
+msgstr "Excluir tema"
+
+msgid "Failed to delete"
+msgstr "Falha ao excluir"
+
+msgid "No preview for"
+msgstr "Sem preview para"
+
+msgid "Waiting for device..."
+msgstr "Aguardando device..."
+
+msgid "Applying"
+msgstr "Aplicando"
+
+msgid "Save"
+msgstr "Salvar"
+
+msgid "File_menu"
+msgstr "Arquivo"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Theme Editor"
+msgstr "Editor de Temas"
+
+msgid "Editor — New Theme"
+msgstr "Editor — Novo Tema"
+
+msgid "Open Theme..."
+msgstr "Abrir Tema..."
+
+msgid "Save As..."
+msgstr "Salvar Como..."
+
+msgid "Close Theme"
+msgstr "Fechar Tema"
+
+msgid "Close Editor"
+msgstr "Fechar Editor"
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+msgid "Add Video"
+msgstr "Adicionar Vídeo"
+
+msgid "Background"
+msgstr "Background"
+
+msgid "Delete Component"
+msgstr "Excluir Componente"
+
+msgid "Show / Hide"
+msgstr "Mostrar / Ocultar"
+
+msgid "Open Theme"
+msgstr "Abrir Tema"
+
+msgid "YAML files (*.yaml, *.yml)"
+msgstr "YAML (*.yaml, *.yml)"
+
+msgid "Save As"
+msgstr "Salvar Como"
+
+msgid "Select Background Image"
+msgstr "Selecionar Imagem de Fundo"
+
+msgid "PNG files"
+msgstr "PNG"
+
+msgid "Background video not supported in this version."
+msgstr "Vídeo de fundo não suportado nesta versão."
+
+msgid "Error"
+msgstr "Erro"
+
+msgid "Theme saved successfully."
+msgstr "Tema salvo com sucesso."
+
+msgid "Restarting..."
+msgstr "Reiniciando..."
+
+msgid "Rebooting..."
+msgstr "Rebooting..."
+
+msgid "Resetting USB..."
+msgstr "Resetando USB..."
+
+msgid "Turning off..."
+msgstr "Desligando..."
+
+msgid "Done"
+msgstr "Concluído"
+
+msgid "Theme directory not found:"
+msgstr "Diretório do tema não encontrado:"
+
+msgid "theme.yaml not found in:"
+msgstr "theme.yaml não encontrado em:"
+
+msgid "Failed to load theme:"
+msgstr "Falha ao carregar tema:"
+
+msgid "Failed to open theme:"
+msgstr "Falha ao abrir tema:"
+
+msgid "Failed to save:"
+msgstr "Falha ao salvar:"
+
+msgid "Add Element"
+msgstr "Adicionar Elemento"
+
+msgid "Representation"
+msgstr "Representação"
+
+msgid "Static Text"
+msgstr "Texto Estático"
+
+msgid "Text"
+msgstr "Texto"
+
+msgid "Disk Model"
+msgstr "Modelo de Disco"
+
+msgid "CPU"
+msgstr "CPU"
+
+msgid "GPU"
+msgstr "GPU"
+
+msgid "Virtual Memory"
+msgstr "Memória Virtual"
+
+msgid "Swap"
+msgstr "Swap"
+
+msgid "Disk"
+msgstr "Disco"
+
+msgid "Ethernet"
+msgstr "Rede Ethernet"
+
+msgid "Wi-Fi"
+msgstr "Rede Wi-Fi"
+
+msgid "Date / Time"
+msgstr "Data / Hora"
+
+msgid "Weather"
+msgstr "Clima"
+
+msgid "Volume"
+msgstr "Volume"
+
+msgid "Usage"
+msgstr "Uso"
+
+msgid "% Text"
+msgstr "% Texto"
+
+msgid "Graph"
+msgstr "Gráfico"
+
+msgid "Radial"
+msgstr "Radial"
+
+msgid "Chart"
+msgstr "Chart"
+
+msgid "Gauge"
+msgstr "Gauge"
+
+msgid "Status Bar"
+msgstr "Barra de Status"
+
+msgid "Percentage"
+msgstr "Porcentagem"
+
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid "Frequency"
+msgstr "Frequência"
+
+msgid "Fan"
+msgstr "Ventilador"
+
+msgid "Power"
+msgstr "Potência"
+
+msgid "Voltage"
+msgstr "Tensão"
+
+msgid "Load 1min"
+msgstr "Carga 1min"
+
+msgid "Load 5min"
+msgstr "Carga 5min"
+
+msgid "Load 15min"
+msgstr "Carga 15min"
+
+msgid "Memory"
+msgstr "Memória"
+
+msgid "Used"
+msgstr "Usado"
+
+msgid "Free"
+msgstr "Livre"
+
+msgid "Upload"
+msgstr "Upload"
+
+msgid "Download"
+msgstr "Download"
+
+msgid "Total Up"
+msgstr "Total Enviado"
+
+msgid "Total Down"
+msgstr "Total Recebido"
+
+msgid "Hour"
+msgstr "Hora"
+
+msgid "Day"
+msgstr "Dia"
+
+msgid "Condition"
+msgstr "Condição"
+
+msgid "Properties"
+msgstr "Propriedades"
+
+msgid "Select an element on the canvas"
+msgstr "Selecione um elemento no canvas"
+
+msgid "Position & Size"
+msgstr "Posição e Tamanho"
+
+msgid "Position"
+msgstr "Posição"
+
+msgid "Content"
+msgstr "Conteúdo"
+
+msgid "Font"
+msgstr "Fonte"
+
+msgid "Font file"
+msgstr "Arquivo de fonte"
+
+msgid "Browse font…"
+msgstr "Procurar fonte…"
+
+msgid "Select font"
+msgstr "Selecionar fonte"
+
+msgid "Font files (*.otf, *.ttf)"
+msgstr "Fontes (*.otf, *.ttf)"
+
+msgid "Layout"
+msgstr "Layout"
+
+msgid "Appearance"
+msgstr "Aparência"
+
+msgid "Range"
+msgstr "Intervalo"
+
+msgid "Geometry"
+msgstr "Geometria"
+
+msgid "Angles"
+msgstr "Ângulos"
+
+msgid "Center text"
+msgstr "Texto central"
+
+msgid "Advanced"
+msgstr "Avançado"
+
+msgid "Enable this color (uncheck → ignored)"
+msgstr "Ativar esta cor (desmarcar → ignorado)"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Delete element"
+msgstr "Excluir elemento"
+
+msgid "X"
+msgstr "X"
+
+msgid "Y"
+msgstr "Y"
+
+msgid "X (center)"
+msgstr "X (centro)"
+
+msgid "Y (center)"
+msgstr "Y (centro)"
+
+msgid "Radius"
+msgstr "Raio"
+
+msgid "Width"
+msgstr "Largura"
+
+msgid "Height"
+msgstr "Altura"
+
+msgid "Direction"
+msgstr "Direção"
+
+msgid "Bar color"
+msgstr "Cor da barra"
+
+msgid "Gradient"
+msgstr "Gradiente"
+
+msgid "Bar outline"
+msgstr "Contorno da barra"
+
+msgid "Revert value"
+msgstr "Inverter valor"
+
+msgid "Min"
+msgstr "Mín"
+
+msgid "Max"
+msgstr "Máx"
+
+msgid "Steps"
+msgstr "Passos"
+
+msgid "Step gap"
+msgstr "Espaço entre passos"
+
+msgid "Block width"
+msgstr "Largura do bloco"
+
+msgid "Corner radius"
+msgstr "Raio do canto"
+
+msgid "Border width"
+msgstr "Largura da borda"
+
+msgid "Start °"
+msgstr "Início °"
+
+msgid "End °"
+msgstr "Fim °"
+
+msgid "Seg. count"
+msgstr "Qtd. segmentos"
+
+msgid "Seg. sep °"
+msgstr "Sep. segmentos °"
+
+msgid "Block angle °"
+msgstr "Ângulo do bloco °"
+
+msgid "Clockwise"
+msgstr "Sentido horário"
+
+msgid "Round caps"
+msgstr "Pontas arredondadas"
+
+msgid "Revert colors"
+msgstr "Inverter cores"
+
+msgid "Needle width"
+msgstr "Largura da agulha"
+
+msgid "Needle color"
+msgstr "Cor da agulha"
+
+msgid "Indicator color"
+msgstr "Cor do indicador"
+
+msgid "Indicator radius"
+msgstr "Raio do indicador"
+
+msgid "Font color"
+msgstr "Cor da fonte"
+
+msgid "Show text"
+msgstr "Mostrar texto"
+
+msgid "Show unit"
+msgstr "Mostrar unidade"
+
+msgid "Align"
+msgstr "Alinhamento"
+
+msgid "Col. width"
+msgstr "Largura col."
+
+msgid "Col. gap"
+msgstr "Espaço col."
+
+msgid "Fill color"
+msgstr "Cor de preenchimento"
+
+msgid "Line color"
+msgstr "Cor da linha"
+
+msgid "Style"
+msgstr "Estilo"
+
+msgid "Format"
+msgstr "Formato"
+
+msgid "Configuration"
+msgstr "Configurações"
+
+msgid "General"
+msgstr "Geral"
+
+msgid "Display"
+msgstr "Display"
+
+msgid "Sensors"
+msgstr "Sensores"
+
+msgid "Climate"
+msgstr "Clima"
+
+msgid "Network"
+msgstr "Rede"
+
+msgid "Serial Port"
+msgstr "Porta Serial"
+
+msgid "API Port"
+msgstr "Porta API"
+
+msgid "Log Level"
+msgstr "Nível de Log"
+
+msgid "Turn off display on exit"
+msgstr "Desligar display ao sair"
+
+msgid "Brightness"
+msgstr "Brilho"
+
+msgid "Width (px)"
+msgstr "Largura (px)"
+
+msgid "Height (px)"
+msgstr "Altura (px)"
+
+msgid "Reverse orientation"
+msgstr "Inverter orientação"
+
+msgid "Interval"
+msgstr "Intervalo"
+
+msgid "Temperature Sensor"
+msgstr "Sensor de Temperatura"
+
+msgid "Provider"
+msgstr "Provedor"
+
+msgid "Wired Interface"
+msgstr "Interface Cabeada"
+
+msgid "Wi-Fi Interface"
+msgstr "Interface Wi-Fi"
+
+msgid "Enable weather"
+msgstr "Habilitar clima"
+
+msgid "City"
+msgstr "Cidade"
+
+msgid "Saved. Restart the daemon to apply changes."
+msgstr "Salvo. Reinicie o daemon para aplicar as alterações."
+
+msgid "Device Storage"
+msgstr "Armazenamento do Device"
+
+msgid "Refresh Storage"
+msgstr "Atualizar Storage"
+
+msgid "Restart Device"
+msgstr "Reiniciar Device"
+
+msgid "Refresh Files"
+msgstr "Atualizar Arquivos"
+
+msgid "Play Video"
+msgstr "Play Vídeo"
+
+msgid "Stop Video"
+msgstr "Parar Vídeo"
+
+msgid "Not connected"
+msgstr "Não conectado"
+
+msgid "Reading storage..."
+msgstr "Lendo storage..."
+
+msgid "Send to device"
+msgstr "Enviar para o device"
+
+msgid "Videos"
+msgstr "Vídeos"
+
+msgid "Device restarted"
+msgstr "Device reiniciado"
+
+msgid "Video stopped"
+msgstr "Vídeo parado"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "file(s)"
+msgstr "arquivo(s)"
+
+msgid "Deleted"
+msgstr "Deletado"
+
+msgid "Playing"
+msgstr "Reproduzindo"
+
+msgid "Sending"
+msgstr "Enviando"
+
+msgid "Sent"
+msgstr "Enviado"
+
+msgid "Layers"
+msgstr "Camadas"
+
+msgid "Add layer"
+msgstr "Adicionar camada"
+
+msgid "Remove"
+msgstr "Remover"
+
+msgid "Move up"
+msgstr "Mover para cima"
+
+msgid "Move down"
+msgstr "Mover para baixo"
+
+msgid "Select background image (PNG)"
+msgstr "Selecionar imagem de fundo (PNG)"
+
+msgid "PNG images"
+msgstr "Imagens PNG"

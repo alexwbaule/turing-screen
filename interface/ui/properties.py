@@ -6,6 +6,7 @@ import dataclasses as _dc
 import os
 
 from gi.repository import Gtk, Gdk, Pango, Gio
+from i18n import _
 
 # Suffix tokens that identify the representation type in a yaml_path
 # (same set as in canvas.py — kept here to avoid a circular import).
@@ -114,7 +115,7 @@ class PropertiesPanel(Gtk.Box):
     # ── UI skeleton ────────────────────────────────────────────────────────────
 
     def _build_ui(self):
-        self._header = Gtk.Label(label="Properties")
+        self._header = Gtk.Label(label=_("Properties"))
         self._header.add_css_class("heading")
         self._header.set_halign(Gtk.Align.START)
         self._header.set_margin_top(8)
@@ -138,7 +139,7 @@ class PropertiesPanel(Gtk.Box):
         scroll.set_child(self._content)
         self.append(scroll)
 
-        ph = Gtk.Label(label="Select an element on the canvas")
+        ph = Gtk.Label(label=_("Select an element on the canvas"))
         ph.set_sensitive(False)
         ph.set_halign(Gtk.Align.CENTER)
         ph.set_valign(Gtk.Align.CENTER)
@@ -153,7 +154,7 @@ class PropertiesPanel(Gtk.Box):
         self._clear_content()
 
         if element is None:
-            self._header.set_label("Properties")
+            self._header.set_label(_("Properties"))
             self._content.append(self._placeholder)
             return
 
@@ -206,17 +207,17 @@ class PropertiesPanel(Gtk.Box):
         box.append(path_lbl)
         self._content.append(box)
 
-        exp, inner = self._expander("Position & Size")
+        exp, inner = self._expander(_("Position & Size"))
         self._x_spin = self._spin(img.X or 0, -9999, 9999,
                                   lambda s: [setattr(img, "X", int(s.get_value())), refresh_cb()])
         self._y_spin = self._spin(img.Y or 0, -9999, 9999,
                                   lambda s: [setattr(img, "Y", int(s.get_value())), refresh_cb()])
-        self._append_row(inner, "X", self._x_spin)
-        self._append_row(inner, "Y", self._y_spin)
-        self._append_row(inner, "Width",
+        self._append_row(inner, _("X"), self._x_spin)
+        self._append_row(inner, _("Y"), self._y_spin)
+        self._append_row(inner, _("Width"),
                          self._spin(img.WIDTH or 1, 1, 9999,
                                     lambda s: [setattr(img, "WIDTH", int(s.get_value())), refresh_cb()]))
-        self._append_row(inner, "Height",
+        self._append_row(inner, _("Height"),
                          self._spin(img.HEIGHT or 1, 1, 9999,
                                     lambda s: [setattr(img, "HEIGHT", int(s.get_value())), refresh_cb()]))
         self._content.append(exp)
@@ -260,7 +261,7 @@ class PropertiesPanel(Gtk.Box):
         picker (.otf/.ttf). The theme stores a path relative to the theme dir
         (e.g. 'turtheme/Azonix.otf'), so the picked file is relativised."""
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        lbl = Gtk.Label(label="Font file")
+        lbl = Gtk.Label(label=_("Font file"))
         lbl.set_width_chars(13)
         lbl.set_halign(Gtk.Align.END)
         lbl.add_css_class("dim-label")
@@ -270,7 +271,7 @@ class PropertiesPanel(Gtk.Box):
         entry.connect("changed", lambda e: [setattr(data, "FONT", e.get_text()), refresh_cb()])
         browse = Gtk.Button()
         browse.set_icon_name("document-open-symbolic")
-        browse.set_tooltip_text("Procurar fonte…")
+        browse.set_tooltip_text(_("Browse font…"))
         browse.connect("clicked", lambda b: self._pick_font(entry, data, refresh_cb))
         row.append(lbl)
         row.append(entry)
@@ -286,9 +287,9 @@ class PropertiesPanel(Gtk.Box):
 
     def _pick_font(self, entry: Gtk.Entry, data, refresh_cb):
         dialog = Gtk.FileDialog()
-        dialog.set_title("Selecionar fonte")
+        dialog.set_title(_("Select font"))
         filt = Gtk.FileFilter()
-        filt.set_name("Fontes (*.otf, *.ttf)")
+        filt.set_name(_("Font files (*.otf, *.ttf)"))
         for pat in ("*.otf", "*.ttf", "*.ttc"):
             filt.add_pattern(pat)
         filters = Gio.ListStore.new(Gtk.FileFilter)
@@ -340,7 +341,7 @@ class PropertiesPanel(Gtk.Box):
 
         chk = Gtk.CheckButton()
         chk.set_active(enabled)
-        chk.set_tooltip_text("Enable this color (uncheck → ignored)")
+        chk.set_tooltip_text(_("Enable this color (uncheck → ignored)"))
 
         def on_color(_b):
             if chk.get_active():
@@ -514,7 +515,7 @@ class PropertiesPanel(Gtk.Box):
                 dd.connect("notify::selected", _on_type_selected)
 
                 type_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-                lbl = Gtk.Label(label="Type")
+                lbl = Gtk.Label(label=_("Type"))
                 lbl.set_width_chars(13)
                 lbl.set_halign(Gtk.Align.END)
                 lbl.add_css_class("dim-label")
@@ -523,7 +524,7 @@ class PropertiesPanel(Gtk.Box):
                 box.append(type_row)
 
         # Delete button
-        del_btn = Gtk.Button(label="Delete element")
+        del_btn = Gtk.Button(label=_("Delete element"))
         del_btn.add_css_class("destructive-action")
         del_btn.connect("clicked", lambda _: self._on_delete and self._on_delete(element))
         box.append(del_btn)
@@ -544,13 +545,13 @@ class PropertiesPanel(Gtk.Box):
             elem.widget.set_size_request(data.WIDTH or 100, data.HEIGHT or 100)
             refresh()
 
-        exp, inner = self._expander("Position & Size")
+        exp, inner = self._expander(_("Position & Size"))
         self._x_spin = self._spin(data.X, -9999, 9999, lambda s: [setattr(data, "X", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
         self._y_spin = self._spin(data.Y, -9999, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
-        self._append_row(inner, "X", self._x_spin)
-        self._append_row(inner, "Y", self._y_spin)
-        self._append_row(inner, "Width",  self._spin(data.WIDTH or 100,  1, 9999, lambda s: [setattr(data, "WIDTH", int(s.get_value())), resize()]))
-        self._append_row(inner, "Height", self._spin(data.HEIGHT or 100, 1, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
+        self._append_row(inner, _("X"), self._x_spin)
+        self._append_row(inner, _("Y"), self._y_spin)
+        self._append_row(inner, _("Width"),  self._spin(data.WIDTH or 100,  1, 9999, lambda s: [setattr(data, "WIDTH", int(s.get_value())), resize()]))
+        self._append_row(inner, _("Height"), self._spin(data.HEIGHT or 100, 1, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
         self._content.append(exp)
 
     # ── Text ───────────────────────────────────────────────────────────────────
@@ -563,7 +564,7 @@ class PropertiesPanel(Gtk.Box):
                 elem.invalidate()
 
         # Position
-        exp, inner = self._expander("Position")
+        exp, inner = self._expander(_("Position"))
         # data.X is the ALIGN anchor (left/center/right edge), not the widget
         # top-left — so we must NOT set_position(data.X, data.Y) here (that would
         # place the left edge at the anchor and shift the text on every release).
@@ -571,28 +572,27 @@ class PropertiesPanel(Gtk.Box):
         # by _updating so update_position's programmatic set_value won't move it.
         self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), refresh()])
         self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), refresh()])
-        self._append_row(inner, "X", self._x_spin)
-        self._append_row(inner, "Y", self._y_spin)
+        self._append_row(inner, _("X"), self._x_spin)
+        self._append_row(inner, _("Y"), self._y_spin)
         self._content.append(exp)
 
         # Content
-        exp, inner = self._expander("Content")
-        self._append_row(inner, "Text", self._entry(data.TEXT or data.PLACEHOLDER, lambda e: [setattr(data, "TEXT", e.get_text()), refresh()]))
-        self._append_row(inner, "Format", self._entry(data.FORMAT or "", lambda e: [setattr(data, "FORMAT", e.get_text()), refresh()]))
-        inner.append(self._toggle(bool(data.SHOW_UNIT), "Show unit", lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
+        exp, inner = self._expander(_("Content"))
+        self._append_row(inner, _("Text"), self._entry(data.TEXT or data.PLACEHOLDER, lambda e: [setattr(data, "TEXT", e.get_text()), refresh()]))
+        self._append_row(inner, _("Format"), self._entry(data.FORMAT or "", lambda e: [setattr(data, "FORMAT", e.get_text()), refresh()]))
+        inner.append(self._toggle(bool(data.SHOW_UNIT), _("Show unit"), lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
         self._content.append(exp)
 
         # Font
-        exp, inner = self._expander("Font")
+        exp, inner = self._expander(_("Font"))
         self._font_row(inner, data, refresh)
-        self._append_row(inner, "Size", self._spin(data.FONT_SIZE or 16, 4, 500, lambda s: [setattr(data, "FONT_SIZE", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Color", self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
+        self._append_row(inner, _("Font color"), self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
         self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "0,0,0", refresh)
         self._content.append(exp)
 
         # Layout
-        exp, inner = self._expander("Layout")
-        self._append_row(inner, "Align", self._dropdown(["LEFT", "CENTER", "RIGHT"], data.ALIGN or "LEFT", lambda v: [setattr(data, "ALIGN", v), refresh()]))
+        exp, inner = self._expander(_("Layout"))
+        self._append_row(inner, _("Align"), self._dropdown(["LEFT", "CENTER", "RIGHT"], data.ALIGN or "LEFT", lambda v: [setattr(data, "ALIGN", v), refresh()]))
         self._content.append(exp)
 
     # ── Graph ──────────────────────────────────────────────────────────────────
@@ -609,15 +609,15 @@ class PropertiesPanel(Gtk.Box):
             refresh()
 
         # Position & Size
-        exp, inner = self._expander("Position & Size")
+        exp, inner = self._expander(_("Position & Size"))
         self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
         self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
-        self._append_row(inner, "X", self._x_spin)
-        self._append_row(inner, "Y", self._y_spin)
+        self._append_row(inner, _("X"), self._x_spin)
+        self._append_row(inner, _("Y"), self._y_spin)
         self._graph_w_spin = self._spin(data.WIDTH or 200,  10, 9999, lambda s: [setattr(data, "WIDTH", int(s.get_value())), resize()])
         self._graph_h_spin = self._spin(data.HEIGHT or 80, 10, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()])
-        self._append_row(inner, "Width",  self._graph_w_spin)
-        self._append_row(inner, "Height", self._graph_h_spin)
+        self._append_row(inner, _("Width"),  self._graph_w_spin)
+        self._append_row(inner, _("Height"), self._graph_h_spin)
 
         def _on_direction(v):
             horiz = lambda d: (d or "left").lower() in ("left", "right")
@@ -634,31 +634,31 @@ class PropertiesPanel(Gtk.Box):
                 elem.widget.set_size_request(data.WIDTH or 200, data.HEIGHT or 80)
             refresh()
 
-        self._append_row(inner, "Direction", self._dropdown(["LEFT", "RIGHT", "UP", "DOWN"], data.DIRECTION or "LEFT", _on_direction))
+        self._append_row(inner, _("Direction"), self._dropdown(["LEFT", "RIGHT", "UP", "DOWN"], data.DIRECTION or "LEFT", _on_direction))
         self._content.append(exp)
 
         # Appearance
-        exp, inner = self._expander("Appearance")
-        self._append_row(inner, "Bar color", self._color_btn(data.BAR_COLOR, lambda c: [setattr(data, "BAR_COLOR", c), refresh()], "0,255,0"), expand=False)
+        exp, inner = self._expander(_("Appearance"))
+        self._append_row(inner, _("Bar color"), self._color_btn(data.BAR_COLOR, lambda c: [setattr(data, "BAR_COLOR", c), refresh()], "0,255,0"), expand=False)
         self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "26,26,26", refresh)
-        self._optional_color_row(inner, "Gradient",   data, "GRADIENT_COLOR",   "0,0,0",   refresh)
-        inner.append(self._toggle(bool(data.BAR_OUTLINE),  "Bar outline",  lambda v: [setattr(data, "BAR_OUTLINE", v), refresh()]))
-        inner.append(self._toggle(bool(data.REVERT_VALUE), "Revert value", lambda v: [setattr(data, "REVERT_VALUE", v), refresh()]))
+        self._optional_color_row(inner, _("Gradient"),   data, "GRADIENT_COLOR",   "0,0,0",   refresh)
+        inner.append(self._toggle(bool(data.BAR_OUTLINE),  _("Bar outline"),  lambda v: [setattr(data, "BAR_OUTLINE", v), refresh()]))
+        inner.append(self._toggle(bool(data.REVERT_VALUE), _("Revert value"), lambda v: [setattr(data, "REVERT_VALUE", v), refresh()]))
         self._content.append(exp)
 
         # Range
-        exp, inner = self._expander("Range")
-        self._append_row(inner, "Min", self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Max", self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Range"))
+        self._append_row(inner, _("Min"), self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Max"), self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
         self._content.append(exp)
 
         # Advanced
-        exp, inner = self._expander("Advanced", expanded=False)
-        self._append_row(inner, "Steps",         self._spin(data.STEPS or 0,         0, 500, lambda s: [setattr(data, "STEPS",         int(s.get_value())), refresh()]))
-        self._append_row(inner, "Step gap",      self._spin(data.STEP_GAP or 0,      0, 100, lambda s: [setattr(data, "STEP_GAP",      int(s.get_value())), refresh()]))
-        self._append_row(inner, "Block width",   self._spin(data.BLOCK_WIDTH or 0,   0, 200, lambda s: [setattr(data, "BLOCK_WIDTH",   int(s.get_value())), refresh()]))
-        self._append_row(inner, "Corner radius", self._spin(data.CORNER_RADIUS or 0, 0, 100, lambda s: [setattr(data, "CORNER_RADIUS", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Border width",  self._spin(data.BORDER_WIDTH or 0,  0, 20,  lambda s: [setattr(data, "BORDER_WIDTH",  int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Advanced"), expanded=False)
+        self._append_row(inner, _("Steps"),         self._spin(data.STEPS or 0,         0, 500, lambda s: [setattr(data, "STEPS",         int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Step gap"),      self._spin(data.STEP_GAP or 0,      0, 100, lambda s: [setattr(data, "STEP_GAP",      int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Block width"),   self._spin(data.BLOCK_WIDTH or 0,   0, 200, lambda s: [setattr(data, "BLOCK_WIDTH",   int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Corner radius"), self._spin(data.CORNER_RADIUS or 0, 0, 100, lambda s: [setattr(data, "CORNER_RADIUS", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Border width"),  self._spin(data.BORDER_WIDTH or 0,  0, 20,  lambda s: [setattr(data, "BORDER_WIDTH",  int(s.get_value())), refresh()]))
         self._content.append(exp)
 
     # ── Radial ─────────────────────────────────────────────────────────────────
@@ -681,47 +681,47 @@ class PropertiesPanel(Gtk.Box):
             _move()
 
         # Position
-        exp, inner = self._expander("Position")
+        exp, inner = self._expander(_("Position"))
         self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), _move()])
         self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), _move()])
-        self._append_row(inner, "X (center)", self._x_spin)
-        self._append_row(inner, "Y (center)", self._y_spin)
+        self._append_row(inner, _("X (center)"), self._x_spin)
+        self._append_row(inner, _("Y (center)"), self._y_spin)
         self._content.append(exp)
 
         # Geometry
-        exp, inner = self._expander("Geometry")
-        self._append_row(inner, "Radius", self._spin(data.RADIUS or 80,  10, 500, lambda s: _resize_radius(int(s.get_value()))))
-        self._append_row(inner, "Width",  self._spin(data.WIDTH  or 10,   1, 200, lambda s: [setattr(data, "WIDTH", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Min",    self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Max",    self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Geometry"))
+        self._append_row(inner, _("Radius"), self._spin(data.RADIUS or 80,  10, 500, lambda s: _resize_radius(int(s.get_value()))))
+        self._append_row(inner, _("Width"),  self._spin(data.WIDTH  or 10,   1, 200, lambda s: [setattr(data, "WIDTH", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Min"),    self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Max"),    self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
         self._content.append(exp)
 
         # Angles
-        exp, inner = self._expander("Angles")
-        self._append_row(inner, "Start °",      self._spin(data.ANGLE_START or 0,   -360, 360, lambda s: [setattr(data, "ANGLE_START",  int(s.get_value())), refresh()]))
-        self._append_row(inner, "End °",        self._spin(data.ANGLE_END   or 60,  -360, 360, lambda s: [setattr(data, "ANGLE_END",    int(s.get_value())), refresh()]))
-        self._append_row(inner, "Seg. count",   self._spin(data.ANGLE_STEPS or 0,   0, 360, lambda s: [setattr(data, "ANGLE_STEPS",  int(s.get_value())), refresh()]))
-        self._append_row(inner, "Seg. sep °",   self._spin(data.ANGLE_SEP   or 0,   0, 30,  lambda s: [setattr(data, "ANGLE_SEP",    int(s.get_value())), refresh()]))
-        self._append_row(inner, "Block angle °",self._spin(data.BLOCK_ANGLE or 0,   0, 360, lambda s: [setattr(data, "BLOCK_ANGLE",  int(s.get_value())), refresh()]))
-        inner.append(self._toggle(bool(data.CLOCKWISE),    "Clockwise",    lambda v: [setattr(data, "CLOCKWISE",    v), refresh()]))
-        inner.append(self._toggle(bool(data.ROUND),        "Round caps",   lambda v: [setattr(data, "ROUND",        v), refresh()]))
-        inner.append(self._toggle(bool(data.REVERT),       "Revert colors",lambda v: [setattr(data, "REVERT",       v), refresh()]))
-        inner.append(self._toggle(bool(data.REVERT_VALUE), "Revert value", lambda v: [setattr(data, "REVERT_VALUE", v), refresh()]))
+        exp, inner = self._expander(_("Angles"))
+        self._append_row(inner, _("Start °"),      self._spin(data.ANGLE_START or 0,   -360, 360, lambda s: [setattr(data, "ANGLE_START",  int(s.get_value())), refresh()]))
+        self._append_row(inner, _("End °"),        self._spin(data.ANGLE_END   or 60,  -360, 360, lambda s: [setattr(data, "ANGLE_END",    int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Seg. count"),   self._spin(data.ANGLE_STEPS or 0,   0, 360, lambda s: [setattr(data, "ANGLE_STEPS",  int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Seg. sep °"),   self._spin(data.ANGLE_SEP   or 0,   0, 30,  lambda s: [setattr(data, "ANGLE_SEP",    int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Block angle °"),self._spin(data.BLOCK_ANGLE or 0,   0, 360, lambda s: [setattr(data, "BLOCK_ANGLE",  int(s.get_value())), refresh()]))
+        inner.append(self._toggle(bool(data.CLOCKWISE),    _("Clockwise"),    lambda v: [setattr(data, "CLOCKWISE",    v), refresh()]))
+        inner.append(self._toggle(bool(data.ROUND),        _("Round caps"),   lambda v: [setattr(data, "ROUND",        v), refresh()]))
+        inner.append(self._toggle(bool(data.REVERT),       _("Revert colors"),lambda v: [setattr(data, "REVERT",       v), refresh()]))
+        inner.append(self._toggle(bool(data.REVERT_VALUE), _("Revert value"), lambda v: [setattr(data, "REVERT_VALUE", v), refresh()]))
         self._content.append(exp)
 
         # Appearance
-        exp, inner = self._expander("Appearance")
-        self._append_row(inner, "Bar color", self._color_btn(data.BAR_COLOR, lambda c: [setattr(data, "BAR_COLOR", c), refresh()], "0,255,0"), expand=False)
+        exp, inner = self._expander(_("Appearance"))
+        self._append_row(inner, _("Bar color"), self._color_btn(data.BAR_COLOR, lambda c: [setattr(data, "BAR_COLOR", c), refresh()], "0,255,0"), expand=False)
         self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "26,26,26", refresh)
-        self._optional_color_row(inner, "Gradient",   data, "GRADIENT_COLOR",   "0,0,0",   refresh)
+        self._optional_color_row(inner, _("Gradient"),   data, "GRADIENT_COLOR",   "0,0,0",   refresh)
         self._content.append(exp)
 
         # Text inside ring
-        exp, inner = self._expander("Center text", expanded=False)
-        inner.append(self._toggle(bool(data.SHOW_TEXT), "Show text",  lambda v: [setattr(data, "SHOW_TEXT", v), refresh()]))
-        inner.append(self._toggle(bool(data.SHOW_UNIT), "Show unit",  lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
+        exp, inner = self._expander(_("Center text"), expanded=False)
+        inner.append(self._toggle(bool(data.SHOW_TEXT), _("Show text"),  lambda v: [setattr(data, "SHOW_TEXT", v), refresh()]))
+        inner.append(self._toggle(bool(data.SHOW_UNIT), _("Show unit"),  lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
         self._font_row(inner, data, refresh)
-        self._append_row(inner, "Font color", self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
+        self._append_row(inner, _("Font color"), self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
         self._content.append(exp)
 
     # ── Chart ──────────────────────────────────────────────────────────────────
@@ -738,29 +738,29 @@ class PropertiesPanel(Gtk.Box):
             refresh()
 
         # Position & Size
-        exp, inner = self._expander("Position & Size")
+        exp, inner = self._expander(_("Position & Size"))
         self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
         self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
-        self._append_row(inner, "X", self._x_spin)
-        self._append_row(inner, "Y", self._y_spin)
-        self._append_row(inner, "Width",  self._spin(data.WIDTH  or 200, 10, 9999, lambda s: [setattr(data, "WIDTH",  int(s.get_value())), resize()]))
-        self._append_row(inner, "Height", self._spin(data.HEIGHT or 100, 10, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
+        self._append_row(inner, _("X"), self._x_spin)
+        self._append_row(inner, _("Y"), self._y_spin)
+        self._append_row(inner, _("Width"),  self._spin(data.WIDTH  or 200, 10, 9999, lambda s: [setattr(data, "WIDTH",  int(s.get_value())), resize()]))
+        self._append_row(inner, _("Height"), self._spin(data.HEIGHT or 100, 10, 9999, lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
         self._content.append(exp)
 
         # Range
-        exp, inner = self._expander("Range")
-        self._append_row(inner, "Min", self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Max", self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Range"))
+        self._append_row(inner, _("Min"), self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Max"), self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
         self._content.append(exp)
 
         # Appearance
-        exp, inner = self._expander("Appearance")
-        self._append_row(inner, "Style", self._dropdown(["BAR", "LINE"], data.STYLE or "BAR", lambda v: [setattr(data, "STYLE", v), refresh()]))
-        self._append_row(inner, "Col. width", self._spin(data.COLUMN_WIDTH or 4,  1, 100, lambda s: [setattr(data, "COLUMN_WIDTH", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Col. gap",   self._spin(data.COLUMN_GAP   or 1,  0, 50,  lambda s: [setattr(data, "COLUMN_GAP",   int(s.get_value())), refresh()]))
-        self._append_row(inner, "Fill color", self._color_btn(data.FILL_COLOR, lambda c: [setattr(data, "FILL_COLOR", c), refresh()], "0,204,0"), expand=False)
-        self._append_row(inner, "Line color", self._color_btn(data.LINE_COLOR, lambda c: [setattr(data, "LINE_COLOR", c), refresh()], "0,255,0"), expand=False)
-        self._append_row(inner, "Border width", self._spin(data.BORDER_WIDTH or 0, 0, 20, lambda s: [setattr(data, "BORDER_WIDTH", int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Appearance"))
+        self._append_row(inner, _("Style"), self._dropdown(["BAR", "LINE"], data.STYLE or "BAR", lambda v: [setattr(data, "STYLE", v), refresh()]))
+        self._append_row(inner, _("Col. width"), self._spin(data.COLUMN_WIDTH or 4,  1, 100, lambda s: [setattr(data, "COLUMN_WIDTH", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Col. gap"),   self._spin(data.COLUMN_GAP   or 1,  0, 50,  lambda s: [setattr(data, "COLUMN_GAP",   int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Fill color"), self._color_btn(data.FILL_COLOR, lambda c: [setattr(data, "FILL_COLOR", c), refresh()], "0,204,0"), expand=False)
+        self._append_row(inner, _("Line color"), self._color_btn(data.LINE_COLOR, lambda c: [setattr(data, "LINE_COLOR", c), refresh()], "0,255,0"), expand=False)
+        self._append_row(inner, _("Border width"), self._spin(data.BORDER_WIDTH or 0, 0, 20, lambda s: [setattr(data, "BORDER_WIDTH", int(s.get_value())), refresh()]))
         self._content.append(exp)
 
     # ── Gauge ──────────────────────────────────────────────────────────────────
@@ -783,39 +783,39 @@ class PropertiesPanel(Gtk.Box):
             _move()
 
         # Position
-        exp, inner = self._expander("Position")
+        exp, inner = self._expander(_("Position"))
         self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), _move()])
         self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), _move()])
-        self._append_row(inner, "X (center)", self._x_spin)
-        self._append_row(inner, "Y (center)", self._y_spin)
+        self._append_row(inner, _("X (center)"), self._x_spin)
+        self._append_row(inner, _("Y (center)"), self._y_spin)
         self._content.append(exp)
 
         # Geometry
-        exp, inner = self._expander("Geometry")
-        self._append_row(inner, "Radius",       self._spin(data.RADIUS or 80,       10, 500,  lambda s: _resize_radius(int(s.get_value()))))
-        self._append_row(inner, "Needle width", self._spin(data.NEEDLE_WIDTH or 4,  1,  20,   lambda s: [setattr(data, "NEEDLE_WIDTH", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Min",          self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Max",          self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Geometry"))
+        self._append_row(inner, _("Radius"),       self._spin(data.RADIUS or 80,       10, 500,  lambda s: _resize_radius(int(s.get_value()))))
+        self._append_row(inner, _("Needle width"), self._spin(data.NEEDLE_WIDTH or 4,  1,  20,   lambda s: [setattr(data, "NEEDLE_WIDTH", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Min"),          self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Max"),          self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
         self._content.append(exp)
 
         # Angles
-        exp, inner = self._expander("Angles")
-        self._append_row(inner, "Start °", self._spin(data.ANGLE_START or -210, -360, 360, lambda s: [setattr(data, "ANGLE_START", int(s.get_value())), refresh()]))
-        self._append_row(inner, "End °",   self._spin(data.ANGLE_END   or  30,  -360, 360, lambda s: [setattr(data, "ANGLE_END",   int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Angles"))
+        self._append_row(inner, _("Start °"), self._spin(data.ANGLE_START or -210, -360, 360, lambda s: [setattr(data, "ANGLE_START", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("End °"),   self._spin(data.ANGLE_END   or  30,  -360, 360, lambda s: [setattr(data, "ANGLE_END",   int(s.get_value())), refresh()]))
         self._content.append(exp)
 
         # Appearance
-        exp, inner = self._expander("Appearance")
-        self._append_row(inner, "Needle color", self._color_btn(data.NEEDLE_COLOR, lambda c: [setattr(data, "NEEDLE_COLOR", c), refresh()], "255,0,0"), expand=False)
+        exp, inner = self._expander(_("Appearance"))
+        self._append_row(inner, _("Needle color"), self._color_btn(data.NEEDLE_COLOR, lambda c: [setattr(data, "NEEDLE_COLOR", c), refresh()], "255,0,0"), expand=False)
         self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "26,26,26", refresh)
         self._content.append(exp)
 
         # Center text
-        exp, inner = self._expander("Center text", expanded=False)
-        inner.append(self._toggle(bool(data.SHOW_TEXT), "Show text", lambda v: [setattr(data, "SHOW_TEXT", v), refresh()]))
-        inner.append(self._toggle(bool(data.SHOW_UNIT), "Show unit", lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
+        exp, inner = self._expander(_("Center text"), expanded=False)
+        inner.append(self._toggle(bool(data.SHOW_TEXT), _("Show text"), lambda v: [setattr(data, "SHOW_TEXT", v), refresh()]))
+        inner.append(self._toggle(bool(data.SHOW_UNIT), _("Show unit"), lambda v: [setattr(data, "SHOW_UNIT", v), refresh()]))
         self._font_row(inner, data, refresh)
-        self._append_row(inner, "Font color", self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
+        self._append_row(inner, _("Font color"), self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
         self._content.append(exp)
 
     # ── StatusBar ──────────────────────────────────────────────────────────────
@@ -832,25 +832,25 @@ class PropertiesPanel(Gtk.Box):
             refresh()
 
         # Position & Size
-        exp, inner = self._expander("Position & Size")
+        exp, inner = self._expander(_("Position & Size"))
         self._x_spin = self._spin(data.X, 0, 9999, lambda s: [setattr(data, "X", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
         self._y_spin = self._spin(data.Y, 0, 9999, lambda s: [setattr(data, "Y", int(s.get_value())), elem.set_position(data.X, data.Y), refresh()])
-        self._append_row(inner, "X", self._x_spin)
-        self._append_row(inner, "Y", self._y_spin)
-        self._append_row(inner, "Width",  self._spin(data.WIDTH  or 200, 10, 9999, lambda s: [setattr(data, "WIDTH",  int(s.get_value())), resize()]))
-        self._append_row(inner, "Height", self._spin(data.HEIGHT or 20,  4,  500,  lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
+        self._append_row(inner, _("X"), self._x_spin)
+        self._append_row(inner, _("Y"), self._y_spin)
+        self._append_row(inner, _("Width"),  self._spin(data.WIDTH  or 200, 10, 9999, lambda s: [setattr(data, "WIDTH",  int(s.get_value())), resize()]))
+        self._append_row(inner, _("Height"), self._spin(data.HEIGHT or 20,  4,  500,  lambda s: [setattr(data, "HEIGHT", int(s.get_value())), resize()]))
         self._content.append(exp)
 
         # Range
-        exp, inner = self._expander("Range")
-        self._append_row(inner, "Min", self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
-        self._append_row(inner, "Max", self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Range"))
+        self._append_row(inner, _("Min"), self._spin(data.MIN_VALUE or 0,   -9999, 9999, lambda s: [setattr(data, "MIN_VALUE", int(s.get_value())), refresh()]))
+        self._append_row(inner, _("Max"), self._spin(data.MAX_VALUE or 100, -9999, 9999, lambda s: [setattr(data, "MAX_VALUE", int(s.get_value())), refresh()]))
         self._content.append(exp)
 
         # Appearance
-        exp, inner = self._expander("Appearance")
-        self._append_row(inner, "Bar color",       self._color_btn(data.BAR_COLOR,       lambda c: [setattr(data, "BAR_COLOR",       c), refresh()], "0,255,0"),   expand=False)
-        self._append_row(inner, "Indicator color", self._color_btn(data.INDICATOR_COLOR, lambda c: [setattr(data, "INDICATOR_COLOR", c), refresh()], "255,255,255"), expand=False)
-        self._append_row(inner, "Indicator radius", self._spin(data.INDICATOR_RADIUS or 0, 0, 50, lambda s: [setattr(data, "INDICATOR_RADIUS", int(s.get_value())), refresh()]))
+        exp, inner = self._expander(_("Appearance"))
+        self._append_row(inner, _("Bar color"),       self._color_btn(data.BAR_COLOR,       lambda c: [setattr(data, "BAR_COLOR",       c), refresh()], "0,255,0"),   expand=False)
+        self._append_row(inner, _("Indicator color"), self._color_btn(data.INDICATOR_COLOR, lambda c: [setattr(data, "INDICATOR_COLOR", c), refresh()], "255,255,255"), expand=False)
+        self._append_row(inner, _("Indicator radius"), self._spin(data.INDICATOR_RADIUS or 0, 0, 50, lambda s: [setattr(data, "INDICATOR_RADIUS", int(s.get_value())), refresh()]))
         self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "26,26,26", refresh)
         self._content.append(exp)

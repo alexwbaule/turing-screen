@@ -8,6 +8,7 @@ import logging
 
 import yaml
 from gi.repository import Gtk, Adw
+from i18n import _
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class ConfigDialog(Gtk.Window):
 
     def __init__(self, parent):
         super().__init__(transient_for=parent, modal=True, destroy_with_parent=True)
-        self.set_title("Configurações")
+        self.set_title(_("Configuration"))
         self.set_default_size(540, 560)
 
         self._path = _config_path()
@@ -39,7 +40,7 @@ class ConfigDialog(Gtk.Window):
 
         # ── Header bar ──
         header = Gtk.HeaderBar()
-        save_btn = Gtk.Button(label="Salvar")
+        save_btn = Gtk.Button(label=_("Save"))
         save_btn.add_css_class("suggested-action")
         save_btn.connect("clicked", self._on_save)
         header.pack_end(save_btn)
@@ -49,10 +50,10 @@ class ConfigDialog(Gtk.Window):
         notebook = Gtk.Notebook()
         notebook.set_tab_pos(Gtk.PositionType.TOP)
 
-        notebook.append_page(self._page_geral(dev),    Gtk.Label(label="Geral"))
-        notebook.append_page(self._page_display(dev),  Gtk.Label(label="Display"))
-        notebook.append_page(self._page_sensores(dev), Gtk.Label(label="Sensores"))
-        notebook.append_page(self._page_clima(dev),    Gtk.Label(label="Clima"))
+        notebook.append_page(self._page_geral(dev),    Gtk.Label(label=_("General")))
+        notebook.append_page(self._page_display(dev),  Gtk.Label(label=_("Display")))
+        notebook.append_page(self._page_sensores(dev), Gtk.Label(label=_("Sensors")))
+        notebook.append_page(self._page_clima(dev),    Gtk.Label(label=_("Climate")))
 
         self.set_child(notebook)
 
@@ -144,27 +145,27 @@ class ConfigDialog(Gtk.Window):
     # ------------------------------------------------------------------
 
     def _page_geral(self, dev) -> Gtk.ScrolledWindow:
-        g = self._group("Geral")
-        self._r_port = self._entry(dev, "port", "Porta Serial")
+        g = self._group(_("General"))
+        self._r_port = self._entry(dev, "port", _("Serial Port"))
         self._r_port.set_text(str(dev.get("port", "AUTO")))
-        self._r_api = self._spin(dev, "api_port", "API Port", 1, 65535)
+        self._r_api = self._spin(dev, "api_port", _("API Port"), 1, 65535)
         self._r_api.set_value(int(dev.get("api_port", 9120)))
-        self._r_log = self._combo(dev, "log", "Log Level", self.LOG_LEVELS)
-        self._r_tur = self._switch(dev, "turn_off_on_exit", "Desligar display ao sair")
+        self._r_log = self._combo(dev, "log", _("Log Level"), self.LOG_LEVELS)
+        self._r_tur = self._switch(dev, "turn_off_on_exit", _("Turn off display on exit"))
         for r in (self._r_port, self._r_api, self._r_log, self._r_tur):
             g.add(r)
         return self._scrolled(g)
 
     def _page_display(self, dev) -> Gtk.ScrolledWindow:
-        g = self._group("Display")
+        g = self._group(_("Display"))
         disp = dev.setdefault("display", {})
-        self._r_bright = self._spin(disp, "brightness", "Brilho", 0, 100)
+        self._r_bright = self._spin(disp, "brightness", _("Brightness"), 0, 100)
         self._r_bright.set_value(int(disp.get("brightness", 25)))
-        self._r_w = self._spin(disp, "width", "Largura (px)", 1, 4096)
+        self._r_w = self._spin(disp, "width", _("Width (px)"), 1, 4096)
         self._r_w.set_value(int(disp.get("width", 1280)))
-        self._r_h = self._spin(disp, "height", "Altura (px)", 1, 4096)
+        self._r_h = self._spin(disp, "height", _("Height (px)"), 1, 4096)
         self._r_h.set_value(int(disp.get("height", 720)))
-        self._r_rev = self._switch(disp, "reverse", "Inverter orientação")
+        self._r_rev = self._switch(disp, "reverse", _("Reverse orientation"))
         for r in (self._r_bright, self._r_w, self._r_h, self._r_rev):
             g.add(r)
         return self._scrolled(g)
@@ -176,10 +177,10 @@ class ConfigDialog(Gtk.Window):
 
         # CPU
         cpu = sensors.setdefault("cpu", {})
-        gcpu = self._group("CPU")
-        self._r_cpu_int = self._entry(cpu, "interval", "Intervalo")
+        gcpu = self._group(_("CPU"))
+        self._r_cpu_int = self._entry(cpu, "interval", _("Interval"))
         self._r_cpu_int.set_text(str(cpu.get("interval", "1s")))
-        self._r_cpu_temp = self._entry(cpu, "temperature_sensor", "Sensor de Temperatura")
+        self._r_cpu_temp = self._entry(cpu, "temperature_sensor", _("Temperature Sensor"))
         self._r_cpu_temp.set_text(str(cpu.get("temperature_sensor", "auto")))
         gcpu.add(self._r_cpu_int)
         gcpu.add(self._r_cpu_temp)
@@ -187,28 +188,28 @@ class ConfigDialog(Gtk.Window):
 
         # GPU
         gpu = sensors.setdefault("gpu", {})
-        ggpu = self._group("GPU")
-        self._r_gpu_int = self._entry(gpu, "interval", "Intervalo")
+        ggpu = self._group(_("GPU"))
+        self._r_gpu_int = self._entry(gpu, "interval", _("Interval"))
         self._r_gpu_int.set_text(str(gpu.get("interval", "1s")))
-        self._r_gpu_prov = self._combo(gpu, "provider", "Provider", self.GPU_PROVIDERS)
+        self._r_gpu_prov = self._combo(gpu, "provider", _("Provider"), self.GPU_PROVIDERS)
         ggpu.add(self._r_gpu_int)
         ggpu.add(self._r_gpu_prov)
         box.append(ggpu)
 
         # Memória
         mem = sensors.setdefault("memory", {})
-        gmem = self._group("Memória")
-        self._r_mem_int = self._entry(mem, "interval", "Intervalo")
+        gmem = self._group(_("Memory"))
+        self._r_mem_int = self._entry(mem, "interval", _("Interval"))
         self._r_mem_int.set_text(str(mem.get("interval", "5s")))
         gmem.add(self._r_mem_int)
         box.append(gmem)
 
         # Disco
         disk = sensors.setdefault("disk", {})
-        gdisk = self._group("Disco")
-        self._r_disk_int = self._entry(disk, "interval", "Intervalo")
+        gdisk = self._group(_("Disk"))
+        self._r_disk_int = self._entry(disk, "interval", _("Interval"))
         self._r_disk_int.set_text(str(disk.get("interval", "10s")))
-        self._r_disk_temp = self._entry(disk, "temperature_sensor", "Sensor de Temperatura")
+        self._r_disk_temp = self._entry(disk, "temperature_sensor", _("Temperature Sensor"))
         self._r_disk_temp.set_text(str(disk.get("temperature_sensor", "auto")))
         gdisk.add(self._r_disk_int)
         gdisk.add(self._r_disk_temp)
@@ -216,12 +217,12 @@ class ConfigDialog(Gtk.Window):
 
         # Rede
         net = sensors.setdefault("network", {})
-        gnet = self._group("Rede")
-        self._r_eth = self._entry(net, "eth", "Interface Cabeada")
+        gnet = self._group(_("Network"))
+        self._r_eth = self._entry(net, "eth", _("Wired Interface"))
         self._r_eth.set_text(str(net.get("eth", "enp3s0")))
-        self._r_wlo = self._entry(net, "wlo", "Interface Wi-Fi")
+        self._r_wlo = self._entry(net, "wlo", _("Wi-Fi Interface"))
         self._r_wlo.set_text(str(net.get("wlo", "wlp4s0")))
-        self._r_net_int = self._entry(net, "interval", "Intervalo")
+        self._r_net_int = self._entry(net, "interval", _("Interval"))
         self._r_net_int.set_text(str(net.get("interval", "1s")))
         gnet.add(self._r_eth)
         gnet.add(self._r_wlo)
@@ -233,11 +234,11 @@ class ConfigDialog(Gtk.Window):
     def _page_clima(self, dev) -> Gtk.ScrolledWindow:
         sensors = dev.setdefault("sensors", {})
         weather = sensors.setdefault("weather", {})
-        g = self._group("Clima")
-        self._r_w_en = self._switch(weather, "enabled", "Habilitar clima")
-        self._r_w_city = self._entry(weather, "city", "Cidade")
+        g = self._group(_("Climate"))
+        self._r_w_en = self._switch(weather, "enabled", _("Enable weather"))
+        self._r_w_city = self._entry(weather, "city", _("City"))
         self._r_w_city.set_text(str(weather.get("city", "São Paulo,BR")))
-        self._r_w_int = self._entry(weather, "interval", "Intervalo")
+        self._r_w_int = self._entry(weather, "interval", _("Interval"))
         self._r_w_int.set_text(str(weather.get("interval", "30m")))
         for r in (self._r_w_en, self._r_w_city, self._r_w_int):
             g.add(r)
@@ -279,7 +280,7 @@ class ConfigDialog(Gtk.Window):
 
         if self._save_yaml():
             self.close()
-            self._info("Configurações", "Salvo. Reinicie o daemon para aplicar as alterações.")
+            self._info(_("Configuration"), _("Saved. Restart the daemon to apply changes."))
 
     def _info(self, heading, body):
         dlg = Adw.AlertDialog()

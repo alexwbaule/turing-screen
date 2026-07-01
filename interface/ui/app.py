@@ -6,6 +6,7 @@ import logging
 
 from gi.repository import Gtk, Adw, GLib, Gio, Gdk
 
+from i18n import _
 from ws_client import WSClient
 from ui.home import HomePage, preview_write_path
 from ui.canvas import ThemeCanvas
@@ -158,12 +159,12 @@ class EditorApp:
         menu_model = Gio.Menu()
 
         s1 = Gio.Menu()
-        s1.append("Mostrar / Ocultar", "app.hide")
+        s1.append(_("Show / Hide"), "app.hide")
         menu_model.append_section(None, s1)
 
         s2 = Gio.Menu()
-        s2.append("Finalizar", "app.quit")
-        s2.append("Finalizar e Desligar", "app.quit_off")
+        s2.append(_("Quit"), "app.quit")
+        s2.append(_("Quit and Turn Off"), "app.quit_off")
         menu_model.append_section(None, s2)
 
         # Ancora o popover no conteúdo da janela principal
@@ -224,16 +225,16 @@ class EditorApp:
         yaml_path = os.path.join(theme_dir, "theme.yaml")
 
         if not os.path.isdir(theme_dir):
-            self._show_error(f"Diretório do tema não encontrado:\n{theme_dir}")
+            self._show_error(f"{_('Theme directory not found:')}\n{theme_dir}")
             return
         if not os.path.exists(yaml_path):
-            self._show_error(f"theme.yaml não encontrado em:\n{theme_dir}")
+            self._show_error(f"{_('theme.yaml not found in:')}\n{theme_dir}")
             return
 
         try:
             theme = Theme.load(yaml_path)
         except Exception as e:
-            self._show_error(f"Falha ao carregar tema:\n{e}")
+            self._show_error(f"{_('Failed to load theme:')}\n{e}")
             return
 
         self._current_theme = theme
@@ -257,7 +258,7 @@ class EditorApp:
 
     def _build_editor_window(self):
         self._editor_window = Gtk.ApplicationWindow(application=self._app)
-        self._editor_window.set_title("Theme Editor")
+        self._editor_window.set_title(_("Theme Editor"))
         self._editor_window.connect("close-request", self._on_editor_close)
         self._register_editor_actions()
 
@@ -304,17 +305,16 @@ class EditorApp:
         header = Gtk.HeaderBar()
         header.set_show_title_buttons(True)
 
-        save_btn = Gtk.Button(label="Salvar")
+        save_btn = Gtk.Button(label=_("Save"))
         save_btn.add_css_class("suggested-action")
         save_btn.connect("clicked", self._on_save)
         header.pack_end(save_btn)
 
-        # Menus Arquivo e Editar (equivalente ao buildMainMenu do Go)
-        arquivo_btn = Gtk.MenuButton(label="Arquivo")
+        arquivo_btn = Gtk.MenuButton(label=_("File_menu"))
         arquivo_btn.set_popover(self._build_editor_arquivo_menu())
         header.pack_start(arquivo_btn)
 
-        editar_btn = Gtk.MenuButton(label="Editar")
+        editar_btn = Gtk.MenuButton(label=_("Edit"))
         editar_btn.set_popover(self._build_editor_editar_menu())
         header.pack_start(editar_btn)
 
@@ -352,27 +352,27 @@ class EditorApp:
     def _build_editor_arquivo_menu(self) -> Gtk.PopoverMenu:
         menu = Gio.Menu()
         s1 = Gio.Menu()
-        s1.append("Novo Tema", "win.new_theme")
-        s1.append("Abrir Tema...", "win.open_theme")
+        s1.append(_("New Theme"), "win.new_theme")
+        s1.append(_("Open Theme..."), "win.open_theme")
         menu.append_section(None, s1)
         s2 = Gio.Menu()
-        s2.append("Salvar", "win.save")
-        s2.append("Salvar Como...", "win.save_as")
+        s2.append(_("Save"), "win.save")
+        s2.append(_("Save As..."), "win.save_as")
         menu.append_section(None, s2)
         s3 = Gio.Menu()
-        s3.append("Fechar Tema", "win.close_theme")
-        s3.append("Fechar Editor", "win.close_editor")
+        s3.append(_("Close Theme"), "win.close_theme")
+        s3.append(_("Close Editor"), "win.close_editor")
         menu.append_section(None, s3)
         return Gtk.PopoverMenu.new_from_model(menu)
 
     def _build_editor_editar_menu(self) -> Gtk.PopoverMenu:
         menu = Gio.Menu()
         bg = Gio.Menu()
-        bg.append("Adicionar Imagem", "win.bg_image")
-        bg.append("Adicionar Vídeo", "win.bg_video")
-        menu.append_submenu("Background", bg)
+        bg.append(_("Add Image"), "win.bg_image")
+        bg.append(_("Add Video"), "win.bg_video")
+        menu.append_submenu(_("Background"), bg)
         sep = Gio.Menu()
-        sep.append("Excluir Componente", "win.delete_comp")
+        sep.append(_("Delete Component"), "win.delete_comp")
         menu.append_section(None, sep)
         return Gtk.PopoverMenu.new_from_model(menu)
 
@@ -384,13 +384,13 @@ class EditorApp:
         if self._canvas:
             self._canvas.load_theme(self._current_theme, "")
         if self._editor_window:
-            self._editor_window.set_title("Editor — Novo Tema")
+            self._editor_window.set_title(_("Editor — New Theme"))
 
     def _editor_open_theme(self):
         dialog = Gtk.FileDialog()
-        dialog.set_title("Abrir Tema")
+        dialog.set_title(_("Open Theme"))
         f = Gtk.FileFilter()
-        f.set_name("YAML (*.yaml, *.yml)")
+        f.set_name(_("YAML files (*.yaml, *.yml)"))
         f.add_pattern("*.yaml")
         f.add_pattern("*.yml")
         store = Gio.ListStore.new(Gtk.FileFilter)
@@ -409,7 +409,7 @@ class EditorApp:
         try:
             theme = Theme.load(yaml_path)
         except Exception as e:
-            self._show_error(f"Falha ao abrir tema:\n{e}")
+            self._show_error(f"{_('Failed to open theme:')}\n{e}")
             return
         self._current_theme = theme
         self._theme_dir = os.path.dirname(yaml_path)
@@ -421,7 +421,7 @@ class EditorApp:
 
     def _editor_save_as(self):
         dialog = Gtk.FileDialog()
-        dialog.set_title("Salvar Como")
+        dialog.set_title(_("Save As"))
         dialog.set_initial_name("theme.yaml")
         dialog.save(self._editor_window, None, self._on_save_as_done)
 
@@ -450,18 +450,18 @@ class EditorApp:
                     log.warning("Falha ao gerar preview: %s", ex)
             if self._home:
                 self._home.notify_theme_list_dirty()
-            self._toast(f"Salvo em {os.path.basename(path)}")
+            self._toast(f"{_('Save As')} {os.path.basename(path)}")
         except Exception as e:
-            self._show_error(f"Falha ao salvar:\n{e}")
+            self._show_error(f"{_('Failed to save:')}\n{e}")
 
     def _editor_close_theme(self):
         self._editor_new_theme()
 
     def _editor_add_bg_image(self):
         dialog = Gtk.FileDialog()
-        dialog.set_title("Selecionar Imagem de Fundo")
+        dialog.set_title(_("Select Background Image"))
         f = Gtk.FileFilter()
-        f.set_name("PNG")
+        f.set_name(_("PNG files"))
         f.add_pattern("*.png")
         store = Gio.ListStore.new(Gtk.FileFilter)
         store.append(f)
@@ -477,7 +477,7 @@ class EditorApp:
             self._canvas.add_background_layer(file.get_path())
 
     def _editor_add_bg_video(self):
-        self._toast("Vídeo de fundo ainda não suportado nesta versão.")
+        self._toast(_("Background video not supported in this version."))
 
     # ------------------------------------------------------------------
     # GActions (menu do HomePage)
@@ -492,10 +492,10 @@ class EditorApp:
         _action("hide",           lambda *_: self._on_main_close(self._main_window))
         _action("quit",           lambda *_: app.quit())
         _action("quit_off",       self._on_quit_off)
-        _action("dev_restart",    lambda *_: self._ws_cmd("device.restart",  "Reiniciando..."))
-        _action("dev_reboot",     lambda *_: self._ws_cmd("device.reboot",   "Rebooting..."))
-        _action("dev_reset",      lambda *_: self._ws_cmd("device.reset",    "Resetando USB..."))
-        _action("dev_turnoff",    lambda *_: self._ws_cmd("device.turnoff",  "Desligando..."))
+        _action("dev_restart",    lambda *_: self._ws_cmd("device.restart",  _("Restarting...")))
+        _action("dev_reboot",     lambda *_: self._ws_cmd("device.reboot",   _("Rebooting...")))
+        _action("dev_reset",      lambda *_: self._ws_cmd("device.reset",    _("Resetting USB...")))
+        _action("dev_turnoff",    lambda *_: self._ws_cmd("device.turnoff",  _("Turning off...")))
         _action("settings",       lambda *_: self._show_config())
         _action("delete_widget",  lambda *_: self.delete_selected_widget())
 
@@ -514,7 +514,7 @@ class EditorApp:
 
     def _on_ws_cmd_done(self, payload, error):
         if self._home:
-            msg = f"⚠ Erro: {error}" if error else "✓ Concluído"
+            msg = f"⚠ {error}" if error else f"✓ {_('Done')}"
             self._home._status_label.set_label(msg)
 
     # ------------------------------------------------------------------
@@ -540,10 +540,10 @@ class EditorApp:
             return
         elem = self._canvas._selected
         dialog = Adw.AlertDialog()
-        dialog.set_heading("Excluir Componente")
-        dialog.set_body(f"Excluir '{elem.yaml_path}'?")
-        dialog.add_response("cancel", "Cancelar")
-        dialog.add_response("delete", "Excluir")
+        dialog.set_heading(_("Delete Component"))
+        dialog.set_body(f"'{elem.yaml_path}'")
+        dialog.add_response("cancel", _("Cancel"))
+        dialog.add_response("delete", _("Delete"))
         dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
         dialog.connect(
             "response",
@@ -579,9 +579,9 @@ class EditorApp:
             if self._home:
                 self._home.notify_theme_list_dirty()
             log.info("Tema salvo em %s", path)
-            self._toast("Tema salvo com sucesso.")
+            self._toast(_("Theme saved successfully."))
         except Exception as e:
-            self._show_error(f"Falha ao salvar:\n{e}")
+            self._show_error(f"{_('Failed to save:')}\n{e}")
 
     # ------------------------------------------------------------------
     # Helpers
@@ -589,7 +589,7 @@ class EditorApp:
 
     def _show_error(self, msg: str):
         dialog = Adw.AlertDialog()
-        dialog.set_heading("Erro")
+        dialog.set_heading(_("Error"))
         dialog.set_body(msg)
         dialog.add_response("ok", "OK")
         parent = self._editor_window or self._main_window

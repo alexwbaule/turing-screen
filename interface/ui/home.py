@@ -18,6 +18,8 @@ import threading
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GLib, Adw, Gio
 
+from i18n import _
+
 log = logging.getLogger(__name__)
 
 
@@ -91,7 +93,7 @@ class HomePage:
         # Menu button (hambúrguer) — equivalente ao MainMenu do Go
         menu_btn = Gtk.MenuButton()
         menu_btn.set_icon_name("open-menu-symbolic")
-        menu_btn.set_tooltip_text("Menu")
+        menu_btn.set_tooltip_text(_("Menu"))
         menu_btn.set_popover(self._build_menu_popover())
         hb.pack_start(menu_btn)
 
@@ -147,7 +149,7 @@ class HomePage:
 
         preview_overlay.set_child(preview_bg)
 
-        self._preview_placeholder = Gtk.Label(label="Nenhum tema encontrado")
+        self._preview_placeholder = Gtk.Label(label=_("No theme found"))
         self._preview_placeholder.add_css_class("dim-label")
         self._preview_placeholder.set_halign(Gtk.Align.CENTER)
         self._preview_placeholder.set_valign(Gtk.Align.CENTER)
@@ -178,26 +180,26 @@ class HomePage:
         actions.set_margin_top(8)
         actions.set_margin_bottom(8)
 
-        self._new_theme_btn = Gtk.Button(label="Novo Tema")
-        self._new_theme_btn.set_tooltip_text("Criar um novo tema em branco")
+        self._new_theme_btn = Gtk.Button(label=_("New Theme"))
+        self._new_theme_btn.set_tooltip_text(_("Create a new blank theme"))
         self._new_theme_btn.connect("clicked", self._on_new_theme)
         actions.append(self._new_theme_btn)
 
-        self._activate_btn = Gtk.Button(label="Ativar")
+        self._activate_btn = Gtk.Button(label=_("Activate"))
         self._activate_btn.add_css_class("suggested-action")
         self._activate_btn.set_sensitive(False)
         self._activate_btn.connect("clicked", self._on_activate)
         actions.append(self._activate_btn)
 
-        self._edit_btn = Gtk.Button(label="Editar Tema")
+        self._edit_btn = Gtk.Button(label=_("Edit Theme"))
         self._edit_btn.set_sensitive(False)
         self._edit_btn.connect("clicked", self._on_open_editor)
         actions.append(self._edit_btn)
 
-        self._delete_btn = Gtk.Button(label="Excluir")
+        self._delete_btn = Gtk.Button(label=_("Delete"))
         self._delete_btn.add_css_class("destructive-action")
         self._delete_btn.set_sensitive(False)
-        self._delete_btn.set_tooltip_text("Apagar o tema do disco (não pode ser desfeito)")
+        self._delete_btn.set_tooltip_text(_("Delete theme from disk (cannot be undone)"))
         self._delete_btn.connect("clicked", self._on_delete)
         actions.append(self._delete_btn)
 
@@ -211,20 +213,20 @@ class HomePage:
         footer.set_margin_top(6)
         footer.set_margin_bottom(8)
 
-        self._play_btn = Gtk.Button(label="Play")
-        self._play_btn.set_child(self._icon_label("media-playback-start-symbolic", "Play"))
+        self._play_btn = Gtk.Button(label=_("Play"))
+        self._play_btn.set_child(self._icon_label("media-playback-start-symbolic", _("Play")))
         self._play_btn.set_sensitive(False)
         self._play_btn.connect("clicked", self._on_play)
         footer.append(self._play_btn)
 
-        self._stop_btn = Gtk.Button(label="Stop")
-        self._stop_btn.set_child(self._icon_label("media-playback-stop-symbolic", "Stop"))
+        self._stop_btn = Gtk.Button(label=_("Stop"))
+        self._stop_btn.set_child(self._icon_label("media-playback-stop-symbolic", _("Stop")))
         self._stop_btn.set_sensitive(False)
         self._stop_btn.connect("clicked", self._on_stop)
         footer.append(self._stop_btn)
 
-        self._storage_btn = Gtk.Button(label="Storage")
-        self._storage_btn.set_child(self._icon_label("drive-harddisk-symbolic", "Storage"))
+        self._storage_btn = Gtk.Button(label=_("Storage"))
+        self._storage_btn.set_child(self._icon_label("drive-harddisk-symbolic", _("Storage")))
         self._storage_btn.set_sensitive(False)
         self._storage_btn.connect("clicked", self._on_storage)
         footer.append(self._storage_btn)
@@ -233,7 +235,7 @@ class HomePage:
         spacer.set_hexpand(True)
         footer.append(spacer)
 
-        self._status_label = Gtk.Label(label="Verificando...")
+        self._status_label = Gtk.Label(label=_("Checking..."))
         self._status_label.add_css_class("caption")
         footer.append(self._status_label)
 
@@ -252,33 +254,33 @@ class HomePage:
         """Equivalente ao buildHomeMenu() do Go."""
         menu = Gio.Menu()
 
-        # Arquivo
+        # File
         arquivo = Gio.Menu()
         s_hide = Gio.Menu()
-        s_hide.append("Ocultar janela", "app.hide")
+        s_hide.append(_("Hide window"), "app.hide")
         arquivo.append_section(None, s_hide)
         s_quit = Gio.Menu()
-        s_quit.append("Finalizar", "app.quit")
-        s_quit.append("Finalizar e Desligar", "app.quit_off")
+        s_quit.append(_("Quit"), "app.quit")
+        s_quit.append(_("Quit and Turn Off"), "app.quit_off")
         arquivo.append_section(None, s_quit)
-        menu.append_submenu("Arquivo", arquivo)
+        menu.append_submenu(_("File"), arquivo)
 
-        # Device — espelho exato do buildHomeMenu do Go
+        # Device
         device = Gio.Menu()
         s_dev = Gio.Menu()
-        s_dev.append("Reiniciar", "app.dev_restart")
-        s_dev.append("Reboot", "app.dev_reboot")
-        s_dev.append("Reset USB", "app.dev_reset")
+        s_dev.append(_("Restart"), "app.dev_restart")
+        s_dev.append(_("Reboot"), "app.dev_reboot")
+        s_dev.append(_("Reset USB"), "app.dev_reset")
         device.append_section(None, s_dev)
         s_off = Gio.Menu()
-        s_off.append("Desligar", "app.dev_turnoff")
+        s_off.append(_("Turn Off"), "app.dev_turnoff")
         device.append_section(None, s_off)
-        menu.append_submenu("Device", device)
+        menu.append_submenu(_("Device"), device)
 
-        # Configurações
+        # Settings
         cfg = Gio.Menu()
-        cfg.append("Configurações...", "app.settings")
-        menu.append_submenu("Configurações", cfg)
+        cfg.append(_("Settings..."), "app.settings")
+        menu.append_submenu(_("Settings"), cfg)
 
         return Gtk.PopoverMenu.new_from_model(menu)
 
@@ -310,7 +312,7 @@ class HomePage:
 
     def _update_display(self):
         if not self._themes:
-            self._theme_label.set_label("Nenhum tema encontrado")
+            self._theme_label.set_label(_("No theme found"))
             self._activate_btn.set_sensitive(False)
             self._edit_btn.set_sensitive(False)
             self._delete_btn.set_sensitive(False)
@@ -326,15 +328,15 @@ class HomePage:
         is_active = name == self._active_theme
         self._delete_btn.set_sensitive(not is_active)
         self._delete_btn.set_tooltip_text(
-            "Ative outro tema antes de excluir este." if is_active
-            else "Apagar o tema do disco (não pode ser desfeito)"
+            _("Activate another theme before deleting this one.") if is_active
+            else _("Delete theme from disk (cannot be undone)")
         )
 
         if name == self._active_theme:
-            self._activate_btn.set_label("Ativo")
+            self._activate_btn.set_label(_("Active"))
             self._activate_btn.set_sensitive(False)
         else:
-            self._activate_btn.set_label("Ativar")
+            self._activate_btn.set_label(_("Activate"))
             self._activate_btn.set_sensitive(self._connected)
 
         self._active_label.set_label(
@@ -389,7 +391,7 @@ class HomePage:
             self._preview_placeholder.set_visible(False)
             self._preview_pic.set_paintable(texture)
         else:
-            self._preview_placeholder.set_label(f"Sem preview para\n'{name}'")
+            self._preview_placeholder.set_label(f"{_('No preview for')}\n'{name}'")
             self._preview_placeholder.set_visible(True)
 
     # ------------------------------------------------------------------
@@ -405,9 +407,9 @@ class HomePage:
     def _on_connection(self, connected: bool):
         self._connected = connected
         if connected:
-            self._status_label.set_label("🟢 Conectado")
+            self._status_label.set_label(f"🟢 {_('Connected')}")
         else:
-            self._status_label.set_label("⚫ Desconectado")
+            self._status_label.set_label(f"⚫ {_('Disconnected')}")
             self._last_mode = ""
             self._set_buttons_disconnected()
 
@@ -423,7 +425,7 @@ class HomePage:
         if mode == "editor":
             self._status_label.set_label(f"🟢 ⏸ {theme} | {uptime}")
         elif mode == "starting":
-            self._status_label.set_label(f"🟢 ⏳ Aguardando device... | {uptime}")
+            self._status_label.set_label(f"🟢 ⏳ {_('Waiting for device...')} | {uptime}")
         else:
             self._status_label.set_label(f"🟢 ▶ {theme} | {uptime}")
 
@@ -477,7 +479,7 @@ class HomePage:
             return
         name = self._themes[self._current_index]
         self._active_theme = name
-        self._status_label.set_label(f"⏳ Aplicando: {name}...")
+        self._status_label.set_label(f"⏳ {_('Applying')}: {name}...")
         self._update_display()
         self._ws.send("theme.apply", {"name": name})
 
@@ -488,17 +490,17 @@ class HomePage:
 
     def _on_new_theme(self, _btn):
         dlg = Adw.AlertDialog()
-        dlg.set_heading("Novo tema")
-        dlg.set_body("Nome do novo tema:")
+        dlg.set_heading(_("New theme"))
+        dlg.set_body(_("New theme name:"))
         entry = Gtk.Entry()
-        entry.set_placeholder_text("ex: MeuTema")
+        entry.set_placeholder_text(_("e.g. MyTheme"))
         try:
             dlg.set_extra_child(entry)
         except AttributeError:
             # Older libadwaita without extra_child — fall back to body-only.
             pass
-        dlg.add_response("cancel", "Cancelar")
-        dlg.add_response("create", "Criar")
+        dlg.add_response("cancel", _("Cancel"))
+        dlg.add_response("create", _("Create"))
         dlg.set_response_appearance("create", Adw.ResponseAppearance.SUGGESTED)
         try:
             dlg.set_default_response("create")
@@ -519,13 +521,13 @@ class HomePage:
         # Sanitize: letters, digits, spaces, dash, underscore only.
         clean = re.sub(r"[^\w\- ]", "", name).strip()
         if not clean:
-            self._show_message("Nome inválido",
-                               "Informe um nome válido para o tema.")
+            self._show_message(_("Invalid name"),
+                               _("Enter a valid name for the theme."))
             return
         theme_dir = os.path.join(self._themes_base, clean)
         if os.path.exists(theme_dir):
-            self._show_message("Já existe",
-                               f"Já existe um tema chamado '{clean}'.")
+            self._show_message(_("Already exists"),
+                               f"'{clean}'")
             return
         try:
             os.makedirs(theme_dir, exist_ok=True)
@@ -533,7 +535,7 @@ class HomePage:
                                           WIDTH=1280, HEIGHT=720))
             theme.save(os.path.join(theme_dir, "theme.yaml"))
         except Exception as e:
-            self._show_message("Falha ao criar",
+            self._show_message(_("Failed to create"),
                                f"{e}\n\nVerifique as permissões em {self._themes_base}.")
             return
         log.info("Novo tema criado: %s", theme_dir)
@@ -562,13 +564,12 @@ class HomePage:
             return  # button is disabled in this case; defensive guard
 
         dlg = Adw.AlertDialog()
-        dlg.set_heading("Excluir tema")
+        dlg.set_heading(_("Delete theme"))
         dlg.set_body(
-            f"Excluir o tema '{name}' e todos os seus arquivos em "
-            f"res/themes/{name}?\n\nEsta ação não pode ser desfeita."
+            f"'{name}'\nres/themes/{name}"
         )
-        dlg.add_response("cancel", "Cancelar")
-        dlg.add_response("delete", "Excluir")
+        dlg.add_response("cancel", _("Cancel"))
+        dlg.add_response("delete", _("Delete"))
         dlg.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
         dlg.connect("response",
                     lambda d, r: self._do_delete(name) if r == "delete" else None)
@@ -583,8 +584,8 @@ class HomePage:
             shutil.rmtree(theme_dir)
         except Exception as e:
             err = Adw.AlertDialog()
-            err.set_heading("Falha ao excluir")
-            err.set_body(f"{e}\n\nVerifique as permissões em {self._themes_base}.")
+            err.set_heading(_("Failed to delete"))
+            err.set_body(f"{e}\n\n{self._themes_base}")
             err.add_response("ok", "OK")
             parent = self._toolbar_view.get_root()
             if parent:

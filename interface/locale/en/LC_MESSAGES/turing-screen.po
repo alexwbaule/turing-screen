@@ -1,0 +1,679 @@
+# Turing Screen — English
+# Copyright (C) 2024 Alex W Baulé
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: turing-screen\n"
+"PO-Revision-Date: 2026-06-29 00:00+0000\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "No theme found"
+msgstr "No theme found"
+
+msgid "New Theme"
+msgstr "New Theme"
+
+msgid "Create a new blank theme"
+msgstr "Create a new blank theme"
+
+msgid "Activate"
+msgstr "Activate"
+
+msgid "Edit Theme"
+msgstr "Edit Theme"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Delete theme from disk (cannot be undone)"
+msgstr "Delete theme from disk (cannot be undone)"
+
+msgid "Play"
+msgstr "Play"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Storage"
+msgstr "Storage"
+
+msgid "Checking..."
+msgstr "Checking..."
+
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Hide window"
+msgstr "Hide window"
+
+msgid "Quit"
+msgstr "Quit"
+
+msgid "Quit and Turn Off"
+msgstr "Quit and Turn Off"
+
+msgid "File"
+msgstr "File"
+
+msgid "Restart"
+msgstr "Restart"
+
+msgid "Reboot"
+msgstr "Reboot"
+
+msgid "Reset USB"
+msgstr "Reset USB"
+
+msgid "Turn Off"
+msgstr "Turn Off"
+
+msgid "Device"
+msgstr "Device"
+
+msgid "Settings..."
+msgstr "Settings..."
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Connected"
+msgstr "Connected"
+
+msgid "Disconnected"
+msgstr "Disconnected"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Activate another theme before deleting this one."
+msgstr "Activate another theme before deleting this one."
+
+msgid "New theme"
+msgstr "New theme"
+
+msgid "New theme name:"
+msgstr "New theme name:"
+
+msgid "e.g. MyTheme"
+msgstr "e.g. MyTheme"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Create"
+msgstr "Create"
+
+msgid "Invalid name"
+msgstr "Invalid name"
+
+msgid "Enter a valid name for the theme."
+msgstr "Enter a valid name for the theme."
+
+msgid "Already exists"
+msgstr "Already exists"
+
+msgid "Failed to create"
+msgstr "Failed to create"
+
+msgid "Delete theme"
+msgstr "Delete theme"
+
+msgid "Failed to delete"
+msgstr "Failed to delete"
+
+msgid "No preview for"
+msgstr "No preview for"
+
+msgid "Waiting for device..."
+msgstr "Waiting for device..."
+
+msgid "Applying"
+msgstr "Applying"
+
+msgid "Save"
+msgstr "Save"
+
+msgid "File_menu"
+msgstr "File"
+
+msgid "Edit"
+msgstr "Edit"
+
+msgid "Theme Editor"
+msgstr "Theme Editor"
+
+msgid "Editor — New Theme"
+msgstr "Editor — New Theme"
+
+msgid "Open Theme..."
+msgstr "Open Theme..."
+
+msgid "Save As..."
+msgstr "Save As..."
+
+msgid "Close Theme"
+msgstr "Close Theme"
+
+msgid "Close Editor"
+msgstr "Close Editor"
+
+msgid "Add Image"
+msgstr "Add Image"
+
+msgid "Add Video"
+msgstr "Add Video"
+
+msgid "Background"
+msgstr "Background"
+
+msgid "Delete Component"
+msgstr "Delete Component"
+
+msgid "Show / Hide"
+msgstr "Show / Hide"
+
+msgid "Open Theme"
+msgstr "Open Theme"
+
+msgid "YAML files (*.yaml, *.yml)"
+msgstr "YAML files (*.yaml, *.yml)"
+
+msgid "Save As"
+msgstr "Save As"
+
+msgid "Select Background Image"
+msgstr "Select Background Image"
+
+msgid "PNG files"
+msgstr "PNG files"
+
+msgid "Background video not supported in this version."
+msgstr "Background video not supported in this version."
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Theme saved successfully."
+msgstr "Theme saved successfully."
+
+msgid "Restarting..."
+msgstr "Restarting..."
+
+msgid "Rebooting..."
+msgstr "Rebooting..."
+
+msgid "Resetting USB..."
+msgstr "Resetting USB..."
+
+msgid "Turning off..."
+msgstr "Turning off..."
+
+msgid "Done"
+msgstr "Done"
+
+msgid "Theme directory not found:"
+msgstr "Theme directory not found:"
+
+msgid "theme.yaml not found in:"
+msgstr "theme.yaml not found in:"
+
+msgid "Failed to load theme:"
+msgstr "Failed to load theme:"
+
+msgid "Failed to open theme:"
+msgstr "Failed to open theme:"
+
+msgid "Failed to save:"
+msgstr "Failed to save:"
+
+msgid "Add Element"
+msgstr "Add Element"
+
+msgid "Representation"
+msgstr "Representation"
+
+msgid "Static Text"
+msgstr "Static Text"
+
+msgid "Text"
+msgstr "Text"
+
+msgid "Disk Model"
+msgstr "Disk Model"
+
+msgid "CPU"
+msgstr "CPU"
+
+msgid "GPU"
+msgstr "GPU"
+
+msgid "Virtual Memory"
+msgstr "Virtual Memory"
+
+msgid "Swap"
+msgstr "Swap"
+
+msgid "Disk"
+msgstr "Disk"
+
+msgid "Ethernet"
+msgstr "Ethernet"
+
+msgid "Wi-Fi"
+msgstr "Wi-Fi"
+
+msgid "Date / Time"
+msgstr "Date / Time"
+
+msgid "Weather"
+msgstr "Weather"
+
+msgid "Volume"
+msgstr "Volume"
+
+msgid "Usage"
+msgstr "Usage"
+
+msgid "% Text"
+msgstr "% Text"
+
+msgid "Graph"
+msgstr "Graph"
+
+msgid "Radial"
+msgstr "Radial"
+
+msgid "Chart"
+msgstr "Chart"
+
+msgid "Gauge"
+msgstr "Gauge"
+
+msgid "Status Bar"
+msgstr "Status Bar"
+
+msgid "Percentage"
+msgstr "Percentage"
+
+msgid "Temperature"
+msgstr "Temperature"
+
+msgid "Frequency"
+msgstr "Frequency"
+
+msgid "Fan"
+msgstr "Fan"
+
+msgid "Power"
+msgstr "Power"
+
+msgid "Voltage"
+msgstr "Voltage"
+
+msgid "Load 1min"
+msgstr "Load 1min"
+
+msgid "Load 5min"
+msgstr "Load 5min"
+
+msgid "Load 15min"
+msgstr "Load 15min"
+
+msgid "Memory"
+msgstr "Memory"
+
+msgid "Used"
+msgstr "Used"
+
+msgid "Free"
+msgstr "Free"
+
+msgid "Upload"
+msgstr "Upload"
+
+msgid "Download"
+msgstr "Download"
+
+msgid "Total Up"
+msgstr "Total Up"
+
+msgid "Total Down"
+msgstr "Total Down"
+
+msgid "Hour"
+msgstr "Hour"
+
+msgid "Day"
+msgstr "Day"
+
+msgid "Condition"
+msgstr "Condition"
+
+msgid "Properties"
+msgstr "Properties"
+
+msgid "Select an element on the canvas"
+msgstr "Select an element on the canvas"
+
+msgid "Position & Size"
+msgstr "Position & Size"
+
+msgid "Position"
+msgstr "Position"
+
+msgid "Content"
+msgstr "Content"
+
+msgid "Font"
+msgstr "Font"
+
+msgid "Font file"
+msgstr "Font file"
+
+msgid "Browse font…"
+msgstr "Browse font…"
+
+msgid "Select font"
+msgstr "Select font"
+
+msgid "Font files (*.otf, *.ttf)"
+msgstr "Font files (*.otf, *.ttf)"
+
+msgid "Layout"
+msgstr "Layout"
+
+msgid "Appearance"
+msgstr "Appearance"
+
+msgid "Range"
+msgstr "Range"
+
+msgid "Geometry"
+msgstr "Geometry"
+
+msgid "Angles"
+msgstr "Angles"
+
+msgid "Center text"
+msgstr "Center text"
+
+msgid "Advanced"
+msgstr "Advanced"
+
+msgid "Enable this color (uncheck → ignored)"
+msgstr "Enable this color (uncheck → ignored)"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Delete element"
+msgstr "Delete element"
+
+msgid "X"
+msgstr "X"
+
+msgid "Y"
+msgstr "Y"
+
+msgid "X (center)"
+msgstr "X (center)"
+
+msgid "Y (center)"
+msgstr "Y (center)"
+
+msgid "Radius"
+msgstr "Radius"
+
+msgid "Width"
+msgstr "Width"
+
+msgid "Height"
+msgstr "Height"
+
+msgid "Direction"
+msgstr "Direction"
+
+msgid "Bar color"
+msgstr "Bar color"
+
+msgid "Gradient"
+msgstr "Gradient"
+
+msgid "Bar outline"
+msgstr "Bar outline"
+
+msgid "Revert value"
+msgstr "Revert value"
+
+msgid "Min"
+msgstr "Min"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Steps"
+msgstr "Steps"
+
+msgid "Step gap"
+msgstr "Step gap"
+
+msgid "Block width"
+msgstr "Block width"
+
+msgid "Corner radius"
+msgstr "Corner radius"
+
+msgid "Border width"
+msgstr "Border width"
+
+msgid "Start °"
+msgstr "Start °"
+
+msgid "End °"
+msgstr "End °"
+
+msgid "Seg. count"
+msgstr "Seg. count"
+
+msgid "Seg. sep °"
+msgstr "Seg. sep °"
+
+msgid "Block angle °"
+msgstr "Block angle °"
+
+msgid "Clockwise"
+msgstr "Clockwise"
+
+msgid "Round caps"
+msgstr "Round caps"
+
+msgid "Revert colors"
+msgstr "Revert colors"
+
+msgid "Needle width"
+msgstr "Needle width"
+
+msgid "Needle color"
+msgstr "Needle color"
+
+msgid "Indicator color"
+msgstr "Indicator color"
+
+msgid "Indicator radius"
+msgstr "Indicator radius"
+
+msgid "Font color"
+msgstr "Font color"
+
+msgid "Show text"
+msgstr "Show text"
+
+msgid "Show unit"
+msgstr "Show unit"
+
+msgid "Align"
+msgstr "Align"
+
+msgid "Col. width"
+msgstr "Col. width"
+
+msgid "Col. gap"
+msgstr "Col. gap"
+
+msgid "Fill color"
+msgstr "Fill color"
+
+msgid "Line color"
+msgstr "Line color"
+
+msgid "Style"
+msgstr "Style"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Configuration"
+msgstr "Configuration"
+
+msgid "General"
+msgstr "General"
+
+msgid "Display"
+msgstr "Display"
+
+msgid "Sensors"
+msgstr "Sensors"
+
+msgid "Climate"
+msgstr "Climate"
+
+msgid "Network"
+msgstr "Network"
+
+msgid "Serial Port"
+msgstr "Serial Port"
+
+msgid "API Port"
+msgstr "API Port"
+
+msgid "Log Level"
+msgstr "Log Level"
+
+msgid "Turn off display on exit"
+msgstr "Turn off display on exit"
+
+msgid "Brightness"
+msgstr "Brightness"
+
+msgid "Width (px)"
+msgstr "Width (px)"
+
+msgid "Height (px)"
+msgstr "Height (px)"
+
+msgid "Reverse orientation"
+msgstr "Reverse orientation"
+
+msgid "Interval"
+msgstr "Interval"
+
+msgid "Temperature Sensor"
+msgstr "Temperature Sensor"
+
+msgid "Provider"
+msgstr "Provider"
+
+msgid "Wired Interface"
+msgstr "Wired Interface"
+
+msgid "Wi-Fi Interface"
+msgstr "Wi-Fi Interface"
+
+msgid "Enable weather"
+msgstr "Enable weather"
+
+msgid "City"
+msgstr "City"
+
+msgid "Saved. Restart the daemon to apply changes."
+msgstr "Saved. Restart the daemon to apply changes."
+
+msgid "Device Storage"
+msgstr "Device Storage"
+
+msgid "Refresh Storage"
+msgstr "Refresh Storage"
+
+msgid "Restart Device"
+msgstr "Restart Device"
+
+msgid "Refresh Files"
+msgstr "Refresh Files"
+
+msgid "Play Video"
+msgstr "Play Video"
+
+msgid "Stop Video"
+msgstr "Stop Video"
+
+msgid "Not connected"
+msgstr "Not connected"
+
+msgid "Reading storage..."
+msgstr "Reading storage..."
+
+msgid "Send to device"
+msgstr "Send to device"
+
+msgid "Videos"
+msgstr "Videos"
+
+msgid "Device restarted"
+msgstr "Device restarted"
+
+msgid "Video stopped"
+msgstr "Video stopped"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "file(s)"
+msgstr "file(s)"
+
+msgid "Deleted"
+msgstr "Deleted"
+
+msgid "Playing"
+msgstr "Playing"
+
+msgid "Sending"
+msgstr "Sending"
+
+msgid "Sent"
+msgstr "Sent"
+
+msgid "Layers"
+msgstr "Layers"
+
+msgid "Add layer"
+msgstr "Add layer"
+
+msgid "Remove"
+msgstr "Remove"
+
+msgid "Move up"
+msgstr "Move up"
+
+msgid "Move down"
+msgstr "Move down"
+
+msgid "Select background image (PNG)"
+msgstr "Select background image (PNG)"
+
+msgid "PNG images"
+msgstr "PNG images"

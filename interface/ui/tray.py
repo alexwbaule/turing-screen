@@ -6,6 +6,7 @@ Não usa GTK3 — sem conflito com GTK4.
 import logging
 import os
 from gi.repository import Gio, GLib
+from i18n import _
 
 log = logging.getLogger(__name__)
 
@@ -255,12 +256,14 @@ class TrayIcon:
     # ------------------------------------------------------------------
 
     # Itens do menu: (id, label, acção)  — id=0 é reservado para o root, nunca usar aqui
-    _MENU_ITEMS = [
-        (1,  "Mostrar / Ocultar",    "activate"),
-        (10, "",                     "separator"),
-        (2,  "Finalizar",            "quit"),
-        (3,  "Finalizar e Desligar", "quit_off"),
-    ]
+    @property
+    def _MENU_ITEMS(self):
+        return [
+            (1,  _("Show / Hide"),       "activate"),
+            (10, "",                     "separator"),
+            (2,  _("Quit"),              "quit"),
+            (3,  _("Quit and Turn Off"), "quit_off"),
+        ]
 
     def _menu_get_property(self, conn, sender, obj_path, iface, prop_name):
         if prop_name == "Version":

@@ -9,6 +9,11 @@ INSTALL_DIR   := /opt/smart-screen
 SYSTEMD_DIR   := /etc/systemd/system
 DESKTOP_DIR   := /usr/share/applications
 
+LOCALE_DIR    := interface/locale
+PY_SOURCES    := $(wildcard interface/ui/*.py) interface/main.py interface/i18n.py
+PO_FILES      := $(wildcard $(LOCALE_DIR)/*/LC_MESSAGES/turing-screen.po)
+MO_FILES      := $(PO_FILES:.po=.mo)
+
 
 build:
 	mkdir -p bin/
@@ -34,10 +39,37 @@ release: windows linux darwin
 
 build-all: build build-test build-sensors-test
 
+# ── i18n ─────────────────────────────────────────────────────────────────────
+
+# Compile every PO file to its MO counterpart.
+.PHONY: locale
+locale: $(MO_FILES)
+
+%.mo: %.po
+	msgfmt $< -o $@
+
+# Extract translatable strings from the Python interface into the POT template,
+# then merge new strings into each existing PO file.
+# Run this whenever new _("…") calls are added to the source.
+# After running, edit the PO files and run 'make locale' to recompile.
+.PHONY: locale-update
+locale-update:
+	@echo "==> Extracting strings from Python interface..."
+	xgettext --language=Python --keyword=_ --from-code=UTF-8 \
+	         --package-name=turing-screen \
+	         --output=$(LOCALE_DIR)/turing-screen.pot \
+	         $(PY_SOURCES)
+	@echo "==> Merging into existing PO files..."
+	@for po in $(PO_FILES); do \
+		echo "  $$po"; \
+		msgmerge --update --no-fuzzy-matching --quiet $$po $(LOCALE_DIR)/turing-screen.pot; \
+	done
+	@echo "==> Done. Edit PO files then run: make locale"
+
 GROUP := smart-screen
 
 .PHONY: install
-install: build-all
+install: build-all locale
 	@echo "==> Creating group $(GROUP)"
 	getent group $(GROUP) >/dev/null || groupadd --system $(GROUP)
 	@echo "==> Installing to $(INSTALL_DIR)"
@@ -45,6 +77,11 @@ install: build-all
 	install -d -m 775 -g $(GROUP) $(INSTALL_DIR)/conf
 	install -m 755 bin/$(BINARY)        $(INSTALL_DIR)/bin/$(BINARY)
 	install -m 755 bin/turing-interface $(INSTALL_DIR)/bin/turing-interface
+	@# Python interface: i18n bootstrap + compiled locale catalogs
+	install -d $(INSTALL_DIR)/interface
+	install -m 644 interface/i18n.py $(INSTALL_DIR)/interface/i18n.py
+	cp -r $(LOCALE_DIR) $(INSTALL_DIR)/interface/locale
+	find $(INSTALL_DIR)/interface/locale -name '*.po' -delete
 	@# Copy res/ preserving existing files on reinstall
 	cp -rn res/ $(INSTALL_DIR)/
 	@# Group smart-screen owns res/; dirs 775, files 664

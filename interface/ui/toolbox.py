@@ -15,19 +15,21 @@ seção "Representação". Sensores text-only (Load, Condition, Volume…)
 ignoram o seletor e sempre criam Text.
 """
 from gi.repository import Gtk
+from i18n import _
 
 # ---------------------------------------------------------------------------
 # Mapeamento tipo → (sufixo YAML, kind para canvas)
 # ---------------------------------------------------------------------------
-_TYPES = [
-    ("Text",        "TEXT",        "text"),
-    ("% Text",      "PERCENT_TEXT","text"),
-    ("Graph",       "GRAPH",       "graph"),
-    ("Radial",      "RADIAL",      "radial"),
-    ("Chart",       "CHART",       "chart"),
-    ("Gauge",       "GAUGE",       "gauge"),
-    ("Status Bar",  "STATUS_BAR",  "status_bar"),
-]
+def _get_types():
+    return [
+        (_("Text"),        "TEXT",        "text"),
+        (_("% Text"),      "PERCENT_TEXT","text"),
+        (_("Graph"),       "GRAPH",       "graph"),
+        (_("Radial"),      "RADIAL",      "radial"),
+        (_("Chart"),       "CHART",       "chart"),
+        (_("Gauge"),       "GAUGE",       "gauge"),
+        (_("Status Bar"),  "STATUS_BAR",  "status_bar"),
+    ]
 
 # ---------------------------------------------------------------------------
 # Definição das seções do accordion
@@ -50,80 +52,81 @@ _FLOAT_SUFFIXES = frozenset({"TEXT", "GRAPH", "RADIAL", "CHART"})
 #   text_only=False       → appends type suffix; None = all types allowed
 #   allowed_suffixes      → frozenset of YAML suffixes valid for this sensor,
 #                           or None to allow every type in _TYPES
-_SECTIONS = [
-    ("Texto Estático", [
-        ("Texto",        "static_texts.LABEL",      True, None),
-        ("CPU Model",    "static_texts.CPU_MODEL",   True, None),
-        ("GPU Model",    "static_texts.GPU_MODEL",   True, None),
-        ("Total RAM",    "static_texts.MEM_TOTAL",   True, None),
-        ("Modelo Disco", "static_texts.DISK_MODEL",  True, None),
-        ("Hostname",     "static_texts.HOSTNAME",    True, None),
-    ]),
-    ("CPU", [
-        ("Percentage",  "STATS.CPU.PERCENTAGE",            False, None),
-        ("Temperature", "STATS.CPU.TEMPERATURE",           False, None),
-        # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
-        ("Frequency",   "STATS.CPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
-        ("Fan",         "STATS.CPU.FAN",                   False, None),
-        ("Power",       "STATS.CPU.POWER",                 False, None),
-        ("Voltage",     "STATS.CPU.VOLTAGE",               False, None),
-        ("Load 1min",   "STATS.CPU.LOAD.ONE.TEXT",         True,  None),
-        ("Load 5min",   "STATS.CPU.LOAD.FIVE.TEXT",        True,  None),
-        ("Load 15min",  "STATS.CPU.LOAD.FIFTEEN.TEXT",     True,  None),
-    ]),
-    ("GPU", [
-        ("Percentage",  "STATS.GPU.PERCENTAGE",            False, None),
-        ("Memory",      "STATS.GPU.MEMORY",                False, None),
-        ("Temperature", "STATS.GPU.TEMPERATURE",           False, None),
-        ("Power",       "STATS.GPU.POWER",                 False, None),
-        # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
-        ("Frequency",   "STATS.GPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
-        ("Voltage",     "STATS.GPU.VOLTAGE",               False, None),
-        ("Fan",         "STATS.GPU.FAN",                   False, None),
-    ]),
-    ("Memória Virtual", [
-        # MemMeasurement: collectMemItems renders only Graph/Radial/PercentText
-        ("Uso",     "STATS.MEMORY.VIRTUAL",              False, _MEM_SUFFIXES),
-        # USED and FREE exist in the entity but are NOT rendered by collectMemItems
-        ("% Texto", "STATS.MEMORY.VIRTUAL.PERCENT_TEXT", True,  None),
-    ]),
-    ("Swap", [
-        ("Uso",     "STATS.MEMORY.SWAP",              False, _MEM_SUFFIXES),
-        ("% Texto", "STATS.MEMORY.SWAP.PERCENT_TEXT", True,  None),
-    ]),
-    ("Disco", [
-        ("Usado",       "STATS.DISK.USED",         False, None),
-        ("Livre",       "STATS.DISK.FREE",         False, None),
-        # TOTAL exists in the entity but is NOT rendered by the compositor
-        ("Temperatura", "STATS.DISK.TEMPERATURE",  False, None),
-    ]),
-    ("Rede Ethernet", [
-        # Network entity Upload/Download only have .Text; renderer reads only .Text
-        ("Upload",     "STATS.NET.ETH.UPLOAD.TEXT",     True, None),
-        ("Download",   "STATS.NET.ETH.DOWNLOAD.TEXT",   True, None),
-        ("Total Up",   "STATS.NET.ETH.UPLOADED.TEXT",   True, None),
-        ("Total Down", "STATS.NET.ETH.DOWNLOADED.TEXT", True, None),
-    ]),
-    ("Rede WiFi", [
-        ("Upload",     "STATS.NET.WLO.UPLOAD.TEXT",     True, None),
-        ("Download",   "STATS.NET.WLO.DOWNLOAD.TEXT",   True, None),
-        ("Total Up",   "STATS.NET.WLO.UPLOADED.TEXT",   True, None),
-        ("Total Down", "STATS.NET.WLO.DOWNLOADED.TEXT", True, None),
-    ]),
-    ("Data / Hora", [
-        # DateTime entity Hour/Day only have .Text; renderer only reads .Text
-        ("Hora", "STATS.DATE.HOUR.TEXT", True, None),
-        ("Dia",  "STATS.DATE.DAY.TEXT",  True, None),
-    ]),
-    ("Clima", [
-        # Weather.Temperature is Mesurement entity but renderer only reads .Text
-        ("Temperatura", "STATS.WEATHER.TEMPERATURE.TEXT", True, None),
-        ("Condição",    "STATS.WEATHER.CONDITION",        True, None),
-    ]),
-    ("Volume", [
-        ("Volume", "STATS.VOLUME.TEXT", True, None),
-    ]),
-]
+def _get_sections():
+    return [
+        (_("Static Text"), [
+            (_("Text"),        "static_texts.LABEL",      True, None),
+            ("CPU Model",      "static_texts.CPU_MODEL",   True, None),
+            ("GPU Model",      "static_texts.GPU_MODEL",   True, None),
+            ("Total RAM",      "static_texts.MEM_TOTAL",   True, None),
+            (_("Disk Model"),  "static_texts.DISK_MODEL",  True, None),
+            ("Hostname",       "static_texts.HOSTNAME",    True, None),
+        ]),
+        (_("CPU"), [
+            (_("Percentage"),  "STATS.CPU.PERCENTAGE",            False, None),
+            (_("Temperature"), "STATS.CPU.TEMPERATURE",           False, None),
+            # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
+            (_("Frequency"),   "STATS.CPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
+            (_("Fan"),         "STATS.CPU.FAN",                   False, None),
+            (_("Power"),       "STATS.CPU.POWER",                 False, None),
+            (_("Voltage"),     "STATS.CPU.VOLTAGE",               False, None),
+            (_("Load 1min"),   "STATS.CPU.LOAD.ONE.TEXT",         True,  None),
+            (_("Load 5min"),   "STATS.CPU.LOAD.FIVE.TEXT",        True,  None),
+            (_("Load 15min"),  "STATS.CPU.LOAD.FIFTEEN.TEXT",     True,  None),
+        ]),
+        (_("GPU"), [
+            (_("Percentage"),  "STATS.GPU.PERCENTAGE",            False, None),
+            (_("Memory"),      "STATS.GPU.MEMORY",                False, None),
+            (_("Temperature"), "STATS.GPU.TEMPERATURE",           False, None),
+            (_("Power"),       "STATS.GPU.POWER",                 False, None),
+            # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
+            (_("Frequency"),   "STATS.GPU.FREQUENCY",             False, _FLOAT_SUFFIXES),
+            (_("Voltage"),     "STATS.GPU.VOLTAGE",               False, None),
+            (_("Fan"),         "STATS.GPU.FAN",                   False, None),
+        ]),
+        (_("Virtual Memory"), [
+            # MemMeasurement: collectMemItems renders only Graph/Radial/PercentText
+            (_("Usage"),    "STATS.MEMORY.VIRTUAL",              False, _MEM_SUFFIXES),
+            # USED and FREE exist in the entity but are NOT rendered by collectMemItems
+            (_("% Text"),   "STATS.MEMORY.VIRTUAL.PERCENT_TEXT", True,  None),
+        ]),
+        (_("Swap"), [
+            (_("Usage"),    "STATS.MEMORY.SWAP",              False, _MEM_SUFFIXES),
+            (_("% Text"),   "STATS.MEMORY.SWAP.PERCENT_TEXT", True,  None),
+        ]),
+        (_("Disk"), [
+            (_("Used"),        "STATS.DISK.USED",         False, None),
+            (_("Free"),        "STATS.DISK.FREE",         False, None),
+            # TOTAL exists in the entity but is NOT rendered by the compositor
+            (_("Temperature"), "STATS.DISK.TEMPERATURE",  False, None),
+        ]),
+        (_("Ethernet"), [
+            # Network entity Upload/Download only have .Text; renderer reads only .Text
+            (_("Upload"),     "STATS.NET.ETH.UPLOAD.TEXT",     True, None),
+            (_("Download"),   "STATS.NET.ETH.DOWNLOAD.TEXT",   True, None),
+            (_("Total Up"),   "STATS.NET.ETH.UPLOADED.TEXT",   True, None),
+            (_("Total Down"), "STATS.NET.ETH.DOWNLOADED.TEXT", True, None),
+        ]),
+        (_("Wi-Fi"), [
+            (_("Upload"),     "STATS.NET.WLO.UPLOAD.TEXT",     True, None),
+            (_("Download"),   "STATS.NET.WLO.DOWNLOAD.TEXT",   True, None),
+            (_("Total Up"),   "STATS.NET.WLO.UPLOADED.TEXT",   True, None),
+            (_("Total Down"), "STATS.NET.WLO.DOWNLOADED.TEXT", True, None),
+        ]),
+        (_("Date / Time"), [
+            # DateTime entity Hour/Day only have .Text; renderer only reads .Text
+            (_("Hour"), "STATS.DATE.HOUR.TEXT", True, None),
+            (_("Day"),  "STATS.DATE.DAY.TEXT",  True, None),
+        ]),
+        (_("Weather"), [
+            # Weather.Temperature is Mesurement entity but renderer only reads .Text
+            (_("Temperature"), "STATS.WEATHER.TEMPERATURE.TEXT", True, None),
+            (_("Condition"),   "STATS.WEATHER.CONDITION",        True, None),
+        ]),
+        (_("Volume"), [
+            (_("Volume"), "STATS.VOLUME.TEXT", True, None),
+        ]),
+    ]
 
 
 class Toolbox(Gtk.Box):
@@ -149,7 +152,7 @@ class Toolbox(Gtk.Box):
     # ── Sensor accordion ──────────────────────────────────────────────
 
     def _build_sensor_panel(self):
-        header = Gtk.Label(label="Add Element")
+        header = Gtk.Label(label=_("Add Element"))
         header.add_css_class("heading")
         header.set_halign(Gtk.Align.START)
         header.set_margin_top(8)
@@ -163,7 +166,7 @@ class Toolbox(Gtk.Box):
 
         inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
 
-        for section_title, sensors in _SECTIONS:
+        for section_title, sensors in _get_sections():
             exp = Gtk.Expander(label=section_title)
             exp.set_margin_start(4)
             exp.set_margin_top(2)
@@ -199,7 +202,7 @@ class Toolbox(Gtk.Box):
                 rb.set_sensitive(True)
             return
         # Determine if the current selection is still valid
-        _, cur_suffix, _ = _TYPES[self._selected_type_idx]
+        _lbl, cur_suffix, _kind = _get_types()[self._selected_type_idx]
         first_valid_idx = None
         for i, (rb, suffix, _kind) in enumerate(self._type_buttons):
             valid = suffix in allowed_suffixes
@@ -219,14 +222,14 @@ class Toolbox(Gtk.Box):
             if text_only:
                 self._add_cb(base_path, "text")
             else:
-                _, suffix, kind = _TYPES[self._selected_type_idx]
+                _lbl, suffix, kind = _get_types()[self._selected_type_idx]
                 self._add_cb(base_path + "." + suffix, kind)
         return handler
 
     # ── Type picker ───────────────────────────────────────────────────
 
     def _build_type_panel(self):
-        header = Gtk.Label(label="Representação")
+        header = Gtk.Label(label=_("Representation"))
         header.add_css_class("heading")
         header.set_halign(Gtk.Align.START)
         header.set_margin_top(8)
@@ -241,7 +244,7 @@ class Toolbox(Gtk.Box):
 
         first_btn = None
         self._type_buttons = []
-        for i, (label, suffix, kind) in enumerate(_TYPES):
+        for i, (label, suffix, kind) in enumerate(_get_types()):
             rb = Gtk.CheckButton(label=label)
             if first_btn is None:
                 first_btn = rb
