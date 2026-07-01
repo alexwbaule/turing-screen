@@ -573,6 +573,7 @@ class PropertiesPanel(Gtk.Box):
         # Font
         exp, inner = self._expander(_("Font"))
         self._font_row(inner, data, refresh)
+        self._append_row(inner, _("Font size"), self._spin(data.FONT_SIZE or 16, 6, 256, lambda s: [setattr(data, "FONT_SIZE", int(s.get_value())), refresh()]))
         self._append_row(inner, _("Font color"), self._color_btn(data.FONT_COLOR, lambda c: [setattr(data, "FONT_COLOR", c), refresh()], "255,255,255"), expand=False)
         self._optional_color_row(inner, "Background", data, "BACKGROUND_COLOR", "0,0,0", refresh)
         self._content.append(exp)

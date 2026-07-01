@@ -690,3 +690,6 @@ msgstr "Sistema"
 
 msgid "Hostname"
 msgstr "Nombre de Host"
+
+msgid "Font size"
+msgstr "Tamaño de fuente"
