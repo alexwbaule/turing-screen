@@ -33,7 +33,7 @@ STATS:
         FONT_SIZE: 32
         FONT_COLOR: 44, 166, 214
         SHOW_UNIT: true
-        PLACEHOLDER: 晴转多云 20° 东北风
+        PLACEHOLDER: Partly Cloudy 20° NE Wind
         ALIGN: center
   DATE:
     INTERVAL: 1

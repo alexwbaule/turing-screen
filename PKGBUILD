@@ -7,7 +7,7 @@
 # Run:  makepkg -si
 pkgbase=turing-screen
 pkgname=('turing-screen' 'turing-interface')
-pkgver=1.4.5.r2.gbc590a7
+pkgver=1.4.6.r0.gfcc090d
 pkgrel=1
 pkgdesc="Daemon and theme editor for Turing Smart Screen USB displays"
 arch=('x86_64')

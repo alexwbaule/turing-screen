@@ -324,14 +324,6 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                 m = getattr(cpu, attr, None)
                 if m:
                     self._load_measurement(m, base)
-            if cpu.Load:
-                for sub, base in [
-                    (cpu.Load.One,     "STATS.CPU.LOAD.ONE"),
-                    (cpu.Load.Five,    "STATS.CPU.LOAD.FIVE"),
-                    (cpu.Load.Fifteen, "STATS.CPU.LOAD.FIFTEEN"),
-                ]:
-                    if sub:
-                        self._load_measurement(sub, base)
 
         if stats.GPU:
             if stats.GPU.Model:
@@ -363,15 +355,31 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                 self._load_measurement(stats.Memory.Swap, "STATS.MEMORY.SWAP")
 
         if stats.Disk:
+            if stats.Disk.Model:
+                self._load_model_measurement(stats.Disk.Model, "STATS.DISK.MODEL",
+                                             self._hwinfo.get("disk_model", ""))
             for attr, base in [
-                ("Used",  "STATS.DISK.USED"),
-                ("Free",  "STATS.DISK.FREE"),
-                ("Total", "STATS.DISK.TOTAL"),
+                ("Used",        "STATS.DISK.USED"),
+                ("Free",        "STATS.DISK.FREE"),
+                ("Total",       "STATS.DISK.TOTAL"),
                 ("Temperature", "STATS.DISK.TEMPERATURE"),
             ]:
                 m = getattr(stats.Disk, attr, None)
                 if m:
                     self._load_measurement(m, base)
+
+        if stats.Host:
+            if stats.Host.Hostname:
+                self._load_model_measurement(stats.Host.Hostname, "STATS.HOST.HOSTNAME",
+                                             self._hwinfo.get("hostname", ""))
+            if stats.Host.Load:
+                for sub, base in [
+                    (stats.Host.Load.One,     "STATS.HOST.LOAD.ONE"),
+                    (stats.Host.Load.Five,    "STATS.HOST.LOAD.FIVE"),
+                    (stats.Host.Load.Fifteen, "STATS.HOST.LOAD.FIFTEEN"),
+                ]:
+                    if sub:
+                        self._load_measurement(sub, base)
 
         if stats.Net:
             for iface, iface_key in [(stats.Net.Wifi, "WLO"), (stats.Net.Wired, "ETH")]:
