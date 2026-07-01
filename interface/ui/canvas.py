@@ -350,18 +350,17 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                     self._load_measurement(m, base)
 
         if stats.Memory:
-            if stats.Memory.Model:
-                self._load_model_measurement(stats.Memory.Model, "STATS.MEMORY.MODEL",
-                                             self._hwinfo.get("mem_model", ""))
-            if stats.Memory.Total:
-                self._load_model_measurement(stats.Memory.Total, "STATS.MEMORY.TOTAL",
-                                             self._hwinfo.get("mem_total", ""))
-            for sub, base in [
-                (stats.Memory.Virtual, "STATS.MEMORY.VIRTUAL"),
-                (stats.Memory.Swap,    "STATS.MEMORY.SWAP"),
-            ]:
-                if sub:
-                    self._load_measurement(sub, base)
+            if stats.Memory.RAM:
+                ram = stats.Memory.RAM
+                self._load_ram(ram, "STATS.MEMORY.RAM")
+                if ram.Model:
+                    self._load_model_measurement(ram.Model, "STATS.MEMORY.RAM.MODEL",
+                                                 self._hwinfo.get("mem_total", ""))
+                if ram.Size:
+                    self._load_model_measurement(ram.Size, "STATS.MEMORY.RAM.SIZE",
+                                                 self._hwinfo.get("mem_total", ""))
+            if stats.Memory.Swap:
+                self._load_measurement(stats.Memory.Swap, "STATS.MEMORY.SWAP")
 
         if stats.Disk:
             for attr, base in [
@@ -414,6 +413,23 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             self._add_gauge_element(m.Gauge, base + ".GAUGE", m, "Gauge")
         if hasattr(m, "StatusBar") and m.StatusBar:
             self._add_statusbar_element(m.StatusBar, base + ".STATUS_BAR", m, "StatusBar")
+
+    def _load_ram(self, ram, base: str):
+        """Load the usage widgets that live directly on a RAM object."""
+        if ram.Text:
+            self._add_text_element(ram.Text, base + ".TEXT", ram, "Text")
+        if ram.PercentText:
+            self._add_text_element(ram.PercentText, base + ".PERCENT_TEXT", ram, "PercentText")
+        if ram.Graph:
+            self._add_graph_element(ram.Graph, base + ".GRAPH", ram, "Graph")
+        if ram.Radial:
+            self._add_radial_element(ram.Radial, base + ".RADIAL", ram, "Radial")
+        if ram.Chart:
+            self._add_chart_element(ram.Chart, base + ".CHART", ram, "Chart")
+        if ram.Gauge:
+            self._add_gauge_element(ram.Gauge, base + ".GAUGE", ram, "Gauge")
+        if ram.StatusBar:
+            self._add_statusbar_element(ram.StatusBar, base + ".STATUS_BAR", ram, "StatusBar")
 
     def _load_model_measurement(self, m, base: str, hw_value: str):
         """Like _load_measurement but pre-fills TEXT with the hardware value string."""

@@ -21,6 +21,7 @@ static_images:
     Y: 0
     WIDTH: 720
     HEIGHT: 1280
+    INDEX: 1
 static_texts:
   RAMVALID_LABEL:
     TEXT: RAMVALID
@@ -348,7 +349,7 @@ STATS:
         ALIGN: right
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 4

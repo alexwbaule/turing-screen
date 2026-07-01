@@ -21,6 +21,7 @@ static_images:
     Y: 3
     WIDTH: 1178
     HEIGHT: 736
+    INDEX: 1
 static_texts:
   RAM_LABEL:
     TEXT: Ram Used
@@ -195,7 +196,7 @@ STATS:
       ALIGN: left
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 12

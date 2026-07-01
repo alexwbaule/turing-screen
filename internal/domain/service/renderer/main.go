@@ -19,11 +19,10 @@ import (
 )
 
 type Builder struct {
-	log         *logger.Logger
-	device      *device.Display
-	theme       *theme.Display
-	background  *image.NRGBA       // Composed backdrop: only the BACKGROUND image (+ static_texts)
-	layerImages []theme.StaticImage // non-BACKGROUND images, z-ordered with widgets by Index
+	log        *logger.Logger
+	device     *device.Display
+	theme      *theme.Display
+	background *image.NRGBA // Composed backdrop: all static images + static_texts
 }
 
 func NewBuilder(l *logger.Logger, v *device.Display, d *theme.Display) *Builder {
@@ -45,34 +44,35 @@ func NewBuilder(l *logger.Logger, v *device.Display, d *theme.Display) *Builder 
 
 const tolerance = float64(2)
 
+// BuildBackgroundImage composites all static images onto b.background in z-order.
+// BACKGROUND is drawn first (bottommost), then all other images sorted by Index.
+// Baking all images into the background before BuildBackgroundTexts runs ensures
+// static texts always appear on top of any decorative overlay image.
 func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) {
-	keys := maps.Keys(images)
-	slices.Sort(keys)
-	b.layerImages = b.layerImages[:0]
-	for _, name := range keys {
-		img := images[name]
-		if img.BackgroundImage == nil {
-			continue
+	// Draw BACKGROUND first.
+	if bg, ok := images["BACKGROUND"]; ok && bg.BackgroundImage != nil {
+		r := image.Rect(bg.X, bg.Y, bg.X+bg.BackgroundImage.Bounds().Dx(), bg.Y+bg.BackgroundImage.Bounds().Dy())
+		draw.Draw(b.background, r, bg.BackgroundImage, bg.BackgroundImage.Bounds().Min, draw.Over)
+	}
+
+	// Collect non-BACKGROUND images, sort by Index, draw in order.
+	layers := make([]theme.StaticImage, 0, len(images))
+	for name, img := range images {
+		if name != "BACKGROUND" && img.BackgroundImage != nil {
+			layers = append(layers, img)
 		}
-		if name == "BACKGROUND" {
-			// Pinned backdrop — always behind everything.
-			r := image.Rect(img.X, img.Y, img.X+img.BackgroundImage.Bounds().Dx(), img.Y+img.BackgroundImage.Bounds().Dy())
-			draw.Draw(b.background, r, img.BackgroundImage, img.BackgroundImage.Bounds().Min, draw.Over)
-		} else {
-			// Free image — z-ordered with the widgets by Index.
-			b.layerImages = append(b.layerImages, img)
-		}
+	}
+	slices.SortFunc(layers, func(a, b theme.StaticImage) int {
+		return a.Index - b.Index
+	})
+	for _, img := range layers {
+		r := image.Rect(img.X, img.Y, img.X+img.BackgroundImage.Bounds().Dx(), img.Y+img.BackgroundImage.Bounds().Dy())
+		draw.Draw(b.background, r, img.BackgroundImage, img.BackgroundImage.Bounds().Min, draw.Over)
 	}
 }
 
 func (b *Builder) GetBackground() *image.NRGBA {
 	return b.background
-}
-
-// GetLayerImages returns the non-BACKGROUND images, to be drawn z-ordered with
-// the widgets by Index (see Compositor.renderFrame).
-func (b *Builder) GetLayerImages() []theme.StaticImage {
-	return b.layerImages
 }
 
 func (b *Builder) BuildBackgroundTexts(images map[string]theme.StaticText) {
@@ -120,43 +120,6 @@ func (b *Builder) BuildBackgroundTexts(images map[string]theme.StaticText) {
 	}
 }
 
-// BuildModelTexts renders MODEL/TOTAL sensor labels onto the background image.
-// Called once at theme load time with the detected hardware model strings.
-// texts maps a sensor's Text config to the value string to display.
-func (b *Builder) BuildModelTexts(texts map[*theme.Text]string) {
-	for stat, value := range texts {
-		if stat == nil || stat.Font == nil || value == "" {
-			continue
-		}
-
-		w := measureString(stat.Font, value)
-		metrics := stat.Font.Metrics()
-		ascent := metrics.Ascent
-
-		var drawX float64
-		switch stat.Align {
-		case theme.CENTER:
-			drawX = float64(stat.X) - w/2
-		case theme.RIGHT:
-			drawX = float64(stat.X) - w
-		default:
-			drawX = float64(stat.X)
-		}
-
-		dot := fixed.Point26_6{
-			X: fixed.Int26_6(int(drawX * 64)),
-			Y: fixed.I(stat.Y) + ascent,
-		}
-
-		d := &font.Drawer{
-			Dst:  b.background,
-			Src:  image.NewUniform(stat.FontColor),
-			Face: stat.Font,
-			Dot:  dot,
-		}
-		d.DrawString(value)
-	}
-}
 
 func (b *Builder) DrawText(text string, stat *theme.Text, defaultSize int) (image.Image, int, int) {
 

@@ -21,6 +21,7 @@ static_images:
     Y: 0
     WIDTH: 801
     HEIGHT: 481
+    INDEX: 1
 static_texts:
   LABEL_0:
     TEXT: 'C:'
@@ -188,19 +189,7 @@ STATS:
         BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
-    TOTAL:
-      TEXT:
-        SHOW: true
-        INDEX: 7
-        X: 220
-        Y: 277
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 20
-        FONT_COLOR: 204, 221, 239
-        SHOW_UNIT: true
-        PLACEHOLDER: DDR4-16GB
-        ALIGN: center
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 15
@@ -228,6 +217,18 @@ STATS:
         BAR_COLOR: 255, 255, 255
         SHOW_TEXT: false
         SHOW_UNIT: false
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 7
+          X: 220
+          Y: 277
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 20
+          FONT_COLOR: 204, 221, 239
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: center
   NET:
     INTERVAL: 1
     ETH:

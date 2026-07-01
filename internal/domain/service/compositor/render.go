@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/draw"
 	"math"
 	"sort"
 	"strings"
@@ -33,6 +32,9 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 
 	// CPU
 	if stats.CPU != nil {
+		if m := stats.CPU.Model; m != nil && c.models.CPU != "" {
+			items = append(items, c.collectModelItem(c.models.CPU, m)...)
+		}
 		if m := stats.CPU.Percentage; m != nil {
 			items = append(items, c.collectMeasurementItems(vals.CPUPercent, "%3.0f", "%", m)...)
 		}
@@ -55,6 +57,9 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 
 	// GPU
 	if stats.GPU != nil {
+		if m := stats.GPU.Model; m != nil && c.models.GPU != "" {
+			items = append(items, c.collectModelItem(c.models.GPU, m)...)
+		}
 		if m := stats.GPU.Percentage; m != nil {
 			items = append(items, c.collectMeasurementItems(vals.GPUPercent, "%3.0f", "%", m)...)
 		}
@@ -80,8 +85,23 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 
 	// Memory
 	if stats.Memory != nil {
-		if m := stats.Memory.Virtual; m != nil {
-			items = append(items, c.collectMeasurementItems(vals.MemPercent, "%3.0f", "%", m)...)
+		if ram := stats.Memory.RAM; ram != nil {
+			// SIZE uses the hwinfo MemTotal string; MODEL has no hwinfo source yet.
+			if ram.Size != nil && c.models.Mem != "" {
+				items = append(items, c.collectModelItem(c.models.Mem, ram.Size)...)
+			}
+			// Promote RAM usage fields into a temporary Sensor so
+			// collectMeasurementItems can be reused without duplication.
+			usage := &theme.Sensor{
+				Graph:       ram.Graph,
+				Radial:      ram.Radial,
+				Gauge:       ram.Gauge,
+				StatusBar:   ram.StatusBar,
+				Chart:       ram.Chart,
+				Text:        ram.Text,
+				PercentText: ram.PercentText,
+			}
+			items = append(items, c.collectMeasurementItems(vals.MemPercent, "%3.0f", "%", usage)...)
 		}
 		if m := stats.Memory.Swap; m != nil {
 			items = append(items, c.collectMeasurementItems(vals.SwapPercent, "%3.0f", "%", m)...)
@@ -182,22 +202,6 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 	// Volume (0–100 percentage)
 	if m := stats.Volume; m != nil {
 		items = append(items, c.collectMeasurementItems(vals.Volume, "%.0f", "%", m)...)
-	}
-
-	// Free (non-BACKGROUND) images — z-ordered with the widgets by Index.
-	for _, li := range c.builder.GetLayerImages() {
-		if li.BackgroundImage == nil {
-			continue
-		}
-		limg := li.BackgroundImage
-		lx, ly := li.X, li.Y
-		items = append(items, drawItem{
-			index: li.Index,
-			drawFunc: func(f *image.NRGBA) {
-				r := image.Rect(lx, ly, lx+limg.Bounds().Dx(), ly+limg.Bounds().Dy())
-				draw.Draw(f, r, limg, limg.Bounds().Min, draw.Over)
-			},
-		})
 	}
 
 	// Sort by INDEX (lower index = drawn first = behind)
@@ -321,6 +325,20 @@ func (c *Compositor) collectDateTimeItems(numericVal float64, textStr string, m 
 		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, textStr, t) }})
 	}
 
+	return items
+}
+
+// collectModelItem returns a draw item for a MODEL/TOTAL sensor whose value is a
+// static hardware string (CPU model name, GPU model name, RAM total, disk model).
+// Unlike collectMeasurementItems the value never changes between frames, but it
+// still needs to be z-ordered with the other widgets by its TEXT.Index.
+func (c *Compositor) collectModelItem(value string, m *theme.Sensor) []drawItem {
+	var items []drawItem
+	if m.Text != nil && m.Text.Show {
+		t := m.Text
+		s := value
+		items = append(items, drawItem{index: t.Index, drawFunc: func(f *image.NRGBA) { c.drawTextOnFrame(f, s, t) }})
+	}
 	return items
 }
 

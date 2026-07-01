@@ -442,21 +442,69 @@ class GPU:
 
 
 @dataclass
-class Memory:
+class RAM:
+    """Physical RAM: usage widgets (graph/radial/percent_text/…) + MODEL and SIZE sub-sensors."""
+    Graph: Optional[Graph] = None
+    Radial: Optional[Radial] = None
+    Gauge: Optional[Gauge] = None
+    StatusBar: Optional[StatusBar] = None
+    Chart: Optional[Chart] = None
+    Text: Optional[Text] = None
+    PercentText: Optional[Text] = None
     Model: Optional[Measurement] = None
-    Total: Optional[Measurement] = None
-    Swap: Optional[Measurement] = None
-    Virtual: Optional[Measurement] = None
+    Size: Optional[Measurement] = None
 
     @classmethod
     def from_dict(cls, d):
         if not d:
             return None
         return cls(
+            Graph=Graph.from_dict(d.get("GRAPH")),
+            Radial=Radial.from_dict(d.get("RADIAL")),
+            Gauge=Gauge.from_dict(d.get("GAUGE")),
+            StatusBar=StatusBar.from_dict(d.get("STATUS_BAR")),
+            Chart=Chart.from_dict(d.get("CHART")),
+            Text=Text.from_dict(d.get("TEXT")),
+            PercentText=Text.from_dict(d.get("PERCENT_TEXT")),
             Model=Measurement.from_dict(d.get("MODEL")),
-            Total=Measurement.from_dict(d.get("TOTAL")),
+            Size=Measurement.from_dict(d.get("SIZE")),
+        )
+
+    def to_dict(self):
+        d = {}
+        if self.Radial:
+            d["RADIAL"] = _to_dict(self.Radial)
+        if self.Graph:
+            d["GRAPH"] = _to_dict(self.Graph)
+        if self.Gauge:
+            d["GAUGE"] = _to_dict(self.Gauge)
+        if self.StatusBar:
+            d["STATUS_BAR"] = _to_dict(self.StatusBar)
+        if self.Chart:
+            d["CHART"] = _to_dict(self.Chart)
+        if self.Text:
+            d["TEXT"] = _to_dict(self.Text)
+        if self.PercentText:
+            d["PERCENT_TEXT"] = _to_dict(self.PercentText)
+        if self.Model:
+            d["MODEL"] = self.Model.to_dict()
+        if self.Size:
+            d["SIZE"] = self.Size.to_dict()
+        return d or None
+
+
+@dataclass
+class Memory:
+    RAM: Optional[RAM] = None
+    Swap: Optional[Measurement] = None
+
+    @classmethod
+    def from_dict(cls, d):
+        if not d:
+            return None
+        return cls(
+            RAM=RAM.from_dict(d.get("RAM")),
             Swap=Measurement.from_dict(d.get("SWAP")),
-            Virtual=Measurement.from_dict(d.get("VIRTUAL")),
         )
 
 
@@ -711,12 +759,10 @@ class Theme:
 
     def _memory_to_dict(self, mem):
         d = {}
-        if mem.Model:
-            d["MODEL"] = self._measurement_to_dict(mem.Model)
-        if mem.Total:
-            d["TOTAL"] = self._measurement_to_dict(mem.Total)
-        if mem.Virtual:
-            d["VIRTUAL"] = self._measurement_to_dict(mem.Virtual)
+        if mem.RAM:
+            ram_d = mem.RAM.to_dict()
+            if ram_d:
+                d["RAM"] = ram_d
         if mem.Swap:
             d["SWAP"] = self._measurement_to_dict(mem.Swap)
         return d

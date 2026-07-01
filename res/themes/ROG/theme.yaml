@@ -238,7 +238,7 @@ STATS:
         ALIGN: center
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       GRAPH:
         SHOW: true
         INDEX: 10
@@ -260,18 +260,18 @@ STATS:
         FONT_COLOR: 230, 0, 18
         PLACEHOLDER: '88'
         ALIGN: center
-    TOTAL:
-      TEXT:
-        SHOW: true
-        INDEX: 17
-        X: 437
-        Y: 403
-        FONT: turtheme/RACESPACEREGULAR.otf
-        FONT_SIZE: 20
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: DDR4-16GB
-        ALIGN: left
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 17
+          X: 437
+          Y: 403
+          FONT: turtheme/RACESPACEREGULAR.otf
+          FONT_SIZE: 20
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
   DISK:
     INTERVAL: 10
     TEMPERATURE:

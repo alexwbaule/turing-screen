@@ -21,18 +21,21 @@ static_images:
     Y: 0
     WIDTH: 1159
     HEIGHT: 695
+    INDEX: 1
   LAYER_3:
     PATH: assets/image_5.png
     X: 242
     Y: 120
     WIDTH: 1008
     HEIGHT: 604
+    INDEX: 2
   LAYER_4:
     PATH: assets/image_7.png
     X: -20
     Y: 0
     WIDTH: 1280
     HEIGHT: 800
+    INDEX: 3
 STATS:
   CPU:
     TEMPERATURE:
@@ -89,7 +92,7 @@ STATS:
         ALIGN: center
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 5

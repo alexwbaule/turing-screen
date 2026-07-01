@@ -77,7 +77,7 @@ STATS:
         ALIGN: center
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 3

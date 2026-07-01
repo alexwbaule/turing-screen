@@ -269,7 +269,7 @@ STATS:
         ALIGN: left
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 5
@@ -292,18 +292,18 @@ STATS:
         BAR_COLOR: 107, 245, 248
         INDICATOR_COLOR: 107, 245, 248
         INDICATOR_RADIUS: 11
-    TOTAL:
-      TEXT:
-        SHOW: true
-        INDEX: 27
-        X: 68
-        Y: 528
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 25
-        FONT_COLOR: 63, 238, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: DDR4-16GB
-        ALIGN: left
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 27
+          X: 68
+          Y: 528
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 25
+          FONT_COLOR: 63, 238, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
   VOLUME:
     TEXT:
       SHOW: true

@@ -21,6 +21,7 @@ static_images:
     Y: 0
     WIDTH: 800
     HEIGHT: 480
+    INDEX: 1
 static_texts:
   FPS_LABEL:
     TEXT: FPS
@@ -182,7 +183,7 @@ STATS:
         FORMAT: short
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       RADIAL:
         SHOW: true
         INDEX: 8

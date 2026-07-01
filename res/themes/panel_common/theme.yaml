@@ -291,7 +291,7 @@ STATS:
         ALIGN: left
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 3
@@ -313,18 +313,18 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 175, 155, 212
         BAR_OUTLINE: false
-    TOTAL:
-      TEXT:
-        SHOW: true
-        INDEX: 23
-        X: 597
-        Y: 29
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 19
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: 16G
-        ALIGN: left
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 23
+          X: 597
+          Y: 29
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 19
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 16G
+          ALIGN: left
   NET:
     INTERVAL: 1
     ETH:

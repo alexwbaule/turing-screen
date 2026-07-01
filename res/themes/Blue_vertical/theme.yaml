@@ -256,15 +256,16 @@ STATS:
         FORMAT: short
   MEMORY:
     INTERVAL: 5
-    TOTAL:
-      TEXT:
-        SHOW: true
-        INDEX: 18
-        X: 205
-        Y: 1116
-        FONT: geforce/GeForce-Bold.ttf
-        FONT_SIZE: 23
-        FONT_COLOR: 84, 241, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: DDR4-16GB
-        ALIGN: right
+    RAM:
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 18
+          X: 205
+          Y: 1116
+          FONT: geforce/GeForce-Bold.ttf
+          FONT_SIZE: 23
+          FONT_COLOR: 84, 241, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: right

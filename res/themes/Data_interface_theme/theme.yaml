@@ -21,6 +21,7 @@ static_images:
     Y: 0
     WIDTH: 1280
     HEIGHT: 720
+    INDEX: 1
 static_texts:
   WATERPUMP_LABEL:
     TEXT: Water Pump
@@ -226,19 +227,7 @@ STATS:
         ALIGN: right
   MEMORY:
     INTERVAL: 5
-    TOTAL:
-      TEXT:
-        SHOW: true
-        INDEX: 4
-        X: 1016
-        Y: 83
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 31
-        FONT_COLOR: 67, 182, 221
-        SHOW_UNIT: true
-        PLACEHOLDER: DDR4-16GB
-        ALIGN: left
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 19
@@ -249,6 +238,18 @@ STATS:
         FONT_COLOR: 255, 255, 255
         PLACEHOLDER: '88'
         ALIGN: right
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 4
+          X: 1016
+          Y: 83
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 31
+          FONT_COLOR: 67, 182, 221
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
   DISK:
     INTERVAL: 10
     USED:

@@ -21,6 +21,7 @@ static_images:
     Y: 0
     WIDTH: 1280
     HEIGHT: 720
+    INDEX: 1
 STATS:
   CPU:
     TEMPERATURE:
@@ -50,7 +51,7 @@ STATS:
         BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 3

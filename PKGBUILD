@@ -8,7 +8,7 @@
 # Run:  makepkg -si
 pkgbase=turing-screen
 pkgname=('turing-screen' 'turing-interface')
-pkgver=1.3.4.r0.g675dd86
+pkgver=1.3.6
 pkgrel=1
 pkgdesc="Daemon and theme editor for Turing Smart Screen USB displays"
 arch=('x86_64')
@@ -17,12 +17,6 @@ license=('custom')
 makedepends=('go' 'gcc')
 source=()
 sha256sums=()
-
-pkgver() {
-	cd "$startdir"
-	git describe --tags --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || \
-		printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
-}
 
 prepare() {
 	cd "$startdir"
@@ -33,7 +27,6 @@ build() {
 	cd "$startdir"
 	export CGO_ENABLED=1
 	export GOFLAGS="-trimpath"
-	export GOPATH="$srcdir/go"
 
 	VERSION=$(git describe 2>/dev/null || echo "develop")
 	BUILD=$(git rev-parse --short HEAD 2>/dev/null || echo "develop")
@@ -43,7 +36,7 @@ build() {
 
 	# Only the daemon is built from Go. The editor is the Python app in
 	# interface/ (cmd/turing-interface was the old Fyne editor, now retired).
-	go build -ldflags "$LDFLAGS" -o bin/turing-screen cmd/turing-screen/main.go
+	go build -ldflags "$LDFLAGS" -o bin/turing-screen ./cmd/turing-screen/
 }
 
 # -----------------------------------------------------------------------------

@@ -21,18 +21,21 @@ static_images:
     Y: 0
     WIDTH: 1280
     HEIGHT: 720
+    INDEX: 1
   LAYER_3:
     PATH: assets/image_5.png
     X: 53
     Y: 18
     WIDTH: 248
     HEIGHT: 175
+    INDEX: 2
   LAYER_4:
     PATH: assets/image_7.png
     X: 1096
     Y: 307
     WIDTH: 142
     HEIGHT: 135
+    INDEX: 3
 static_texts:
   LABEL_0:
     TEXT: .
@@ -163,7 +166,7 @@ STATS:
       BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 9

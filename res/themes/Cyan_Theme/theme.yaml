@@ -21,6 +21,7 @@ static_images:
     Y: 0
     WIDTH: 740
     HEIGHT: 1233
+    INDEX: 1
 static_texts:
   RAM_LABEL:
     TEXT: Ram Used
@@ -157,19 +158,7 @@ STATS:
         BAR_OUTLINE: false
   MEMORY:
     INTERVAL: 5
-    TOTAL:
-      TEXT:
-        SHOW: true
-        INDEX: 4
-        X: 180
-        Y: 846
-        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
-        FONT_SIZE: 41
-        FONT_COLOR: 255, 255, 255
-        SHOW_UNIT: true
-        PLACEHOLDER: DDR4-16GB
-        ALIGN: left
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 12
@@ -192,6 +181,18 @@ STATS:
         MAX_VALUE: 100
         BAR_COLOR: 255, 255, 255
         BAR_OUTLINE: false
+      SIZE:
+        TEXT:
+          SHOW: true
+          INDEX: 4
+          X: 180
+          Y: 846
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 41
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: DDR4-16GB
+          ALIGN: left
   WEATHER:
     TEMPERATURE:
       TEXT:

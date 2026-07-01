@@ -54,7 +54,7 @@ _SECTIONS = [
         ("Hostname",     "static_texts.HOSTNAME",    True, None),
     ]),
     ("CPU", [
-        ("Modelo",      "STATS.CPU.MODEL",                 True,  None),
+        ("Modelo",      "STATS.CPU.MODEL.TEXT",            True,  None),
         ("Percentage",  "STATS.CPU.PERCENTAGE",            False, None),
         ("Temperature", "STATS.CPU.TEMPERATURE",           False, None),
         # Frequency uses collectMeasurementFloatItems — no Gauge/StatusBar/PercentText
@@ -67,7 +67,7 @@ _SECTIONS = [
         ("Load 15min",  "STATS.CPU.LOAD.FIFTEEN",          False, None),
     ]),
     ("GPU", [
-        ("Modelo",      "STATS.GPU.MODEL",                 True,  None),
+        ("Modelo",      "STATS.GPU.MODEL.TEXT",            True,  None),
         ("Percentage",  "STATS.GPU.PERCENTAGE",            False, None),
         ("Memory",      "STATS.GPU.MEMORY",                False, None),
         ("Temperature", "STATS.GPU.TEMPERATURE",           False, None),
@@ -77,13 +77,11 @@ _SECTIONS = [
         ("Voltage",     "STATS.GPU.VOLTAGE",               False, None),
         ("Fan",         "STATS.GPU.FAN",                   False, None),
     ]),
-    ("Memória Virtual", [
-        ("Uso",     "STATS.MEMORY.VIRTUAL",              False, None),
-        ("% Texto", "STATS.MEMORY.VIRTUAL.PERCENT_TEXT", True,  None),
-    ]),
-    ("Memória — Info", [
-        ("Modelo RAM",  "STATS.MEMORY.MODEL", True, None),
-        ("Total RAM",   "STATS.MEMORY.TOTAL", True, None),
+    ("RAM", [
+        ("Uso",     "STATS.MEMORY.RAM",                   False, None),
+        ("% Texto", "STATS.MEMORY.RAM.PERCENT_TEXT",      True,  None),
+        ("Modelo",  "STATS.MEMORY.RAM.MODEL.TEXT",        True,  None),
+        ("Tamanho", "STATS.MEMORY.RAM.SIZE.TEXT",         True,  None),
     ]),
     ("Swap", [
         ("Uso",     "STATS.MEMORY.SWAP",              False, None),

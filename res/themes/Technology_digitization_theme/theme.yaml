@@ -21,12 +21,14 @@ static_images:
     Y: 51
     WIDTH: 37
     HEIGHT: 39
+    INDEX: 1
   LAYER_3:
     PATH: assets/image_5.png
     X: 619
     Y: 93
     WIDTH: 37
     HEIGHT: 39
+    INDEX: 2
 static_texts:
   FPS_LABEL:
     TEXT: FPS
@@ -168,7 +170,7 @@ STATS:
         ALIGN: right
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 8

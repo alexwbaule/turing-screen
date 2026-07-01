@@ -21,6 +21,7 @@ static_images:
     Y: 0
     WIDTH: 1280
     HEIGHT: 800
+    INDEX: 1
 STATS:
   CPU:
     PERCENTAGE:
@@ -341,7 +342,7 @@ STATS:
         ALIGN: left
   MEMORY:
     INTERVAL: 5
-    VIRTUAL:
+    RAM:
       PERCENT_TEXT:
         SHOW: true
         INDEX: 27
