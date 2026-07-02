@@ -454,7 +454,10 @@ class EditorApp:
             if theme.video and theme.video.PATH:
                 video_abs = os.path.join(self._theme_dir, theme.video.PATH)
                 if os.path.exists(video_abs):
-                    self._extract_video_preview(self._theme_dir, video_abs)
+                    is_landscape = bool(
+                        theme.display and (theme.display.WIDTH or 0) > (theme.display.HEIGHT or 0)
+                    )
+                    self._extract_video_preview(self._theme_dir, video_abs, landscape=is_landscape)
             # Regenerate the preview (same path logic as Save) and drop the
             # cache so the home page reflects the newly saved theme.
             if self._canvas:
@@ -600,22 +603,26 @@ class EditorApp:
     # Salvar / Preview
     # ------------------------------------------------------------------
 
-    def _extract_video_preview(self, theme_dir: str, video_path: str):
-        """Extract a frame from video_path and save as assets/image_0.png."""
+    def _extract_video_preview(self, theme_dir: str, video_path: str, landscape: bool = False):
+        """Extract a frame from video_path and save as assets/image_0.png.
+
+        landscape=True adds a 90° clockwise rotation because device h264 is always
+        encoded portrait (720x1280) regardless of theme orientation.
+        """
         assets_dir = os.path.join(theme_dir, "assets")
         os.makedirs(assets_dir, exist_ok=True)
         out = os.path.join(assets_dir, "image_0.png")
         is_h264 = video_path.lower().endswith(".h264")
+        vf = ["transpose=2"] if landscape else []
         try:
             if is_h264:
-                # Raw h264: no container metadata, just grab first decodable frame.
                 subprocess.run(
                     ["ffmpeg", "-y", "-f", "h264", "-i", video_path,
+                     *(["-vf", ",".join(vf)] if vf else []),
                      "-vframes", "1", "-update", "1", out],
                     capture_output=True, timeout=20, check=True,
                 )
             else:
-                # MP4: seek to a random point using container duration.
                 probe = subprocess.run(
                     ["ffprobe", "-v", "error", "-show_entries", "format=duration",
                      "-of", "default=noprint_wrappers=1:nokey=1", video_path],
@@ -625,6 +632,7 @@ class EditorApp:
                 seek = random.uniform(1.0, max(1.0, duration * 0.9))
                 subprocess.run(
                     ["ffmpeg", "-y", "-ss", f"{seek:.2f}", "-i", video_path,
+                     *(["-vf", ",".join(vf)] if vf else []),
                      "-vframes", "1", "-update", "1", out],
                     capture_output=True, timeout=20, check=True,
                 )
@@ -645,7 +653,10 @@ class EditorApp:
             if theme.video and theme.video.PATH:
                 video_abs = os.path.join(self._theme_dir, theme.video.PATH)
                 if os.path.exists(video_abs):
-                    self._extract_video_preview(self._theme_dir, video_abs)
+                    is_landscape = bool(
+                        theme.display and (theme.display.WIDTH or 0) > (theme.display.HEIGHT or 0)
+                    )
+                    self._extract_video_preview(self._theme_dir, video_abs, landscape=is_landscape)
             # Regenerate the home-screen preview from the current canvas so it
             # reflects the edited theme (background + all widgets in z-order).
             # Write to the preview path the loader actually reads (e.g.
