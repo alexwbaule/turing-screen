@@ -604,10 +604,14 @@ class ThemeCanvas(Gtk.ScrolledWindow):
 
             try:
                 if src_w > 0 and src_w > src_h:
-                    # Landscape source → rotate CCW + scale to 720×1280 + re-encode
+                    # Landscape source → rotate CW (transpose=1) + scale to 720×1280.
+                    # transpose=1 here + transpose=2 in VideoPlayer preview = 0° net.
+                    # Device firmware also expects portrait 720×1280 and rotates CCW for
+                    # landscape themes, so CW encoding is correct for device display too.
                     _sp.run(
                         ["ffmpeg", "-y", *input_flags, "-i", path,
-                         "-vf", "transpose=2,scale=720:1280",
+                         "-vf", "transpose=1,scale=720:1280",
+                         "-r", "25",
                          "-c:v", "libx264", "-an", "-f", "h264",
                          h264_dst],
                         check=True, capture_output=True,
