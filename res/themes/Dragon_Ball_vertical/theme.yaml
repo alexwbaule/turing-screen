@@ -8,6 +8,12 @@ display:
   RGB_LED: 0, 0, 0
   WIDTH: 720
   HEIGHT: 1280
+video:
+  PATH: video/doragon_ball.h264
+  X: 0
+  Y: 0
+  WIDTH: 720
+  HEIGHT: 1280
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png

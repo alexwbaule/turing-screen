@@ -120,7 +120,7 @@ STATS:
         FONT_SIZE: 21
         FONT_COLOR: 255, 255, 255
         SHOW_UNIT: true
-        PLACEHOLDER: Partly Cloudy 20° NE Wind
+        PLACEHOLDER: 晴转多云 20° 东北风
         ALIGN: left
   DATE:
     INTERVAL: 1

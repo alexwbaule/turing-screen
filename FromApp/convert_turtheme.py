@@ -436,8 +436,13 @@ def convert_theme(theme_name: str) -> bool:
         elif png_files:
             shutil.copy2(png_files[0], bg_root)
 
-    # Copy video if referenced and available
+    # Copy video if referenced and available.
+    # video_name can be either the mp4 filename OR the pre-extracted h264 filename
+    # (the original app stores the h264 name in <videoName>k__BackingField).
+    # video_target_path is always the mp4 path on the device — use its stem for
+    # the clean output name (e.g. "EVANGELION01" from "/mnt/UDISK/video/EVANGELION01.mp4").
     video_name = extracted.get("video_name")
+    video_target_path = extracted.get("video_target_path", "")
     video_copied = False
     if video_name:
         video_src = VIDEO_DIR / video_name
@@ -445,14 +450,24 @@ def convert_theme(theme_name: str) -> bool:
             video_dst_dir = output_dir / "video"
             video_dst_dir.mkdir(parents=True, exist_ok=True)
 
-            # Copy the pre-extracted H264 (named {mp4_name}{timestamp}.h264 in source).
-            # Rename to {stem}.h264 — the daemon reads .h264 files directly.
-            stem = Path(video_name).stem  # e.g. "EVANGELION01" from "EVANGELION01.mp4"
-            h264_dst = video_dst_dir / f"{stem}.h264"
+            # Derive a clean stem from video_target_path (mp4 name) when available,
+            # otherwise fall back to stripping all h264/mp4 extensions from video_name.
+            if video_target_path:
+                clean_stem = Path(video_target_path).stem  # e.g. "EVANGELION01"
+            else:
+                # Strip timestamp suffix: "EVANGELION01.mp407053342.h264" → "EVANGELION01"
+                clean_stem = Path(Path(video_name).stem).stem
+
+            h264_dst = video_dst_dir / f"{clean_stem}.h264"
             if not h264_dst.exists():
-                candidates = sorted(VIDEO_DIR.glob(f"{video_name}*.h264"))
-                if candidates:
-                    shutil.copy2(candidates[0], h264_dst)
+                if video_name.lower().endswith(".h264"):
+                    # video_name IS the h264 — copy directly.
+                    shutil.copy2(video_src, h264_dst)
+                else:
+                    # video_name is an mp4 — look for a pre-extracted h264 alongside it.
+                    candidates = sorted(VIDEO_DIR.glob(f"{video_name}*.h264"))
+                    if candidates:
+                        shutil.copy2(candidates[0], h264_dst)
             video_copied = h264_dst.exists()
 
             # Extract a preview frame (assets/image_0.png) from the h264 using ffmpeg.
@@ -519,9 +534,12 @@ def convert_theme(theme_name: str) -> bool:
 
     # --- video ---
     if video_name and video_copied:
-        stem = Path(video_name).stem
+        if video_target_path:
+            _vpath_stem = Path(video_target_path).stem
+        else:
+            _vpath_stem = Path(Path(video_name).stem).stem
         theme["video"] = {
-            "PATH": f"video/{stem}.h264",
+            "PATH": f"video/{_vpath_stem}.h264",
             "X": 0,
             "Y": 0,
             "WIDTH": width,

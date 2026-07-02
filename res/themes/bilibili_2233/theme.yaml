@@ -8,6 +8,12 @@ display:
   RGB_LED: 255, 255, 255
   WIDTH: 1280
   HEIGHT: 720
+video:
+  PATH: video/bilibili_2233.h264
+  X: 0
+  Y: 0
+  WIDTH: 1280
+  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png
@@ -27,7 +33,7 @@ STATS:
         FONT_SIZE: 32
         FONT_COLOR: 44, 166, 214
         SHOW_UNIT: true
-        PLACEHOLDER: Partly Cloudy 20° NE Wind
+        PLACEHOLDER: 晴转多云 20° 东北风
         ALIGN: center
   DATE:
     INTERVAL: 1
