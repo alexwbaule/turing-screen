@@ -3,6 +3,8 @@ Main EditorApp — janela principal (home) e janela do editor.
 """
 import os
 import logging
+import random
+import subprocess
 
 from gi.repository import Gtk, Adw, GLib, Gio, Gdk
 
@@ -448,6 +450,11 @@ class EditorApp:
         self.capture_z_order()
         try:
             self._current_theme.save(path)
+            theme = self._current_theme
+            if theme.video and theme.video.PATH:
+                video_abs = os.path.join(self._theme_dir, theme.video.PATH)
+                if os.path.exists(video_abs):
+                    self._extract_video_preview(self._theme_dir, video_abs)
             # Regenerate the preview (same path logic as Save) and drop the
             # cache so the home page reflects the newly saved theme.
             if self._canvas:
@@ -485,7 +492,23 @@ class EditorApp:
             self._canvas.add_background_layer(file.get_path())
 
     def _editor_add_bg_video(self):
-        self._toast(_("Background video not supported in this version."))
+        dialog = Gtk.FileDialog()
+        dialog.set_title(_("Select Background Video"))
+        f = Gtk.FileFilter()
+        f.set_name(_("Video files (*.mp4)"))
+        f.add_pattern("*.mp4")
+        store = Gio.ListStore.new(Gtk.FileFilter)
+        store.append(f)
+        dialog.set_filters(store)
+        dialog.open(self._editor_window, None, self._on_bg_video_done)
+
+    def _on_bg_video_done(self, dialog, result):
+        try:
+            file = dialog.open_finish(result)
+        except Exception:
+            return
+        if file and self._canvas:
+            self._canvas.add_video_background(file.get_path())
 
     # ------------------------------------------------------------------
     # GActions (menu do HomePage)
@@ -576,6 +599,29 @@ class EditorApp:
     # Salvar / Preview
     # ------------------------------------------------------------------
 
+    def _extract_video_preview(self, theme_dir: str, video_path: str):
+        """Extract a frame from video_path and save as assets/image_0.png."""
+        assets_dir = os.path.join(theme_dir, "assets")
+        os.makedirs(assets_dir, exist_ok=True)
+        out = os.path.join(assets_dir, "image_0.png")
+        try:
+            # Get video duration to seek to a random point
+            probe = subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                 "-of", "default=noprint_wrappers=1:nokey=1", video_path],
+                capture_output=True, text=True, timeout=10,
+            )
+            duration = float(probe.stdout.strip() or "2")
+            seek = random.uniform(1.0, max(1.0, duration * 0.9))
+            subprocess.run(
+                ["ffmpeg", "-y", "-ss", f"{seek:.2f}", "-i", video_path,
+                 "-vframes", "1", "-f", "image2", out],
+                capture_output=True, timeout=20, check=True,
+            )
+            log.info("Video preview frame extracted → %s", out)
+        except Exception as ex:
+            log.warning("Falha ao extrair frame do video: %s", ex)
+
     def _on_save(self, _btn):
         if not self._current_theme or not self._theme_dir:
             return
@@ -583,6 +629,13 @@ class EditorApp:
         path = os.path.join(self._theme_dir, "theme.yaml")
         try:
             self._current_theme.save(path)
+            # For video themes, extract a frame from the MP4 as the preview image
+            # before calling render_to_png (which won't capture video frames).
+            theme = self._current_theme
+            if theme.video and theme.video.PATH:
+                video_abs = os.path.join(self._theme_dir, theme.video.PATH)
+                if os.path.exists(video_abs):
+                    self._extract_video_preview(self._theme_dir, video_abs)
             # Regenerate the home-screen preview from the current canvas so it
             # reflects the edited theme (background + all widgets in z-order).
             # Write to the preview path the loader actually reads (e.g.

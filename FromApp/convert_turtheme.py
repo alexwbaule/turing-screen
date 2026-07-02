@@ -17,6 +17,7 @@ Usage:
 import argparse
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -443,10 +444,38 @@ def convert_theme(theme_name: str) -> bool:
         if video_src.exists():
             video_dst_dir = output_dir / "video"
             video_dst_dir.mkdir(parents=True, exist_ok=True)
+
+            # Copy the MP4
             video_dst = video_dst_dir / video_name
             if not video_dst.exists():
                 shutil.copy2(video_src, video_dst)
             video_copied = True
+
+            # Copy the pre-extracted H264 if it exists (named {mp4_name}{timestamp}.h264).
+            # The daemon expects {stem}.h264 alongside the mp4 as its cache file.
+            stem = Path(video_name).stem  # e.g. "EVANGELION01" from "EVANGELION01.mp4"
+            h264_dst = video_dst_dir / f"{stem}.h264"
+            if not h264_dst.exists():
+                candidates = sorted(VIDEO_DIR.glob(f"{video_name}*.h264"))
+                if candidates:
+                    shutil.copy2(candidates[0], h264_dst)
+
+            # Extract a preview frame (assets/image_0.png) from the video using ffmpeg.
+            # Only if image_0.png doesn't already exist from a bitmap in the theme.
+            assets_dir = output_dir / "assets"
+            preview_dst = assets_dir / "image_0.png"
+            if not preview_dst.exists():
+                assets_dir.mkdir(parents=True, exist_ok=True)
+                try:
+                    subprocess.run(
+                        ["ffmpeg", "-y", "-ss", "00:00:01",
+                         "-i", str(video_dst),
+                         "-vframes", "1", "-f", "image2",
+                         str(preview_dst)],
+                        capture_output=True, check=True,
+                    )
+                except Exception as e:
+                    print(f"  WARN: could not extract video preview frame: {e}")
 
     # Collect all font names used in this theme and resolve them
     used_fonts = set()

@@ -4,6 +4,7 @@ Uses GtkFixed for absolute positioning of draggable elements.
 Background layers are GtkPicture stacked under the elements.
 """
 import os
+import shutil
 import logging
 import dataclasses
 import typing
@@ -15,6 +16,7 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 from theme.models import (
     Theme, Text, Graph, Radial, Chart, Gauge, StatusBar, StaticImage,
 )
+from ui.video_player import VideoPlayer
 from ui.draggable import (
     DraggableText, DraggableGraph, DraggableRadial, DraggableChart,
     DraggableGauge, DraggableStatusBar, DraggableImage, _DraggableBase,
@@ -192,6 +194,24 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             w = theme.display.WIDTH or SCREEN_TURZX_W
             h = theme.display.HEIGHT or SCREEN_TURZX_H
             self._set_canvas_size(w, h)
+
+        # Video background (plays the MP4 looped behind all elements)
+        if theme.video and theme.video.PATH:
+            video_path = os.path.join(theme_dir, theme.video.PATH)
+            if os.path.exists(video_path):
+                w = theme.video.WIDTH or self._canvas_w
+                h = theme.video.HEIGHT or self._canvas_h
+                if self._video_player is None:
+                    self._video_player = VideoPlayer(w, h)
+                    self._fixed.put(self._video_player.widget, theme.video.X or 0, theme.video.Y or 0)
+                else:
+                    self._video_player.set_size(w, h)
+                    self._video_player.stop()
+                self._video_player.load(video_path)
+            else:
+                log.warning("Video file not found: %s", video_path)
+        elif self._video_player:
+            self._video_player.stop()
 
         # Background layers
         if theme.static_images:
@@ -513,22 +533,49 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             self._select_bg(key)
 
     def add_background_layer(self, path: str):
-        if not self._theme:
+        if not self._theme or not self._theme_dir:
             return
         if self._theme.static_images is None:
             self._theme.static_images = {}
+
+        # Copy the image into the theme's assets/ dir if it isn't already there.
+        assets_dir = os.path.join(self._theme_dir, "assets")
+        os.makedirs(assets_dir, exist_ok=True)
+        dst = os.path.join(assets_dir, os.path.basename(path))
+        if os.path.abspath(path) != os.path.abspath(dst):
+            shutil.copy2(path, dst)
+        rel_path = os.path.join("assets", os.path.basename(path))
+
         key = self._gen_layer_key()
-        import PIL.Image  # optional — fallback to just storing path
         try:
             from gi.repository import GdkPixbuf as _PB
-            pb = _PB.Pixbuf.new_from_file(path)
+            pb = _PB.Pixbuf.new_from_file(dst)
             w, h = pb.get_width(), pb.get_height()
         except Exception:
             w, h = self._canvas_w, self._canvas_h
         self._theme.static_images[key] = StaticImage(
-            PATH=os.path.basename(path), X=0, Y=0, WIDTH=w, HEIGHT=h, INDEX=9999
+            PATH=rel_path, X=0, Y=0, WIDTH=w, HEIGHT=h, INDEX=9999
         )
-        self.load_theme(self._theme, os.path.dirname(path) or self._theme_dir)
+        self.load_theme(self._theme, self._theme_dir)
+
+    def add_video_background(self, path: str):
+        """Copy an MP4 into the theme's video/ dir and set theme.video."""
+        if not self._theme or not self._theme_dir:
+            return
+        from theme.models import DinamicImage
+        video_dir = os.path.join(self._theme_dir, "video")
+        os.makedirs(video_dir, exist_ok=True)
+        dst = os.path.join(video_dir, os.path.basename(path))
+        if os.path.abspath(path) != os.path.abspath(dst):
+            shutil.copy2(path, dst)
+        rel_path = os.path.join("video", os.path.basename(path))
+        self._theme.video = DinamicImage(
+            PATH=rel_path,
+            X=0, Y=0,
+            WIDTH=self._canvas_w,
+            HEIGHT=self._canvas_h,
+        )
+        self.load_theme(self._theme, self._theme_dir)
 
     def remove_background_layer(self, key: str):
         if self._theme and key in (self._theme.static_images or {}):

@@ -4,6 +4,7 @@ Mirrors properties.go from the Fyne version with full field parity.
 """
 import dataclasses as _dc
 import os
+import shutil
 
 from gi.repository import Gtk, Gdk, Pango, Gio
 from i18n import _
@@ -296,14 +297,19 @@ class PropertiesPanel(Gtk.Box):
                 gfile = d.open_finish(res)
             except Exception:
                 return  # cancelled
-            p = gfile.get_path()
-            # FONT is relative to res/fonts (e.g. 'turtheme/Azonix.otf').
+            src = gfile.get_path()
+            dst = os.path.join(fonts_dir, os.path.basename(src))
+            # Copy into res/fonts/ only if the file isn't already there.
+            if os.path.abspath(src) != os.path.abspath(dst):
+                os.makedirs(fonts_dir, exist_ok=True)
+                shutil.copy2(src, dst)
+            # FONT is relative to res/fonts (e.g. 'Azonix.otf').
             try:
-                p = os.path.relpath(p, fonts_dir)
+                rel = os.path.relpath(dst, fonts_dir)
             except ValueError:
-                pass
+                rel = os.path.basename(dst)
             # set_text fires "changed" → updates data.FONT + refresh.
-            entry.set_text(p)
+            entry.set_text(rel)
 
         dialog.open(entry.get_root(), None, _done)
 
