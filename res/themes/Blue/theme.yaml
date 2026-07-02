@@ -3,7 +3,7 @@
 # Resolution: 1280x720 (landscape)
 ---
 display:
-  SIZE: 5"
+  SIZE: 5.2"
   ORIENTATION: landscape
   RGB_LED: 63, 238, 255
   WIDTH: 1280

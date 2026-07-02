@@ -296,6 +296,8 @@ def get_display_info(width: int, height: int) -> tuple[str, str]:
     """Determine display SIZE and ORIENTATION from resolution."""
     if (width, height) in [(320, 480), (480, 320)]:
         size = '3.5"'
+    elif max(width, height) >= 1280:
+        size = '5.2"'   # TURZX USB device (native 720×1280)
     else:
         size = '5"'
     # For TURZX: portrait themes (height > width) use reverse_portrait so the

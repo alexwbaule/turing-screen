@@ -1,0 +1,252 @@
+# Auto-converted from .turtheme
+# Source: gradient_theme
+# Resolution: 800x480 (landscape)
+---
+display:
+  SIZE: 5"
+  ORIENTATION: landscape
+  RGB_LED: 255, 255, 255
+  WIDTH: 800
+  HEIGHT: 480
+static_images:
+  BACKGROUND:
+    PATH: assets/image_1.png
+    X: 0
+    Y: 0
+    WIDTH: 801
+    HEIGHT: 481
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 801
+    HEIGHT: 481
+    INDEX: 1
+static_texts:
+  CPU:
+    TEXT: CPU
+    X: 122
+    Y: 183
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 31
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  GPU:
+    TEXT: GPU
+    X: 606
+    Y: 183
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 31
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  RAM:
+    TEXT: RAM
+    X: 122
+    Y: 412
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 31
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  GPU_2:
+    TEXT: GPU
+    X: 606
+    Y: 412
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 31
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  RAM_LABEL:
+    TEXT: RAM Used
+    X: 159
+    Y: 310
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 21
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+  TEMP:
+    TEXT: TEMP
+    X: 612
+    Y: 311
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 20
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  VRAM:
+    TEXT: VRAM
+    X: 370
+    Y: 280
+    FONT: turtheme/Source-San-Hans-BLOD.ttf
+    FONT_SIZE: 20
+    FONT_COLOR: 255, 255, 255
+    ALIGN: left
+  UP:
+    TEXT: UP
+    X: 402
+    Y: 318
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 17
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+  DOWN:
+    TEXT: DOWN
+    X: 402
+    Y: 388
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 17
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+  LABEL_9:
+    TEXT: .
+    X: 402
+    Y: 123
+    FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+    FONT_SIZE: 40
+    FONT_COLOR: 255, 255, 255
+    ALIGN: center
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 6
+        X: 161
+        Y: 110
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 60
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: center
+    FREQUENCY:
+      INTERVAL: 1
+      TEXT:
+        SHOW: true
+        INDEX: 16
+        X: 159
+        Y: 81
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 4800M
+        ALIGN: center
+  GPU:
+    INTERVAL: 1
+    PERCENTAGE:
+      TEXT:
+        SHOW: true
+        INDEX: 7
+        X: 645
+        Y: 110
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 60
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: center
+    TEMPERATURE:
+      TEXT:
+        SHOW: true
+        INDEX: 9
+        X: 654
+        Y: 341
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 60
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88°
+        ALIGN: center
+    MEMORY:
+      TEXT:
+        SHOW: true
+        INDEX: 10
+        X: 403
+        Y: 235
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 33
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: center
+    FREQUENCY:
+      TEXT:
+        SHOW: true
+        INDEX: 17
+        X: 644
+        Y: 81
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 8888M
+        ALIGN: center
+  MEMORY:
+    INTERVAL: 5
+    RAM:
+      PERCENT_TEXT:
+        SHOW: true
+        INDEX: 8
+        X: 161
+        Y: 341
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 60
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: 88%
+        ALIGN: center
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: true
+        INDEX: 11
+        X: 401
+        Y: 43
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 69
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '12:00'
+        ALIGN: center
+        FORMAT: short
+    DAY:
+      TEXT:
+        SHOW: true
+        INDEX: 12
+        X: 405
+        Y: 119
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 43
+        FONT_COLOR: 255, 255, 255
+        SHOW_UNIT: true
+        PLACEHOLDER: '12'
+        ALIGN: right
+        FORMAT: medium
+  NET:
+    INTERVAL: 1
+    ETH:
+      UPLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 14
+          X: 402
+          Y: 341
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 24
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: center
+      DOWNLOAD:
+        TEXT:
+          SHOW: true
+          INDEX: 15
+          X: 402
+          Y: 411
+          FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+          FONT_SIZE: 24
+          FONT_COLOR: 255, 255, 255
+          SHOW_UNIT: true
+          PLACEHOLDER: 888KB/s
+          ALIGN: center

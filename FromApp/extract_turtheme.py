@@ -798,7 +798,7 @@ def extract_theme_data(parser: NRBFParser) -> dict:
     # Find the Theme object (UsbMonitorL.Theme)
     theme_obj = None
     for obj in parser.objects.values():
-        if isinstance(obj, dict) and "UsbMonitorL.Theme" in obj.get("_class", ""):
+        if isinstance(obj, dict) and "UsbMonitorL.Theme" in obj.get("_class") or "":
             theme_obj = obj
             break
 
@@ -862,7 +862,7 @@ def extract_theme_data(parser: NRBFParser) -> dict:
     for oid, obj in parser.objects.items():
         if not isinstance(obj, dict):
             continue
-        cls = obj.get("_class", "")
+        cls = obj.get("_class") or ""
         if "M_Data" in cls:
             m_data_map[oid] = obj
         elif "FontConfig" in cls:
@@ -872,7 +872,7 @@ def extract_theme_data(parser: NRBFParser) -> dict:
     for oid, obj in parser.objects.items():
         if not isinstance(obj, dict):
             continue
-        cls = obj.get("_class", "")
+        cls = obj.get("_class") or ""
         if "GraphItem" not in cls and "GraphImage" not in cls and "GraphArchBar" not in cls and "GraphStatuBar" not in cls:
             continue
         # Skip animation (video overlay)
@@ -1087,7 +1087,7 @@ def extract_theme_data(parser: NRBFParser) -> dict:
     for oid, obj in parser.objects.items():
         if not isinstance(obj, dict):
             continue
-        cls = obj.get("_class", "")
+        cls = obj.get("_class") or ""
         if "GraphStatuBar" not in cls and "StatusBar" not in cls:
             continue
         bar = {}
@@ -1120,7 +1120,7 @@ def extract_theme_data(parser: NRBFParser) -> dict:
     for oid, obj in parser.objects.items():
         if not isinstance(obj, dict):
             continue
-        cls = obj.get("_class", "")
+        cls = obj.get("_class") or ""
         if "GraphArchBar" not in cls:
             continue
         bar = {}
