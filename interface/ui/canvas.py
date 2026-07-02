@@ -612,7 +612,10 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                         ["ffmpeg", "-y", *input_flags, "-i", path,
                          "-vf", "transpose=1,scale=720:1280",
                          "-r", "25",
-                         "-c:v", "libx264", "-an", "-f", "h264",
+                         "-c:v", "libx264",
+                         "-bf", "0",   # no B-frames: device decoder doesn't support them
+                         "-g", "25",   # keyframe every second for clean looping
+                         "-an", "-f", "h264",
                          h264_dst],
                         check=True, capture_output=True,
                     )
