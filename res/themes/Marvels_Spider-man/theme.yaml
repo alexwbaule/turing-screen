@@ -8,6 +8,12 @@ display:
   RGB_LED: 255, 199, 199
   WIDTH: 1280
   HEIGHT: 720
+video:
+  PATH: video/SpiderMan.h264
+  X: 0
+  Y: 0
+  WIDTH: 1280
+  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png
