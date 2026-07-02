@@ -561,9 +561,9 @@ class ThemeCanvas(Gtk.ScrolledWindow):
     def add_video_background(self, path: str):
         """Add a video background to the theme.
 
-        MP4 → transcoded to Annex-B h264 and saved inside the theme's video/ dir.
-        h264 → copied as-is (skip if already in destination).
-        theme.video.PATH always points to the resulting .h264 file.
+        The device always expects 720×1280 portrait Annex-B h264.
+        - Landscape source (w > h) → re-encode with transpose=2 + scale=720:1280
+        - Portrait source           → stream-copy remux (MP4) or plain copy (h264)
         """
         if not self._theme or not self._theme_dir:
             return
@@ -576,26 +576,56 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         stem = os.path.splitext(os.path.basename(path))[0]
         h264_dst = os.path.join(video_dir, f"{stem}.h264")
 
-        if src_lower.endswith(".mp4"):
-            # Transcode: extract Annex-B h264 stream (same process as the daemon).
-            if os.path.abspath(path) != os.path.abspath(h264_dst):
-                try:
+        if not (src_lower.endswith(".mp4") or src_lower.endswith(".h264")):
+            log.warning("Formato de video não suportado: %s", path)
+            return
+
+        if os.path.abspath(path) == os.path.abspath(h264_dst):
+            # Source is already the destination — nothing to do.
+            pass
+        else:
+            # Probe source dimensions to decide if rotation is needed.
+            input_flags = ["-f", "h264"] if src_lower.endswith(".h264") else []
+            src_w, src_h = 0, 0
+            try:
+                probe = _sp.run(
+                    ["ffprobe", "-v", "error",
+                     *input_flags, "-i", path,
+                     "-select_streams", "v:0",
+                     "-show_entries", "stream=width,height",
+                     "-of", "csv=p=0"],
+                    capture_output=True, text=True, timeout=10,
+                )
+                parts = probe.stdout.strip().split(",")
+                if len(parts) == 2:
+                    src_w, src_h = int(parts[0]), int(parts[1])
+            except Exception:
+                pass
+
+            try:
+                if src_w > 0 and src_w > src_h:
+                    # Landscape source → rotate CCW + scale to 720×1280 + re-encode
                     _sp.run(
-                        ["ffmpeg", "-y", "-i", path,
-                         "-bsf:v", "h264_mp4toannexb",
-                         "-c:v", "copy", "-an", "-f", "h264",
+                        ["ffmpeg", "-y", *input_flags, "-i", path,
+                         "-vf", "transpose=2,scale=720:1280",
+                         "-c:v", "libx264", "-an", "-f", "h264",
                          h264_dst],
                         check=True, capture_output=True,
                     )
-                except Exception as ex:
-                    log.error("Falha ao transcodar video: %s", ex)
-                    return
-        elif src_lower.endswith(".h264"):
-            if os.path.abspath(path) != os.path.abspath(h264_dst):
-                shutil.copy2(path, h264_dst)
-        else:
-            log.warning("Formato de video não suportado: %s", path)
-            return
+                elif src_lower.endswith(".mp4"):
+                    # Portrait MP4 → stream-copy remux to Annex-B (fast, no re-encode)
+                    _sp.run(
+                        ["ffmpeg", "-y", "-i", path,
+                         "-c:v", "copy", "-bsf:v", "h264_mp4toannexb",
+                         "-an", "-f", "h264", h264_dst],
+                        check=True, capture_output=True,
+                    )
+                else:
+                    # Portrait h264 → plain copy
+                    shutil.copy2(path, h264_dst)
+            except Exception as ex:
+                log.error("Falha ao transcodar video: %s", ex)
+                return
 
         rel_path = os.path.join("video", f"{stem}.h264")
         self._theme.video = DinamicImage(
