@@ -67,10 +67,16 @@ class VideoPlayer:
         frame_bytes = w * h * 4
 
         input_flags = ["-f", "h264"] if path.lower().endswith(".h264") else []
+        # h264 from the device is always encoded portrait (720x1280).
+        # Landscape canvases (w > h) need a 90° clockwise rotation before scaling.
+        vf_parts = []
+        if w > h:
+            vf_parts.append("transpose=2")
+        vf_parts.append(f"fps={VIDEO_FPS},scale={w}:{h}")
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
             *input_flags, "-i", path,
-            "-vf", f"fps={VIDEO_FPS},scale={w}:{h}",
+            "-vf", ",".join(vf_parts),
             "-f", "rawvideo", "-pix_fmt", "rgba", "-",
         ]
         try:

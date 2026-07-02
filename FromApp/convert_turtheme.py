@@ -477,9 +477,12 @@ def convert_theme(theme_name: str) -> bool:
             if not preview_dst.exists() and video_copied:
                 assets_dir.mkdir(parents=True, exist_ok=True)
                 try:
+                    # h264 is always portrait (720x1280); rotate for landscape themes.
+                    vf = "transpose=2" if width > height else "copy"
                     subprocess.run(
                         ["ffmpeg", "-y", "-f", "h264",
                          "-i", str(h264_dst),
+                         "-vf", vf,
                          "-vframes", "1", "-update", "1",
                          str(preview_dst)],
                         capture_output=True, check=True,
