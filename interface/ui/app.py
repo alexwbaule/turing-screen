@@ -495,8 +495,9 @@ class EditorApp:
         dialog = Gtk.FileDialog()
         dialog.set_title(_("Select Background Video"))
         f = Gtk.FileFilter()
-        f.set_name(_("Video files (*.mp4)"))
+        f.set_name(_("Video files (*.mp4, *.h264)"))
         f.add_pattern("*.mp4")
+        f.add_pattern("*.h264")
         store = Gio.ListStore.new(Gtk.FileFilter)
         store.append(f)
         dialog.set_filters(store)
@@ -604,20 +605,29 @@ class EditorApp:
         assets_dir = os.path.join(theme_dir, "assets")
         os.makedirs(assets_dir, exist_ok=True)
         out = os.path.join(assets_dir, "image_0.png")
+        is_h264 = video_path.lower().endswith(".h264")
         try:
-            # Get video duration to seek to a random point
-            probe = subprocess.run(
-                ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-                 "-of", "default=noprint_wrappers=1:nokey=1", video_path],
-                capture_output=True, text=True, timeout=10,
-            )
-            duration = float(probe.stdout.strip() or "2")
-            seek = random.uniform(1.0, max(1.0, duration * 0.9))
-            subprocess.run(
-                ["ffmpeg", "-y", "-ss", f"{seek:.2f}", "-i", video_path,
-                 "-vframes", "1", "-f", "image2", out],
-                capture_output=True, timeout=20, check=True,
-            )
+            if is_h264:
+                # Raw h264: no container metadata, just grab first decodable frame.
+                subprocess.run(
+                    ["ffmpeg", "-y", "-f", "h264", "-i", video_path,
+                     "-vframes", "1", "-update", "1", out],
+                    capture_output=True, timeout=20, check=True,
+                )
+            else:
+                # MP4: seek to a random point using container duration.
+                probe = subprocess.run(
+                    ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                     "-of", "default=noprint_wrappers=1:nokey=1", video_path],
+                    capture_output=True, text=True, timeout=10,
+                )
+                duration = float(probe.stdout.strip() or "2")
+                seek = random.uniform(1.0, max(1.0, duration * 0.9))
+                subprocess.run(
+                    ["ffmpeg", "-y", "-ss", f"{seek:.2f}", "-i", video_path,
+                     "-vframes", "1", "-update", "1", out],
+                    capture_output=True, timeout=20, check=True,
+                )
             log.info("Video preview frame extracted → %s", out)
         except Exception as ex:
             log.warning("Falha ao extrair frame do video: %s", ex)

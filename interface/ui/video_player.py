@@ -66,9 +66,10 @@ class VideoPlayer:
         w, h = self._frame_w, self._frame_h
         frame_bytes = w * h * 4
 
+        input_flags = ["-f", "h264"] if path.lower().endswith(".h264") else []
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
-            "-i", path,
+            *input_flags, "-i", path,
             "-vf", f"fps={VIDEO_FPS},scale={w}:{h}",
             "-f", "rawvideo", "-pix_fmt", "rgba", "-",
         ]

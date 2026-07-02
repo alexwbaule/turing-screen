@@ -559,16 +559,45 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         self.load_theme(self._theme, self._theme_dir)
 
     def add_video_background(self, path: str):
-        """Copy an MP4 into the theme's video/ dir and set theme.video."""
+        """Add a video background to the theme.
+
+        MP4 → transcoded to Annex-B h264 and saved inside the theme's video/ dir.
+        h264 → copied as-is (skip if already in destination).
+        theme.video.PATH always points to the resulting .h264 file.
+        """
         if not self._theme or not self._theme_dir:
             return
         from theme.models import DinamicImage
+        import subprocess as _sp
         video_dir = os.path.join(self._theme_dir, "video")
         os.makedirs(video_dir, exist_ok=True)
-        dst = os.path.join(video_dir, os.path.basename(path))
-        if os.path.abspath(path) != os.path.abspath(dst):
-            shutil.copy2(path, dst)
-        rel_path = os.path.join("video", os.path.basename(path))
+
+        src_lower = path.lower()
+        stem = os.path.splitext(os.path.basename(path))[0]
+        h264_dst = os.path.join(video_dir, f"{stem}.h264")
+
+        if src_lower.endswith(".mp4"):
+            # Transcode: extract Annex-B h264 stream (same process as the daemon).
+            if os.path.abspath(path) != os.path.abspath(h264_dst):
+                try:
+                    _sp.run(
+                        ["ffmpeg", "-y", "-i", path,
+                         "-bsf:v", "h264_mp4toannexb",
+                         "-c:v", "copy", "-an", "-f", "h264",
+                         h264_dst],
+                        check=True, capture_output=True,
+                    )
+                except Exception as ex:
+                    log.error("Falha ao transcodar video: %s", ex)
+                    return
+        elif src_lower.endswith(".h264"):
+            if os.path.abspath(path) != os.path.abspath(h264_dst):
+                shutil.copy2(path, h264_dst)
+        else:
+            log.warning("Formato de video não suportado: %s", path)
+            return
+
+        rel_path = os.path.join("video", f"{stem}.h264")
         self._theme.video = DinamicImage(
             PATH=rel_path,
             X=0, Y=0,
