@@ -3,7 +3,7 @@
 # Resolution: 720x1280 (reverse_portrait)
 ---
 display:
-  SIZE: 5"
+  SIZE: 5.2"
   ORIENTATION: reverse_portrait
   RGB_LED: 2, 216, 243
   WIDTH: 720

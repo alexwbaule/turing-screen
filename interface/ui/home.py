@@ -492,16 +492,102 @@ class HomePage:
             return
         self._open_editor(self._themes[self._current_index])
 
+    # Device profiles: (key, label, size_str, native_w, native_h)
+    _DEVICE_PROFILES = [
+        ("turzx", 'Turing 5.2" (USB)',    '5.2"', 720,  1280),
+        ("revc",  'Turing 5" (Serial)',   '5"',   320,  480),
+    ]
+
     def _on_new_theme(self, _btn):
+        # ── state ─────────────────────────────────────────────────────────
+        is_landscape = [True]
+        selected_device = [0]
+        # Pre-select detected device
+        for i, (key, *_) in enumerate(self._DEVICE_PROFILES):
+            if key == self._device_type:
+                selected_device[0] = i
+                break
+
+        # ── orientation preview (DrawingArea) ─────────────────────────────
+        preview = Gtk.DrawingArea()
+        preview.set_size_request(120, 80)
+        preview.set_halign(Gtk.Align.CENTER)
+
+        def draw_preview(area, cr, w, h):
+            if is_landscape[0]:
+                rw, rh = 0.80, 0.50
+            else:
+                rw, rh = 0.35, 0.80
+            pw, ph = rw * w, rh * h
+            px, py = (w - pw) / 2, (h - ph) / 2
+            radius = 6
+            # rounded rect
+            cr.new_sub_path()
+            cr.arc(px + pw - radius, py + radius,         radius, -1.5708, 0)
+            cr.arc(px + pw - radius, py + ph - radius,    radius, 0,       1.5708)
+            cr.arc(px + radius,      py + ph - radius,    radius, 1.5708,  3.14159)
+            cr.arc(px + radius,      py + radius,         radius, 3.14159, -1.5708)
+            cr.close_path()
+            cr.set_source_rgb(0.25, 0.50, 0.85)
+            cr.fill_preserve()
+            cr.set_source_rgb(0.15, 0.35, 0.70)
+            cr.set_line_width(1.5)
+            cr.stroke()
+
+        preview.set_draw_func(draw_preview)
+
+        # ── orientation toggle buttons ────────────────────────────────────
+        land_btn = Gtk.ToggleButton(label=_("Landscape"))
+        port_btn = Gtk.ToggleButton(label=_("Portrait"))
+        port_btn.set_group(land_btn)
+        land_btn.set_active(True)
+
+        orient_box = Gtk.Box(spacing=6, halign=Gtk.Align.CENTER)
+        orient_box.append(land_btn)
+        orient_box.append(port_btn)
+
+        def on_orient_toggle(btn, landscape):
+            if btn.get_active():
+                is_landscape[0] = landscape
+                preview.queue_draw()
+
+        land_btn.connect("toggled", on_orient_toggle, True)
+        port_btn.connect("toggled", on_orient_toggle, False)
+
+        # ── device dropdown ───────────────────────────────────────────────
+        device_strings = [p[1] for p in self._DEVICE_PROFILES]
+        device_model = Gtk.StringList.new(device_strings)
+        device_drop = Gtk.DropDown(model=device_model)
+        device_drop.set_selected(selected_device[0])
+
+        # ── name entry ────────────────────────────────────────────────────
+        name_entry = Gtk.Entry()
+        name_entry.set_placeholder_text(_("e.g. MyTheme"))
+
+        # ── assemble dialog content ───────────────────────────────────────
+        def _lbl(text):
+            l = Gtk.Label(label=text, xalign=0)
+            l.add_css_class("caption")
+            return l
+
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content.set_margin_top(4)
+        content.set_margin_bottom(4)
+        content.set_size_request(260, -1)
+        content.append(_lbl(_("Name")))
+        content.append(name_entry)
+        content.append(_lbl(_("Device")))
+        content.append(device_drop)
+        content.append(_lbl(_("Orientation")))
+        content.append(orient_box)
+        content.append(preview)
+
+        # ── dialog ────────────────────────────────────────────────────────
         dlg = Adw.AlertDialog()
         dlg.set_heading(_("New theme"))
-        dlg.set_body(_("New theme name:"))
-        entry = Gtk.Entry()
-        entry.set_placeholder_text(_("e.g. MyTheme"))
         try:
-            dlg.set_extra_child(entry)
+            dlg.set_extra_child(content)
         except AttributeError:
-            # Older libadwaita without extra_child — fall back to body-only.
             pass
         dlg.add_response("cancel", _("Cancel"))
         dlg.add_response("create", _("Create"))
@@ -512,17 +598,24 @@ class HomePage:
             pass
 
         def on_resp(d, r):
-            if r == "create":
-                self._do_create_theme(entry.get_text().strip())
+            if r != "create":
+                return
+            idx = device_drop.get_selected()
+            _, _, size_str, native_w, native_h = self._DEVICE_PROFILES[idx]
+            if is_landscape[0]:
+                w, h, orient = native_h, native_w, "landscape"
+            else:
+                w, h, orient = native_w, native_h, "portrait"
+            self._do_create_theme(name_entry.get_text().strip(), size_str, orient, w, h)
+
         dlg.connect("response", on_resp)
         parent = self._toolbar_view.get_root()
         if parent:
             dlg.present(parent)
 
-    def _do_create_theme(self, name: str):
+    def _do_create_theme(self, name: str, size: str, orientation: str, width: int, height: int):
         import re
         from theme.models import Theme, Display
-        # Sanitize: letters, digits, spaces, dash, underscore only.
         clean = re.sub(r"[^\w\- ]", "", name).strip()
         if not clean:
             self._show_message(_("Invalid name"),
@@ -530,13 +623,12 @@ class HomePage:
             return
         theme_dir = os.path.join(self._themes_base, clean)
         if os.path.exists(theme_dir):
-            self._show_message(_("Already exists"),
-                               f"'{clean}'")
+            self._show_message(_("Already exists"), f"'{clean}'")
             return
         try:
             os.makedirs(theme_dir, exist_ok=True)
-            theme = Theme(display=Display(SIZE='5"', ORIENTATION="landscape",
-                                          WIDTH=1280, HEIGHT=720))
+            theme = Theme(display=Display(SIZE=size, ORIENTATION=orientation,
+                                          WIDTH=width, HEIGHT=height))
             theme.save(os.path.join(theme_dir, "theme.yaml"))
         except Exception as e:
             self._show_message(_("Failed to create"),
@@ -548,7 +640,6 @@ class HomePage:
         if clean in self._themes:
             self._current_index = self._themes.index(clean)
         self._update_display()
-        # Jump straight into the editor for the new blank theme.
         self._open_editor(clean)
 
     def _show_message(self, heading: str, body: str):
