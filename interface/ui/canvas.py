@@ -611,10 +611,11 @@ class ThemeCanvas(Gtk.ScrolledWindow):
                     _sp.run(
                         ["ffmpeg", "-y", *input_flags, "-i", path,
                          "-vf", "transpose=1,scale=720:1280",
-                         "-r", "25",
                          "-c:v", "libx264",
-                         "-bf", "0",   # no B-frames: device decoder doesn't support them
-                         "-g", "25",   # keyframe every second for clean looping
+                         "-bf", "0",                        # no B-frames: device decoder doesn't support them
+                         "-refs", "2",                      # match original app's 2 reference frames
+                         "-g", "25",                        # keyframe every ~1s (25fps) for clean looping
+                         "-x264-params", "repeat-headers=1", # SPS+PPS before every keyframe — needed for daemon loop re-sync
                          "-an", "-f", "h264",
                          h264_dst],
                         check=True, capture_output=True,
