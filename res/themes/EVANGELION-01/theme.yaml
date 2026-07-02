@@ -8,12 +8,6 @@ display:
   RGB_LED: 255, 255, 255
   WIDTH: 720
   HEIGHT: 1280
-video:
-  PATH: video/EVANGELION01.mp407053342.h264
-  X: 0
-  Y: 0
-  WIDTH: 720
-  HEIGHT: 1280
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png

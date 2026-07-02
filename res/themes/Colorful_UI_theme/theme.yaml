@@ -8,12 +8,6 @@ display:
   RGB_LED: 79, 79, 79
   WIDTH: 720
   HEIGHT: 1280
-video:
-  PATH: video/atri.mp407051247.h264
-  X: 0
-  Y: 0
-  WIDTH: 720
-  HEIGHT: 1280
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png

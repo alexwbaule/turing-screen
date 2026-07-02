@@ -445,32 +445,27 @@ def convert_theme(theme_name: str) -> bool:
             video_dst_dir = output_dir / "video"
             video_dst_dir.mkdir(parents=True, exist_ok=True)
 
-            # Copy the MP4
-            video_dst = video_dst_dir / video_name
-            if not video_dst.exists():
-                shutil.copy2(video_src, video_dst)
-            video_copied = True
-
-            # Copy the pre-extracted H264 if it exists (named {mp4_name}{timestamp}.h264).
-            # The daemon expects {stem}.h264 alongside the mp4 as its cache file.
+            # Copy the pre-extracted H264 (named {mp4_name}{timestamp}.h264 in source).
+            # Rename to {stem}.h264 — the daemon reads .h264 files directly.
             stem = Path(video_name).stem  # e.g. "EVANGELION01" from "EVANGELION01.mp4"
             h264_dst = video_dst_dir / f"{stem}.h264"
             if not h264_dst.exists():
                 candidates = sorted(VIDEO_DIR.glob(f"{video_name}*.h264"))
                 if candidates:
                     shutil.copy2(candidates[0], h264_dst)
+            video_copied = h264_dst.exists()
 
-            # Extract a preview frame (assets/image_0.png) from the video using ffmpeg.
+            # Extract a preview frame (assets/image_0.png) from the h264 using ffmpeg.
             # Only if image_0.png doesn't already exist from a bitmap in the theme.
             assets_dir = output_dir / "assets"
             preview_dst = assets_dir / "image_0.png"
-            if not preview_dst.exists():
+            if not preview_dst.exists() and video_copied:
                 assets_dir.mkdir(parents=True, exist_ok=True)
                 try:
                     subprocess.run(
-                        ["ffmpeg", "-y", "-ss", "00:00:01",
-                         "-i", str(video_dst),
-                         "-vframes", "1", "-f", "image2",
+                        ["ffmpeg", "-y", "-f", "h264",
+                         "-i", str(h264_dst),
+                         "-vframes", "1", "-update", "1",
                          str(preview_dst)],
                         capture_output=True, check=True,
                     )
@@ -524,8 +519,9 @@ def convert_theme(theme_name: str) -> bool:
 
     # --- video ---
     if video_name and video_copied:
+        stem = Path(video_name).stem
         theme["video"] = {
-            "PATH": f"video/{video_name}",
+            "PATH": f"video/{stem}.h264",
             "X": 0,
             "Y": 0,
             "WIDTH": width,

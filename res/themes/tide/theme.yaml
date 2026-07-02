@@ -8,12 +8,6 @@ display:
   RGB_LED: 255, 255, 255
   WIDTH: 1280
   HEIGHT: 720
-video:
-  PATH: video/77.mp407052242.h264
-  X: 0
-  Y: 0
-  WIDTH: 1280
-  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: assets/image_4.png

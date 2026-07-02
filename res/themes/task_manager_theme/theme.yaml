@@ -89,7 +89,7 @@ static_texts:
     FONT_COLOR: 0, 0, 0
     ALIGN: left
   RAMTOTAL_GB_LABEL:
-    TEXT: Total memory(GB)
+    TEXT: Total memory (GB)
     X: 212
     Y: 150
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf

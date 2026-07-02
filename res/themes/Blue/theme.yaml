@@ -8,12 +8,6 @@ display:
   RGB_LED: 63, 238, 255
   WIDTH: 1280
   HEIGHT: 720
-video:
-  PATH: video/meilan2.mp407051200.h264
-  X: 0
-  Y: 0
-  WIDTH: 1280
-  HEIGHT: 720
 static_images:
   BACKGROUND:
     PATH: background.png
