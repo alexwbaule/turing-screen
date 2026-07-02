@@ -1,5 +1,5 @@
 import os
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, Gio
 from i18n import _
 
 
@@ -154,27 +154,48 @@ class LayersPanel(Gtk.Box):
 
     def _on_add(self, _btn):
         dialog = Gtk.FileDialog()
-        dialog.set_title(_("Select background image (PNG)"))
-        filt = Gtk.FileFilter()
-        filt.set_name(_("PNG images"))
-        filt.add_pattern("*.png")
-        # Simple approach: use open() without filter for now
+        dialog.set_title(_("Select background image or video"))
+
+        img_filt = Gtk.FileFilter()
+        img_filt.set_name(_("Images (PNG, JPG)"))
+        img_filt.add_pattern("*.png")
+        img_filt.add_pattern("*.jpg")
+        img_filt.add_pattern("*.jpeg")
+
+        vid_filt = Gtk.FileFilter()
+        vid_filt.set_name(_("Video (MP4)"))
+        vid_filt.add_pattern("*.mp4")
+
+        all_filt = Gtk.FileFilter()
+        all_filt.set_name(_("Images and Videos"))
+        for pat in ("*.png", "*.jpg", "*.jpeg", "*.mp4"):
+            all_filt.add_pattern(pat)
+
+        store = Gio.ListStore.new(Gtk.FileFilter)
+        store.append(all_filt)
+        store.append(img_filt)
+        store.append(vid_filt)
+        dialog.set_filters(store)
         dialog.open(self._canvas.get_root(), None, self._on_file_chosen)
 
     def _on_file_chosen(self, dialog, result):
         try:
-            from gi.repository import Gio
             gfile = dialog.open_finish(result)
             path = gfile.get_path()
-            self._canvas.add_background_layer(path)
         except Exception:
-            pass
+            return
+        if path.lower().endswith(".mp4"):
+            self._canvas.add_video_background(path)
+        else:
+            self._canvas.add_background_layer(path)
 
     def _on_remove(self, _btn):
         if self._selected_index < 0 or self._selected_index >= len(self._entries):
             return
         entry = self._entries[self._selected_index]
-        if entry["kind"] == "layer":
+        if entry["kind"] == "video":
+            self._canvas.remove_video_background()
+        elif entry["kind"] == "layer":
             self._canvas.remove_background_layer(entry["key"])
         elif entry["kind"] == "widget":
             self._canvas.remove_element(entry["widget"])

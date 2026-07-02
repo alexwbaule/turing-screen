@@ -502,54 +502,64 @@ class HomePage:
         # ── state ─────────────────────────────────────────────────────────
         is_landscape = [True]
         selected_device = [0]
-        # Pre-select detected device
-        for i, (key, *_) in enumerate(self._DEVICE_PROFILES):
+        for i, (key, *_rest) in enumerate(self._DEVICE_PROFILES):
             if key == self._device_type:
                 selected_device[0] = i
                 break
 
-        # ── orientation preview (DrawingArea) ─────────────────────────────
-        preview = Gtk.DrawingArea()
-        preview.set_size_request(120, 80)
-        preview.set_halign(Gtk.Align.CENTER)
+        # ── orientation toggle buttons with inline icons ───────────────────
+        # Each button contains a small DrawingArea (the shape) + a label,
+        # stacked vertically inside the button — no separate preview widget.
+        def _make_orient_btn(landscape: bool) -> Gtk.ToggleButton:
+            icon = Gtk.DrawingArea()
+            # landscape icon: 52×32  portrait icon: 32×52
+            iw, ih = (52, 32) if landscape else (32, 52)
+            icon.set_size_request(iw, ih)
+            icon.set_halign(Gtk.Align.CENTER)
 
-        def draw_preview(area, cr, w, h):
-            if is_landscape[0]:
-                rw, rh = 0.80, 0.50
-            else:
-                rw, rh = 0.35, 0.80
-            pw, ph = rw * w, rh * h
-            px, py = (w - pw) / 2, (h - ph) / 2
-            radius = 6
-            # rounded rect
-            cr.new_sub_path()
-            cr.arc(px + pw - radius, py + radius,         radius, -1.5708, 0)
-            cr.arc(px + pw - radius, py + ph - radius,    radius, 0,       1.5708)
-            cr.arc(px + radius,      py + ph - radius,    radius, 1.5708,  3.14159)
-            cr.arc(px + radius,      py + radius,         radius, 3.14159, -1.5708)
-            cr.close_path()
-            cr.set_source_rgb(0.25, 0.50, 0.85)
-            cr.fill_preserve()
-            cr.set_source_rgb(0.15, 0.35, 0.70)
-            cr.set_line_width(1.5)
-            cr.stroke()
+            def draw_icon(area, cr, w, h, ls=landscape):
+                radius = 4
+                cr.new_sub_path()
+                cr.arc(w - radius, radius,     radius, -1.5708, 0)
+                cr.arc(w - radius, h - radius, radius, 0,       1.5708)
+                cr.arc(radius,     h - radius, radius, 1.5708,  3.14159)
+                cr.arc(radius,     radius,     radius, 3.14159, -1.5708)
+                cr.close_path()
+                cr.set_source_rgba(0.25, 0.50, 0.85, 0.85)
+                cr.fill_preserve()
+                cr.set_source_rgba(0.15, 0.35, 0.70, 1.0)
+                cr.set_line_width(1.5)
+                cr.stroke()
 
-        preview.set_draw_func(draw_preview)
+            icon.set_draw_func(draw_icon)
 
-        # ── orientation toggle buttons ────────────────────────────────────
-        land_btn = Gtk.ToggleButton(label=_("Landscape"))
-        port_btn = Gtk.ToggleButton(label=_("Portrait"))
+            lbl = Gtk.Label(label=_("Landscape") if landscape else _("Portrait"))
+            lbl.add_css_class("caption")
+
+            inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+            inner.set_margin_top(6)
+            inner.set_margin_bottom(6)
+            inner.set_margin_start(10)
+            inner.set_margin_end(10)
+            inner.append(icon)
+            inner.append(lbl)
+
+            btn = Gtk.ToggleButton()
+            btn.set_child(inner)
+            return btn
+
+        land_btn = _make_orient_btn(True)
+        port_btn = _make_orient_btn(False)
         port_btn.set_group(land_btn)
         land_btn.set_active(True)
 
-        orient_box = Gtk.Box(spacing=6, halign=Gtk.Align.CENTER)
+        orient_box = Gtk.Box(spacing=8, halign=Gtk.Align.CENTER)
         orient_box.append(land_btn)
         orient_box.append(port_btn)
 
         def on_orient_toggle(btn, landscape):
             if btn.get_active():
                 is_landscape[0] = landscape
-                preview.queue_draw()
 
         land_btn.connect("toggled", on_orient_toggle, True)
         port_btn.connect("toggled", on_orient_toggle, False)
@@ -566,11 +576,11 @@ class HomePage:
 
         # ── assemble dialog content ───────────────────────────────────────
         def _lbl(text):
-            l = Gtk.Label(label=text, xalign=0)
-            l.add_css_class("caption")
-            return l
+            lb = Gtk.Label(label=text, xalign=0)
+            lb.add_css_class("caption")
+            return lb
 
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         content.set_margin_top(4)
         content.set_margin_bottom(4)
         content.set_size_request(260, -1)
@@ -580,7 +590,6 @@ class HomePage:
         content.append(device_drop)
         content.append(_lbl(_("Orientation")))
         content.append(orient_box)
-        content.append(preview)
 
         # ── dialog ────────────────────────────────────────────────────────
         dlg = Adw.AlertDialog()

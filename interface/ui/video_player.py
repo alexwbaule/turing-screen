@@ -62,16 +62,40 @@ class VideoPlayer:
             if stopped:
                 return
 
+    @staticmethod
+    def _probe_dims(path: str, input_flags: list) -> tuple[int, int]:
+        """Return (width, height) of the video stream, or (0, 0) on failure."""
+        try:
+            r = subprocess.run(
+                ["ffprobe", "-v", "error",
+                 *input_flags, "-i", path,
+                 "-select_streams", "v:0",
+                 "-show_entries", "stream=width,height",
+                 "-of", "csv=p=0"],
+                capture_output=True, text=True, timeout=5,
+            )
+            parts = r.stdout.strip().split(",")
+            if len(parts) == 2:
+                return int(parts[0]), int(parts[1])
+        except Exception:
+            pass
+        return 0, 0
+
     def _stream_once(self, path: str) -> bool:
         w, h = self._frame_w, self._frame_h
         frame_bytes = w * h * 4
 
         input_flags = ["-f", "h264"] if path.lower().endswith(".h264") else []
-        # h264 from the device is always encoded portrait (720x1280).
-        # Landscape canvases (w > h) need a 90° clockwise rotation before scaling.
+
+        # Decide rotation: only rotate if the video's own orientation doesn't
+        # match the canvas orientation (portrait video → landscape canvas, etc.).
         vf_parts = []
-        if w > h:
-            vf_parts.append("transpose=2")
+        vw, vh = self._probe_dims(path, input_flags)
+        if vw > 0 and vh > 0:
+            video_landscape = vw > vh
+            canvas_landscape = w > h
+            if video_landscape != canvas_landscape:
+                vf_parts.append("transpose=2")
         vf_parts.append(f"fps={VIDEO_FPS},scale={w}:{h}")
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",

@@ -606,6 +606,20 @@ class ThemeCanvas(Gtk.ScrolledWindow):
         )
         self.load_theme(self._theme, self._theme_dir)
 
+    def remove_video_background(self):
+        if not self._theme:
+            return
+        self._theme.video = None
+        if self._video_player:
+            self._video_player.stop()
+            try:
+                self._fixed.remove(self._video_player.widget)
+            except Exception:
+                pass
+            self._video_player = None
+        if self._layers:
+            self._layers.refresh(self._theme, self._elements)
+
     def remove_background_layer(self, key: str):
         if self._theme and key in (self._theme.static_images or {}):
             del self._theme.static_images[key]

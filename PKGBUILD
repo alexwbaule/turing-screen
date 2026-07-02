@@ -7,7 +7,7 @@
 # Run:  makepkg -si
 pkgbase=turing-screen
 pkgname=('turing-screen' 'turing-interface')
-pkgver=1.4.11.r0.gd3ddd40
+pkgver=1.4.12.r0.g89c2456
 pkgrel=1
 pkgdesc="Daemon and theme editor for Turing Smart Screen USB displays"
 arch=('x86_64')
@@ -89,7 +89,8 @@ package_turing-interface() {
 	pkgdesc="Theme editor and device manager GUI (GTK4) for Turing Smart Screen"
 	depends=('turing-screen'
 	         'python' 'python-gobject' 'gtk4' 'libadwaita' 'python-cairo'
-	         'python-websockets' 'python-yaml' 'python-pillow')
+	         'python-websockets' 'python-yaml' 'python-pillow'
+	         'ffmpeg')
 	optdepends=('gnome-shell-extension-appindicator: system tray icon on GNOME')
 	install=turing-interface.install
 
