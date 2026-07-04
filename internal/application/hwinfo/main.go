@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,20 +22,24 @@ import (
 	"github.com/alexwbaule/gopsutil/v3/disk"
 	"github.com/alexwbaule/gopsutil/v3/mem"
 	"github.com/alexwbaule/turing-screen/internal/application/logger"
+	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	amdgpu "github.com/alexwbaule/turing-screen/internal/resource/gpu/amd"
 )
 
 // HWInfo holds detected hardware model names.
 type HWInfo struct {
-	CPUModel  string
-	GPUModel  string
-	DiskModel string
-	MemTotal  string
-	Hostname  string
+	CPUModel      string
+	GPUModel      string
+	DiskModel     string
+	MemTotal      string
+	Hostname      string
+	CoreCount     int // logical CPU count, used e.g. as a sane default max for Load Average widgets
+	EthSpeedMbps  int // negotiated link speed of the configured wired interface, 0 if unknown
+	WifiSpeedMbps int // negotiated link speed of the configured wifi interface, 0 if unknown
 }
 
 // Detect gathers hardware information from the system.
-func Detect(log *logger.Logger, gpuProvider string) *HWInfo {
+func Detect(log *logger.Logger, gpuProvider string, netCfg device.Net) *HWInfo {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -72,10 +77,45 @@ func Detect(log *logger.Logger, gpuProvider string) *HWInfo {
 		info.Hostname = "unknown"
 	}
 
-	log.Infof("hwinfo: CPU=%s, GPU=%s, Disk=%s, Mem=%s, Host=%s",
-		info.CPUModel, info.GPUModel, info.DiskModel, info.MemTotal, info.Hostname)
+	// Logical core count — used by the theme editor as a sane default MAX_VALUE
+	// for Load Average widgets (0-100 makes a load of ~2 practically invisible).
+	if counts, err := cpu.CountsWithContext(ctx, true); err == nil && counts > 0 {
+		info.CoreCount = counts
+	} else {
+		log.Warnf("hwinfo: could not detect core count: %v", err)
+	}
+
+	// Negotiated link speed of the configured interfaces — used by the theme
+	// editor as a sane default MAX_VALUE for Net Upload/Download widgets
+	// (raw values are bytes/sec; a generic 0-100 default is meaningless there).
+	info.EthSpeedMbps = detectLinkSpeedMbps(netCfg.Wired)
+	info.WifiSpeedMbps = detectLinkSpeedMbps(netCfg.Wifi)
+
+	log.Infof("hwinfo: CPU=%s, GPU=%s, Disk=%s, Mem=%s, Host=%s, Cores=%d, EthMbps=%d, WifiMbps=%d",
+		info.CPUModel, info.GPUModel, info.DiskModel, info.MemTotal, info.Hostname,
+		info.CoreCount, info.EthSpeedMbps, info.WifiSpeedMbps)
 
 	return info
+}
+
+// detectLinkSpeedMbps reads the kernel-reported negotiated link speed (Mbps)
+// for a network interface from /sys/class/net/<iface>/speed. Returns 0 if the
+// interface is unset, doesn't exist, is down, or is wireless (wireless NICs
+// generally don't populate this file reliably — 0 signals "unknown" to the
+// caller, which should fall back to a generic default).
+func detectLinkSpeedMbps(iface string) int {
+	if iface == "" {
+		return 0
+	}
+	data, err := os.ReadFile(fmt.Sprintf("/sys/class/net/%s/speed", iface))
+	if err != nil {
+		return 0
+	}
+	speed, err := strconv.Atoi(strings.TrimSpace(string(data)))
+	if err != nil || speed <= 0 {
+		return 0
+	}
+	return speed
 }
 
 // Replacements returns a map of placeholder → value for template substitution.

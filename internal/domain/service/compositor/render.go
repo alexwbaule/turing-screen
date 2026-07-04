@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
+	"image/png"
 	"math"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -211,10 +215,34 @@ func (c *Compositor) renderFrame(frame *image.NRGBA, vals *sensorData) *image.NR
 		items = append(items, c.collectMeasurementItems(vals.Volume, "%.0f", "%", m)...)
 	}
 
-	// Sort by INDEX (lower index = drawn first = behind)
-	sort.Slice(items, func(i, j int) bool {
+	// Static image layers (everything except BACKGROUND, which is INDEX 0 and
+	// already baked into the backdrop) and static texts join the SAME
+	// INDEX-ordered z-stack as STATS below, so a layer image/text can render
+	// above or below any sensor widget exactly as configured — matching the
+	// theme editor's canvas, which sorts all elements together by INDEX.
+	items = append(items, c.collectStaticImageItems()...)
+	items = append(items, c.collectStaticTextItems()...)
+
+	// Sort by INDEX (lower index = drawn first = behind). Must be stable:
+	// themes can (and theme "2" does — LAYER_2 and RADIAL both at INDEX 1)
+	// have ties, and sort.Slice's order for equal elements is explicitly
+	// unspecified. SliceStable guarantees ties keep their append order above
+	// (STATS collected first, static images/texts appended after), so a tie
+	// deterministically draws the image/text on top of the STATS widget
+	// instead of leaving it to an unstable sort implementation detail.
+	sort.SliceStable(items, func(i, j int) bool {
 		return items[i].index < items[j].index
 	})
+
+	if c.debugDir != "" && !c.debugDone {
+		c.dumpDebugFrame(frame, 0, "background")
+		for i, item := range items {
+			item.drawFunc(frame)
+			c.dumpDebugFrame(frame, i+1, fmt.Sprintf("index%03d", item.index))
+		}
+		c.debugDone = true
+		return frame
+	}
 
 	// Draw all in order
 	for _, item := range items {
@@ -349,6 +377,57 @@ func (c *Compositor) collectModelItem(value string, m *theme.Sensor) []drawItem 
 	return items
 }
 
+// collectStaticImageItems returns draw items for every static image layer
+// EXCEPT BACKGROUND (INDEX 0, pre-baked into the backdrop — see
+// Builder.BuildBackgroundImage). Drawing these here, every frame, alongside
+// the STATS items lets a layer be interleaved above or below any sensor
+// widget by INDEX, instead of always sitting behind every widget.
+func (c *Compositor) collectStaticImageItems() []drawItem {
+	var items []drawItem
+	for name, img := range c.staticImages {
+		if name == "BACKGROUND" || img.BackgroundImage == nil {
+			continue
+		}
+		img := img
+		items = append(items, drawItem{index: img.Index, drawFunc: func(f *image.NRGBA) {
+			b := img.BackgroundImage.Bounds()
+			r := image.Rect(img.X, img.Y, img.X+b.Dx(), img.Y+b.Dy())
+			draw.Draw(f, r, img.BackgroundImage, b.Min, draw.Over)
+		}})
+	}
+	return items
+}
+
+// collectStaticTextItems returns draw items for every static text, merged
+// into the same INDEX-ordered z-stack as STATS and static images (see
+// collectStaticImageItems).
+func (c *Compositor) collectStaticTextItems() []drawItem {
+	var items []drawItem
+	for _, txt := range c.staticTexts {
+		txt := txt
+		items = append(items, drawItem{index: txt.Index, drawFunc: func(f *image.NRGBA) {
+			c.drawStaticTextOnFrame(f, &txt)
+		}})
+	}
+	return items
+}
+
+// dumpDebugFrame writes frame's current pixels to c.debugDir, named by the
+// compositing step number and a short label, so the effective draw order can
+// be inspected image by image. Errors are logged, never fatal — debug-only.
+func (c *Compositor) dumpDebugFrame(frame *image.NRGBA, step int, label string) {
+	path := filepath.Join(c.debugDir, fmt.Sprintf("%03d_%s.png", step, label))
+	f, err := os.Create(path)
+	if err != nil {
+		c.log.Warnf("layer debug: create %s: %v", path, err)
+		return
+	}
+	defer f.Close()
+	if err := png.Encode(f, frame); err != nil {
+		c.log.Warnf("layer debug: encode %s: %v", path, err)
+	}
+}
+
 // --- Drawing functions (draw directly on frame, no crop) ---
 
 func (c *Compositor) drawTextOnFrame(frame *image.NRGBA, text string, stat *theme.Text) {
@@ -379,6 +458,47 @@ func (c *Compositor) drawTextOnFrame(frame *image.NRGBA, text string, stat *them
 		Dot:  fixed.Point26_6{X: dotX, Y: dotY},
 	}
 	d.DrawString(text)
+}
+
+// drawStaticTextOnFrame draws a theme.StaticText (a static_texts.* entry),
+// same alignment/background-fill semantics as the former
+// Builder.BuildBackgroundTexts, just targeting the per-frame buffer instead
+// of the pre-baked backdrop so it can be z-ordered against STATS by INDEX.
+func (c *Compositor) drawStaticTextOnFrame(frame *image.NRGBA, stat *theme.StaticText) {
+	if stat.Font == nil {
+		return
+	}
+
+	metrics := stat.Font.Metrics()
+	textWidth := font.MeasureString(stat.Font, stat.Text)
+
+	var dotX fixed.Int26_6
+	switch stat.Align {
+	case theme.CENTER:
+		dotX = fixed.I(stat.X) - textWidth/2
+	case theme.RIGHT:
+		dotX = fixed.I(stat.X) - textWidth
+	default: // LEFT
+		dotX = fixed.I(stat.X)
+	}
+
+	dotY := fixed.I(stat.Y) + metrics.Ascent
+
+	if bg := stat.BackgroundColor; bg != nil {
+		if _, _, _, a := bg.RGBA(); a > 0 {
+			const tolerance = 2
+			h := (metrics.Ascent + metrics.Descent).Ceil()
+			fillNRGBA(frame, dotX.Floor()-tolerance, stat.Y, textWidth.Ceil()+2*tolerance, h, bg)
+		}
+	}
+
+	d := &font.Drawer{
+		Dst:  frame,
+		Src:  image.NewUniform(stat.FontColor),
+		Face: stat.Font,
+		Dot:  fixed.Point26_6{X: dotX, Y: dotY},
+	}
+	d.DrawString(stat.Text)
 }
 
 func (c *Compositor) drawGraphOnFrame(frame *image.NRGBA, value float64, stat *theme.Graph) {
@@ -574,10 +694,17 @@ func (c *Compositor) drawRadialOnFrame(frame *image.NRGBA, value float64, stat *
 		if clr == nil || a2 <= a1 {
 			return
 		}
+		// Clockwise=false mirrors the Python editor's cr.arc_negative(a1, a2):
+		// swapping the pair before rasterizing fills the complementary span
+		// (the rest of the circle) instead of the direct a1→a2 arc.
+		da1, da2 := a1, a2
+		if !stat.Clockwise {
+			da1, da2 = a2, a1
+		}
 		if hasGradient {
-			drawArcGradientNRGBA(frame, x, y, arcRadius, a1, a2, stat.Width, stat.GradientColor, clr)
+			drawArcGradientNRGBA(frame, x, y, arcRadius, da1, da2, stat.Width, stat.GradientColor, clr)
 		} else {
-			drawArcNRGBA(frame, x, y, arcRadius, a1, a2, stat.Width, clr)
+			drawArcNRGBA(frame, x, y, arcRadius, da1, da2, stat.Width, clr)
 		}
 		if stat.Round {
 			r := float64(stat.Width) / 2.0

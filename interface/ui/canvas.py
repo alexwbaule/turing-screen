@@ -69,6 +69,58 @@ _STATIC_PLACEHOLDERS = {
     "HOSTNAME":   "{{HOSTNAME}}",
 }
 
+# Sane MIN_VALUE/MAX_VALUE defaults for Graph/Radial/Gauge/StatusBar/Chart,
+# keyed by a substring of the yaml_path. The dataclass default (0-100) fits
+# percentages fine but is meaningless for things like CPU frequency (MHz,
+# thousands) or load average (single digits) — a widget created against it
+# renders either permanently maxed out or an invisible sliver. Checked in
+# order; first match wins. Values here are reasonable guesses, not hardware
+# introspection (except LOAD/NET, which use live hwinfo when available) —
+# users can always override via the Range section in the properties panel.
+_RANGE_DEFAULTS = [
+    (".CPU.FREQUENCY",    (0, 6000)),     # MHz
+    (".GPU.FREQUENCY",    (0, 3000)),     # MHz
+    (".CPU.VOLTAGE",      (0, 2)),        # V
+    (".GPU.VOLTAGE",      (0, 1500)),     # mV — GPU voltage is reported in mV, unlike CPU
+    (".CPU.POWER",        (0, 300)),      # W
+    (".GPU.POWER",        (0, 450)),      # W
+    (".CPU.FAN",          (0, 3000)),     # RPM
+    (".GPU.FAN",          (0, 3000)),     # RPM
+    (".DATE.HOUR",        (0, 24)),
+    (".DATE.DAY",         (1, 31)),
+    (".WEATHER.TEMPERATURE", (-10, 50)),  # ambient °C, not CPU/GPU °C
+]
+
+_GENERIC_LOAD_MAX = 8       # fallback when hwinfo has no core count yet
+_GENERIC_NET_MBPS = 100     # fallback when hwinfo has no negotiated link speed
+
+
+def _default_range_for_path(path: str, hwinfo: dict) -> Optional[tuple[int, int]]:
+    """Sane (MIN_VALUE, MAX_VALUE) for a new Graph/Radial/Gauge/StatusBar/Chart
+    at yaml_path, or None to fall back to the dataclass default (0-100).
+    LOAD uses the live core count and NET the live negotiated link speed from
+    hwinfo when the daemon has reported them; otherwise a generic fallback."""
+    p = path.upper()
+
+    if ".HOST.LOAD." in p:
+        cores = hwinfo.get("core_count") or _GENERIC_LOAD_MAX
+        return (0, max(1, int(cores)))
+
+    if ".NET." in p and (".UPLOAD" in p or ".DOWNLOAD" in p) \
+            and "UPLOADED" not in p and "DOWNLOADED" not in p:
+        if ".WLO." in p:
+            mbps = hwinfo.get("wifi_speed_mbps") or _GENERIC_NET_MBPS
+        elif ".ETH." in p:
+            mbps = hwinfo.get("eth_speed_mbps") or _GENERIC_NET_MBPS
+        else:
+            mbps = _GENERIC_NET_MBPS
+        return (0, int(mbps) * 1_000_000 // 8)  # Mbps -> bytes/sec
+
+    for needle, rng in _RANGE_DEFAULTS:
+        if needle in p:
+            return rng
+    return None
+
 
 def _norm(s: str) -> str:
     """Normalise a key for comparison: lowercase, drop underscores/dashes.
@@ -1046,19 +1098,29 @@ class ThemeCanvas(Gtk.ScrolledWindow):
             data = Text(X=cx, Y=cy, SHOW=True, FONT_SIZE=24, FONT_COLOR="255,255,255")
             elem = DraggableText(data, yaml_path, self._canvas_w, self._canvas_h)
         elif kind == "graph":
-            data = Graph(X=cx, Y=cy, WIDTH=200, HEIGHT=80, SHOW=True, BAR_COLOR="0,255,0")
+            min_v, max_v = _default_range_for_path(yaml_path, self._hwinfo) or (0, 100)
+            data = Graph(X=cx, Y=cy, WIDTH=200, HEIGHT=80, SHOW=True, BAR_COLOR="0,255,0",
+                         MIN_VALUE=min_v, MAX_VALUE=max_v)
             elem = DraggableGraph(data, yaml_path, self._canvas_w, self._canvas_h)
         elif kind == "radial":
-            data = Radial(X=cx, Y=cy, RADIUS=80, WIDTH=10, SHOW=True, BAR_COLOR="0,255,0")
+            min_v, max_v = _default_range_for_path(yaml_path, self._hwinfo) or (0, 100)
+            data = Radial(X=cx, Y=cy, RADIUS=80, WIDTH=10, SHOW=True, BAR_COLOR="0,255,0",
+                          MIN_VALUE=min_v, MAX_VALUE=max_v)
             elem = DraggableRadial(data, yaml_path, self._canvas_w, self._canvas_h)
         elif kind == "chart":
-            data = Chart(X=cx, Y=cy, WIDTH=200, HEIGHT=100, SHOW=True, FILL_COLOR="0,255,0")
+            min_v, max_v = _default_range_for_path(yaml_path, self._hwinfo) or (0, 100)
+            data = Chart(X=cx, Y=cy, WIDTH=200, HEIGHT=100, SHOW=True, FILL_COLOR="0,255,0",
+                         MIN_VALUE=min_v, MAX_VALUE=max_v)
             elem = DraggableChart(data, yaml_path, self._canvas_w, self._canvas_h)
         elif kind == "gauge":
-            data = Gauge(X=cx, Y=cy, RADIUS=80, SHOW=True, NEEDLE_COLOR="255,0,0")
+            min_v, max_v = _default_range_for_path(yaml_path, self._hwinfo) or (0, 100)
+            data = Gauge(X=cx, Y=cy, RADIUS=80, SHOW=True, NEEDLE_COLOR="255,0,0",
+                         MIN_VALUE=min_v, MAX_VALUE=max_v)
             elem = DraggableGauge(data, yaml_path, self._canvas_w, self._canvas_h)
         elif kind == "status_bar":
-            data = StatusBar(X=cx, Y=cy, WIDTH=200, HEIGHT=20, SHOW=True, BAR_COLOR="0,255,0")
+            min_v, max_v = _default_range_for_path(yaml_path, self._hwinfo) or (0, 100)
+            data = StatusBar(X=cx, Y=cy, WIDTH=200, HEIGHT=20, SHOW=True, BAR_COLOR="0,255,0",
+                             MIN_VALUE=min_v, MAX_VALUE=max_v)
             elem = DraggableStatusBar(data, yaml_path, self._canvas_w, self._canvas_h)
         else:
             return

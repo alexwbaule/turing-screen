@@ -10,11 +10,18 @@ display:
   HEIGHT: 1280
 static_images:
   BACKGROUND:
-    PATH: assets/image_4.png
+    PATH: assets/image_1.png
     X: 0
     Y: 0
     WIDTH: 721
     HEIGHT: 1281
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 721
+    HEIGHT: 1281
+    INDEX: 1
 STATS:
   DATE:
     INTERVAL: 1

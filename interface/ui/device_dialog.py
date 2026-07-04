@@ -92,6 +92,11 @@ class DeviceDialog(Gtk.Window):
         btn_restart.connect("clicked", lambda *_: self._restart_device())
         left.append(btn_restart)
 
+        btn_hard_reset = Gtk.Button(label=_("Hard Reset"))
+        btn_hard_reset.add_css_class("destructive-action")
+        btn_hard_reset.connect("clicked", lambda *_: self._hard_reset_device())
+        left.append(btn_hard_reset)
+
         root.append(left)
         root.append(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL))
 
@@ -327,6 +332,18 @@ class DeviceDialog(Gtk.Window):
             return
         self._ws.send("device.restart", None,
                       callback=lambda p, err: self._set_status(f"✓ {_('Device restarted')}") if not err
+                      else self._set_status(f"⚠ {err}"))
+
+    # ------------------------------------------------------------------
+    # WS: device.hardreset — firmware-level restart (USB cmd 11). Drops the
+    # USB session; the daemon reconnects on its own once the device re-enumerates.
+    # ------------------------------------------------------------------
+
+    def _hard_reset_device(self):
+        if not self._ws or not self._ws.is_connected():
+            return
+        self._ws.send("device.hardreset", None,
+                      callback=lambda p, err: self._set_status(f"✓ {_('Hard reset sent')}") if not err
                       else self._set_status(f"⚠ {err}"))
 
     # ------------------------------------------------------------------

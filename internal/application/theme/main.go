@@ -393,6 +393,14 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 	if val, ok := data["block_angle"].(int); ok {
 		blockAngle = val
 	}
+	// Default true (matches the Python editor's CLOCKWISE dataclass default and
+	// the direction every existing theme already relies on) — unlike the other
+	// bools above, false is not a safe zero-value default here since it now
+	// flips the arc to the complementary span instead of just changing intent.
+	clockwise := true
+	if val, ok := data["clockwise"].(bool); ok {
+		clockwise = val
+	}
 
 	v := theme.Radial{
 		Layout:          layout,
@@ -407,7 +415,7 @@ func translateRadial(file string, data map[string]interface{}) (interface{}, err
 		AngleSteps:      getInt(data, "angle_steps"),
 		AngleSep:        getInt(data, "angle_sep"),
 		BlockAngle:      blockAngle,
-		Clockwise:       getBool(data, "clockwise"),
+		Clockwise:       clockwise,
 		BarColor:        barColor,
 		GradientColor:   gradientColor,
 		Round:           round,

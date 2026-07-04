@@ -199,7 +199,7 @@ class EditorApp:
 
         self._main_window = Adw.ApplicationWindow(application=app)
         self._main_window.set_title("Turing Screen")
-        self._main_window.set_default_size(520, 480)
+        self._main_window.set_default_size(680, 628)
         self._main_window.set_resizable(True)
 
         # Fechar janela → ocultar no tray (não sair), igual ao Go
@@ -524,15 +524,15 @@ class EditorApp:
             a.connect("activate", cb)
             app.add_action(a)
 
-        _action("hide",           lambda *_: self._on_main_close(self._main_window))
-        _action("quit",           lambda *_: app.quit())
+        _action("hide",           lambda *_a: self._on_main_close(self._main_window))
+        _action("quit",           lambda *_a: app.quit())
         _action("quit_off",       self._on_quit_off)
-        _action("dev_restart",    lambda *_: self._ws_cmd("device.restart",  _("Restarting...")))
-        _action("dev_reboot",     lambda *_: self._ws_cmd("device.reboot",   _("Rebooting...")))
-        _action("dev_reset",      lambda *_: self._ws_cmd("device.reset",    _("Resetting USB...")))
-        _action("dev_turnoff",    lambda *_: self._ws_cmd("device.turnoff",  _("Turning off...")))
-        _action("settings",       lambda *_: self._show_config())
-        _action("delete_widget",  lambda *_: self.delete_selected_widget())
+        _action("dev_restart",    lambda *_a: self._ws_cmd("device.restart",  _("Restarting...")))
+        _action("dev_reboot",     lambda *_a: self._ws_cmd("device.reboot",   _("Rebooting...")))
+        _action("dev_reset",      lambda *_a: self._ws_cmd("device.reset",    _("Resetting USB...")))
+        _action("dev_turnoff",    lambda *_a: self._ws_cmd("device.turnoff",  _("Turning off...")))
+        _action("settings",       lambda *_a: self._show_config())
+        _action("delete_widget",  lambda *_a: self.delete_selected_widget())
 
     def _on_quit_off(self, *_):
         self._ws.send("device.turnoff", None)

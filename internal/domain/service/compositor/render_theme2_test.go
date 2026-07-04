@@ -38,6 +38,7 @@ func TestTheme2Render(t *testing.T) {
 	radial.Width = 110
 	radial.MinValue, radial.MaxValue = 0, 100
 	radial.AngleStart, radial.AngleEnd = 212, 60
+	radial.Clockwise = true // matches res/themes/2/theme.yaml's CLOCKWISE: true
 	radial.BarColor = color.NRGBA{R: 0, G: 0, B: 255, A: 255}
 	drawRadial := func(f *image.NRGBA) { c.drawRadialOnFrame(f, 100, radial) }
 	drawLayer := func(f *image.NRGBA) {

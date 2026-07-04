@@ -4,6 +4,7 @@ import (
 	"context"
 	"image"
 	"image/draw"
+	"os"
 	"sync"
 	"time"
 
@@ -137,6 +138,21 @@ type Compositor struct {
 	count         int64
 	jobs          chan<- command.Command
 	frameCallback func(*image.NRGBA)
+
+	// staticImages/staticTexts are every layer EXCEPT the pinned BACKGROUND
+	// (INDEX 0, baked once into the backdrop by Builder.BuildBackgroundImage).
+	// These are drawn every frame, merged into the same INDEX-ordered
+	// z-stack as the STATS drawItems, so a layer image/text can be
+	// interleaved above or below any sensor widget as configured — matching
+	// the theme editor's canvas, which sorts all elements together by INDEX.
+	staticImages map[string]theme.StaticImage
+	staticTexts  map[string]theme.StaticText
+
+	// debugDir, when set via EnableLayerDebug, makes the next renderFrame
+	// call write one PNG per compositing step (background, then each drawn
+	// item in z-order) so layer ordering can be inspected visually.
+	debugDir  string
+	debugDone bool
 }
 
 func New(
@@ -172,6 +188,27 @@ func (c *Compositor) SetJobs(jobs chan<- command.Command) {
 // Used by TURZX devices that require full-frame PNG uploads.
 func (c *Compositor) SetFrameCallback(fn func(*image.NRGBA)) {
 	c.frameCallback = fn
+}
+
+// SetStaticLayers stores every static image layer and static text EXCEPT
+// BACKGROUND (INDEX 0, already baked into the immutable backdrop). renderFrame
+// merges these into the same INDEX-ordered z-stack as the STATS widgets.
+func (c *Compositor) SetStaticLayers(images map[string]theme.StaticImage, texts map[string]theme.StaticText) {
+	c.staticImages = images
+	c.staticTexts = texts
+}
+
+// EnableLayerDebug arms a one-shot compositing debug dump: the next
+// renderFrame call writes a PNG to dir after the background reset and after
+// every subsequently drawn item (in actual z-order), so the ordering between
+// STATS, static images and static texts can be inspected step by step.
+func (c *Compositor) EnableLayerDebug(dir string) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	c.debugDir = dir
+	c.debugDone = false
+	return nil
 }
 
 // SetModelStrings stores the hardware model labels (detected once by hwinfo.Detect)

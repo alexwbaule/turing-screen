@@ -37,6 +37,20 @@ def _has_chinese(text: str) -> bool:
     return any("一" <= c <= "鿿" for c in text)
 
 
+def _make_transparent_background(dst_path: Path, width: int, height: int) -> None:
+    """Write a fully transparent RGBA PNG at width x height to dst_path.
+
+    Used as BACKGROUND for a video theme with no usable transparent overlay
+    asset: the daemon bakes static_images.BACKGROUND into every frame it
+    uploads, so an opaque image here would paint over the video every tick.
+    A fully transparent placeholder keeps every theme's structure consistent
+    (always a BACKGROUND entry) while still letting the video show through
+    completely.
+    """
+    from PIL import Image as PILImage
+    PILImage.new("RGBA", (width, height), (0, 0, 0, 0)).save(dst_path)
+
+
 def _auto_translate(text: str) -> str:
     """Translate Chinese text to English (cached). Falls back to original on error."""
     if not _has_chinese(text):
@@ -427,10 +441,19 @@ def convert_theme(theme_name: str) -> bool:
             if png_files_sorted:
                 opaque_images = [png_files_sorted[0]]
 
-        # Pick background: first overlay for video themes, first opaque otherwise
+        # Pick background: first overlay for video themes, first opaque otherwise.
+        # A video theme with NO transparent overlay candidate must not fall
+        # back to an opaque image — the daemon bakes static_images.BACKGROUND
+        # into every frame it uploads, so an opaque one paints over the video
+        # every tick and the video never shows at all. Generate a fully
+        # transparent placeholder instead, so the theme still gets a normal
+        # BACKGROUND entry and the video shows through completely.
         has_video = bool(extracted.get("video_name"))
-        if has_video and overlay_images:
-            shutil.copy2(overlay_images[0], bg_root)
+        if has_video:
+            if overlay_images:
+                shutil.copy2(overlay_images[0], bg_root)
+            else:
+                _make_transparent_background(bg_root, width, height)
         elif opaque_images:
             shutil.copy2(opaque_images[0], bg_root)
         elif overlay_images:
@@ -576,10 +599,18 @@ def convert_theme(theme_name: str) -> bool:
 
     if image_items and len(all_pngs) > 1:
         # Use GraphImage.bitmap images
-        # Offset depends on whether theme has video (Animation takes 3 bitmap slots)
+        # Offset depends on whether the video actually made it into this theme
+        # (Animation takes 3 bitmap slots). This must key off video_copied, not
+        # has_video/video_name: some source themes reference a video whose
+        # pre-extracted .h264 isn't available (e.g. "racing_theme" references
+        # TheCrew.mp4 with no matching .h264 anywhere in VIDEO_DIR), so the
+        # final theme ends up with no video at all — using has_video here
+        # would still skip 3 bitmap slots that were never actually used,
+        # picking the wrong image (a small decorative gauge-face asset)
+        # instead of the real background.
         # With Animation: image_0=preview, image_1/2/3=animation(bitmap+O+S), image_4+=GraphImages
         # Without Animation: image_0=preview, image_1+=GraphImages
-        has_animation = has_video  # Animation exists when theme has video
+        has_animation = video_copied
         if has_animation:
             start_idx = 4  # skip preview + 3 animation bitmaps
         else:
@@ -610,15 +641,39 @@ def convert_theme(theme_name: str) -> bool:
             first_img = assets_dir / f"image_{first_idx}.png"
             if first_img.exists():
                 shutil.copy2(first_img, output_dir / "background.png")
-    elif has_video:
-        # Video theme without GraphImage items.
+    elif video_copied:
+        # Video theme without GraphImage items, and the video actually made it
+        # into this conversion (see has_animation above for why this must key
+        # off video_copied rather than has_video/video_name).
         # Prefer image_1 (first animation frame) but fall back to image_0 when
         # all frames were identical and the extractor deduplicated them to one file.
         overlay_file = assets_dir / "image_1.png"
         if not overlay_file.exists():
             overlay_file = assets_dir / "image_0.png"
+        # Only use it as BACKGROUND if it's actually transparent enough to let
+        # the video show through. The daemon bakes static_images.BACKGROUND
+        # into every frame it uploads to the device, so an opaque image here
+        # paints over the video every tick and it never appears at all —
+        # unlike the classified opaque/overlay path above, this branch had no
+        # transparency check at all and would use image_1/image_0 unconditionally.
+        is_overlay = False
         if overlay_file.exists():
+            try:
+                from PIL import Image as PILImage
+                import numpy as _np
+                probe = PILImage.open(overlay_file)
+                if probe.mode == 'RGBA':
+                    alpha = _np.array(probe)[:, :, 3]
+                    is_overlay = (alpha < 255).sum() / alpha.size > 0.3
+            except Exception:
+                is_overlay = False
+        if is_overlay:
             shutil.copy2(overlay_file, output_dir / "background.png")
+        else:
+            # No usable transparent asset — generate a fully transparent
+            # placeholder so the theme still gets a normal BACKGROUND entry
+            # and the video shows through completely.
+            _make_transparent_background(output_dir / "background.png", width, height)
         static_imgs["BACKGROUND"] = {
             "PATH": "background.png",
             "X": 0, "Y": 0, "WIDTH": width, "HEIGHT": height,

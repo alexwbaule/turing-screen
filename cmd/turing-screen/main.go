@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -158,14 +159,13 @@ func main() {
 				return
 			}
 
-			hw := hwinfo.Detect(app.Log, app.Config.GetGPUSensorConfig().Provider)
+			hw := hwinfo.Detect(app.Log, app.Config.GetGPUSensorConfig().Provider, app.Config.GetNetworkConfig())
 			apiController.SetHWInfo(hw)
 
 			orientation := statsTheme.GetDisplay().Orientation
 			apiController.SetOrientation(orientation)
 			builder := renderer.NewBuilder(app.Log, app.Config.GetDeviceDisplay(), statsTheme.GetDisplay())
 			builder.BuildBackgroundImage(statsTheme.GetStaticImages())
-			builder.BuildBackgroundTexts(statsTheme.GetStaticTexts())
 
 			values := &compositor.SensorValues{}
 			currentValues.Store(values)
@@ -276,6 +276,14 @@ func main() {
 			}
 
 			comp.SetModelStrings(hw.CPUModel, hw.GPUModel, hw.MemTotal, hw.DiskModel, hw.Hostname)
+			comp.SetStaticLayers(statsTheme.GetStaticImages(), statsTheme.GetStaticTexts())
+			if dir := os.Getenv("TURING_DEBUG_LAYERS"); dir != "" {
+				if err := comp.EnableLayerDebug(dir); err != nil {
+					app.Log.Warnf("layer debug: %v", err)
+				} else {
+					app.Log.Infof("layer debug: dumping compositing steps to %s", dir)
+				}
+			}
 
 			// Common: start sensor collectors
 			cpuCfg := app.Config.GetCPUSensorConfig()
@@ -343,6 +351,16 @@ func main() {
 				sensorCancel()
 			}
 			sensorWg.Wait()
+
+			// Wait for any in-flight H264 video stream to fully stop before
+			// returning. sensorCancel already told it to stop (via sensorCtx),
+			// but without this wait, the next startSensors() for a new theme
+			// could start a NEW video stream while the OLD one is still
+			// mid-shutdown — both briefly contending for the same USB mutex
+			// and potentially interleaving chunks from two different videos.
+			if isTURZX && turzxDrv != nil {
+				turzxDrv.WaitVideoStopped()
+			}
 
 			if !isTURZX {
 				// Drain remaining jobs

@@ -10,11 +10,18 @@ display:
   HEIGHT: 1280
 static_images:
   BACKGROUND:
-    PATH: assets/image_4.png
+    PATH: assets/image_1.png
     X: -38
     Y: 1
-    WIDTH: 480
-    HEIGHT: 800
+    WIDTH: 787
+    HEIGHT: 1312
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 0
+    Y: 0
+    WIDTH: 720
+    HEIGHT: 1280
+    INDEX: 1
 static_texts:
   RAM_LABEL:
     TEXT: Ram Used

@@ -22,6 +22,20 @@ import (
 
 const VendorID gousb.ID = 0x1cbe
 
+// usbReadTimeout bounds every response read from the device. Without it, a
+// device that stops answering mid-stream (observed with some H264 video
+// content) blocks epIn.Read forever while still holding d.mu — every
+// subsequent SendFrame call then deadlocks waiting for the same mutex, and
+// the whole daemon looks "frozen" until the process is restarted (which
+// re-opens the USB handle). A bounded read turns that into a logged,
+// recoverable error instead of a permanent hang.
+//
+// Legitimate multi-second waits for the device's H264 buffer to drain are
+// now handled separately by waitForQueueDrain's repeated 50ms polls (mirrors
+// the Python reference), so this timeout only needs to catch a genuinely
+// unresponsive device, not normal flow control — back to 2s.
+const usbReadTimeout = 2 * time.Second
+
 // ProductID maps USB product ID to native (width, height) in portrait orientation.
 // All frames are sent in portrait orientation; SendFrame rotates per theme orientation.
 // Source: https://github.com/mathoudebine/turing-smart-screen-python
@@ -167,11 +181,26 @@ func NewDriver(log *logger.Logger) (*Driver, error) {
 	}, nil
 }
 
+// WaitVideoStopped blocks until any in-flight H264 streaming goroutine has
+// fully exited (including its cmdStopStream cleanup send). Callers must
+// cancel the context passed to StartVideoStream first — this only waits,
+// it doesn't itself signal a stop. Safe to call even if no video was ever
+// started (returns immediately).
+//
+// This matters on theme switch: stopping sensors cancels the old theme's
+// video context, but without waiting here, the caller could start the new
+// theme's video stream while the old goroutine is still mid-shutdown —
+// both briefly contending for d.mu and potentially interleaving H264 chunks
+// from the old video with the new one's setup sequence.
+func (d *Driver) WaitVideoStopped() {
+	d.videoWg.Wait()
+}
+
 // Close releases all USB resources.
 func (d *Driver) Close() {
 	// Wait for the H264 streaming goroutine to exit before releasing USB resources.
 	// Without this, libusb_exit() races with an in-flight libusb_submit() → SIGSEGV.
-	d.videoWg.Wait()
+	d.WaitVideoStopped()
 
 	if d.intf != nil {
 		d.intf.Close()
@@ -351,6 +380,41 @@ func (d *Driver) flush() {
 	}
 }
 
+// readResponse reads the device's reply with a bounded timeout (usbReadTimeout),
+// so a device that stops answering can never block the caller — and the d.mu
+// it holds — forever. Returns the bytes read, or an error on timeout/failure.
+// Caller must hold d.mu.
+func (d *Driver) readResponse() ([]byte, error) {
+	resp := make([]byte, 512)
+	ctx, cancel := context.WithTimeout(context.Background(), usbReadTimeout)
+	defer cancel()
+	n, err := d.epIn.ReadContext(ctx, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp[:n], nil
+}
+
+// writeRequest writes payload to the OUT endpoint with the same bounded
+// timeout as readResponse — a stalled bulk write must not be able to block
+// the caller (and the d.mu it holds) forever either. Also verifies the full
+// payload was written: WriteContext can return n < len(payload) with a nil
+// error, and silently accepting that would send the device a truncated
+// image/command with no indication anything was wrong (e.g. a large PNG
+// frame arriving cut short, rendering with only the top portion visible).
+func (d *Driver) writeRequest(payload []byte) error {
+	ctx, cancel := context.WithTimeout(context.Background(), usbReadTimeout)
+	defer cancel()
+	n, err := d.epOut.WriteContext(ctx, payload)
+	if err != nil {
+		return err
+	}
+	if n != len(payload) {
+		return fmt.Errorf("short write: sent %d of %d bytes", n, len(payload))
+	}
+	return nil
+}
+
 // sendCmd sends an encrypted command packet and reads the 512-byte response.
 // Caller must hold d.mu.
 func (d *Driver) sendCmd(cmdID int) ([]byte, error) {
@@ -358,17 +422,16 @@ func (d *Driver) sendCmd(cmdID int) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("encrypt: %w", err)
 	}
-	if _, err := d.epOut.Write(enc); err != nil {
+	if err := d.writeRequest(enc); err != nil {
 		return nil, fmt.Errorf("USB write: %w", err)
 	}
-	resp := make([]byte, 512)
-	n, err := d.epIn.Read(resp)
+	resp, err := d.readResponse()
 	if err != nil {
 		d.log.Warnf("TURZX read response (non-fatal): %v", err)
 		return nil, nil
 	}
 	d.flush()
-	return resp[:n], nil
+	return resp, nil
 }
 
 // sendCmdByte sends an encrypted command with a single byte parameter at pkt[8].
@@ -380,11 +443,12 @@ func (d *Driver) sendCmdByte(cmdID int, val byte) error {
 	if err != nil {
 		return fmt.Errorf("encrypt: %w", err)
 	}
-	if _, err := d.epOut.Write(enc); err != nil {
+	if err := d.writeRequest(enc); err != nil {
 		return fmt.Errorf("USB write: %w", err)
 	}
-	resp := make([]byte, 512)
-	d.epIn.Read(resp) //nolint:errcheck
+	if _, err := d.readResponse(); err != nil {
+		d.log.Warnf("TURZX read response (non-fatal): %v", err)
+	}
 	d.flush()
 	return nil
 }
@@ -406,18 +470,20 @@ func (d *Driver) sendImageData(cmdID int, data []byte) error {
 	payload := make([]byte, len(enc)+len(data))
 	copy(payload, enc)
 	copy(payload[len(enc):], data)
-	if _, err := d.epOut.Write(payload); err != nil {
+	if err := d.writeRequest(payload); err != nil {
 		return fmt.Errorf("USB write: %w", err)
 	}
-	resp := make([]byte, 512)
-	d.epIn.Read(resp) //nolint:errcheck
+	if _, err := d.readResponse(); err != nil {
+		d.log.Warnf("TURZX read response (non-fatal): %v", err)
+	}
 	d.flush()
 	return nil
 }
 
 // sendH264Chunk sends one H.264 data chunk via CMD_PLAY_H264_CHUNK (121).
 // isLast=true sets pkt[12]=1, signalling end of one full pass to the device.
-// Returns the response bytes, or nil on error.
+// Returns the response bytes, or nil on error (including a read timeout —
+// the caller already treats nil as "back off and retry").
 // Caller must hold d.mu.
 func (d *Driver) sendH264Chunk(data []byte, isLast bool) []byte {
 	pkt := buildPacket(cmdPlayH264Chunk)
@@ -437,17 +503,17 @@ func (d *Driver) sendH264Chunk(data []byte, isLast bool) []byte {
 	payload := make([]byte, len(enc)+len(data))
 	copy(payload, enc)
 	copy(payload[len(enc):], data)
-	if _, err := d.epOut.Write(payload); err != nil {
+	if err := d.writeRequest(payload); err != nil {
 		d.log.Warnf("TURZX H264 write: %v", err)
 		return nil
 	}
-	resp := make([]byte, 512)
-	n, err := d.epIn.Read(resp)
+	resp, err := d.readResponse()
 	if err != nil {
+		d.log.Warnf("TURZX H264 read response (non-fatal): %v", err)
 		return nil
 	}
 	d.flush()
-	return resp[:n]
+	return resp
 }
 
 // Initialize sends SYNC, sets brightness, and sets frame rate to 25 fps.
@@ -569,15 +635,18 @@ func (d *Driver) StartVideoStream(ctx context.Context, h264Data []byte) {
 	// 14 (BRIGHTNESS=32), 41 (VIDEO_OVERLAY), 102 (CLEAR_IMAGE), 15 (FRAME_RATE=25),
 	// then negotiate chunk size via cmd 17.
 	d.mu.Lock()
-	d.sendCmd(cmdVideoMode)    //nolint:errcheck
-	d.sendCmd(cmdVideoModeAck) //nolint:errcheck
-	d.sendCmd(cmdVideoInit)    //nolint:errcheck
-	d.sendCmdByte(cmdBrightness, 32) //nolint:errcheck
-	d.sendCmd(cmdVideoOverlay) //nolint:errcheck
-	d.sendImageData(cmdUploadPNG, d.blackPNG()) //nolint:errcheck // clear_image
-	d.sendCmdByte(cmdFrameRate, 25) //nolint:errcheck
+	r1, _ := d.sendCmd(cmdVideoMode)
+	r2, _ := d.sendCmd(cmdVideoModeAck)
+	r3, _ := d.sendCmd(cmdVideoInit)
+	e4 := d.sendCmdByte(cmdBrightness, 32)
+	r5, _ := d.sendCmd(cmdVideoOverlay)
+	e6 := d.sendImageData(cmdUploadPNG, d.blackPNG()) // clear_image
+	e7 := d.sendCmdByte(cmdFrameRate, 25)
 	resp, _ := d.sendCmd(cmdGetH264ChunkSize)
 	d.mu.Unlock()
+
+	d.log.Debugf("TURZX: video setup — mode=%v modeAck=%v init=%v brightness_err=%v overlay=%v clear_err=%v frameRate_err=%v chunkNeg=%v",
+		r1 != nil, r2 != nil, r3 != nil, e4, r5 != nil, e6, e7, resp != nil)
 
 	chunkSize := defaultH264ChunkSize
 	if resp != nil && len(resp) >= 12 {
@@ -592,16 +661,20 @@ func (d *Driver) StartVideoStream(ctx context.Context, h264Data []byte) {
 		// videoWg.Done is the outermost defer so it runs AFTER cmdStopStream completes,
 		// guaranteeing Close() only proceeds once all USB activity has finished.
 		defer d.videoWg.Done()
+		defer func() { d.log.Debugf("TURZX: video stream goroutine exiting (ctx err: %v)", ctx.Err()) }()
 		defer func() {
 			d.mu.Lock()
 			d.sendCmd(cmdStopStream) //nolint:errcheck
 			d.mu.Unlock()
 		}()
 
+		pass := 0
 		for {
 			if ctx.Err() != nil {
 				return
 			}
+			pass++
+			d.log.Debugf("TURZX: video pass #%d starting (offset reset to 0)", pass)
 			offset := 0
 			for offset < len(h264Data) {
 				if ctx.Err() != nil {
@@ -615,25 +688,56 @@ func (d *Driver) StartVideoStream(ctx context.Context, h264Data []byte) {
 
 				d.mu.Lock()
 				resp := d.sendH264Chunk(h264Data[offset:end], isLast)
-				var queueDepth byte
-				if resp != nil {
-					if st, _ := d.sendCmd(cmdGetStreamStatus); st != nil && len(st) > 8 {
-						queueDepth = st[8]
-					}
-				}
 				d.mu.Unlock()
 
-				if resp == nil || queueDepth > 3 {
-					select {
-					case <-time.After(50 * time.Millisecond):
-					case <-ctx.Done():
+				// Flow control — mirrors the Python reference exactly: no retry
+				// of the failed/backed-up chunk (it just accepts the loss and
+				// moves on to the next one), but the wait itself is a loop that
+				// re-polls CMD_GET_STREAM_STATUS every 50ms until the device's
+				// queue depth (response byte 8) actually drops to <=2 — not a
+				// single fixed sleep. A one-shot sleep here (what this code used
+				// to do) keeps pushing chunks into an already-backed-up device,
+				// which is how we observed queueDepth climb to 100+.
+				if resp == nil {
+					if !d.waitForQueueDrain(ctx, 2) {
 						return
+					}
+				} else {
+					d.mu.Lock()
+					st, _ := d.sendCmd(cmdGetStreamStatus)
+					d.mu.Unlock()
+					if st != nil && len(st) > 8 && st[8] > 3 {
+						if !d.waitForQueueDrain(ctx, 2) {
+							return
+						}
 					}
 				}
 				offset = end
 			}
 		}
 	}()
+}
+
+// waitForQueueDrain mirrors the Python reference's recursive delay(dev, rst):
+// sleep 50ms, re-poll CMD_GET_STREAM_STATUS, and repeat until the device's
+// reported queue depth (response byte 8) is at or below rst — not a single
+// fixed sleep. Returns false if ctx was cancelled mid-wait (caller should
+// stop), true once drained (or once status can't be read, matching Python's
+// "no response" treated as "stop waiting").
+func (d *Driver) waitForQueueDrain(ctx context.Context, rst byte) bool {
+	for {
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return false
+		}
+		d.mu.Lock()
+		st, _ := d.sendCmd(cmdGetStreamStatus)
+		d.mu.Unlock()
+		if st == nil || len(st) <= 8 || st[8] <= rst {
+			return true
+		}
+	}
 }
 
 // blackPNG returns a 1×1 black RGBA PNG — used as clear_image in the video setup sequence.

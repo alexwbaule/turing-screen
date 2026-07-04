@@ -648,6 +648,21 @@ class DraggableRadial(_DraggableBase):
         if self.data.REVERT:
             bar_rgba, empty_rgba = empty_rgba, bar_rgba
 
+        # Guide track: always draw the full angle_start→angle_end span at low
+        # opacity, regardless of BACKGROUND_COLOR — mirrors DraggableGauge,
+        # which always strokes its full amin→amax arc. Without this, a Radial
+        # with no BACKGROUND_COLOR only ever shows the fixed 75% demo fill and
+        # gives no visual indication of where the real 100% (ANGLE_END) lands,
+        # which misleads theme authors into miscalibrating the end angle.
+        cr.set_line_cap(cairo.LINE_CAP_BUTT)
+        cr.set_line_width(2)
+        cr.set_source_rgba(1, 1, 1, 0.25)
+        if self.data.CLOCKWISE:
+            cr.arc(cx, cy, track_r, angle_start, angle_end)
+        else:
+            cr.arc_negative(cx, cy, track_r, angle_start, angle_end)
+        cr.stroke()
+
         cr.set_line_cap(cairo.LINE_CAP_ROUND if self.data.ROUND else cairo.LINE_CAP_BUTT)
         cr.set_line_width(ring_w)
 

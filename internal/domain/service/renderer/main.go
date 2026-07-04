@@ -12,8 +12,6 @@ import (
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/device"
 	"github.com/alexwbaule/turing-screen/internal/domain/entity/theme"
 	"github.com/alexwbaule/turing-screen/internal/utils"
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -42,82 +40,26 @@ func NewBuilder(l *logger.Logger, v *device.Display, d *theme.Display) *Builder 
 	}
 }
 
-const tolerance = float64(2)
-
-// BuildBackgroundImage composites all static images onto b.background in z-order.
-// BACKGROUND is drawn first (bottommost), then all other images sorted by Index.
-// Baking all images into the background before BuildBackgroundTexts runs ensures
-// static texts always appear on top of any decorative overlay image.
+// BuildBackgroundImage bakes the pinned BACKGROUND layer (INDEX 0) into
+// b.background. BACKGROUND is the one static image that is always the
+// bottommost layer and is never interleaved with anything else by INDEX.
+//
+// Every other static image layer (and every static text) is intentionally
+// NOT baked here — the compositor draws those per-frame, merged into the
+// same INDEX-ordered z-stack as the STATS widgets (see
+// Compositor.collectStaticImageItems / collectStaticTextItems), so a layer
+// image can sit above or below a sensor widget exactly as configured.
+// Baking them here instead would always place them behind every STATS
+// widget, regardless of their relative INDEX.
 func (b *Builder) BuildBackgroundImage(images map[string]theme.StaticImage) {
-	// Draw BACKGROUND first.
 	if bg, ok := images["BACKGROUND"]; ok && bg.BackgroundImage != nil {
 		r := image.Rect(bg.X, bg.Y, bg.X+bg.BackgroundImage.Bounds().Dx(), bg.Y+bg.BackgroundImage.Bounds().Dy())
 		draw.Draw(b.background, r, bg.BackgroundImage, bg.BackgroundImage.Bounds().Min, draw.Over)
-	}
-
-	// Collect non-BACKGROUND images, sort by Index, draw in order.
-	layers := make([]theme.StaticImage, 0, len(images))
-	for name, img := range images {
-		if name != "BACKGROUND" && img.BackgroundImage != nil {
-			layers = append(layers, img)
-		}
-	}
-	slices.SortFunc(layers, func(a, b theme.StaticImage) int {
-		return a.Index - b.Index
-	})
-	for _, img := range layers {
-		r := image.Rect(img.X, img.Y, img.X+img.BackgroundImage.Bounds().Dx(), img.Y+img.BackgroundImage.Bounds().Dy())
-		draw.Draw(b.background, r, img.BackgroundImage, img.BackgroundImage.Bounds().Min, draw.Over)
 	}
 }
 
 func (b *Builder) GetBackground() *image.NRGBA {
 	return b.background
-}
-
-func (b *Builder) BuildBackgroundTexts(images map[string]theme.StaticText) {
-	keys := maps.Keys(images)
-	slices.Sort(keys)
-	for _, name := range keys {
-		text := images[name]
-
-		// Measure text
-		w := measureString(text.Font, text.Text)
-		metrics := text.Font.Metrics()
-		ascent := metrics.Ascent
-		h := fixedToFloat(metrics.Ascent + metrics.Descent)
-
-		// Compute draw origin based on alignment (same semantics as DrawText)
-		var drawX float64
-		switch text.Align {
-		case theme.CENTER:
-			drawX = float64(text.X) - w/2
-		case theme.RIGHT:
-			drawX = float64(text.X) - w
-		default: // LEFT
-			drawX = float64(text.X)
-		}
-
-		bgX := drawX - tolerance
-		bgY := float64(text.Y)
-
-		if text.BackgroundColor != nil && text.BackgroundColor != color.Transparent {
-			fillRect(b.background, int(bgX), int(bgY), int(w+tolerance+tolerance), int(h), text.BackgroundColor)
-		}
-
-		dot := fixed.Point26_6{
-			X: fixed.Int26_6(int((drawX - (tolerance / 2)) * 64)),
-			Y: fixed.I(int(bgY-(tolerance/2))) + ascent,
-		}
-
-		d := &font.Drawer{
-			Dst:  b.background,
-			Src:  image.NewUniform(text.FontColor),
-			Face: text.Font,
-			Dot:  dot,
-		}
-		d.DrawString(text.Text)
-	}
 }
 
 

@@ -10,11 +10,25 @@ display:
   HEIGHT: 480
 static_images:
   BACKGROUND:
-    PATH: assets/image_4.png
+    PATH: assets/image_1.png
     X: 0
     Y: 0
+    WIDTH: 800
+    HEIGHT: 480
+  LAYER_2:
+    PATH: assets/image_3.png
+    X: 386
+    Y: 93
+    WIDTH: 380
+    HEIGHT: 240
+    INDEX: 1
+  LAYER_3:
+    PATH: assets/image_5.png
+    X: 307
+    Y: -1
     WIDTH: 112
     HEIGHT: 480
+    INDEX: 2
 static_texts:
   HDDUSED_LABEL:
     TEXT: Hard disk usage_1
@@ -89,7 +103,7 @@ static_texts:
     FONT_COLOR: 0, 0, 0
     ALIGN: left
   RAMTOTAL_GB_LABEL:
-    TEXT: Total memory (GB)
+    TEXT: Total memory(GB)
     X: 212
     Y: 150
     FONT: jetbrains-mono/JetBrainsMono-Bold.ttf

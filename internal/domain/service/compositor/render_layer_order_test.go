@@ -29,6 +29,7 @@ func TestRadialBehindLayerImage(t *testing.T) {
 	radial.Width = 20
 	radial.MinValue, radial.MaxValue = 0, 100
 	radial.AngleStart, radial.AngleEnd = 0, 270
+	radial.Clockwise = true
 	radial.BarColor = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
 
 	probe := func(f *image.NRGBA) color.NRGBA { return f.NRGBAAt(100, 70) }
